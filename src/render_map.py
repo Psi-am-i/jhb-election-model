@@ -8,7 +8,8 @@ drafts/forecast-draft.html.
 Presentation (user reviews 2026-08-06): rotated 90° (north right, marked);
 districts labelled; four confidence tiers — Safe >=90% solid, Strongly
 leaning 75-90% finely hatched, Leaning 60-75% heavily hatched, Toss-up <60%
-grey — with a swatch key; JS tooltips list every party winning >=5% of a
+striped on grey, one stripe per contender in proportion to its share
+(owner, 2026-09-17) — with a swatch key; JS tooltips list every party winning >=5% of a
 ward's simulations plus an "other" remainder.
 
 Usage:  python src/render_map.py
@@ -25,7 +26,11 @@ import cityconfig
 import math
 import os
 
-import geopandas as gpd
+# NO GEOPANDAS AND NO CITY FILE AT IMPORT (2026-10-02). /your-forecast/ section 1 draws a ward
+# under a reader's weights with THIS module's `ward_call` (one definition):
+# `interactive/pyboot/page.py` imports it under Pyodide in the browser, which
+# has no geopandas and opens no file. Both are needed only to draw the
+# boundaries, so they load in `main` (`_map_config`).
 
 CHIPS = {
     "DA": "#1B5EA8", "ANC": "#1B7A3D", "EFF": "#B3202B", "MK": "#5B6E22",
@@ -38,20 +43,209 @@ GREY = "#9aa09a"
 MARK_START = "<!-- __MAP_START__ -->"
 MARK_END = "<!-- __MAP_END__ -->"
 
-# (label, lon, lat) — approximate district centroids for orientation
-# Map chrome is per-city: which places to label, the cos-latitude correction
-# for lon->km, and how far to rotate so the city sits well in a wide figure.
-# All three live in cities/<slug>.toml [map]; the first is editorial, the
-# second is derivable from the centroid, the third is an aesthetic call.
-_CITY = cityconfig.load(os.environ.get("CITY_SLUG") or None)
-_MAP = _CITY.raw.get("map", {})
 
-DISTRICTS = [(d["name"], float(d["lon"]), float(d["lat"]))
-             for d in _MAP.get("labels", [])]
+def _map_config():
+    """``(city, districts, W, COS, ANG)``: the city's map chrome, read when drawing.
 
-W = float(_MAP.get("width", 840.0))
-COS = float(_MAP.get("cos_lat", 0.898))   # lon->km correction at this latitude
-ANG = math.radians(float(_MAP.get("rotate_deg", 40)))
+    Map chrome is per-city: which places to label ((label, lon, lat),
+    approximate district centroids for orientation), the cos-latitude
+    correction for lon->km, and how far to rotate so the city sits well in a
+    wide figure. All three live in cities/<slug>.toml [map]; the first is
+    editorial, the second is derivable from the centroid, the third is an
+    aesthetic call.
+    """
+    city = cityconfig.load(os.environ.get("CITY_SLUG") or None)
+    m = city.raw.get("map", {})
+    districts = [(d["name"], float(d["lon"]), float(d["lat"])) for d in m.get("labels", [])]
+    return (city, districts, float(m.get("width", 840.0)),
+            float(m.get("cos_lat", 0.898)),          # lon->km correction at this latitude
+            math.radians(float(m.get("rotate_deg", 40))))
+
+
+#: A party gets a STRIPE only if it wins the ward in at least one simulation in
+#: ten. Owner, 2026-09-17: "If you win 1:10 I'd say you're reasonably a
+#: contender ... 3/50? or 1/16 ... it's fair not to draw you (but you are in the
+#: tooltip)." The tooltip keeps its 5% cut; a hairline stripe is not information.
+STRIPE_MIN = 0.10
+UNKNOWN_CHIP = "#5f6660"   # never GREY: a grey stripe on grey ground vanishes
+REST = "__rest__"          # the band for every party below STRIPE_MIN, drawn in GREY
+
+
+def stripe_parties(entries, winner=None, limit=2):
+    """Parties that earn a stripe, strongest first, excluding ``winner``."""
+    return [(c, v) for c, v in sorted(entries, key=lambda cv: -cv[1])
+            if c != winner and v >= STRIPE_MIN][:limit]
+
+
+def toss_pattern(contenders, step: float = 7.0, prefix: str = "h"):
+    """A too-close-to-call ward's pattern: one BAND per contender.
+
+    The bands tile the whole pattern width in proportion to each contender's
+    share, so no ground colour shows between them. The first version drew thin
+    lines on grey, and the grey gaps read as extra stripes — a 49/49 IFP/MK ward
+    looked like four parties (owner, 2026-09-17). Returns ``(pattern_id, svg)``,
+    or ``None`` with fewer than two contenders (the ward stays plain grey).
+    """
+    bands = toss_bands(contenders, step)
+    if bands is None:
+        return None
+    pid = f"{prefix}_toss_" + "_".join(
+        f"{b['colour'].lstrip('#')}{b['w']:.1f}".replace(".", "p") for b in bands)
+    lines = [f'<line x1="{b["x"]:.2f}" y1="0" x2="{b["x"]:.2f}" '
+             f'y2="{step}" stroke="{b["colour"]}" stroke-width="{b["w"]:.2f}"/>'
+             for b in bands]
+    return pid, (f'<pattern id="{pid}" width="{step}" height="{step}" '
+                 f'patternTransform="rotate({TOSS_ROTATE})" patternUnits="userSpaceOnUse">'
+                 + "".join(lines) + "</pattern>")
+
+
+#: The stripe pattern's tile and angle, shared by :func:`toss_pattern` and the
+#: section 1 of /your-forecast/, which builds the same pattern with DOM calls from
+#: :func:`toss_bands` (a page script may not inject markup).
+TOSS_STEP = 7.0
+TOSS_ROTATE = 45
+
+
+def toss_bands(contenders, step: float | None = None):
+    """The geometry of :func:`toss_pattern`: one vertical line per contender.
+
+    ``[{"colour", "x", "w"}]``, ``x`` the line's centre and ``w`` its width
+    in a tile ``step`` wide, or ``None`` with fewer than two contenders. The one
+    definition of the pattern's shape: ``toss_pattern`` writes it as markup,
+    /your-forecast/ section 1 (``pyboot/page.py``) hands it to the page, which builds it as DOM.
+    """
+    step = TOSS_STEP if step is None else float(step)
+    if len(contenders) < 2:
+        return None
+    total = sum(v for _, v in contenders)
+    out, x = [], 0.0
+    for c, v in contenders:
+        w = step * v / total
+        out.append({"colour": GREY if c == REST else CHIPS.get(c, UNKNOWN_CHIP),
+                    "x": x + w / 2, "w": w})
+        x += w
+    return out
+
+
+#: Solid colour only when one party wins the ward in at least this share of
+#: simulations. Owner, 2026-09-17: "safe = solid colour, wins 90%; stripes show
+#: every party that wins more than 10% of simulations; thicker = more wins.
+#: Leaning and strongly leaning aren't visually different and can be removed."
+SAFE = 0.90
+TIP_FLOOR = 0.05          # a party is named in the tooltip at >= this share
+OTHER_FLOOR = 0.005       # ...and the "other" remainder is shown at >= this
+
+
+def ward_call(ward: str, winner: str, pw: float, dist: str) -> dict:
+    """How ONE ward is drawn and described. The only definition: the geographic
+    map and the hex cartogram both call this, so they cannot disagree.
+
+    ``dist`` is ``ward_winner_probs.csv``'s ``PARTY:share|PARTY:share`` field.
+    Returns ``fill``, ``cls`` (``solid`` or ``contested``), ``tip`` and
+    ``bands`` — the parties that earn a band, strongest first.
+    """
+    entries = [(c.split(":")[0], float(c.split(":")[1])) for c in dist.split("|")]
+    main = [(c, v) for c, v in entries if v >= TIP_FLOOR]
+    other = sum(v for c, v in entries if v < TIP_FLOOR)
+
+    def _pc(v):
+        # ⛔ never "100%": it reads as certain, and wards that looked safe have lost
+        return "over 99%" if v > 0.99 else f"{v:.0%}"
+    share = " · ".join(f"{NAMES.get(c, c.title())} {_pc(v)}" for c, v in main)
+    if other >= OTHER_FLOOR:
+        share += f" · other {other:.0%}"
+    name = NAMES.get(winner, winner.title())
+    if pw >= SAFE:
+        return {"fill": CHIPS.get(winner, UNKNOWN_CHIP), "cls": "solid", "bands": [],
+                "tip": f"Ward {ward} · {name} in over 9 of every 10 simulations — {share}"}
+    bands = stripe_parties(main, limit=4)
+    rest = 1.0 - sum(v for _, v in bands)
+    # A ward under 90% with only ONE party at >= 10% still must not look safe,
+    # and must not be plain grey either (it read as "too close to call", owner
+    # 2026-09-17). Everyone below the stripe line becomes one grey band, sized
+    # to its share, whenever it would be a real band or the only other band.
+    if rest >= STRIPE_MIN or (len(bands) < 2 and rest > 0):
+        bands = bands + [(REST, rest)]
+    return {"fill": GREY, "cls": "contested", "bands": bands,
+            "tip": f"Ward {ward} · contested — share of simulations won: {share}"}
+
+
+def ward_hatch(call: dict, patterns: dict, prefix: str = "h") -> str | None:
+    """The banded fill for a contested ward, registered in ``patterns``.
+
+    ⛔ ``prefix`` IS NOT DECORATION. Both maps are in one document, and a
+    reference resolves to the FIRST element with that id. With shared ids the
+    cartogram's bands pointed at the land map's patterns — and when the land map
+    is hidden by the toggle, a pattern inside it stops rendering, so every
+    contested hexagon went flat grey (owner, 2026-09-18).
+    """
+    made = toss_pattern(call["bands"], prefix=prefix) if call["cls"] == "contested" else None
+    if not made:
+        return None
+    pid, svg = made
+    patterns.setdefault(pid, svg)
+    return pid
+
+
+#: Key swatch colours that belong to no party: a solid block and a striped one
+#: in these would otherwise read as "the ANC" or "Rise" (owner, 2026-09-17).
+KEY_SOLID, KEY_STRIPE_A, KEY_STRIPE_B = "#d9d3c3", "#d9d3c3", "#4b4f4c"
+KEY_PARTIES = ("ANC", "DA", "EFF", "MK", "ASA", "PA", "IFP", "ALJAMAAH")
+
+
+def party_key() -> str:
+    """The party colours, shown first in both maps' keys."""
+    return " ".join(
+        f'<span class="mapkey-party"><span class="pchip pc-{c}"></span>{NAMES[c]}</span>'
+        for c in KEY_PARTIES)
+
+
+def probs_calls(rows) -> dict[str, dict]:
+    """``{ward: ward_call(...)}`` from ``ward_winner_probs.csv``'s rows."""
+    return {r["ward"]: ward_call(r["ward"], r["winner"], float(r["p_win"]), r["dist"])
+            for r in rows}
+
+
+def ward_layers(geometry: dict, calls: dict, *, prefix: str = "h",
+                tips: bool = True) -> tuple[str, str, str]:
+    """``(patterns, fills, hatches)``: the SVG markup of every ward, drawn by ``ward_call``.
+
+    ``geometry`` is ``{ward: path data}`` (``ward_paths.json``'s ``paths``),
+    ``calls`` ``{ward: ward_call(...)}``. ONE DRAWING RULE for the forecast's
+    map (``main``) and section 1's published map (``build_play``); section 1's map
+    under a reader's weights takes the same ``ward_call`` and
+    :func:`toss_bands` through ``pyboot/page.py`` and builds the DOM itself.
+    ``tips=False`` leaves out ``data-tip`` (the share image carries none).
+    """
+    patterns: dict[str, str] = {}
+    paths, hatches = [], []
+    for ward, d in geometry.items():
+        call = calls.get(ward) or {"fill": GREY, "cls": "contested", "bands": [],
+                                   "tip": f"Ward {ward}"}
+        tip = f' data-tip="{call["tip"]}"' if tips else ""
+        paths.append(f'<path d="{d}" fill="{call["fill"]}" stroke="var(--paper)" '
+                     f'stroke-width="0.8"{tip}></path>')
+        pid = ward_hatch(call, patterns, prefix=prefix)
+        if pid:
+            hatches.append(f'<path d="{d}" fill="url(#{pid})" pointer-events="none"></path>')
+    return "".join(patterns.values()), "".join(paths), "".join(hatches)
+
+
+def map_key(called: dict, n_draws_token: str = "{{n_draws}}") -> str:
+    """The key both maps show: party colours, then what solid and striped mean."""
+    stripes = "".join(
+        f'<rect x="{i * 3}" width="3" height="12" fill="{KEY_STRIPE_A if i % 2 == 0 else KEY_STRIPE_B}" '
+        f'transform="skewX(-30)"/>' for i in range(-2, 12))
+    return f"""<span class="mapkey-parties">{party_key()}</span>
+    <span class="mapkey-item">
+      <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{KEY_SOLID}"/></svg>
+      <b>Solid colour</b>&nbsp;one party wins the ward in at least 9 of every 10 simulations ({called.get('solid', 0)})</span>
+    <span class="mapkey-item">
+      <svg width="18" height="12"><clipPath id="keyclip"><rect width="18" height="12" rx="2"/></clipPath><g clip-path="url(#keyclip)">{stripes}</g></svg>
+      <b>Stripes</b>&nbsp;contested ({called.get('contested', 0)})</span>
+    <br><span class="mapkey-note">A stripe for every party that wins the ward in
+      at least 1 in 10 of the {n_draws_token} simulations; the wider the stripe, the more simulations
+      it wins. Grey is every other party together. These are shares of simulations, not vote shares.</span>"""
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -60,9 +254,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--probs", type=Path,
                         default=Path("data/processed/ward_winner_probs.csv"))
     parser.add_argument("--simplify", type=float, default=0.0006)
+    parser.add_argument("--paths-out", type=Path, default=Path("data/processed/ward_paths.json"),
+                        help="where the ward geometry is written (/your-forecast/ section 1 and the cartogram read it)")
+    parser.add_argument("--into", type=Path, nargs="+",
+                        # not home.html: its map is cut from forecast-sheet.html's
+                        # at build time (render_home.home_map, 2026-10-10)
+                        default=[Path("forecast-sheet.html"),
+                                 Path("drafts/forecast-draft.html")],
+                        help="the pages whose __MAP_ markers take the snippet")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+    import geopandas as gpd
+    _CITY, DISTRICTS, W, COS, ANG = _map_config()
 
     with args.probs.open(encoding="utf-8", newline="") as fh:
         probs = {r["ward"]: r for r in csv.DictReader(fh)}
@@ -105,8 +309,9 @@ def main(argv: list[str] | None = None) -> int:
         rx, ry = rot(x, y)
         return ((rx - rminx) * scale + PAD_X, (ry - rminy) * scale + PAD_TOP)
 
-    paths, hatches, called = [], [], {"solid": 0, "strong": 0, "lean": 0, "grey": 0}
-    patterns: dict[str, str] = {}
+    called = {"solid": 0, "contested": 0}
+    geometry: dict[str, str] = {}
+    calls: dict[str, dict] = {}
     path_data: list = []
     for _, row in gdf.iterrows():
         p = probs.get(row["wardno"])
@@ -119,52 +324,14 @@ def main(argv: list[str] | None = None) -> int:
                 d += "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
 
         if p is None:
-            fill, cls = GREY, "grey"
-            tip = f"Ward {row['wardno']}"
+            call = {"fill": GREY, "cls": "contested", "bands": [], "tip": f"Ward {row['wardno']}"}
         else:
-            pw = float(p["p_win"])
-            winner = p["winner"]
-            name = NAMES.get(winner, winner.title())
-            entries = [(c.split(":")[0], float(c.split(":")[1]))
-                       for c in p["dist"].split("|")]
-            main = [(c, v) for c, v in entries if v >= 0.05]
-            other = sum(v for c, v in entries if v < 0.05)
-            share = " · ".join(f"{NAMES.get(c, c.title())} {v:.0%}" for c, v in main)
-            if other >= 0.005:
-                share += f" · other {other:.0%}"
-            challengers = [c for c, v in main if c != winner][:2]
-            if pw >= 0.90:
-                fill, cls, verdict = CHIPS.get(winner, GREY), "solid", f"safe {name}"
-            elif pw >= 0.75:
-                fill, cls, verdict = CHIPS.get(winner, GREY), "strong", f"strongly leaning {name}"
-            elif pw >= 0.60:
-                fill, cls, verdict = CHIPS.get(winner, GREY), "lean", f"leaning {name}"
-            else:
-                fill, cls, verdict = GREY, "grey", "too close to call"
-            tip = f"Ward {row['wardno']} · {verdict} — {share}"
-        called[cls] += 1
+            call = ward_call(row["wardno"], p["winner"], float(p["p_win"]), p["dist"])
+        called[call["cls"]] = called.get(call["cls"], 0) + 1
         path_data.append((row, d))
-        paths.append(f'<path d="{d}" fill="{fill}" stroke="var(--paper)" '
-                     f'stroke-width="0.8" data-tip="{tip}"></path>')
-        if p is not None and cls in ("strong", "lean") and challengers:
-            cols = [CHIPS.get(c, GREY) for c in challengers]
-            pid = f"h_{cls}_" + "_".join(c.lstrip("#") for c in cols)
-            shares = [v for c, v in main if c != winner][:2]
-            ratio = (shares[1] / shares[0]) if len(shares) > 1 and shares[0] > 0 else 0
-            pid += f"_r{int(ratio*10)}"
-            if pid not in patterns:
-                width = 3.2 if cls == "lean" else 1.6   # bolder = more contested
-                step = 7.0
-                lines = f'<line x1="0" y1="0" x2="0" y2="{step}" stroke="{cols[0]}" stroke-width="{width}"/>'
-                if len(cols) > 1:   # second challenger: stripe width in proportion
-                    w2 = max(width * ratio, 0.7)
-                    lines += (f'<line x1="{step/2}" y1="0" x2="{step/2}" y2="{step}" '
-                              f'stroke="{cols[1]}" stroke-width="{w2:.1f}"/>')
-                patterns[pid] = (f'<pattern id="{pid}" width="{step}" height="{step}" '
-                                 f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
-                                 f'{lines}</pattern>')
-            hatches.append(f'<path d="{d}" fill="url(#{pid})" '
-                           f'pointer-events="none"></path>')
+        geometry[row["wardno"]] = d
+        calls[row["wardno"]] = call
+    patterns, paths, hatches = ward_layers(geometry, calls)
 
     labels = []
     for name, lx, ly in DISTRICTS:
@@ -172,145 +339,74 @@ def main(argv: list[str] | None = None) -> int:
         if -10 <= px <= W + 10 and -10 <= py <= H + 10:
             labels.append(
                 f'<text x="{px:.0f}" y="{py:.0f}" text-anchor="middle" '
-                f'style="font:650 11px ui-sans-serif,system-ui;letter-spacing:.08em;'
-                f'text-transform:uppercase;fill:var(--ink);stroke:var(--paper);'
-                f'stroke-width:3px;paint-order:stroke;pointer-events:none">{name}</text>')
+                f'class="maplabel">{name}</text>')
     labels.append(
-        f'<text x="{W - 14:.0f}" y="20" text-anchor="end" '
-        f'style="font:600 11px ui-monospace,monospace;fill:var(--ink-3);'
-        f'pointer-events:none">N ↗</text>')
+        f'<text x="{W - 14:.0f}" y="20" text-anchor="end" class="mapnorth">N ↗</text>')
 
-    # council inset: the city silhouette filled with banded seat proportions
-    summary = json.loads(Path("data/processed/forecast_summary.json").read_text())
-    seats = sorted(((k, round(v["median"])) for k, v in summary["parties"].items()
-                    if round(v["median"]) >= 1), key=lambda kv: -kv[1])
+    # The full council as a plain stacked bar, not a city silhouette: PR seats
+    # have no geography, so drawing them inside the city outline suggested one
+    # (owner, 2026-09-17). Same typical simulation as the "two ballots" bars.
+    import csv as _csv
+    import scenarios as _scen
+    with (Path("data/processed") / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        _draws = list(_csv.DictReader(fh))
+    _parties = [k for k in _draws[0] if k not in ("draw", "threshold", "council_size")]
+    _S = {p: [int(r[p]) for r in _draws] for p in _parties}
+    _t = _scen.typical(_S, KEY_PARTIES)
+    seats = sorted(((p, _S[p][_t]) for p in _parties if _S[p][_t] > 0), key=lambda kv: -kv[1])
+    council = int(_draws[_t]["council_size"])
     named_total = sum(n for _, n in seats)
-    if named_total < 270:
-        seats.append(("OTHER", 270 - named_total))
-    outline = gdf.geometry.union_all().simplify(0.0012)
-    od = ""
-    for g in (outline.geoms if outline.geom_type == "MultiPolygon" else [outline]):
-        pts = [xy(x, y) for x, y in g.exterior.coords]
-        od += "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
-    MINI_W = 300.0
-    ms = MINI_W / W
-    mini_h = H * ms
-    mx, my = W - MINI_W - 4, H - mini_h - 24  # bottom-right, clear of the city
-
-    # Area-proportional bands: equal-width strips under-sold whichever party
-    # sat at a narrow end of the silhouette (user review: DA looked small).
-    # Integrate the outline's area profile along x and put band boundaries at
-    # each party's cumulative seat share of the TOTAL AREA.
-    from shapely.geometry import Polygon, box
-    screen_polys = []
-    for g in (outline.geoms if outline.geom_type == "MultiPolygon" else [outline]):
-        screen_polys.append(Polygon([xy(x, y) for x, y in g.exterior.coords]))
-    import numpy as _np
-    xs = _np.linspace(0.0, W, 337)
-    slab = _np.zeros(len(xs) - 1)
-    for i in range(len(xs) - 1):
-        strip = box(xs[i], 0, xs[i + 1], H)
-        slab[i] = sum(pl.intersection(strip).area for pl in screen_polys)
-    cum = _np.concatenate([[0.0], _np.cumsum(slab)])
-    total_area = cum[-1]
-    bands, acc = [], 0
-    cursor_x = 0.0
+    if named_total < council:
+        seats.append(("OTHER", council - named_total))
+    BAR_W, BAR_H = 300.0, 18.0
+    mx, my = W - BAR_W - 8, H - BAR_H - 30
+    bands, cursor_x = [], 0.0
     for party, n in seats:
-        acc += n
-        x_end = float(_np.interp(acc / 270.0 * total_area, cum, xs))
-        col = CHIPS.get(party, GREY)
+        w = BAR_W * n / council
         nm = NAMES.get(party, "Others" if party == "OTHER" else party.title())
-        bands.append(f'<rect x="{cursor_x:.1f}" y="0" width="{x_end - cursor_x:.1f}" '
-                     f'height="{H:.0f}" fill="{col}" '
-                     f'data-tip="{nm} — {n} of 270 seats (median)"/>')
-        cursor_x = x_end
-    inset = f"""<g transform="translate({mx:.0f},{my:.0f}) scale({ms:.4f})">
-      <clipPath id="cityclip"><path d="{od}"/></clipPath>
-      <g clip-path="url(#cityclip)">{''.join(bands)}</g>
-      <path d="{od}" fill="none" stroke="var(--ink-3)" stroke-width="2"/>
-    </g>
-    <text x="{mx + MINI_W:.0f}" y="{my + mini_h + 16:.0f}" text-anchor="end"
-      style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
-      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">The full council — 270 seats, proportional</text>
-    <text x="8" y="16"
-      style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
-      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">Ward races — 135 seats, first past the post</text>"""
+        bands.append(f'<rect x="{cursor_x:.1f}" y="0" width="{w:.1f}" height="{BAR_H:.0f}" '
+                     f'fill="{CHIPS.get(party, GREY)}" data-tip="{nm} — {n} of {council} seats"/>')
+        cursor_x += w
+    inset = f"""<g transform="translate({mx:.0f},{my:.0f})">{''.join(bands)}
+      <rect width="{BAR_W:.0f}" height="{BAR_H:.0f}" fill="none" stroke="var(--ink-3)" stroke-width="1"/></g>
+    <text x="{mx + BAR_W:.0f}" y="{my + BAR_H + 16:.0f}" text-anchor="end"
+      class="mapcap">The full council — {council} seats, one typical simulation</text>
+    <text x="8" y="16" class="mapcap">Ward races — 135 seats, first past the post</text>"""
 
-    party_sw = " ".join(
-        f'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:11px">'
-        f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
-        f'display:inline-block"></span>{NAMES[c]}</span>'
-        for c in ("ANC", "DA", "EFF", "ASA", "PA", "IFP", "ALJAMAAH"))
-    KEY_BASE = "#7d6aa6"  # neutral purple: no party owns it
-    def key_swatch(pattern_lines: float | None) -> str:
-        base = f'<rect width="18" height="12" rx="2" fill="{KEY_BASE}"/>'
-        if pattern_lines is None:
-            return base
-        return (f'{base}<g stroke="#000" stroke-width="{pattern_lines}" '
-                f'transform="rotate(45 9 6)">'
-                + "".join(f'<line x1="{x}" y1="-8" x2="{x}" y2="20"/>'
-                          for x in range(-8, 27, 6)) + "</g>")
-
-    tier_key = f"""<span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(None)}</svg>
-      <b>Safe</b>&nbsp;wins in ≥90% of simulations ({called['solid']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(1.6)}</svg>
-      <b>Strongly leaning</b>&nbsp;75–90% ({called['strong']})</span>
-    <br><span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
-      <svg width="18" height="12">{key_swatch(3.2)}</svg>
-      <b>Leaning</b>&nbsp;60–75% ({called['lean']})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
-      <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{GREY}"/></svg>
-      <b>Toss-up</b>&nbsp;under 60% ({called['grey']})</span>"""
+    tier_key = map_key(called)
 
     snippet = f"""{MARK_START}
-  <details class="rollup" data-band="forecast" open>
-    <summary><span class="eyebrow">The map — every ward, called using 5,000 simulations</span>
+  <details class="rollup" data-band="forecast" data-map="geo" open>
+    <summary><span class="eyebrow">The map — every ward, called using {{{{n_draws}}}} simulations</span>
     <h2>Who wins where</h2></summary>
+    <p class="maplede">Wards elect half the council, 135 seats, first past the post. A ward needs no
+    majority: the highest total wins. A geographic map can mislead, because every ward elects one
+    councillor however big or small it is. Switch to <b>Equal Sized Wards</b> to see the same forecast
+    drawn by seats.</p>
+    <div class="maptoggle">
+      <button type="button" data-show="geo" class="on" aria-pressed="true">Normal Map</button>
+      <button type="button" data-show="cartogram" aria-pressed="false">Equal Sized Wards</button>
+    </div>
     <figure>
-      <div style="position:relative">
-      <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
-           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party"
-           style="width:100%;height:auto;display:block">
-        <defs>{''.join(patterns.values())}</defs>
-        {''.join(paths)}{''.join(hatches)}{''.join(labels)}{inset}
+      <div class="mapbox">
+      <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap" class="mapsvg"
+           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party">
+        <defs>{patterns}</defs>
+        {paths}{hatches}{''.join(labels)}{inset}
       </svg>
-      <div id="maptip" style="position:fixed;display:none;pointer-events:none;z-index:9;
-        font:12px/1.4 ui-sans-serif,system-ui;background:var(--ink);color:var(--paper);
-        padding:6px 10px;border-radius:4px;max-width:280px"></div>
+      <div id="maptip" class="maptip" hidden></div>
       </div>
-      <figcaption style="display:flex;flex-direction:column;gap:6px">
+      <figcaption class="mapcaption">
         <span>{tier_key}</span>
-        <span>{party_sw}</span>
-        <span>Stripes take the challenger's colour. Touch or hover any ward for its numbers.
-        A ward needs no majority — highest total wins. Smaller map shows final seats when
-        combined with the Party Proportional Representation ballot.</span>
+        <span>Touch or hover any ward for its numbers. The bar shows the whole council, ward and
+        list seats together, in one typical simulation.</span>
       </figcaption>
     </figure>
-    <script>
-    (function() {{
-      var tip = document.getElementById('maptip');
-      var map = document;
-      map.addEventListener('mousemove', function(e) {{
-        var t = e.target.getAttribute && e.target.getAttribute('data-tip');
-        if (t) {{ tip.textContent = t; tip.style.display = 'block';
-          tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
-        }} else tip.style.display = 'none';
-      }});
-      map.addEventListener('mouseleave', function() {{ tip.style.display = 'none'; }});
-      map.addEventListener('click', function(e) {{
-        var t = e.target.getAttribute && e.target.getAttribute('data-tip');
-        if (t) {{ tip.textContent = t; tip.style.display = 'block';
-          tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; }}
-      }});
-    }})();
-    </script>
   </details>
   {MARK_END}"""
 
     import json as _json
-    Path("data/processed/ward_paths.json").write_text(_json.dumps({
+    args.paths_out.write_text(_json.dumps({
         "W": W, "H": H,
         "paths": {row["wardno"]: d for row, d in path_data},
         "labels": [{"t": name, "x": round(xy(lx, ly)[0]), "y": round(xy(lx, ly)[1])}
@@ -318,7 +414,7 @@ def main(argv: list[str] | None = None) -> int:
                    if -10 <= xy(lx, ly)[0] <= W + 10 and -10 <= xy(lx, ly)[1] <= H + 10],
     }, separators=(",", ":")), encoding="utf-8")
 
-    for target in (Path("forecast-sheet.html"), Path("drafts/forecast-draft.html")):
+    for target in args.into:
         t = target.read_text(encoding="utf-8")
         if MARK_START not in t:
             print(f"  ! no map markers in {target}; skipped")
@@ -328,7 +424,7 @@ def main(argv: list[str] | None = None) -> int:
         target.write_text(t[:start] + snippet + t[end:], encoding="utf-8")
         print(f"  map into {target}")
     print(f"called: {called}  ·  {W:.0f}x{H:.0f}  ·  "
-          f"svg ~{sum(len(p) for p in paths) / 1024:.0f} KB")
+          f"svg ~{len(paths) / 1024:.0f} KB")
     return 0
 
 

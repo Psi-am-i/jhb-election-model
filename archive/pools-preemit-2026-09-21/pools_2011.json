@@ -1,0 +1,308 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "joburg",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "fab627a741c0c7c8",
+    "pools_sha": "13bf2cf762e45016",
+    "schema": 2,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/joburg-2011.toml",
+  "no_measured_vector": {
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALJAMAAH": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BLACK_CONSCIOUSNESS_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "LIBERAL_DEMOCRATIC_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NFP": "splinter of IFP, 35% its vector and 65% the city average",
+    "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "THE_SOCIALIST_PARTY_OF_AZANIA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_RESIDENTS_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.6640258194781538,
+    0.05504034947643467,
+    0.038445904583280094,
+    0.24248792646213144
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on joburg 2006; size from the 2011 roll split by each ward's own composition; turnout from joburg's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "AZAPO",
+        "DA",
+        "IFP",
+        "OKM",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.3486655957880349,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.641650008949895,
+        "ALJAMAAH": 0.641650008949895,
+        "ANC": 0.8957296462303613,
+        "APC": 0.641650008949895,
+        "AZAPO": 0.8703894617390336,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.641650008949895,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.396093690557914,
+        "CHRISTIAN_FRONT": 0.5037115635741338,
+        "COPE": 0.7305778819980582,
+        "DA": 0.037130608104703165,
+        "IFP": 0.9424587689997451,
+        "LIBERAL_DEMOCRATIC_PARTY": 0.641650008949895,
+        "NFP": 0.7469330749673426,
+        "OKM": 0.9848041340901977,
+        "PAC": 1.0,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.641650008949895,
+        "THE_SOCIALIST_PARTY_OF_AZANIA": 0.641650008949895,
+        "UDM": 0.856924644241473,
+        "UNITED_RESIDENTS_FRONT": 0.641650008949895,
+        "VFPLUS": 0.06206455611149527
+      },
+      "registered": 1336039.3145987382,
+      "turnout": [
+        0.24084061140907934,
+        0.3766637975108673,
+        0.5350947880584905
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on joburg 2006; size from the 2011 roll split by each ward's own composition; turnout from joburg's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "CHRISTIAN_DEMOCRATIC_PARTY",
+        "CHRISTIAN_FRONT",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.18625484932395162,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.04949355889199336,
+        "ALJAMAAH": 0.04949355889199336,
+        "ANC": 0.021156630355097225,
+        "APC": 0.04949355889199336,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.04949355889199336,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.20598472823119784,
+        "CHRISTIAN_FRONT": 0.08253132308425759,
+        "COPE": 0.03957563390407971,
+        "DA": 0.07626857231352391,
+        "LIBERAL_DEMOCRATIC_PARTY": 0.04949355889199336,
+        "NFP": 0.032170813279795686,
+        "OKM": 0.01519586590980226,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.04949355889199336,
+        "THE_SOCIALIST_PARTY_OF_AZANIA": 0.04949355889199336,
+        "UDM": 0.01805131281551715,
+        "UNITED_RESIDENTS_FRONT": 0.04949355889199336,
+        "VFPLUS": 0.044860530146807825
+      },
+      "registered": 106137.54391663957,
+      "turnout": [
+        0.2333512176457271,
+        0.3669925342306718,
+        0.5247803492164078
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on joburg 2006; size from the 2011 roll split by each ward's own composition; turnout from joburg's local elections before 2011",
+      "identified": [
+        "AZAPO",
+        "UDM"
+      ],
+      "members": {
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.0256764719976242,
+        "ALJAMAAH": 0.0256764719976242,
+        "ANC": 0.017398833926209754,
+        "APC": 0.0256764719976242,
+        "AZAPO": 0.12961053826096644,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.0256764719976242,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.02070769741112583,
+        "COPE": 0.022779298672629143,
+        "DA": 0.043508356037423736,
+        "LIBERAL_DEMOCRATIC_PARTY": 0.0256764719976242,
+        "NFP": 0.01668970679845573,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.0256764719976242,
+        "THE_SOCIALIST_PARTY_OF_AZANIA": 0.0256764719976242,
+        "UDM": 0.026057843654255827,
+        "UNITED_RESIDENTS_FRONT": 0.0256764719976242
+      },
+      "registered": 78868.40616206394,
+      "turnout": [
+        0.15986556332871446,
+        0.26602487754655163,
+        0.4084100806066713
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on joburg 2006; size from the 2011 roll split by each ward's own composition; turnout from joburg's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "IFP",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.4650795548880135,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.2831799601604874,
+        "ALJAMAAH": 0.2831799601604874,
+        "ANC": 0.06571488948833178,
+        "APC": 0.2831799601604874,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.2831799601604874,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.37721388379976223,
+        "CHRISTIAN_FRONT": 0.41375711334160864,
+        "COPE": 0.20706718542523295,
+        "DA": 0.8430924635443493,
+        "IFP": 0.05754123100025486,
+        "LIBERAL_DEMOCRATIC_PARTY": 0.2831799601604874,
+        "NFP": 0.20420640495440603,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.2831799601604874,
+        "THE_SOCIALIST_PARTY_OF_AZANIA": 0.2831799601604874,
+        "UDM": 0.09896619928875398,
+        "UNITED_RESIDENTS_FRONT": 0.2831799601604874,
+        "VFPLUS": 0.893074913741697
+      },
+      "registered": 489075.7353225587,
+      "turnout": [
+        0.33124417707572795,
+        0.4854491541066143,
+        0.6424752171316165
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2011 ward ballot",
+  "rates_on_a_bound": [],
+  "reach_source": "2011 ward ballot",
+  "registration_series": {
+    "2000": [
+      0.7021729152920201,
+      0.04264997649778012,
+      0.026683266941238813,
+      0.2284938412689609
+    ],
+    "2006": [
+      0.6759142485758487,
+      0.05350964159467924,
+      0.03823248962139973,
+      0.23234362020807228
+    ],
+    "2009": [
+      0.6674480054487927,
+      0.0546024343841441,
+      0.03838751026139697,
+      0.23956204990566626
+    ]
+  },
+  "roster": [
+    "ACDP",
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE",
+    "ALJAMAAH",
+    "ANC",
+    "APC",
+    "AZAPO",
+    "BLACK_CONSCIOUSNESS_PARTY",
+    "CHRISTIAN_DEMOCRATIC_PARTY",
+    "CHRISTIAN_FRONT",
+    "COPE",
+    "DA",
+    "IFP",
+    "IND",
+    "LIBERAL_DEMOCRATIC_PARTY",
+    "NFP",
+    "OKM",
+    "PAC",
+    "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION",
+    "THE_SOCIALIST_PARTY_OF_AZANIA",
+    "UDM",
+    "UNITED_RESIDENTS_FRONT",
+    "VFPLUS"
+  ],
+  "roster_source": "published",
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeded_arrival_mass": 0.0,
+  "seeds": {},
+  "target": "2011",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 9,
+      "metro": 0,
+      "offered": 16,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 0,
+      "metro": 0,
+      "offered": 0,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 18,
+      "metro": 0,
+      "offered": 18,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.43810838103540917,
+      "low": 0.3479278261431725,
+      "observed_high": 0.3982803463958265,
+      "observed_low": 0.38658647349241393,
+      "previous": 0.3982803463958265
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.4143301772619541,
+        "low": 0.3171401254007649,
+        "observed_high": 0.3766637975108673,
+        "observed_low": 0.352377917111961,
+        "previous": 0.3766637975108673
+      },
+      {
+        "high": 0.40369178765373903,
+        "low": 0.29667290005280167,
+        "observed_high": 0.3669925342306718,
+        "observed_low": 0.32963655561422406,
+        "previous": 0.3669925342306718
+      },
+      {
+        "high": 0.2926273653012068,
+        "low": 0.14387900699584305,
+        "observed_high": 0.26602487754655163,
+        "observed_low": 0.1598655633287145,
+        "previous": 0.26602487754655163
+      },
+      {
+        "high": 0.581851907218634,
+        "low": 0.4369042386959529,
+        "observed_high": 0.5289562792896673,
+        "observed_low": 0.4854491541066143,
+        "previous": 0.4854491541066143
+      }
+    ]
+  },
+  "unclassified_with_national_record": {}
+}

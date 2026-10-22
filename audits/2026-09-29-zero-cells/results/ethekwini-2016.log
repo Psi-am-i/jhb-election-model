@@ -1,0 +1,5 @@
+  ! pools_2016.json is STALE: src/pools.py changed since this spec was emitted (pools_sha 7264a92947ba4529 -> fac628d1b0218005); re-emit before believing any measurement taken against it
+  !! 1 ward(s) have no voting district in the 2014 baseline with registered voters and are EXCLUDED from the forecast: 59500105. They win no ward seat in any draw and appear in no ward probability; 109 of 110 wards are forecast.
+WARNING *** file size (24448) not 512 + multiple of sector size (512)
+  ! independent ward wins: counted 5 from merged IND rows, using the IEC's published C = 4. They cannot be told apart in the data; the counted figure is an upper bound (DATA-QUALITY.md item 12).
+ethekwini 2016 none: 43s, zero cells excl. control 86, control found 2

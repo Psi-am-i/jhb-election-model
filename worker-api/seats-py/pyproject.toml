@@ -1,0 +1,17 @@
+# joburg-seats as a Python Worker: pywrangler (Cloudflare's tool for Python
+# Workers, since 2025-12) vendors the packages listed here into the bundle.
+# Deploy from this directory: uvx --from workers-py pywrangler deploy
+[project]
+name = "joburg-seats"
+version = "0.1.0"
+description = "The seat law for shared and saved readers' forecasts (src/reader_seats.py)"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+]
+
+[dependency-groups]
+dev = [
+    "workers-py",
+    "workers-runtime-sdk",
+]

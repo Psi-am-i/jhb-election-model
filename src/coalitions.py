@@ -31,6 +31,8 @@ Usage (post-hoc over a saved run):
 from __future__ import annotations
 
 import argparse
+
+import cityconfig
 import csv
 from itertools import combinations
 from math import factorial
@@ -54,7 +56,7 @@ def subset_totals(seats: np.ndarray) -> np.ndarray:
 
 
 def minimal_winning(
-    totals: np.ndarray, threshold: np.ndarray, n: int
+    totals: np.ndarray, threshold: np.ndarray
 ) -> dict[int, np.ndarray]:
     """Mask -> boolean per draw: is this subset a *minimal* winning coalition.
 
@@ -166,7 +168,7 @@ def analyse(
     small.sort(key=lambda r: -r["probability"])
 
     # --- minimal winning coalitions ------------------------------------------
-    mwc = minimal_winning(totals, threshold, n)
+    mwc = minimal_winning(totals, threshold)
     mwc_rows = [
         {
             "coalition": mask_label(mask, ranked),
@@ -197,13 +199,15 @@ def analyse(
     power_rows.sort(key=lambda r: -r["banzhaf_median"])
 
     # --- structural probabilities the narrative needs -------------------------
-    anc_bloc = [p for p in ("ANC", "EFF", "MK") if p in ranked]
+    # Named parties, not a grouping: this asks one specific coalition
+    # question, and does not assert that these three move together.
+    anc_side = [p for p in ("ANC", "EFF", "MK") if p in ranked]
     idx = {p: i for i, p in enumerate(ranked)}
     without_anc = sum(1 << i for p, i in idx.items() if p != "ANC")
-    without_bloc = sum(1 << i for p, i in idx.items() if p not in anc_bloc)
+    without_three = sum(1 << i for p, i in idx.items() if p not in anc_side)
     structural = {
         "P(some majority without the ANC)": float(win[without_anc].mean()),
-        "P(some majority without ANC, EFF and MK)": float(win[without_bloc].mean()),
+        "P(some majority without ANC, EFF and MK)": float(win[without_three].mean()),
         "P(ANC+DA is winning)": float(win[(1 << idx["ANC"]) | (1 << idx["DA"])].mean())
         if "ANC" in idx and "DA" in idx else float("nan"),
     }
@@ -212,7 +216,7 @@ def analyse(
     # Editable scenarios: candidate vs the parties assumed to actively vote
     # against, everyone else abstaining. The 2021 precedent is the first row.
     minority_scenarios = [
-        ("DA minority, ANC bloc opposes", "DA", ("ANC", "EFF", "MK")),
+        ("DA minority, ANC+EFF+MK oppose", "DA", ("ANC", "EFF", "MK")),
         ("DA minority, only ANC opposes (2021 pattern)", "DA", ("ANC",)),
         ("ANC minority, only DA opposes", "ANC", ("DA",)),
         ("ANC minority, DA+ASA oppose", "ANC", ("DA", "ASA")),
@@ -251,13 +255,19 @@ def report(results: dict, majority_note: str = "") -> None:
     for row in results["mwc"][:10]:
         print(f"  {row['coalition']:<40s} MWC in {row['p_mwc']:>6.1%} of draws")
 
-    print("\n  power indices (Banzhaf median [5th–95th] · Shapley–Shubik median):")
+    # Both intervals, not one. `shapley_p5`/`shapley_p95` were computed on
+    # every run and printed nowhere while the Banzhaf pair was printed — two
+    # percentile passes over a 5,000-draw array, discarded. An interval for one
+    # power index and a point estimate for the other is not a choice anyone
+    # made. MODEL-LOG §1.69.
+    print("\n  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):")
     for row in results["power"]:
         if row["banzhaf_p95"] < 0.01:
             continue
         print(f"  {row['party']:<10s} {row['banzhaf_median']:>6.1%} "
               f"[{row['banzhaf_p5']:>5.1%}–{row['banzhaf_p95']:>5.1%}]"
-              f"   ·   {row['shapley_median']:>6.1%}")
+              f"   ·   {row['shapley_median']:>6.1%} "
+              f"[{row['shapley_p5']:>5.1%}–{row['shapley_p95']:>5.1%}]")
 
     print("\n  structural:")
     for label, value in results["structural"].items():
@@ -289,8 +299,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--draws-file", type=Path,
                         default=Path("data/processed/seat_draws.csv"))
-    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
+    parser.add_argument("--processed", type=Path, default=None,
+                        help="where inputs are read (default: the target's own processed "
+                             "directory). A literal data/processed is "
+                             "JOHANNESBURG's, whatever --city says")
+    cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    cityconfig.use(getattr(args, "city", None))
+    args.processed = args.processed or cityconfig.use_target(
+        getattr(args, "target", None)).processed
 
     with args.draws_file.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))

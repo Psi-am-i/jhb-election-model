@@ -1,0 +1,38 @@
+{
+ "city": "capetown",
+ "year": "2016",
+ "draws": 1000,
+ "council": 231,
+ "wards": 116,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 3,
+   "AIC": 1,
+   "ALJAMAAH": 1,
+   "ANC": 58,
+   "COPE": 1,
+   "DA": 155,
+   "EFF": 6,
+   "NATIONAL_PARTY_SOUTH_AFRICA": 1,
+   "PA": 1,
+   "PAC": 1,
+   "SIZWE_UMMAH_NATION": 1,
+   "UDM": 1,
+   "VFPLUS": 1
+  },
+  "seat_err": 8.0,
+  "wards_ok": 116,
+  "ward_vote_err_pp": 4.978285742466442,
+  "list_vote_err_pp": 4.536802520682341,
+  "top": "DA",
+  "top_wards": 81,
+  "top_actual_wards": 81,
+  "excessive": {},
+  "council": 231,
+  "ward_wins": {
+   "DA": 81,
+   "ANC": 35
+  }
+ }
+}

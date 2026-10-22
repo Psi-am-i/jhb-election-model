@@ -1,0 +1,135 @@
+/* Small components shared by several pages or generators. Party and city
+   colours are classes (`pc-<code>`, `city-<slug>`) that set --pc / --city;
+   src/site_assets.py generates them from render_sheet.CHIPS and cities/*.toml,
+   so no page carries a colour of its own. */
+
+/* a party's colour chip */
+.pchip{display:inline-block;width:9px;height:9px;border-radius:2px;flex:none;
+  background:var(--pc,var(--pc-other));box-shadow:0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);}
+.pchip.sm{width:8px;height:8px;margin-right:4px;}
+
+/* the two-ballots strip on /forecast (render_sheet, BALLOTS region): one SVG
+   bar per ballot, each segment a party's seats */
+.ballots{display:flex;flex-direction:column;gap:14px;}
+.ballot{display:flex;flex-direction:column;gap:4px;}
+.ballot-h{font:650 10.5px var(--sans, sans-serif);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);}
+.ballot-bar{display:block;width:100%;height:26px;border-radius:3px;overflow:hidden;}
+.ballot-bar rect{fill:var(--pc,var(--pc-other));}
+
+/* the seat-law comparison on /nobody-will-win (render_sheet, REGIMES region) */
+.rg{table-layout:fixed;min-width:820px;}
+.rg col.rg-c0{width:15%;} .rg col.rg-cn{width:9.5%;} .rg col.rg-cs{width:11.75%;}
+.rg th.rg-h{text-align:center;}
+.rg .rg-k{border-left:1px solid var(--rule-soft);}
+.rg .rg-note{font-weight:400;color:var(--ink-3);}
+.rg td.num{white-space:nowrap;}
+.rg td.rg-s{color:var(--ink-3);}
+.rg tr.rg-sum{border-top:1px solid var(--rule);}
+.rg .pchip{margin-right:6px;}
+
+/* The one verdict scale, red false to grey open to green true, the same for
+   every party (owner, 2026-10-05): render_sheet.verdict_class gives a verdict
+   badge `v-<step>`, and each page's badge reads --v. /claims and the home
+   page's claims list both take it from here. */
+.v-false{--v:var(--v-false);}
+.v-unlikely{--v:var(--v-unlikely);}
+.v-open{--v:var(--v-open);}
+.v-likely{--v:var(--v-likely);}
+.v-true{--v:var(--v-true);}
+
+/* A dated list of pieces: the home page's articles and claims, and /commentary
+   (render_home._articles writes both lists, so one look serves both). */
+.feed{display:flex;flex-direction:column;}
+.feed .item{display:grid;grid-template-columns:62px 1fr;gap:14px;
+  padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.feed .item:last-child{border-bottom:none;}
+.feed .when{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:4px;}
+.feed .item .t{font-family:var(--serif);font-size:19px;line-height:1.28;color:var(--ink);}
+.feed .item .d{font-size:13.5px;margin-top:5px;color:var(--ink-2);}
+.feed .lead-item .t{font-size:clamp(22px,2.6vw,30px);}
+@media (max-width:560px){.feed .item{grid-template-columns:1fr;gap:2px;}}
+
+/* THE MINI-HEADING (owner, 2026-10-05: "it is often the only headline for a
+   section"). One style for the eyebrow over a section ("Make your own
+   forecast", "Articles", "The map — every ward…") and the kicker over a page's
+   title; a page or a panel may set its colour and spacing. :where() keeps the
+   rule at no specificity, so a page file's colour wins wherever it sits in
+   the cascade. */
+:where(.eyebrow,.kicker){font-family:var(--sans);font-size:13px;font-weight:650;line-height:1.35;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);}
+
+/* THE COLLAPSIBLE (owner, 2026-10-05: one style everywhere, the forecast
+   sheet's). A band's head: its title in the accent over an accent rule, and a
+   muted mono "collapse all" at the right (js/sheet.js). A section under it is
+   a <details class="rollup">: its summary is the heading, with a mono "–"
+   (open) or "+" (closed) at the right edge, never inside the heading's text.
+   <details>/<summary> carry the keyboard and the expanded state. */
+.bandhead{display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:2px solid var(--accent);padding-bottom:6px;margin-top:16px;}
+.bandtitle{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);}
+.bandbtn{font-family:var(--mono);font-size:11px;color:var(--ink-3);background:none;
+  border:none;cursor:pointer;padding:0;}
+.bandbtn:hover{color:var(--accent);}
+details.rollup>summary{cursor:pointer;list-style:none;position:relative;
+  display:flex;flex-direction:column;gap:6px;padding-right:26px;}
+details.rollup>summary::-webkit-details-marker{display:none;}
+details.rollup>summary::after{content:"–"/"";position:absolute;right:2px;top:0;
+  font-family:var(--mono);font-size:17px;line-height:1;color:var(--ink-3);}
+details.rollup:not([open])>summary::after{content:"+"/"";}
+details.rollup>summary:hover::after{color:var(--accent);}
+details.rollup>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+details.rollup>*:not(summary){margin-top:14px;}
+details.rollup>summary h2{margin:0;}
+/* ⛔ A HAIRLINE AND AIR BETWEEN ADJACENT SECTIONS. Thirteen sections with
+   nothing between them read as one wall and the eye finds no place to stop
+   (owner, 2026-09-26: "it all rolls into each other and feels like work").
+   `rule-soft` rather than `rule`: a separator the reader notices only when
+   looking for it, which is what a minor boundary is. */
+details.rollup + details.rollup{margin-top:30px;padding-top:26px;
+  border-top:1px solid var(--rule-soft);}
+
+/* THE BUTTON (owner, 2026-10-10: "a big, obvious PREDICT THE ELECTION
+   YOURSELF button"; "large, prominent buttons"). A link or a <button> with
+   the class `cta`: large capitals on a solid ground in the reader's hue, the
+   colour of everything the reader makes. `cta-quiet` is the same button in
+   outline, in the model's accent, for a second way out beside a first. */
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  box-sizing:border-box;min-height:56px;padding:14px 30px;border:2px solid var(--reader);
+  border-radius:6px;background:var(--reader);color:var(--paper);
+  font:750 clamp(16px,1.9vw,20px)/1.2 var(--sans);letter-spacing:.07em;text-transform:uppercase;
+  text-align:center;text-decoration:none;cursor:pointer;
+  box-shadow:0 2px 0 color-mix(in srgb,var(--reader) 55%,var(--paper));}
+.cta:hover,.cta:focus-visible{background:color-mix(in srgb,var(--reader) 82%,var(--ink));
+  border-color:color-mix(in srgb,var(--reader) 82%,var(--ink));color:var(--paper);text-decoration:none;}
+.cta-quiet{min-height:46px;padding:10px 22px;background:transparent;color:var(--accent);
+  border-color:var(--accent);box-shadow:none;font-size:14.5px;}
+.cta-quiet::after{content:"\2192";}
+/* hovered, it fills: the page's ground on the accent clears 4.5:1 in both
+   palettes, where the accent on --accent-soft did not in the light one */
+.cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+.cta-row{margin:22px 0 0;}
+@media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}
+
+/* the site's ordinary button (the share sheet's, src/css/share-sheet.css, and
+   every control on "Your forecast"): outlined; `primary` filled in the
+   reader's colour, `model` outlined in the model's accent */
+.btn{box-sizing:border-box;font:600 14px/1 var(--sans);border-radius:4px;padding:11px 16px;cursor:pointer;
+  border:1px solid var(--rule);background:transparent;color:var(--ink);
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;min-height:44px;}
+.btn:hover{border-color:var(--reader);color:var(--ink);}
+.btn.primary{background:var(--reader);border-color:var(--reader);color:var(--paper);}
+.btn.primary:hover{filter:brightness(1.08);color:var(--paper);}
+.btn.model{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);}
+.btn.small{font-size:13px;padding:7px 11px;min-height:36px;}
+.btn[disabled],a.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+/* `display` above would show a button the page hides (the share sheet's
+   Share…, where the browser has no Web Share) */
+.btn[hidden]{display:none;}
+
+/* the site's form controls: the share sheet's link on every page, and every
+   field and select on "Your forecast" (a page that styles its own, like the
+   forecast's coalition filter, says so in its own rule) */
+select,input[type="text"],input[type="email"],input[type="number"]{font:14px var(--sans);
+  color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;
+  padding:8px 10px;min-height:40px;}

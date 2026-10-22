@@ -1,0 +1,42 @@
+{
+ "name": "C10-off",
+ "tests": {
+  "failed": [
+   "test_a_merger_moves_retention_times_the_predecessor_and_nothing_else",
+   "test_no_emitted_composition_weight_is_arithmetically_impossible"
+  ]
+ },
+ "compare": {
+  "joburg-2026": {
+   "spec_fields_changed": [],
+   "trace": {
+    "first": "40_draws",
+    "changed": [
+     "40_draws",
+     "41_guards",
+     "42_pr_share_draws",
+     "43_ward_share_draws",
+     "44_seat_draws"
+    ],
+    "compared": [
+     "00_target",
+     "01_scenario_in",
+     "02_pools_artefact",
+     "03_roster",
+     "10_theta_prior",
+     "20_spine",
+     "30_centres",
+     "40_draws",
+     "41_guards",
+     "42_pr_share_draws",
+     "43_ward_share_draws",
+     "44_seat_draws",
+     "45_delivered"
+    ]
+   }
+  }
+ },
+ "new_test_failures": [
+  "test_a_merger_moves_retention_times_the_predecessor_and_nothing_else"
+ ]
+}

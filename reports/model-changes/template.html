@@ -1,0 +1,220 @@
+<title>Joburg Model, Old and New</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+/* Layout: one reading column; tables and the two maps break wider. Old = muted, New = ink. */
+:root {
+  --bg: #f7f8f6; --surface: #ffffff; --fg: #1d221f; --muted: #66706a; --rule: #d9ddd8;
+  --old: #9aa29c; --new: #1d221f; --better: #1f7a46; --worse: #b3402b; --same: #8a918c;
+  --hl: #f2c94c;
+  --display: "IBM Plex Serif", Georgia, serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #151816; --surface: #1d211f; --fg: #e7ebe8; --muted: #9aa49e; --rule: #333a36;
+  --old: #6f7873; --new: #e7ebe8; --better: #4cc282; --worse: #ef7a62; --same: #8a918c; --hl: #f2c94c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #151816; --surface: #1d211f; --fg: #e7ebe8; --muted: #9aa49e; --rule: #333a36;
+  --old: #6f7873; --new: #e7ebe8; --better: #4cc282; --worse: #ef7a62; --same: #8a918c; --hl: #f2c94c; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px; }
+h1 { font: 600 2rem/1.15 var(--display); margin: 0 0 8px; text-wrap: balance; }
+h2 { font: 600 1.4rem/1.2 var(--display); margin: 48px 0 6px; text-wrap: balance; }
+h3 { font: 600 1.05rem/1.3 var(--body); margin: 24px 0 6px; }
+p { max-width: 68ch; margin: 0 0 12px; }
+.lede { color: var(--muted); max-width: 68ch; }
+.key { display: flex; flex-wrap: wrap; gap: 16px; font-size: .9rem; color: var(--muted); margin: 8px 0 16px; }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin: 20px 0 8px; }
+.summary div { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.summary b { display: block; font: 600 .78rem var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.scroll { overflow-x: auto; margin: 8px 0 4px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; background: var(--surface); }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+th { font: 600 .78rem var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); vertical-align: bottom; }
+th.grp { text-align: center; border-bottom: 2px solid var(--rule); }
+td:first-child, th:first-child { text-align: left; }
+td.old { color: var(--muted); }
+td.new { font-weight: 600; }
+.chip { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: 0; }
+.better { color: var(--better); font-weight: 600; }
+.worse { color: var(--worse); font-weight: 600; }
+.same { color: var(--same); }
+tr.total td { font-weight: 600; border-top: 2px solid var(--rule); }
+.note { font-size: .88rem; color: var(--muted); max-width: 72ch; }
+/* range chart */
+.ranges { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 8px 4px; }
+.ranges svg { width: 100%; height: auto; display: block; }
+.ranges text { fill: var(--muted); font: 12px var(--body); }
+.ranges text.pname { fill: var(--fg); font-weight: 600; }
+/* maps */
+.maps { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 720px) { .maps { grid-template-columns: 1fr; } }
+.map { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 10px; min-width: 0; }
+.map h3 { margin: 0 0 6px; }
+.map svg { width: 100%; height: auto; display: block; }
+.map path { stroke: var(--surface); stroke-width: .6; }
+.map path.changed { stroke: var(--hl); stroke-width: 2.4; }
+.map text { fill: var(--fg); font: 600 11px var(--body); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; pointer-events: none; }
+#tip { position: fixed; pointer-events: none; background: var(--fg); color: var(--bg); font: 13px/1.4 var(--body); padding: 6px 9px; border-radius: 4px; display: none; z-index: 5; max-width: 260px; }
+.why { display: grid; gap: 14px; margin-top: 12px; }
+.why div { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; }
+.why h3 { margin-top: 0; }
+.why p { margin-bottom: 6px; }
+</style>
+
+<div class="wrap">
+  <h1>Johannesburg 2026: the published model and the new one</h1>
+  __LEDE__
+
+  <div class="summary" id="summary"></div>
+
+  <h2>Seats in the 270-seat council</h2>
+  <p class="note">Each bar runs from the low to the high end of what the model expects: 90% of simulations fall inside it. The dot is the average.</p>
+  <div class="key"><span><i class="sw" style="background:var(--old)"></i>Old model</span><span><i class="sw" style="background:var(--new)"></i>New model</span></div>
+  <div class="ranges"><svg id="ranges" role="img" aria-label="Seat ranges, old and new model"></svg></div>
+
+  <div class="scroll"><table id="parties"></table></div>
+  <p class="note">"Wards won" is the average number of the 135 wards the party wins across simulations. "Largest party" is the share of simulations in which the party has the most seats (ties are split). No party reaches a majority (136 seats) in more than 1 simulation in 300 under either model.</p>
+
+  <h2>Who is favourite in each ward</h2>
+  <p class="note">Each ward is coloured by the party that wins it most often. Faint colour means a close ward: the favourite wins it in under 60% of simulations. The <b><span id="nchanged"></span> wards with a yellow outline</b> have a different favourite in the new model. Hover or tap a ward for its numbers.</p>
+  <div class="maps">
+    <div class="map"><h3>Old model</h3><svg id="mapOld" role="img" aria-label="Ward favourites, old model"></svg></div>
+    <div class="map"><h3>New model</h3><svg id="mapNew" role="img" aria-label="Ward favourites, new model"></svg></div>
+  </div>
+  <div class="key" id="mapkey"></div>
+  <h3>The <span id="nchanged2"></span> wards whose favourite changes</h3>
+  <div class="scroll"><table id="changed"></table></div>
+
+  <h2>Which model called past elections better</h2>
+  <p>Each model was run on every past election in the eight metros, using only information available before that election, and compared with the real result. Two measures: how many wards it gave to the right party, and how many council seats it gave to the wrong party. The changes were judged on 2016 and 2021, a choice made before the runs. 2011 is shown too.</p>
+  <div class="summary" id="btsummary"></div>
+  <div class="scroll"><table id="backtest"></table></div>
+  <p class="note">"Seats to the wrong party": the model's council (each party's average seats, rounded so they add up to the council size) set against the real council. Every seat in the wrong place is counted once. A difference of one or two seats in a single city can come from simulation noise alone.</p>
+
+  <h3>Johannesburg, party by party</h3>
+  <p class="note">Real seats against each model's typical outcome (the middle simulation). These typical figures are not the rounded council above, so they don't add up exactly to the council size.</p>
+  <div class="scroll"><table id="jhb"></table></div>
+
+__WHY__
+</div>
+<div id="tip"></div>
+
+<script>
+const F = __F2026__;
+const B = __BACKTEST__;
+const M = __MAP__;
+const COL = {"DA":"#1B5EA8","ANC":"#1B7A3D","EFF":"#B3202B","MK":"#5B6E22","ASA":"#2FA79B","PA":"#E0A419","IFP":"#C8442A","RISE":"#7A6BA8","VFPLUS":"#B0752D","ACDP":"#6B4E9E","ALJAMAAH":"#2E8B72"};
+const NAME = {"DA":"DA","ANC":"ANC","EFF":"EFF","MK":"MK Party","ASA":"ActionSA","PA":"PA","IFP":"IFP","RISE":"Rise Mzansi","VFPLUS":"FF Plus","ACDP":"ACDP","ALJAMAAH":"Al Jama-ah","AIC":"AIC","COPE":"COPE","AGANG":"Agang","UDM":"UDM","PAC":"PAC","AZAPO":"AZAPO","APC":"APC","NFP":"NFP","OKM":"OKM","AHC":"AHC","ATM":"ATM","GOOD":"GOOD","UIM":"UIM"};
+const nm = p => NAME[p] || p;
+const col = p => COL[p] || "#9aa09a";
+const ORDER = ["ANC","DA","EFF","ASA","MK","PA","RISE","IFP","ALJAMAAH","VFPLUS","ACDP"];
+const sgn = (d, dp=1) => (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d).toFixed(dp);
+
+// summary tiles
+const P = F.parties;
+document.getElementById("summary").innerHTML = [
+  ["ANC", "ANC average seats", P.ANC.old.seats, P.ANC.new.seats],
+  ["DA", "DA average seats", P.DA.old.seats, P.DA.new.seats],
+  ["PA", "PA average seats", P.PA.old.seats, P.PA.new.seats],
+].map(([p,l,o,n]) => `<div><b>${l}</b><span style="color:var(--muted)">${o.toFixed(1)}</span> → <span style="font-size:1.4rem;font-weight:600">${n.toFixed(1)}</span></div>`).join("")
+ + `<div><b>Largest party</b>ANC in <span style="color:var(--muted)">${P.ANC.old.largest}%</span> → <b style="display:inline;font-size:1.1rem;color:var(--fg);text-transform:none;letter-spacing:0">${P.ANC.new.largest}%</b> of simulations; DA ${P.DA.old.largest}% → ${P.DA.new.largest}%</div>`;
+
+// range chart
+(function(){
+  const svg = document.getElementById("ranges");
+  const W = 960, rowH = 34, top = 24, left = 110, right = 20, H = top + ORDER.length*rowH + 24;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const max = 110, x = v => left + (W-left-right) * v / max;
+  let s = "";
+  for (let t = 0; t <= max; t += 10) s += `<line x1="${x(t)}" x2="${x(t)}" y1="${top-6}" y2="${H-20}" stroke="var(--rule)" stroke-width="1"/><text x="${x(t)}" y="${H-4}" text-anchor="middle">${t}</text>`;
+  ORDER.forEach((p,i) => {
+    const y = top + i*rowH, o = P[p].old, n = P[p].new;
+    s += `<text class="pname" x="${left-10}" y="${y+14}" text-anchor="end">${nm(p)}</text>`;
+    s += `<line x1="${x(o.lo)}" x2="${x(o.hi)}" y1="${y+6}" y2="${y+6}" stroke="var(--old)" stroke-width="5" stroke-linecap="round"/><circle cx="${x(o.seats)}" cy="${y+6}" r="5" fill="var(--surface)" stroke="var(--old)" stroke-width="2.5"/>`;
+    s += `<line x1="${x(n.lo)}" x2="${x(n.hi)}" y1="${y+19}" y2="${y+19}" stroke="${col(p)}" stroke-width="5" stroke-linecap="round"/><circle cx="${x(n.seats)}" cy="${y+19}" r="5" fill="var(--surface)" stroke="var(--new)" stroke-width="2.5"/>`;
+  });
+  svg.innerHTML = s;
+})();
+
+// party table
+document.getElementById("parties").innerHTML =
+  `<thead><tr><th rowspan="2">Party</th><th class="grp" colspan="3">Average seats</th><th class="grp" colspan="2">Seat range (90%)</th><th class="grp" colspan="2">Wards won</th><th class="grp" colspan="2">Largest party</th></tr>
+   <tr><th>Old</th><th>New</th><th>Change</th><th>Old</th><th>New</th><th>Old</th><th>New</th><th>Old</th><th>New</th></tr></thead><tbody>` +
+  ORDER.map(p => { const o=P[p].old, n=P[p].new; return `<tr><td><span class="chip" style="background:${col(p)}"></span>${nm(p)}</td>
+   <td class="old">${o.seats.toFixed(1)}</td><td class="new">${n.seats.toFixed(1)}</td><td>${sgn(n.seats-o.seats)}</td>
+   <td class="old">${o.lo}–${o.hi}</td><td class="new">${n.lo}–${n.hi}</td>
+   <td class="old">${o.wards.toFixed(1)}</td><td class="new">${n.wards.toFixed(1)}</td>
+   <td class="old">${o.largest}%</td><td class="new">${n.largest}%</td></tr>`; }).join("") + `</tbody>`;
+
+// maps
+const tip = document.getElementById("tip");
+function drawMap(id, which){
+  const svg = document.getElementById(id);
+  svg.setAttribute("viewBox", `0 0 ${M.W} ${M.H}`);
+  let s = "", hl = "";
+  for (const [w, d] of Object.entries(M.paths)) {
+    const r = F.wards[w][which], ch = F.wards[w].old.fav !== F.wards[w].new.fav;
+    const op = r.p >= 0.6 ? 1 : 0.45;
+    const el = `<path d="${d}" data-w="${w}" fill="${col(r.fav)}" fill-opacity="${op}" class="${ch?'changed':''}"/>`;
+    if (ch) hl += el; else s += el;
+  }
+  for (const l of M.labels) s += "";
+  let lab = M.labels.map(l => `<text x="${l.x}" y="${l.y}" text-anchor="middle">${l.t}</text>`).join("");
+  svg.innerHTML = s + hl + lab;
+}
+drawMap("mapOld","old"); drawMap("mapNew","new");
+function wardText(w){
+  const o = F.wards[w].old, n = F.wards[w].new;
+  const f = r => `${nm(r.fav)} ${Math.round(r.p*100)}%` + (r.second ? `, ${nm(r.second)} ${Math.round(r.p2*100)}%` : "");
+  return `<b>Ward ${w}</b><br>Old: ${f(o)}<br>New: ${f(n)}`;
+}
+for (const id of ["mapOld","mapNew"]) {
+  const svg = document.getElementById(id);
+  const show = e => { const w = e.target.getAttribute && e.target.getAttribute("data-w"); if (!w) { tip.style.display="none"; return; }
+    tip.innerHTML = wardText(w); tip.style.display = "block";
+    const x = Math.min(e.clientX + 12, window.innerWidth - 270); tip.style.left = x + "px"; tip.style.top = (e.clientY + 12) + "px"; };
+  svg.addEventListener("mousemove", show); svg.addEventListener("click", show);
+  svg.addEventListener("mouseleave", () => tip.style.display = "none");
+}
+const favs = new Set(); for (const w in F.wards) { favs.add(F.wards[w].old.fav); favs.add(F.wards[w].new.fav); }
+document.getElementById("mapkey").innerHTML = ORDER.filter(p => favs.has(p)).map(p => `<span><i class="sw" style="background:${col(p)}"></i>${nm(p)}</span>`).join("") + `<span><i class="sw" style="background:transparent;outline:2.4px solid var(--hl);outline-offset:-2px"></i>Favourite changes</span>`;
+const ch = Object.keys(F.wards).filter(w => F.wards[w].old.fav !== F.wards[w].new.fav).sort((a,b)=>a-b);
+document.getElementById("nchanged").textContent = ch.length; document.getElementById("nchanged2").textContent = ch.length;
+document.getElementById("changed").innerHTML = `<thead><tr><th>Ward</th><th>Old favourite</th><th>Wins it in</th><th>New favourite</th><th>Wins it in</th></tr></thead><tbody>` +
+  ch.map(w => { const o=F.wards[w].old, n=F.wards[w].new; return `<tr><td>${w}</td><td class="old"><span class="chip" style="background:${col(o.fav)}"></span>${nm(o.fav)}</td><td class="old">${Math.round(o.p*100)}%</td><td class="new"><span class="chip" style="background:${col(n.fav)}"></span>${nm(n.fav)}</td><td class="new">${Math.round(n.p*100)}%</td></tr>`; }).join("") + `</tbody>`;
+
+// backtest
+const cmp = (o, n, lowerBetter) => { const d = n - o; if (Math.abs(d) < 1e-9) return `<span class="same">same</span>`;
+  const good = lowerBetter ? d < 0 : d > 0; return `<span class="${good?'better':'worse'}">${good?'better':'worse'} (${sgn(d, Number.isInteger(d)?0:1)})</span>`; };
+const years = ["2016","2021","2011"];
+const tot = y => { const r = B.filter(x => x.year === y); const s = (k,w)=>r.reduce((a,x)=>a+x[w][k],0);
+  return {n: s("wards_n","new"), oc: s("called","old"), nc: s("called","new"), ow: s("wrong_seats","old"), nw: s("wrong_seats","new"), seats: r.reduce((a,x)=>a+x.council,0)}; };
+document.getElementById("btsummary").innerHTML = years.map(y => { const t = tot(y); return `<div><b>${y}, all eight metros${y==="2011"?" (not scored)":""}</b>Wards right: <span style="color:var(--muted)">${t.oc}</span> → <b style="display:inline;font-size:1rem;color:var(--fg);text-transform:none;letter-spacing:0">${t.nc}</b> of ${t.n}<br>Seats to the wrong party: <span style="color:var(--muted)">${t.ow}</span> → <b style="display:inline;font-size:1rem;color:var(--fg);text-transform:none;letter-spacing:0">${t.nw}</b> of ${t.seats}<br>${cmp(t.ow,t.nw,true)}</div>`; }).join("");
+let rows = "";
+for (const y of years) {
+  B.filter(x => x.year === y).forEach(x => {
+    rows += `<tr><td>${x.city} ${y}</td><td>${x.new.wards_n}</td><td class="old">${x.old.called}</td><td class="new">${x.new.called}</td><td>${cmp(x.old.called,x.new.called,false)}</td><td>${x.council}</td><td class="old">${x.old.wrong_seats}</td><td class="new">${x.new.wrong_seats}</td><td>${cmp(x.old.wrong_seats,x.new.wrong_seats,true)}</td></tr>`; });
+  const t = tot(y);
+  rows += `<tr class="total"><td>${y} total</td><td>${t.n}</td><td class="old">${t.oc}</td><td class="new">${t.nc}</td><td>${cmp(t.oc,t.nc,false)}</td><td>${t.seats}</td><td class="old">${t.ow}</td><td class="new">${t.nw}</td><td>${cmp(t.ow,t.nw,true)}</td></tr>`;
+}
+document.getElementById("backtest").innerHTML = `<thead><tr><th rowspan="2">Election</th><th class="grp" colspan="4">Wards given to the right party</th><th class="grp" colspan="4">Seats given to the wrong party</th></tr>
+<tr><th>Wards</th><th>Old</th><th>New</th><th></th><th>Council</th><th>Old</th><th>New</th><th></th></tr></thead><tbody>${rows}</tbody>`;
+
+// Joburg party table
+const J = B.filter(x => x.slug === "joburg");
+let jr = "";
+for (const y of ["2016","2021"]) {
+  const x = J.find(r => r.year === y);
+  const ps = Object.keys(x.new.seats).filter(p => x.new.seats[p][0] > 0 || x.new.seats[p][1] > 0 || (x.old.seats[p]||[0,0])[1] > 0)
+    .sort((a,b) => x.new.seats[b][0] - x.new.seats[a][0]);
+  jr += `<tr class="total"><td colspan="6">Johannesburg ${y}</td></tr>`;
+  ps.forEach(p => { const real = x.new.seats[p][0], o = (x.old.seats[p]||[0,0])[1], n = x.new.seats[p][1];
+    const eo = Math.abs(o-real), en = Math.abs(n-real);
+    jr += `<tr><td><span class="chip" style="background:${col(p)}"></span>${nm(p)}</td><td>${real}</td><td class="old">${o}</td><td class="new">${n}</td><td>${cmp(eo,en,true).replace(/\(.*\)/,"")}</td><td class="note">${en===0?"exact":"off by "+en}</td></tr>`; });
+}
+document.getElementById("jhb").innerHTML = `<thead><tr><th>Party</th><th>Real seats</th><th>Old model</th><th>New model</th><th>New vs old</th><th>New model</th></tr></thead><tbody>${jr}</tbody>`;
+</script>

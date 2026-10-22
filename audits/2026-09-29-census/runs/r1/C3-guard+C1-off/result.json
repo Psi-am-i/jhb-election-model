@@ -1,0 +1,42 @@
+{
+ "name": "C3-guard+C1-off",
+ "compare": {
+  "mangaung-2016": {
+   "spec_fields_changed": [
+    "pools",
+    "rates_on_a_bound",
+    "registration_series",
+    "seeded_arrival_mass",
+    "seeds",
+    "turnout_limits"
+   ],
+   "trace": {
+    "first": "20_spine",
+    "changed": [
+     "20_spine",
+     "30_centres",
+     "40_draws",
+     "41_guards",
+     "42_pr_share_draws",
+     "43_ward_share_draws",
+     "44_seat_draws"
+    ],
+    "compared": [
+     "00_target",
+     "01_scenario_in",
+     "02_pools_artefact",
+     "03_roster",
+     "10_theta_prior",
+     "20_spine",
+     "30_centres",
+     "40_draws",
+     "41_guards",
+     "42_pr_share_draws",
+     "43_ward_share_draws",
+     "44_seat_draws",
+     "45_delivered"
+    ]
+   }
+  }
+ }
+}

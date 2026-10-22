@@ -64,6 +64,7 @@ import argparse
 
 import cityconfig
 import csv
+import inputs_preflight
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -72,6 +73,19 @@ import geopandas as gpd
 
 # Each election, its file, and the ballot to read for VD membership.
 ELECTIONS = {
+    # ⛔ EXTENDED BACK TO 1999 ON 2026-09-01. This table began at 2011, so every
+    # election before it was joined on ward numbers that were redrawn at each
+    # delimitation — comparing different pieces of ground and calling it a
+    # transition. The voting district is the stable atom and it is stable a long
+    # way back: 723 of 727 of Johannesburg's 2006 VDs survive into 2011, and 648
+    # of 652 of its 2000 VDs survive into 2006. Owner, 2026-08-31: *"you have
+    # the ward maps. Calculate what ward became what and adjust systematically
+    # to compensate when this happens (and it happens in every cycle)."*
+    "1999": ("npe1999_approx_{CODE}_vd_party.csv", None),
+    "2000": ("lge2000_{CODE}_vd_party_clean.csv", "PR"),
+    "2004": ("npe2004_{CODE}_vd_party.csv", None),
+    "2006": ("lge2006_{CODE}_vd_party_clean.csv", "PR"),
+    "2009": ("npe2009_{CODE}_vd_party.csv", None),
     "2011": ("lge2011_{CODE}_vd_party_clean.csv", "PR"),
     "2014": ("npe2014_{CODE}_vd_party.csv", None),
     "2016": ("lge2016_{CODE}_vd_party_clean.csv", "PR"),
@@ -171,21 +185,122 @@ def ward_parts(vds: gpd.GeoDataFrame) -> list[dict[str, str]]:
     return rows
 
 
+ASSIGNMENT_2026 = Path("archive/vd-ward-assignment-2026/assignment.csv")
+
+
+def read_assignment(path: Path | None = None) -> dict[str, str]:
+    """``{VD_Number: WardID_2026}`` from the committed assignment file
+    (archive/vd-ward-assignment-2026/README.md)."""
+    path = cityconfig.resolve_path(path or ASSIGNMENT_2026)
+    with path.open(encoding="utf-8", newline="") as fh:
+        return {r["VD_Number"].strip(): r["WardID_2026"].strip()
+                for r in csv.DictReader(fh)}
+
+
+def apportion_roll(rows: list[dict[str, str]], roll: dict[str, int],
+                   assignment: dict[str, str]) -> None:
+    """Add ``part_registered_2026`` to ``ward_parts`` rows, in place.
+
+    The rule (JUDGEMENT-CALLS section T1): the IEC counts each of its voting
+    districts wholly in one ward, so each VD is assigned to ONE ward
+    (``assignment``, ``{VD_Number: WardID}``) and its whole 2026 figure sits on
+    that ward's row, 0 on its other parts. A ward's VDs are scaled by
+    ``roll[w] / sum(vd_registered of the VDs assigned to w)`` and made whole
+    numbers by largest remainder (ties to the earlier VD number), so the ward's
+    rows sum to ``roll[w]`` exactly. ``roll`` is ``{WardID: registered}``.
+
+    Refuses, rather than passes: a VD missing from the assignment, an
+    assignment naming a VD the crosswalk lacks, an assigned ward that is not one
+    of the VD's parts, a ward left with no VDs or with no registration, and a
+    ward set that differs between the snapshot and the crosswalk."""
+    wards = {row["WardID_2026"] for row in rows}
+    if wards != set(roll):
+        raise SystemExit(
+            f"the snapshot and the crosswalk name different wards: "
+            f"{sorted(set(roll) - wards)[:5]} only in the snapshot, "
+            f"{sorted(wards - set(roll))[:5]} only in the crosswalk")
+    vd_parts: defaultdict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        vd_parts[row["VD_Number"]].append(row)
+    missing = sorted(set(vd_parts) - set(assignment))
+    if missing:
+        raise SystemExit(f"{len(missing)} VD(s) missing from the assignment: {missing[:5]}")
+    extra = sorted(set(assignment) - set(vd_parts))
+    if extra:
+        raise SystemExit(f"{len(extra)} assigned VD(s) not in the crosswalk: {extra[:5]}")
+    by_ward: defaultdict[str, list[str]] = defaultdict(list)
+    for vd, parts in vd_parts.items():
+        if assignment[vd] not in {p["WardID_2026"] for p in parts}:
+            raise SystemExit(f"VD {vd} is assigned to ward {assignment[vd]}, "
+                             f"which is not one of its parts")
+        by_ward[assignment[vd]].append(vd)
+    registered = {vd: int(parts[0]["vd_registered"]) for vd, parts in vd_parts.items()}
+    figure: dict[str, int] = {}
+    for ward in sorted(roll):
+        vds = sorted(by_ward.get(ward, []))
+        if not vds:
+            raise SystemExit(f"ward {ward}: no VD is assigned to it")
+        base = sum(registered[v] for v in vds)
+        if base <= 0:
+            raise SystemExit(f"ward {ward}: its assigned VDs sum to {base}, so "
+                             f"the snapshot's {roll[ward]} cannot be apportioned")
+        quota = {v: registered[v] * roll[ward] / base for v in vds}
+        given = {v: int(q) for v, q in quota.items()}
+        order = sorted(vds, key=lambda v: (-(quota[v] - given[v]), v))
+        for v in order[:roll[ward] - sum(given.values())]:
+            given[v] += 1
+        figure.update(given)
+    for row in rows:
+        row["part_registered_2026"] = str(
+            figure[row["VD_Number"]] if assignment[row["VD_Number"]] == row["WardID_2026"] else 0)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geo-dir", type=Path, default=Path("data/raw/geo"))
     parser.add_argument("--elections-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--out-dir", type=Path, default=Path("data/processed"))
+    parser.add_argument("--out-dir", type=Path, default=None,
+                        help="where to write (default: the city's own "
+                             "processed directory)")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
-    cityconfig.use(getattr(args, "city", None))
+    city = cityconfig.use(getattr(args, "city", None))
 
-    vds = gpd.read_file(args.geo_dir / "vds2026_{CODE}.geojson")
-    args.out_dir.mkdir(parents=True, exist_ok=True)
+    # {CODE} IS SUBSTITUTED, and was not until 2026-08-18: this read the literal
+    # string "vds2026_{CODE}.geojson", which exists for no city, so the script
+    # could not be run for any of the eight metros -- including Johannesburg,
+    # whose file is `vds2026_JHB.geojson`. `cityconfig.resolve_path` is the
+    # helper that already existed for this.
+    geo = cityconfig.resolve_path(args.geo_dir / "vds2026_{CODE}.geojson")
+    if not geo.exists():
+        raise SystemExit(
+            f"no 2026 VD layer for {city.name}: {geo}\n"
+            f"  Download it from the MDB Spatial Knowledge Hub -- see SOURCES.md, "
+            f"'Boundaries'. A missing per-city input REFUSES here rather than "
+            f"falling back to another city's, which is the fault MODEL-LOG "
+            f"§1.40 records shipping.")
+    vds = gpd.read_file(geo)
+
+    # PER CITY, and it was not: --out-dir defaulted to `data/processed` for
+    # every city, so a Tshwane run would overwrite Johannesburg's concordance
+    # under a name that does not say whose it is. `city.processed` is the
+    # per-city directory the rest of the pipeline already reads.
+    out_dir = args.out_dir if args.out_dir is not None else city.processed
+    out_dir = cityconfig.resolve_path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     # --- Step 5: VD -> 2026 ward, registration weighted -----------------------
     parts = ward_parts(vds)
-    destination = args.out_dir / "vd_ward_2026.csv"
+    # The 2026 roll: the IEC snapshot, apportioned over the parts. Absent for a
+    # city with no snapshot, in which case the crosswalk carries the MDB layer's
+    # registration only and says so by lacking the column.
+    snap = inputs_preflight.roll_snapshot(city.slug)
+    if snap is not None:
+        apportion_roll(parts, inputs_preflight.read_roll_snapshot(snap),
+                       read_assignment())
+        for part in parts:
+            part["roll_snapshot"] = inputs_preflight.snapshot_label(snap)
+    destination = out_dir / "vd_ward_2026.csv"
     with destination.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(parts[0]))
         writer.writeheader()
@@ -207,6 +322,8 @@ def main(argv: list[str] | None = None) -> int:
     # last one has nothing to compare against and is stable by construction.
     years = list(ELECTIONS)
     loaded = {
+        # `read_vd_votes` resolves {CODE} itself (see its first line), so the
+        # template is passed through rather than substituted twice.
         year: read_vd_votes(args.elections_dir / filename, ballot)
         for year, (filename, ballot) in ELECTIONS.items()
     }
@@ -256,7 +373,7 @@ def main(argv: list[str] | None = None) -> int:
             f"  {lost_votes / cast:>9.2%}"
         )
 
-    destination = args.out_dir / "vd_concordance.csv"
+    destination = out_dir / "vd_concordance.csv"
     with destination.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(concordance[0]))
         writer.writeheader()

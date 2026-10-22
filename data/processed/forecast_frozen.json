@@ -1,0 +1,1008 @@
+{
+ "content": {
+  "city": "joburg",
+  "council": 270,
+  "council_sizes": [
+   270
+  ],
+  "draws": 1500,
+  "env_switches": {
+   "raw": {
+    "CITY_SLUG": null,
+    "EXCLUDE_DEMARCATION_CROSSING": null,
+    "FILTER_TYPE_A": null,
+    "HELD_BACK_OFF": null,
+    "JHB_SCORE_NO_RELABEL": null,
+    "PYTHONHASHSEED": "0",
+    "SIGMA_TWO_TERM": null,
+    "THETA_EXCLUDE_TARGETS": null,
+    "THETA_WINDOW": null
+   },
+   "resolved": {
+    "hash_randomization": false,
+    "levels.EXCLUDE_DEMARCATION_CROSSING": false,
+    "levels.FILTER_TYPE_A": false,
+    "levels.THETA_EXCLUDE_TARGETS": [],
+    "levels.THETA_WINDOW": 0,
+    "montecarlo.HASH_SEED": "0",
+    "polling.SIGMA_TWO_TERM": true
+   }
+  },
+  "parties": {
+   "ACDP": {
+    "mean": 1.849333,
+    "median": 1.0,
+    "p5": 1.0,
+    "p95": 5.0
+   },
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": {
+    "mean": 0.13,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
+    "mean": 0.093333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AFRICAN_ECONOMIC_FREEDOM": {
+    "mean": 0.124,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AFRICAN_LABOUR_CONVENTION": {
+    "mean": 0.044,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AFRICAN_RENAISSANCE_UNITY": {
+    "mean": 0.150667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
+    "mean": 0.031333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AFRICAN_UNEMPLOYED_CONGRESS": {
+    "mean": 0.144,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AFRICA_RESTORATION_ALLIANCE": {
+    "mean": 0.016667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AFRIKA_MAYIBUYE_MOVEMENT": {
+    "mean": 0.131333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AFRIKA_UNITE_CONGRESS": {
+    "mean": 0.007333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AHC": {
+    "mean": 1.212667,
+    "median": 1.0,
+    "p5": 0.0,
+    "p95": 3.0
+   },
+   "AIC": {
+    "mean": 1.018667,
+    "median": 1.0,
+    "p5": 0.0,
+    "p95": 2.0
+   },
+   "ALJAMAAH": {
+    "mean": 2.437333,
+    "median": 2.0,
+    "p5": 1.0,
+    "p95": 6.0
+   },
+   "ALLIED_INDEPENDENTS_UMBRELLA": {
+    "mean": 0.126,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ALL_CITIZENS_PARTY": {
+    "mean": 0.066,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ALL_NATIVES_OF_SOUTH_AFRICA": {
+    "mean": 0.155333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AMALGAMATED_RAINBOW_MOVEMENT": {
+    "mean": 0.006,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "ANC": {
+    "mean": 69.246667,
+    "median": 72.0,
+    "p5": 48.0,
+    "p95": 81.0
+   },
+   "APC": {
+    "mean": 0.324,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ASA": {
+    "mean": 40.594667,
+    "median": 40.0,
+    "p5": 31.0,
+    "p95": 51.0
+   },
+   "ATM": {
+    "mean": 1.529333,
+    "median": 1.0,
+    "p5": 0.0,
+    "p95": 4.0
+   },
+   "AZANIAN_GROUND_FORCES": {
+    "mean": 0.122667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "AZANIA_PEACEFUL_REVOLUTION": {
+    "mean": 0.010667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "AZAPO": {
+    "mean": 0.181333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
+    "mean": 0.028667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "BOSA": {
+    "mean": 2.975333,
+    "median": 2.0,
+    "p5": 0.0,
+    "p95": 9.0
+   },
+   "CHANGE": {
+    "mean": 0.001333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "CHRIST_KINGDOM_PARTY": {
+    "mean": 0.033333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "COMBAT": {
+    "mean": 0.036667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "COMMUNITY_FIRST_MOVEMENT": {
+    "mean": 0.034,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "COPE": {
+    "mean": 0.089333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "DA": {
+    "mean": 66.787333,
+    "median": 67.0,
+    "p5": 52.0,
+    "p95": 82.0
+   },
+   "DUDULA": {
+    "mean": 0.476,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 2.0
+   },
+   "ECONOMIC_EMANCIPATION_FORUM": {
+    "mean": 0.015333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
+    "mean": 0.136,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "ECONOMIC_REDRESS_MOVEMENT": {
+    "mean": 0.041333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "EFF": {
+    "mean": 26.202667,
+    "median": 25.0,
+    "p5": 14.0,
+    "p95": 43.0
+   },
+   "EKHETHU_PEOPLES_PARTY": {
+    "mean": 0.127333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "GAP_FIXERS_OF_SOUTH_AFRICA": {
+    "mean": 0.045333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "GAZA_DEMOCRATIC_FRONT": {
+    "mean": 0.048667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "IFP": {
+    "mean": 4.386,
+    "median": 3.0,
+    "p5": 1.0,
+    "p95": 11.0
+   },
+   "ILIZWE_NATHI": {
+    "mean": 0.036667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "IMSTAYING": {
+    "mean": 0.034,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "INDEPENDENT_CITIZENS_MOVEMENT": {
+    "mean": 0.131333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "INTERNATIONAL_REVELATION_CONGRESS": {
+    "mean": 0.136,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
+    "mean": 0.038,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "KNOW_YOUR_POWER": {
+    "mean": 0.146,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "LABOUR_PARTY_OF_SOUTH_AFRICA": {
+    "mean": 0.144,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "LAND_PARTY": {
+    "mean": 0.042667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "LEKWE_BEPE_KINGDOM_PARTY": {
+    "mean": 0.029333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "MINORITY_FRONT": {
+    "mean": 0.126667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "MK": {
+    "mean": 21.547333,
+    "median": 16.5,
+    "p5": 5.0,
+    "p95": 54.049999999999955
+   },
+   "MOVEMENT_OF_RESIDENTS_PARTY": {
+    "mean": 0.035333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "MOVE_SA": {
+    "mean": 0.151333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "NATIONAL_DEMOCRATIC_CONVENTION": {
+    "mean": 0.108667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "NCC": {
+    "mean": 0.145333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "NFP": {
+    "mean": 0.043333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "PA": {
+    "mean": 16.024,
+    "median": 14.0,
+    "p5": 5.0,
+    "p95": 32.0
+   },
+   "PAC": {
+    "mean": 0.888,
+    "median": 1.0,
+    "p5": 0.0,
+    "p95": 2.0
+   },
+   "PEOPLE_OF_JOBURG": {
+    "mean": 0.140667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "PEOPLE_S_CONSENT_PARTY": {
+    "mean": 0.026,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
+    "mean": 0.160667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "PRO_SOUTH_AFRICA": {
+    "mean": 0.019333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "RESIDENT_DEVELOPMENT": {
+    "mean": 0.015333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "RISE": {
+    "mean": 4.568667,
+    "median": 3.0,
+    "p5": 1.0,
+    "p95": 14.0
+   },
+   "SERVICE_DELIVERY_PARTY": {
+    "mean": 0.152,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "SHOSHOLOZA_PROGRESSIVE_PARTY": {
+    "mean": 0.003333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+    "mean": 0.136667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": {
+    "mean": 0.146,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
+    "mean": 0.014,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "THE_ORGANIC_HUMANITY_MOVEMENT": {
+    "mean": 0.028,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 0.0
+   },
+   "TRUTH_AND_SOLIDARITY_MOVEMENT": {
+    "mean": 0.138667,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "UIM": {
+    "mean": 0.333333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "UMPHAKATHI_WARONA": {
+    "mean": 0.113333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   },
+   "UNITED_AFRICANS_TRANSFORMATION": {
+    "mean": 0.563333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 2.0
+   },
+   "VFPLUS": {
+    "mean": 2.281333,
+    "median": 2.0,
+    "p5": 1.0,
+    "p95": 6.0
+   },
+   "VUKA_SA": {
+    "mean": 0.133333,
+    "median": 0.0,
+    "p5": 0.0,
+    "p95": 1.0
+   }
+  },
+  "pool_artefact_keys": {
+   "pools_2011.json": {
+    "cities_sha": "9328df1260c85faf",
+    "city": "joburg",
+    "config_sha": "7ffb5edbe82f3f51",
+    "deps_sha": "b23065521e4a4474",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "fab627a741c0c7c8",
+    "pools_sha": "e532c3005e0524b8",
+    "roll_sha": "absent",
+    "schema": 2,
+    "target": "2011"
+   },
+   "pools_2016.json": {
+    "cities_sha": "9328df1260c85faf",
+    "city": "joburg",
+    "config_sha": "7ffb5edbe82f3f51",
+    "deps_sha": "b23065521e4a4474",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "7ea7faaaafd6e3c5",
+    "pools_sha": "e532c3005e0524b8",
+    "roll_sha": "absent",
+    "schema": 2,
+    "target": "2016"
+   },
+   "pools_2021.json": {
+    "cities_sha": "9328df1260c85faf",
+    "city": "joburg",
+    "config_sha": "7ffb5edbe82f3f51",
+    "deps_sha": "b23065521e4a4474",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "54e74cd0d54d1a2b",
+    "pools_sha": "e532c3005e0524b8",
+    "roll_sha": "absent",
+    "schema": 2,
+    "target": "2021"
+   },
+   "pools_2026.json": {
+    "cities_sha": "9328df1260c85faf",
+    "city": "joburg",
+    "config_sha": "7ffb5edbe82f3f51",
+    "deps_sha": "b23065521e4a4474",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "3851439df49e04fb",
+    "pools_sha": "e532c3005e0524b8",
+    "roll_sha": "db831def8e100fbd",
+    "schema": 2,
+    "target": "2026"
+   },
+   "pools_2026_simulation.json": {
+    "cities_sha": "9328df1260c85faf",
+    "city": "joburg",
+    "config_sha": "7ffb5edbe82f3f51",
+    "deps_sha": "b23065521e4a4474",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "3851439df49e04fb",
+    "pools_sha": "e532c3005e0524b8",
+    "roll_sha": "db831def8e100fbd",
+    "schema": 2,
+    "target": "2026"
+   }
+  },
+  "scenario": {
+   "apply_judgements": true,
+   "arrival_group_draw": false,
+   "bye_local_cap": 1.5,
+   "bye_tau_months": 18.0,
+   "bye_weight_mode": "fixed",
+   "centre_correction": false,
+   "contestation_expand": 0.22,
+   "dirichlet_floor": 0.0001,
+   "dirichlet_scale": 1.0,
+   "draw_law": "universal",
+   "draws": 1500,
+   "entrant_geography": {},
+   "entrant_prob": 0.25,
+   "entrant_share": [
+    0.01,
+    0.04,
+    0.12
+   ],
+   "level_floor": 1e-06,
+   "level_shrink": 0.35,
+   "level_shrink_scale": 0.04,
+   "newness_width": "by_anchor",
+   "overhang_rule": "deduct",
+   "poll_credence": 1.0,
+   "poll_deff_subsample": 1.6,
+   "poll_drift_per_root_day": 0.001,
+   "poll_half_life_days": 120.0,
+   "poll_house_k": 1.0,
+   "poll_min_n": 300,
+   "poll_paths": "off",
+   "poll_screen_sd": 0.02,
+   "pools": {
+    "Black African": {
+     "alpha": 16.312241953293974,
+     "derived_from": "pool vectors fitted on joburg 2021, and on the 2024 national election for 3 parties absent from it; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
+     "identified": [
+      "ACDP",
+      "AHC",
+      "AIC",
+      "ANC",
+      "ASA",
+      "ATM",
+      "BOSA",
+      "DA",
+      "EFF",
+      "IFP",
+      "MK",
+      "PAC",
+      "RISE",
+      "VFPLUS"
+     ],
+     "members": {
+      "ACDP": 0.3850180667957546,
+      "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.6698380649883899,
+      "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.6698380649883899,
+      "AFRICAN_ECONOMIC_FREEDOM": 0.6698380649883899,
+      "AFRICAN_LABOUR_CONVENTION": 0.66983806498839,
+      "AFRICAN_RENAISSANCE_UNITY": 0.66983806498839,
+      "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.66983806498839,
+      "AFRICAN_UNEMPLOYED_CONGRESS": 0.6698380649883899,
+      "AFRICA_RESTORATION_ALLIANCE": 0.783914780461424,
+      "AFRIKA_MAYIBUYE_MOVEMENT": 0.6698380649883899,
+      "AFRIKA_UNITE_CONGRESS": 0.66983806498839,
+      "AHC": 0.9999999999999998,
+      "AIC": 0.9887996810498594,
+      "ALJAMAAH": 0.005620394931492106,
+      "ALLIED_INDEPENDENTS_UMBRELLA": 0.6698380649883899,
+      "ALL_CITIZENS_PARTY": 0.66983806498839,
+      "ALL_NATIVES_OF_SOUTH_AFRICA": 0.6698380649883899,
+      "AMALGAMATED_RAINBOW_MOVEMENT": 0.16268830851868546,
+      "ANC": 0.9948308577512752,
+      "APC": 0.7024162195931005,
+      "ASA": 0.7172079215038093,
+      "ATM": 0.9999999999999999,
+      "AZANIAN_GROUND_FORCES": 0.6698380649883899,
+      "AZANIA_PEACEFUL_REVOLUTION": 0.6698380649883899,
+      "AZAPO": 0.8557591684329475,
+      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.7123990689721257,
+      "BOSA": 0.591109874326847,
+      "CHANGE": 0.748503495967759,
+      "CHRIST_KINGDOM_PARTY": 0.66983806498839,
+      "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.6698380649883899,
+      "COMBAT": 0.6698380649883899,
+      "COMMUNITY_FIRST_MOVEMENT": 0.6698380649883899,
+      "COPE": 0.8030230025157837,
+      "DA": 0.15072928387439213,
+      "DUDULA": 0.6698380649883899,
+      "ECONOMIC_EMANCIPATION_FORUM": 0.7339809949451064,
+      "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.6698380649883899,
+      "ECONOMIC_REDRESS_MOVEMENT": 0.6698380649883899,
+      "EFF": 0.9999999999999999,
+      "EKHETHU_PEOPLES_PARTY": 0.6698380649883899,
+      "GAP_FIXERS_OF_SOUTH_AFRICA": 0.66983806498839,
+      "GAZA_DEMOCRATIC_FRONT": 0.66983806498839,
+      "IFP": 0.9999999999999999,
+      "ILIZWE_NATHI": 0.66983806498839,
+      "IMSTAYING": 0.66983806498839,
+      "INDEPENDENT_CITIZENS_MOVEMENT": 0.6698380649883902,
+      "INTERNATIONAL_REVELATION_CONGRESS": 0.9377541099680093,
+      "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.66983806498839,
+      "KNOW_YOUR_POWER": 0.6698380649883899,
+      "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.6698380649883899,
+      "LAND_PARTY": 0.6698380649883899,
+      "LEKWE_BEPE_KINGDOM_PARTY": 0.66983806498839,
+      "MAWUSA_MOVEMENT_PARTY": 0.66983806498839,
+      "MINORITY_FRONT": 0.6698380649883899,
+      "MK": 1.0,
+      "MOVEMENT_OF_RESIDENTS_PARTY": 0.66983806498839,
+      "MOVE_SA": 0.66983806498839,
+      "NATIONAL_DEMOCRATIC_CONVENTION": 0.6698380649883902,
+      "NCC": 0.6698380649883899,
+      "NFP": 0.9284974869591235,
+      "PA": 0.006848711546837351,
+      "PAC": 0.980743481050238,
+      "PEOPLE_OF_JOBURG": 0.6698380649883899,
+      "PEOPLE_S_CONSENT_PARTY": 0.66983806498839,
+      "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.6698380649883899,
+      "PRO_SOUTH_AFRICA": 0.66983806498839,
+      "RESIDENT_DEVELOPMENT": 0.66983806498839,
+      "RISE": 0.3517325582237615,
+      "SERVICE_DELIVERY_PARTY": 0.6698380649883899,
+      "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.3818218136491253,
+      "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.6698380649883899,
+      "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.66983806498839,
+      "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.66983806498839,
+      "THE_ORGANIC_HUMANITY_MOVEMENT": 0.30236495212475123,
+      "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.66983806498839,
+      "UDM": 0.807738922571699,
+      "UIM": 0.41231888357446245,
+      "UMPHAKATHI_WARONA": 0.66983806498839,
+      "UNITED_AFRICANS_TRANSFORMATION": 0.6698380649883899,
+      "VFPLUS": 0.21624918624935097,
+      "VUKA_SA": 0.66983806498839
+     },
+     "registered": 1813245.207125895,
+     "turnout": [
+      0.23577462975411753,
+      0.3699033614017991,
+      0.5276526323509673
+     ]
+    },
+    "Coloured": {
+     "alpha": 18.088965597434388,
+     "derived_from": "pool vectors fitted on joburg 2021, and on the 2024 national election for 3 parties absent from it; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
+     "identified": [
+      "ACDP",
+      "APC",
+      "BOSA",
+      "UIM",
+      "VFPLUS"
+     ],
+     "members": {
+      "ACDP": 0.4639609922241087,
+      "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.07427997116002531,
+      "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0742799711600253,
+      "AFRICAN_ECONOMIC_FREEDOM": 0.0742799711600253,
+      "AFRICAN_LABOUR_CONVENTION": 0.0742799711600253,
+      "AFRICAN_RENAISSANCE_UNITY": 0.0742799711600253,
+      "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.0742799711600253,
+      "AFRICAN_UNEMPLOYED_CONGRESS": 0.0742799711600253,
+      "AFRICA_RESTORATION_ALLIANCE": 0.05690263759539128,
+      "AFRIKA_MAYIBUYE_MOVEMENT": 0.0742799711600253,
+      "AFRIKA_UNITE_CONGRESS": 0.07427997116002531,
+      "AIC": 0.011200318950140644,
+      "ALJAMAAH": 0.0007122242452374252,
+      "ALLIED_INDEPENDENTS_UMBRELLA": 0.0742799711600253,
+      "ALL_CITIZENS_PARTY": 0.0742799711600253,
+      "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0742799711600253,
+      "AMALGAMATED_RAINBOW_MOVEMENT": 0.4736877213432985,
+      "ANC": 0.00516914224872475,
+      "APC": 0.2046451165269138,
+      "ASA": 0.03165877705293727,
+      "AZANIAN_GROUND_FORCES": 0.0742799711600253,
+      "AZANIA_PEACEFUL_REVOLUTION": 0.0742799711600253,
+      "AZAPO": 0.037983550113443176,
+      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.07573517330487622,
+      "BOSA": 0.0733325264254769,
+      "CHANGE": 0.06622764137229514,
+      "CHRIST_KINGDOM_PARTY": 0.07427997116002531,
+      "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.0742799711600253,
+      "COMBAT": 0.0742799711600253,
+      "COMMUNITY_FIRST_MOVEMENT": 0.0742799711600253,
+      "COPE": 0.02278735867998275,
+      "DA": 0.09409919406735859,
+      "DUDULA": 0.0742799711600253,
+      "ECONOMIC_EMANCIPATION_FORUM": 0.07005191317781388,
+      "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0742799711600253,
+      "ECONOMIC_REDRESS_MOVEMENT": 0.07427997116002531,
+      "EKHETHU_PEOPLES_PARTY": 0.0742799711600253,
+      "GAP_FIXERS_OF_SOUTH_AFRICA": 0.07427997116002534,
+      "GAZA_DEMOCRATIC_FRONT": 0.0742799711600253,
+      "ILIZWE_NATHI": 0.0742799711600253,
+      "IMSTAYING": 0.0742799711600253,
+      "INDEPENDENT_CITIZENS_MOVEMENT": 0.07427997116002533,
+      "INTERNATIONAL_REVELATION_CONGRESS": 0.016391474298225333,
+      "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.07427997116002534,
+      "KNOW_YOUR_POWER": 0.0742799711600253,
+      "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0742799711600253,
+      "LAND_PARTY": 0.07427997116002531,
+      "LEKWE_BEPE_KINGDOM_PARTY": 0.07427997116002531,
+      "MAWUSA_MOVEMENT_PARTY": 0.0742799711600253,
+      "MINORITY_FRONT": 0.0742799711600253,
+      "MOVEMENT_OF_RESIDENTS_PARTY": 0.0742799711600253,
+      "MOVE_SA": 0.07427997116002533,
+      "NATIONAL_DEMOCRATIC_CONVENTION": 0.07427997116002533,
+      "NCC": 0.0742799711600253,
+      "NFP": 0.018829060106067965,
+      "PA": 0.9907234379438178,
+      "PAC": 0.00495705161910052,
+      "PEOPLE_OF_JOBURG": 0.0742799711600253,
+      "PEOPLE_S_CONSENT_PARTY": 0.07427997116002531,
+      "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0742799711600253,
+      "PRO_SOUTH_AFRICA": 0.07427997116002533,
+      "RESIDENT_DEVELOPMENT": 0.07427997116002531,
+      "RISE": 0.0730612295621882,
+      "SERVICE_DELIVERY_PARTY": 0.0742799711600253,
+      "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.16278748441200266,
+      "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.0742799711600253,
+      "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.07427997116002531,
+      "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.07427997116002531,
+      "THE_ORGANIC_HUMANITY_MOVEMENT": 0.18371119685028692,
+      "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.07427997116002533,
+      "UDM": 0.01560615764066641,
+      "UIM": 0.21498982369712125,
+      "UMPHAKATHI_WARONA": 0.07427997116002531,
+      "UNITED_AFRICANS_TRANSFORMATION": 0.0742799711600253,
+      "VFPLUS": 0.20003525579766693,
+      "VUKA_SA": 0.07427997116002531
+     },
+     "registered": 130612.09071644653,
+     "turnout": [
+      0.2506640212999206,
+      0.5612449303960148,
+      0.8302649429220973
+     ]
+    },
+    "Indian/Asian": {
+     "alpha": 6.513651678716155,
+     "derived_from": "pool vectors fitted on joburg 2021, and on the 2024 national election for 3 parties absent from it; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
+     "identified": [
+      "ACDP",
+      "ALJAMAAH",
+      "BOSA",
+      "RISE",
+      "VFPLUS"
+     ],
+     "members": {
+      "ACDP": 0.031889252998695876,
+      "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.05526912792286381,
+      "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.055269127922863794,
+      "AFRICAN_ECONOMIC_FREEDOM": 0.0552691279228638,
+      "AFRICAN_LABOUR_CONVENTION": 0.055269127922863814,
+      "AFRICAN_RENAISSANCE_UNITY": 0.05526912792286381,
+      "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.05526912792286381,
+      "AFRICAN_UNEMPLOYED_CONGRESS": 0.0552691279228638,
+      "AFRICA_RESTORATION_ALLIANCE": 0.03361264732974684,
+      "AFRIKA_MAYIBUYE_MOVEMENT": 0.0552691279228638,
+      "AFRIKA_UNITE_CONGRESS": 0.0552691279228638,
+      "ALJAMAAH": 0.9920956794806983,
+      "ALLIED_INDEPENDENTS_UMBRELLA": 0.0552691279228638,
+      "ALL_CITIZENS_PARTY": 0.0552691279228638,
+      "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0552691279228638,
+      "AMALGAMATED_RAINBOW_MOVEMENT": 0.07678204562138548,
+      "APC": 0.019624725859835827,
+      "ASA": 0.09283610357981932,
+      "AZANIAN_GROUND_FORCES": 0.0552691279228638,
+      "AZANIA_PEACEFUL_REVOLUTION": 0.055269127922863794,
+      "AZAPO": 0.02243705614093253,
+      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.04473711199215556,
+      "BOSA": 0.24439861013412723,
+      "CHANGE": 0.039120969554286636,
+      "CHRIST_KINGDOM_PARTY": 0.0552691279228638,
+      "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.0552691279228638,
+      "COMBAT": 0.0552691279228638,
+      "COMMUNITY_FIRST_MOVEMENT": 0.0552691279228638,
+      "COPE": 0.03678150477363439,
+      "DA": 0.10026096518654702,
+      "DUDULA": 0.055269127922863794,
+      "ECONOMIC_EMANCIPATION_FORUM": 0.041379984336800166,
+      "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.055269127922863794,
+      "ECONOMIC_REDRESS_MOVEMENT": 0.0552691279228638,
+      "EKHETHU_PEOPLES_PARTY": 0.0552691279228638,
+      "GAP_FIXERS_OF_SOUTH_AFRICA": 0.055269127922863814,
+      "GAZA_DEMOCRATIC_FRONT": 0.05526912792286381,
+      "ILIZWE_NATHI": 0.05526912792286381,
+      "IMSTAYING": 0.05526912792286381,
+      "INDEPENDENT_CITIZENS_MOVEMENT": 0.05526912792286381,
+      "INTERNATIONAL_REVELATION_CONGRESS": 0.009682518562996845,
+      "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.055269127922863814,
+      "KNOW_YOUR_POWER": 0.0552691279228638,
+      "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0552691279228638,
+      "LAND_PARTY": 0.0552691279228638,
+      "LEKWE_BEPE_KINGDOM_PARTY": 0.0552691279228638,
+      "MAWUSA_MOVEMENT_PARTY": 0.05526912792286381,
+      "MINORITY_FRONT": 0.0552691279228638,
+      "MOVEMENT_OF_RESIDENTS_PARTY": 0.05526912792286381,
+      "MOVE_SA": 0.055269127922863814,
+      "NATIONAL_DEMOCRATIC_CONVENTION": 0.055269127922863814,
+      "NCC": 0.0552691279228638,
+      "NFP": 0.011122411607632205,
+      "PA": 0.0005126596260957942,
+      "PAC": 0.003019444379664062,
+      "PEOPLE_OF_JOBURG": 0.0552691279228638,
+      "PEOPLE_S_CONSENT_PARTY": 0.055269127922863794,
+      "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0552691279228638,
+      "PRO_SOUTH_AFRICA": 0.055269127922863794,
+      "RESIDENT_DEVELOPMENT": 0.055269127922863794,
+      "RISE": 0.28958814776788144,
+      "SERVICE_DELIVERY_PARTY": 0.0552691279228638,
+      "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.09615930885566681,
+      "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.0552691279228638,
+      "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.055269127922863814,
+      "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.055269127922863794,
+      "THE_ORGANIC_HUMANITY_MOVEMENT": 0.10851904114115309,
+      "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.055269127922863814,
+      "UDM": 0.03730206813711451,
+      "UIM": 0.07869668171244319,
+      "UMPHAKATHI_WARONA": 0.055269127922863814,
+      "UNITED_AFRICANS_TRANSFORMATION": 0.055269127922863794,
+      "VFPLUS": 0.3291125111540134,
+      "VUKA_SA": 0.05526912792286381
+     },
+     "registered": 125315.73053118734,
+     "turnout": [
+      0.12280894645885135,
+      0.46139172601627865,
+      0.839782773124447
+     ]
+    },
+    "White": {
+     "alpha": 21.115246118564805,
+     "derived_from": "pool vectors fitted on joburg 2021, and on the 2024 national election for 3 parties absent from it; size from the 2026 roll split by each ward's own composition; turnout from joburg's local elections before 2026",
+     "identified": [
+      "ACDP",
+      "BOSA",
+      "RISE",
+      "VFPLUS"
+     ],
+     "members": {
+      "ACDP": 0.11913168798144089,
+      "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.2006128359287208,
+      "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.2006128359287208,
+      "AFRICAN_ECONOMIC_FREEDOM": 0.20061283592872087,
+      "AFRICAN_LABOUR_CONVENTION": 0.20061283592872084,
+      "AFRICAN_RENAISSANCE_UNITY": 0.20061283592872087,
+      "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.2006128359287208,
+      "AFRICAN_UNEMPLOYED_CONGRESS": 0.20061283592872087,
+      "AFRICA_RESTORATION_ALLIANCE": 0.12556993461343777,
+      "AFRIKA_MAYIBUYE_MOVEMENT": 0.20061283592872087,
+      "AFRIKA_UNITE_CONGRESS": 0.20061283592872087,
+      "ALJAMAAH": 0.0015717013425720708,
+      "ALLIED_INDEPENDENTS_UMBRELLA": 0.20061283592872087,
+      "ALL_CITIZENS_PARTY": 0.20061283592872087,
+      "ALL_NATIVES_OF_SOUTH_AFRICA": 0.20061283592872087,
+      "AMALGAMATED_RAINBOW_MOVEMENT": 0.28684192451663043,
+      "APC": 0.07331393802015006,
+      "ASA": 0.15829719786343416,
+      "AZANIAN_GROUND_FORCES": 0.20061283592872087,
+      "AZANIA_PEACEFUL_REVOLUTION": 0.2006128359287208,
+      "AZAPO": 0.0838202253126768,
+      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.16712864573084255,
+      "BOSA": 0.09115898911354876,
+      "CHANGE": 0.14614789310565923,
+      "CHRIST_KINGDOM_PARTY": 0.20061283592872087,
+      "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.20061283592872087,
+      "COMBAT": 0.20061283592872084,
+      "COMMUNITY_FIRST_MOVEMENT": 0.20061283592872084,
+      "COPE": 0.137408134030599,
+      "DA": 0.6549105568717022,
+      "DUDULA": 0.2006128359287208,
+      "ECONOMIC_EMANCIPATION_FORUM": 0.15458710754027966,
+      "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.2006128359287208,
+      "ECONOMIC_REDRESS_MOVEMENT": 0.20061283592872087,
+      "EKHETHU_PEOPLES_PARTY": 0.20061283592872087,
+      "GAP_FIXERS_OF_SOUTH_AFRICA": 0.2006128359287209,
+      "GAZA_DEMOCRATIC_FRONT": 0.2006128359287208,
+      "ILIZWE_NATHI": 0.2006128359287208,
+      "IMSTAYING": 0.2006128359287208,
+      "INDEPENDENT_CITIZENS_MOVEMENT": 0.2006128359287209,
+      "INTERNATIONAL_REVELATION_CONGRESS": 0.036171897170768505,
+      "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.2006128359287209,
+      "KNOW_YOUR_POWER": 0.20061283592872087,
+      "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.20061283592872087,
+      "LAND_PARTY": 0.20061283592872087,
+      "LEKWE_BEPE_KINGDOM_PARTY": 0.20061283592872087,
+      "MAWUSA_MOVEMENT_PARTY": 0.2006128359287208,
+      "MINORITY_FRONT": 0.20061283592872087,
+      "MOVEMENT_OF_RESIDENTS_PARTY": 0.2006128359287208,
+      "MOVE_SA": 0.20061283592872087,
+      "NATIONAL_DEMOCRATIC_CONVENTION": 0.20061283592872087,
+      "NCC": 0.20061283592872087,
+      "NFP": 0.04155104132717636,
+      "PA": 0.001915190883249098,
+      "PAC": 0.011280022950997467,
+      "PEOPLE_OF_JOBURG": 0.20061283592872087,
+      "PEOPLE_S_CONSENT_PARTY": 0.2006128359287209,
+      "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.20061283592872087,
+      "PRO_SOUTH_AFRICA": 0.2006128359287208,
+      "RESIDENT_DEVELOPMENT": 0.2006128359287209,
+      "RISE": 0.28561806444616894,
+      "SERVICE_DELIVERY_PARTY": 0.20061283592872087,
+      "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.3592313930832052,
+      "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.20061283592872087,
+      "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.20061283592872084,
+      "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.2006128359287209,
+      "THE_ORGANIC_HUMANITY_MOVEMENT": 0.4054048098838089,
+      "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.20061283592872087,
+      "UDM": 0.13935285165052017,
+      "UIM": 0.29399461101597313,
+      "UMPHAKATHI_WARONA": 0.20061283592872084,
+      "UNITED_AFRICANS_TRANSFORMATION": 0.2006128359287208,
+      "VFPLUS": 0.2546030467989688,
+      "VUKA_SA": 0.2006128359287209
+     },
+     "registered": 348741.9716264718,
+     "turnout": [
+      0.35825843756702863,
+      0.6015541448911136,
+      0.8032640341124819
+     ]
+    }
+   },
+   "seed": 20261104,
+   "spine_k": null,
+   "turnout_blend_jitter": 0.25,
+   "turnout_correlation": 0.63,
+   "turnout_noise_sd": 0.08,
+   "turnout_pattern_blend": 0.5,
+   "w_bye": 0.5,
+   "w_bye_local_pr": 0.0,
+   "w_bye_local_ward": 0.0,
+   "ward_noise_sd": 0.1
+  },
+  "seat_draws_sha256": "73153975cd6dec143fc54b255ac598b4c7255cb5ce687229da36116d8b7573e1",
+  "seed": 20261104,
+  "target": "2026"
+ },
+ "content_sha256": "d9a0a20217e3742c0aba8590de50299e62b36eb724acf7fc31da4b0382a9b903",
+ "provenance": {
+  "git_commit": "37b3e6654631b5f1a373f60fbc7ab5d93b76190f",
+  "git_dirty": false,
+  "numpy": "2.5.1",
+  "python": "3.13.4"
+ }
+}

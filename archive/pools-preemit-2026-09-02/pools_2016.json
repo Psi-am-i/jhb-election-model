@@ -1,0 +1,300 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "joburg",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "86995c914b530216",
+    "schema": 1,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/joburg-2016.toml",
+  "no_measured_vector": {
+    "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AGANG": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BUILDING_A_COHESIVE_SOCIETY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "INTERNATIONAL_REVELATION_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PEOPLE_S_CIVIC_ORGANISATION": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PREM_PEOPLES_AGENDA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "TRULY_ALLIANCE": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UBUNTU_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_FRONT_OF_CIVICS": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.6550613283305249,
+    0.05586849228243026,
+    0.042492428912937544,
+    0.2465777504741074
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 97.9025255912183,
+      "derived_from": "pool vectors fitted on joburg 2011; size from the 2016 roll split by each ward's own composition; turnout from joburg's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "IFP",
+        "OKM",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.46445878962649717,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.62725720642903,
+        "AGANG": 0.62725720642903,
+        "AIC": 0.62725720642903,
+        "ANC": 0.9248400101193629,
+        "APC": 0.9797078685922345,
+        "AZAPO": 0.8808212140254678,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.62725720642903,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.62725720642903,
+        "COPE": 0.776819808953451,
+        "DA": 0.06814902529123262,
+        "EFF": 0.7314111877206466,
+        "IFP": 1.0,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.62725720642903,
+        "OKM": 0.8943377491456641,
+        "PA": 0.62725720642903,
+        "PAC": 0.9868712143796908,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.62725720642903,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.62725720642903,
+        "PREM_PEOPLES_AGENDA": 0.62725720642903,
+        "THE_SOCIALIST_PARTY_OF_AZANIA": 0.9939188415259618,
+        "TRULY_ALLIANCE": 0.62725720642903,
+        "UBUNTU_PARTY": 0.62725720642903,
+        "UDM": 0.9063533522633908,
+        "UNITED_FRONT_OF_CIVICS": 0.62725720642903,
+        "VFPLUS": 0.0609850360859283
+      },
+      "registered": 1475113.8017065516,
+      "turnout": [
+        0.352377917111961,
+        0.5083353541506535,
+        0.6626871352460988
+      ]
+    },
+    "Coloured": {
+      "alpha": 36.95853684456129,
+      "derived_from": "pool vectors fitted on joburg 2011; size from the 2016 roll split by each ward's own composition; turnout from joburg's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ALJAMAAH",
+        "COPE"
+      ],
+      "members": {
+        "ACDP": 0.17247944948503616,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.061701882003948855,
+        "AGANG": 0.061701882003948855,
+        "AIC": 0.061701882003948855,
+        "ALJAMAAH": 0.13255875594373048,
+        "ANC": 0.012372898179418293,
+        "APC": 0.01529357473023982,
+        "AZAPO": 0.02309151973242165,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.061701882003948855,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.061701882003948855,
+        "COPE": 0.03413552096633231,
+        "DA": 0.1493607057481606,
+        "EFF": 0.044436737665363164,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.061701882003948855,
+        "PA": 0.061701882003948855,
+        "PAC": 0.006179092343248227,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.061701882003948855,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.061701882003948855,
+        "PREM_PEOPLES_AGENDA": 0.061701882003948855,
+        "THE_SOCIALIST_PARTY_OF_AZANIA": 0.00033101018297533266,
+        "TRULY_ALLIANCE": 0.061701882003948855,
+        "UBUNTU_PARTY": 0.061701882003948855,
+        "UDM": 0.00838540716703505,
+        "UNITED_FRONT_OF_CIVICS": 0.061701882003948855,
+        "VFPLUS": 0.058802184213033556
+      },
+      "registered": 126437.39444720543,
+      "turnout": [
+        0.32963655561422406,
+        0.6006523618266822,
+        0.8214492618992658
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 25.075977051133275,
+      "derived_from": "pool vectors fitted on joburg 2011; size from the 2016 roll split by each ward's own composition; turnout from joburg's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ALJAMAAH",
+        "AZAPO",
+        "COPE",
+        "OKM"
+      ],
+      "members": {
+        "ACDP": 0.03330864821869572,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.036315995246514965,
+        "AGANG": 0.036315995246514965,
+        "AIC": 0.036315995246514965,
+        "ALJAMAAH": 0.8674412440562695,
+        "ANC": 0.012911619324515851,
+        "AZAPO": 0.09608726624211049,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.036315995246514965,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.036315995246514965,
+        "COPE": 0.030077912541482392,
+        "DA": 0.0736598483338373,
+        "EFF": 0.028124463673815277,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.036315995246514965,
+        "OKM": 0.10566225085433587,
+        "PA": 0.036315995246514965,
+        "PAC": 0.006949693277060873,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.036315995246514965,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.036315995246514965,
+        "PREM_PEOPLES_AGENDA": 0.036315995246514965,
+        "THE_SOCIALIST_PARTY_OF_AZANIA": 0.005750148291062888,
+        "TRULY_ALLIANCE": 0.036315995246514965,
+        "UBUNTU_PARTY": 0.036315995246514965,
+        "UDM": 0.019557950068046646,
+        "UNITED_FRONT_OF_CIVICS": 0.036315995246514965
+      },
+      "registered": 98467.31522808893,
+      "turnout": [
+        0.15986556332871446,
+        0.45788283513363587,
+        0.7894296725533925
+      ]
+    },
+    "White": {
+      "alpha": 32.042067161340626,
+      "derived_from": "pool vectors fitted on joburg 2011; size from the 2016 roll split by each ward's own composition; turnout from joburg's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "COPE",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.3297531126697709,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.27472491632050616,
+        "AGANG": 0.27472491632050616,
+        "AIC": 0.27472491632050616,
+        "ANC": 0.049875472376702985,
+        "APC": 0.004998556677525842,
+        "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.27472491632050616,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.27472491632050616,
+        "COPE": 0.15896675753873415,
+        "DA": 0.7088304206267695,
+        "EFF": 0.19602761094017507,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.27472491632050616,
+        "PA": 0.27472491632050616,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.27472491632050616,
+        "PEOPLE_S_CIVIC_ORGANISATION": 0.27472491632050616,
+        "PREM_PEOPLES_AGENDA": 0.27472491632050616,
+        "TRULY_ALLIANCE": 0.27472491632050616,
+        "UBUNTU_PARTY": 0.27472491632050616,
+        "UDM": 0.0657032905015275,
+        "UNITED_FRONT_OF_CIVICS": 0.27472491632050616,
+        "VFPLUS": 0.8802127797010382
+      },
+      "registered": 539947.4886181542,
+      "turnout": [
+        0.4854491541066144,
+        0.6428376856031887,
+        0.7744521702385201
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2000": [
+      0.7021729152920201,
+      0.04264997649778012,
+      0.026683266941238813,
+      0.2284938412689609
+    ],
+    "2006": [
+      0.6759142485758487,
+      0.05350964159467924,
+      0.03823248962139973,
+      0.23234362020807228
+    ],
+    "2009": [
+      0.6674480054487927,
+      0.0546024343841441,
+      0.03838751026139697,
+      0.23956204990566626
+    ],
+    "2011": [
+      0.6688357712682547,
+      0.05577428382313187,
+      0.043076903536846914,
+      0.23231304137176653
+    ],
+    "2014": [
+      0.659044878539647,
+      0.055848101403934675,
+      0.04266360532848473,
+      0.24244341472793368
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "turnout_limits": {
+    "city": {
+      "high": 0.5981254868045934,
+      "low": 0.34667644830684224,
+      "observed_high": 0.5437504425496303,
+      "observed_low": 0.3851960536742692,
+      "previous": 0.5437504425496303
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5591688895657189,
+        "low": 0.3171401254007649,
+        "observed_high": 0.5083353541506535,
+        "observed_low": 0.352377917111961,
+        "previous": 0.5083353541506535
+      },
+      {
+        "high": 0.6607175980093505,
+        "low": 0.29667290005280167,
+        "observed_high": 0.6006523618266822,
+        "observed_low": 0.32963655561422406,
+        "previous": 0.6006523618266822
+      },
+      {
+        "high": 0.5036711186469995,
+        "low": 0.14387900699584305,
+        "observed_high": 0.45788283513363587,
+        "observed_low": 0.1598655633287145,
+        "previous": 0.45788283513363587
+      },
+      {
+        "high": 0.7071214541635076,
+        "low": 0.4369042386959529,
+        "observed_high": 0.6428376856031887,
+        "observed_low": 0.4854491541066143,
+        "previous": 0.6428376856031887
+      }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+ "city": "ekurhuleni",
+ "year": "2016",
+ "draws": 1000,
+ "council": 224,
+ "wards": 112,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "AGANG": 1,
+   "ANC": 104,
+   "APC": 1,
+   "DA": 82,
+   "EFF": 23,
+   "EKURHULENI_COMMUNITY_MOVEMENT": 1,
+   "IFP": 2,
+   "INTERNATIONAL_REVELATION_CONGRESS": 1,
+   "PAC": 1,
+   "PALMRIDGE_COMMUNITY_FORUM": 1,
+   "UDM": 1,
+   "UNITED_FRONT_OF_CIVICS": 1,
+   "UNITED_RESIDENTS_FRONT": 1,
+   "VFPLUS": 2
+  },
+  "seat_err": 28.0,
+  "wards_ok": 111,
+  "ward_vote_err_pp": 11.119231135213164,
+  "list_vote_err_pp": 9.944785791313176,
+  "top": "ANC",
+  "top_wards": 75,
+  "top_actual_wards": 76,
+  "excessive": {},
+  "council": 224,
+  "ward_wins": {
+   "DA": 35,
+   "ANC": 75,
+   "EFF": 2
+  }
+ }
+}

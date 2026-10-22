@@ -1,0 +1,3343 @@
+{
+ "city": "nelsonmandelabay",
+ "year": "2021",
+ "draws": 2000,
+ "seed": 20261104,
+ "control": "none",
+ "c4_party": null,
+ "plant_party": null,
+ "plant_wards": [
+  "29300001",
+  "29300002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 26.6,
+ "spec": "data/processed/nelsonmandelabay/pools_2021.json",
+ "universe": [
+  "ABANTU_BATHO_CONGRESS",
+  "ABANTU_INTEGRITY_MOVEMENT",
+  "ACDP",
+  "AFRICA_RESTORATION_ALLIANCE",
+  "AIC",
+  "ALJAMAAH",
+  "ANC",
+  "ATM",
+  "AZAPO",
+  "COMPATRIOTS_OF_SOUTH_AFRICA",
+  "COPE",
+  "DA",
+  "DOP",
+  "EFF",
+  "GOD_SAVE_AFRICA",
+  "GOOD",
+  "INDEPENDENT_CIVIC_MOVEMENT",
+  "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+  "MANDELA_BAY_COMMUNITY_MOVEMENT",
+  "NORTHERN_ALLIANCE",
+  "PAC",
+  "SPECTRUM_NATIONAL_PARTY",
+  "THE_ORGANIC_HUMANITY_MOVEMENT",
+  "UDM",
+  "UIM",
+  "VFPLUS"
+ ],
+ "n_wards_model": 60,
+ "n_wards_actual": {
+  "PR": 60,
+  "Ward": 60
+ },
+ "unmatched_actual_wards": {
+  "PR": [],
+  "Ward": []
+ },
+ "cells_scanned": {
+  "PR": 1425,
+  "Ward": 1128
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 102,
+   "1e-09": 102,
+   "1e-06": 102,
+   "0.0001": 102,
+   "0.001": 102
+  },
+  "Ward": {
+   "1e-12": 90,
+   "1e-09": 90,
+   "1e-06": 90,
+   "0.0001": 90,
+   "0.001": 90
+  }
+ },
+ "min_vd_share_W": {
+  "ABANTU_BATHO_CONGRESS": 6.057625622363945e-07,
+  "ABANTU_INTEGRITY_MOVEMENT": 5.843061460187065e-07,
+  "ACDP": 6.955644630735607e-06,
+  "AFRICA_RESTORATION_ALLIANCE": 6.057625622363945e-07,
+  "AIC": 6.345615468255269e-07,
+  "ALJAMAAH": 6.321376348126392e-07,
+  "ANC": 0.0020537623548077606,
+  "ATM": 5.640238144315649e-07,
+  "AZAPO": 5.978848080091174e-07,
+  "COMPATRIOTS_OF_SOUTH_AFRICA": 5.843061460187065e-07,
+  "COPE": 4.0560169032985027e-07,
+  "DA": 0.0004407800153325422,
+  "DOP": 5.978848080091174e-07,
+  "EFF": 0.00012016309469084378,
+  "GOD_SAVE_AFRICA": 5.734102468302119e-07,
+  "GOOD": 2.486205966954559e-07,
+  "INDEPENDENT_CIVIC_MOVEMENT": 5.734102468302119e-07,
+  "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 6.206625130141628e-07,
+  "MANDELA_BAY_COMMUNITY_MOVEMENT": 5.734102468302119e-07,
+  "NORTHERN_ALLIANCE": 6.029193410842487e-07,
+  "PAC": 5.404856874137384e-07,
+  "SPECTRUM_NATIONAL_PARTY": 5.734102468302119e-07,
+  "THE_ORGANIC_HUMANITY_MOVEMENT": 6.191601701108894e-07,
+  "UDM": 1.1956464376833888e-07,
+  "UIM": 5.987087239389097e-07,
+  "VFPLUS": 1.2151283922799492e-05
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ABANTU_BATHO_CONGRESS": 0.06385780407118587,
+   "ABANTU_INTEGRITY_MOVEMENT": 0.06284809394122855,
+   "ACDP": 0.06555195007382128,
+   "AFRICA_RESTORATION_ALLIANCE": 0.06923505898533525,
+   "AIC": 0.052693695528904266,
+   "ALJAMAAH": 0.06476547242411504,
+   "ANC": 0.22022965522061833,
+   "ATM": 0.05205482413516019,
+   "AZAPO": 0.1256420536828252,
+   "COMPATRIOTS_OF_SOUTH_AFRICA": 0.06467150800397375,
+   "COPE": 0.0749728897388916,
+   "DA": 0.3963993205354034,
+   "DOP": 0.06850228863162015,
+   "EFF": 0.062344623133396684,
+   "GOD_SAVE_AFRICA": 0.06580545192005904,
+   "GOOD": 0.04573761240294245,
+   "INDEPENDENT_CIVIC_MOVEMENT": 0.050545584666500255,
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.058684560421142236,
+   "MANDELA_BAY_COMMUNITY_MOVEMENT": 0.07782414420163782,
+   "NORTHERN_ALLIANCE": 0.04639332016073432,
+   "PAC": 0.0929255939207239,
+   "SPECTRUM_NATIONAL_PARTY": 0.058501934057051175,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.08026641239901632,
+   "UDM": 0.03757135870676872,
+   "UIM": 0.06123134674155219,
+   "VFPLUS": 0.051245062974819414
+  },
+  "PR": {
+   "ABANTU_BATHO_CONGRESS": 0.06846046833897786,
+   "ABANTU_INTEGRITY_MOVEMENT": 0.07269833920076654,
+   "ACDP": 0.07081328554532743,
+   "AFRICA_RESTORATION_ALLIANCE": 0.07122260080418644,
+   "AIC": 0.08020342838530792,
+   "ALJAMAAH": 0.08249474981317954,
+   "ANC": 0.2220184058490544,
+   "ATM": 0.055800720807601935,
+   "AZAPO": 0.08169900597121091,
+   "COMPATRIOTS_OF_SOUTH_AFRICA": 0.08208413224051972,
+   "COPE": 0.08071295942871651,
+   "DA": 0.388000365042912,
+   "DOP": 0.07400388930400258,
+   "EFF": 0.05663478638605717,
+   "GOD_SAVE_AFRICA": 0.07009743446604402,
+   "GOOD": 0.04046387783673385,
+   "INDEPENDENT_CIVIC_MOVEMENT": 0.06293893108823827,
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.05976637775463556,
+   "MANDELA_BAY_COMMUNITY_MOVEMENT": 0.10186566889044603,
+   "NORTHERN_ALLIANCE": 0.046542566377885834,
+   "PAC": 0.0757240970819991,
+   "SPECTRUM_NATIONAL_PARTY": 0.060794308557019686,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.09474291600387931,
+   "UDM": 0.03596845997444975,
+   "UIM": 0.0618237635579675,
+   "VFPLUS": 0.049739258533292044
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "29300001",
+   "party": "PA",
+   "votes": 6,
+   "ward_total": 5599,
+   "share": 0.0010716199321307376,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300001",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 5599,
+   "share": 0.0001786033220217896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 5599,
+   "share": 0.0001786033220217896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300002",
+   "party": "PA",
+   "votes": 9,
+   "ward_total": 4792,
+   "share": 0.0018781302170283807,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300002",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 4792,
+   "share": 0.00020868113522537563,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300003",
+   "party": "PA",
+   "votes": 21,
+   "ward_total": 6594,
+   "share": 0.0031847133757961785,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300004",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 5,
+   "ward_total": 4131,
+   "share": 0.0012103606874848704,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300005",
+   "party": "PA",
+   "votes": 14,
+   "ward_total": 3487,
+   "share": 0.00401491253226269,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300005",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3487,
+   "share": 0.0005735589331803843,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300006",
+   "party": "PA",
+   "votes": 21,
+   "ward_total": 5992,
+   "share": 0.0035046728971962616,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300006",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 5992,
+   "share": 0.00016688918558077436,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300007",
+   "party": "PA",
+   "votes": 191,
+   "ward_total": 6542,
+   "share": 0.029195964536838887,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300007",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 6542,
+   "share": 0.0001528584530724549,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300008",
+   "party": "PA",
+   "votes": 16,
+   "ward_total": 6944,
+   "share": 0.002304147465437788,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300009",
+   "party": "PA",
+   "votes": 20,
+   "ward_total": 6435,
+   "share": 0.003108003108003108,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300010",
+   "party": "PA",
+   "votes": 273,
+   "ward_total": 5470,
+   "share": 0.04990859232175503,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300011",
+   "party": "PA",
+   "votes": 260,
+   "ward_total": 4873,
+   "share": 0.05335522265544839,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300011",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 3,
+   "ward_total": 4873,
+   "share": 0.000615637184485943,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300012",
+   "party": "PA",
+   "votes": 42,
+   "ward_total": 5711,
+   "share": 0.007354228681491858,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300013",
+   "party": "PA",
+   "votes": 295,
+   "ward_total": 4284,
+   "share": 0.0688608776844071,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300014",
+   "party": "PA",
+   "votes": 19,
+   "ward_total": 3834,
+   "share": 0.00495565988523735,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300014",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 3834,
+   "share": 0.0002608242044861763,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300015",
+   "party": "PA",
+   "votes": 13,
+   "ward_total": 3828,
+   "share": 0.0033960292580982234,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300016",
+   "party": "PA",
+   "votes": 13,
+   "ward_total": 3226,
+   "share": 0.0040297582145071295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300016",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3226,
+   "share": 0.0006199628022318661,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300017",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 4308,
+   "share": 0.00046425255338904364,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300017",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 3,
+   "ward_total": 4308,
+   "share": 0.0006963788300835655,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300018",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3075,
+   "share": 0.0006504065040650406,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300019",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 4,
+   "ward_total": 3236,
+   "share": 0.0012360939431396785,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300020",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3149,
+   "share": 0.0006351222610352493,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300020",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 34,
+   "ward_total": 3149,
+   "share": 0.010797078437599238,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300021",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3696,
+   "share": 0.0005411255411255411,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300021",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3696,
+   "share": 0.0005411255411255411,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300022",
+   "party": "PA",
+   "votes": 3,
+   "ward_total": 3297,
+   "share": 0.0009099181073703367,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300022",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 3297,
+   "share": 0.00030330603579011223,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300023",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3202,
+   "share": 0.0006246096189881324,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300024",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3474,
+   "share": 0.0005757052389176742,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300025",
+   "party": "PA",
+   "votes": 36,
+   "ward_total": 4033,
+   "share": 0.008926357550210762,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300025",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 9,
+   "ward_total": 4033,
+   "share": 0.0022315893875526904,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300026",
+   "party": "PA",
+   "votes": 5,
+   "ward_total": 3244,
+   "share": 0.0015413070283600493,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300026",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 3,
+   "ward_total": 3244,
+   "share": 0.0009247842170160296,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300027",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3040,
+   "share": 0.0006578947368421052,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300028",
+   "party": "PA",
+   "votes": 4,
+   "ward_total": 3692,
+   "share": 0.0010834236186348862,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300028",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3692,
+   "share": 0.0005417118093174431,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300029",
+   "party": "PA",
+   "votes": 54,
+   "ward_total": 4084,
+   "share": 0.013222331047992164,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300030",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3568,
+   "share": 0.0005605381165919282,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300030",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3568,
+   "share": 0.0005605381165919282,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300031",
+   "party": "PA",
+   "votes": 36,
+   "ward_total": 4997,
+   "share": 0.007204322593556134,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300031",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 4997,
+   "share": 0.00020012007204322593,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300032",
+   "party": "PA",
+   "votes": 246,
+   "ward_total": 5345,
+   "share": 0.0460243217960711,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300033",
+   "party": "PA",
+   "votes": 74,
+   "ward_total": 4479,
+   "share": 0.016521544987720474,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300033",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 4479,
+   "share": 0.00022326412145568208,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300034",
+   "party": "PA",
+   "votes": 108,
+   "ward_total": 5062,
+   "share": 0.02133544053733702,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300034",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 5062,
+   "share": 0.00019755037534571315,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300035",
+   "party": "PA",
+   "votes": 218,
+   "ward_total": 4948,
+   "share": 0.044058205335489084,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300035",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 19,
+   "ward_total": 4948,
+   "share": 0.003839935327405012,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300036",
+   "party": "PA",
+   "votes": 7,
+   "ward_total": 3523,
+   "share": 0.0019869429463525404,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300036",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 3523,
+   "share": 0.0002838489923360772,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300037",
+   "party": "PA",
+   "votes": 128,
+   "ward_total": 4785,
+   "share": 0.026750261233019854,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300038",
+   "party": "PA",
+   "votes": 29,
+   "ward_total": 4274,
+   "share": 0.006785212915301825,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300039",
+   "party": "PA",
+   "votes": 19,
+   "ward_total": 6216,
+   "share": 0.0030566280566280564,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300039",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 6216,
+   "share": 0.00016087516087516087,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300040",
+   "party": "PA",
+   "votes": 182,
+   "ward_total": 6472,
+   "share": 0.02812113720642769,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300040",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 6472,
+   "share": 0.00015451174289245981,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300041",
+   "party": "PA",
+   "votes": 38,
+   "ward_total": 4915,
+   "share": 0.007731434384537131,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300041",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 51,
+   "ward_total": 4915,
+   "share": 0.010376398779247202,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300042",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 4,
+   "ward_total": 3094,
+   "share": 0.001292824822236587,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300043",
+   "party": "PA",
+   "votes": 4,
+   "ward_total": 3910,
+   "share": 0.0010230179028132991,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300043",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 101,
+   "ward_total": 3910,
+   "share": 0.025831202046035805,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300044",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3459,
+   "share": 0.0005782017924255566,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300044",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 14,
+   "ward_total": 3459,
+   "share": 0.004047412546978896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300045",
+   "party": "PA",
+   "votes": 31,
+   "ward_total": 4037,
+   "share": 0.007678969531830567,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300045",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 25,
+   "ward_total": 4037,
+   "share": 0.00619271736437949,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300046",
+   "party": "PA",
+   "votes": 10,
+   "ward_total": 3907,
+   "share": 0.002559508574353724,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300046",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 9,
+   "ward_total": 3907,
+   "share": 0.002303557716918352,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300047",
+   "party": "PA",
+   "votes": 44,
+   "ward_total": 3580,
+   "share": 0.012290502793296089,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300047",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 100,
+   "ward_total": 3580,
+   "share": 0.027932960893854747,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300048",
+   "party": "PA",
+   "votes": 222,
+   "ward_total": 2940,
+   "share": 0.07551020408163266,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300048",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 73,
+   "ward_total": 2940,
+   "share": 0.024829931972789116,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300049",
+   "party": "PA",
+   "votes": 440,
+   "ward_total": 4005,
+   "share": 0.10986267166042447,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300049",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 5,
+   "ward_total": 4005,
+   "share": 0.0012484394506866417,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300050",
+   "party": "PA",
+   "votes": 85,
+   "ward_total": 3591,
+   "share": 0.023670286828181564,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300050",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 39,
+   "ward_total": 3591,
+   "share": 0.01086048454469507,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300051",
+   "party": "PA",
+   "votes": 78,
+   "ward_total": 5761,
+   "share": 0.01353931609095643,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300051",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 5761,
+   "share": 0.00017358097552508245,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300052",
+   "party": "PA",
+   "votes": 15,
+   "ward_total": 6435,
+   "share": 0.002331002331002331,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300053",
+   "party": "PA",
+   "votes": 93,
+   "ward_total": 4419,
+   "share": 0.021045485403937542,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300053",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 8,
+   "ward_total": 4419,
+   "share": 0.0018103643358225842,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300054",
+   "party": "PA",
+   "votes": 4,
+   "ward_total": 5159,
+   "share": 0.0007753440589261484,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300054",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 8,
+   "ward_total": 5159,
+   "share": 0.0015506881178522969,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300055",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3794,
+   "share": 0.0005271481286241434,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300055",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 13,
+   "ward_total": 3794,
+   "share": 0.003426462836056932,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300056",
+   "party": "PA",
+   "votes": 1,
+   "ward_total": 3497,
+   "share": 0.00028595939376608524,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300056",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 4,
+   "ward_total": 3497,
+   "share": 0.001143837575064341,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300057",
+   "party": "PA",
+   "votes": 4,
+   "ward_total": 3512,
+   "share": 0.0011389521640091116,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300057",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 10,
+   "ward_total": 3512,
+   "share": 0.0028473804100227792,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300058",
+   "party": "PA",
+   "votes": 10,
+   "ward_total": 3692,
+   "share": 0.0027085590465872156,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300058",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 4,
+   "ward_total": 3692,
+   "share": 0.0010834236186348862,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300059",
+   "party": "PA",
+   "votes": 6,
+   "ward_total": 3381,
+   "share": 0.001774622892635315,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300059",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3381,
+   "share": 0.0005915409642117716,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300060",
+   "party": "PA",
+   "votes": 10,
+   "ward_total": 5433,
+   "share": 0.0018406037180195105,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "29300060",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 8,
+   "ward_total": 5433,
+   "share": 0.0014724829744156083,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300001",
+   "party": "PA",
+   "votes": 7,
+   "ward_total": 5463,
+   "share": 0.001281347245103423,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 5463,
+   "share": 0.00018304960644334616,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300002",
+   "party": "PA",
+   "votes": 8,
+   "ward_total": 4793,
+   "share": 0.001669100771959107,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300003",
+   "party": "PA",
+   "votes": 25,
+   "ward_total": 6627,
+   "share": 0.0037724460540214276,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300005",
+   "party": "IND",
+   "votes": 8,
+   "ward_total": 3528,
+   "share": 0.0022675736961451248,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300005",
+   "party": "PA",
+   "votes": 12,
+   "ward_total": 3528,
+   "share": 0.003401360544217687,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300006",
+   "party": "PA",
+   "votes": 18,
+   "ward_total": 5976,
+   "share": 0.0030120481927710845,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300006",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 5976,
+   "share": 0.00016733601070950468,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300007",
+   "party": "PA",
+   "votes": 209,
+   "ward_total": 6510,
+   "share": 0.03210445468509985,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300008",
+   "party": "PA",
+   "votes": 18,
+   "ward_total": 6963,
+   "share": 0.0025850926324859974,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300009",
+   "party": "PA",
+   "votes": 80,
+   "ward_total": 6377,
+   "share": 0.01254508389524855,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300010",
+   "party": "PA",
+   "votes": 309,
+   "ward_total": 5456,
+   "share": 0.05663489736070381,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300011",
+   "party": "IND",
+   "votes": 759,
+   "ward_total": 4853,
+   "share": 0.15639810426540285,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300011",
+   "party": "PA",
+   "votes": 195,
+   "ward_total": 4853,
+   "share": 0.04018133113538018,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300012",
+   "party": "PA",
+   "votes": 23,
+   "ward_total": 6007,
+   "share": 0.003828866322623606,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300013",
+   "party": "PA",
+   "votes": 300,
+   "ward_total": 4245,
+   "share": 0.0706713780918728,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300014",
+   "party": "IND",
+   "votes": 109,
+   "ward_total": 3797,
+   "share": 0.02870687384777456,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300014",
+   "party": "PA",
+   "votes": 23,
+   "ward_total": 3797,
+   "share": 0.006057413747695549,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300015",
+   "party": "PA",
+   "votes": 3,
+   "ward_total": 3919,
+   "share": 0.0007655014034192396,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300016",
+   "party": "PA",
+   "votes": 3,
+   "ward_total": 3246,
+   "share": 0.0009242144177449168,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300017",
+   "party": "PA",
+   "votes": 1,
+   "ward_total": 4326,
+   "share": 0.0002311604253351826,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300018",
+   "party": "PA",
+   "votes": 1,
+   "ward_total": 2980,
+   "share": 0.0003355704697986577,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300020",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3125,
+   "share": 0.00064,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300020",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 42,
+   "ward_total": 3125,
+   "share": 0.01344,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300021",
+   "party": "IND",
+   "votes": 17,
+   "ward_total": 3669,
+   "share": 0.0046334150994821474,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300021",
+   "party": "PA",
+   "votes": 6,
+   "ward_total": 3669,
+   "share": 0.001635322976287817,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300022",
+   "party": "PA",
+   "votes": 21,
+   "ward_total": 3304,
+   "share": 0.006355932203389831,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300023",
+   "party": "PA",
+   "votes": 1,
+   "ward_total": 3203,
+   "share": 0.00031220730565095225,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300024",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3483,
+   "share": 0.0005742176284811944,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300024",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 3483,
+   "share": 0.0002871088142405972,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300025",
+   "party": "IND",
+   "votes": 9,
+   "ward_total": 4009,
+   "share": 0.0022449488650536295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300025",
+   "party": "PA",
+   "votes": 31,
+   "ward_total": 4009,
+   "share": 0.007732601646295834,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300025",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 9,
+   "ward_total": 4009,
+   "share": 0.0022449488650536295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300026",
+   "party": "PA",
+   "votes": 3,
+   "ward_total": 3228,
+   "share": 0.0009293680297397769,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300028",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 3666,
+   "share": 0.0005455537370430987,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300029",
+   "party": "IND",
+   "votes": 56,
+   "ward_total": 3934,
+   "share": 0.014234875444839857,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300029",
+   "party": "PA",
+   "votes": 50,
+   "ward_total": 3934,
+   "share": 0.012709710218607015,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300030",
+   "party": "PA",
+   "votes": 3,
+   "ward_total": 3588,
+   "share": 0.0008361204013377926,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300031",
+   "party": "PA",
+   "votes": 48,
+   "ward_total": 5098,
+   "share": 0.009415457041977247,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300031",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 1,
+   "ward_total": 5098,
+   "share": 0.00019615535504119262,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300032",
+   "party": "PA",
+   "votes": 250,
+   "ward_total": 5271,
+   "share": 0.0474293302978562,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300033",
+   "party": "IND",
+   "votes": 102,
+   "ward_total": 4406,
+   "share": 0.02315024965955515,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300033",
+   "party": "PA",
+   "votes": 72,
+   "ward_total": 4406,
+   "share": 0.016341352700862462,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300034",
+   "party": "PA",
+   "votes": 176,
+   "ward_total": 5151,
+   "share": 0.0341681226946224,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300035",
+   "party": "PA",
+   "votes": 256,
+   "ward_total": 4962,
+   "share": 0.051592099959693674,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300036",
+   "party": "IND",
+   "votes": 74,
+   "ward_total": 3530,
+   "share": 0.020963172804532578,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300036",
+   "party": "PA",
+   "votes": 10,
+   "ward_total": 3530,
+   "share": 0.0028328611898017,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300037",
+   "party": "PA",
+   "votes": 117,
+   "ward_total": 4766,
+   "share": 0.024548887956357533,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300038",
+   "party": "PA",
+   "votes": 17,
+   "ward_total": 4109,
+   "share": 0.0041372596738865905,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300039",
+   "party": "PA",
+   "votes": 20,
+   "ward_total": 6270,
+   "share": 0.003189792663476874,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300040",
+   "party": "PA",
+   "votes": 198,
+   "ward_total": 6448,
+   "share": 0.030707196029776673,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300041",
+   "party": "IND",
+   "votes": 780,
+   "ward_total": 4949,
+   "share": 0.15760759749444334,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300041",
+   "party": "PA",
+   "votes": 44,
+   "ward_total": 4949,
+   "share": 0.008890684986866033,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300041",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 8,
+   "ward_total": 4949,
+   "share": 0.0016164881794301878,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300042",
+   "party": "PA",
+   "votes": 1,
+   "ward_total": 3089,
+   "share": 0.0003237293622531564,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300042",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 6,
+   "ward_total": 3089,
+   "share": 0.0019423761735189381,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300043",
+   "party": "PA",
+   "votes": 2,
+   "ward_total": 4001,
+   "share": 0.0004998750312421895,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300043",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 132,
+   "ward_total": 4001,
+   "share": 0.03299175206198451,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300044",
+   "party": "PA",
+   "votes": 18,
+   "ward_total": 3469,
+   "share": 0.0051888152205246466,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300044",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 17,
+   "ward_total": 3469,
+   "share": 0.004900547708273278,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300045",
+   "party": "PA",
+   "votes": 28,
+   "ward_total": 3791,
+   "share": 0.0073859140068583485,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300045",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 31,
+   "ward_total": 3791,
+   "share": 0.0081772619361646,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300046",
+   "party": "PA",
+   "votes": 8,
+   "ward_total": 3922,
+   "share": 0.002039775624681285,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300046",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 7,
+   "ward_total": 3922,
+   "share": 0.0017848036715961244,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300047",
+   "party": "PA",
+   "votes": 42,
+   "ward_total": 3533,
+   "share": 0.011887913954146618,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300047",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 108,
+   "ward_total": 3533,
+   "share": 0.030568921596377016,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300048",
+   "party": "PA",
+   "votes": 273,
+   "ward_total": 2913,
+   "share": 0.0937178166838311,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300048",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 91,
+   "ward_total": 2913,
+   "share": 0.0312392722279437,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300049",
+   "party": "PA",
+   "votes": 485,
+   "ward_total": 3970,
+   "share": 0.12216624685138538,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300049",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 6,
+   "ward_total": 3970,
+   "share": 0.0015113350125944584,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300050",
+   "party": "IND",
+   "votes": 113,
+   "ward_total": 3534,
+   "share": 0.03197509903791738,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300050",
+   "party": "PA",
+   "votes": 85,
+   "ward_total": 3534,
+   "share": 0.024052065647990947,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300050",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 38,
+   "ward_total": 3534,
+   "share": 0.010752688172043012,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300051",
+   "party": "PA",
+   "votes": 79,
+   "ward_total": 5761,
+   "share": 0.013712897066481513,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300052",
+   "party": "PA",
+   "votes": 13,
+   "ward_total": 6370,
+   "share": 0.0020408163265306124,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300053",
+   "party": "PA",
+   "votes": 87,
+   "ward_total": 4429,
+   "share": 0.01964326032964552,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300053",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 16,
+   "ward_total": 4429,
+   "share": 0.003612553623842854,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300054",
+   "party": "IND",
+   "votes": 6,
+   "ward_total": 5234,
+   "share": 0.0011463507833397019,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300054",
+   "party": "PA",
+   "votes": 3,
+   "ward_total": 5234,
+   "share": 0.0005731753916698509,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300054",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 6,
+   "ward_total": 5234,
+   "share": 0.0011463507833397019,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300055",
+   "party": "PA",
+   "votes": 4,
+   "ward_total": 3608,
+   "share": 0.0011086474501108647,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300055",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 17,
+   "ward_total": 3608,
+   "share": 0.0047117516629711755,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300056",
+   "party": "PA",
+   "votes": 6,
+   "ward_total": 3383,
+   "share": 0.0017735737511084836,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300056",
+   "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "votes": 2,
+   "ward_total": 3383,
+   "share": 0.0005911912503694946,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300057",
+   "party": "IND",
+   "votes": 650,
+   "ward_total": 3513,
+   "share": 0.18502704241389126,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300057",
+   "party": "PA",
+   "votes": 3,
+   "ward_total": 3513,
+   "share": 0.0008539709649871904,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300058",
+   "party": "IND",
+   "votes": 37,
+   "ward_total": 3679,
+   "share": 0.01005708072845882,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300058",
+   "party": "PA",
+   "votes": 6,
+   "ward_total": 3679,
+   "share": 0.0016308779559662953,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300059",
+   "party": "PA",
+   "votes": 9,
+   "ward_total": 3425,
+   "share": 0.002627737226277372,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29300060",
+   "party": "PA",
+   "votes": 8,
+   "ward_total": 5400,
+   "share": 0.0014814814814814814,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 4
+  }
+ ]
+}

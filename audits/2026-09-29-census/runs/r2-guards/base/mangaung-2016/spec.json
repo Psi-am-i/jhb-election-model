@@ -1,0 +1,549 @@
+{
+  "arrival_group": {
+    "alpha": 10.87423244668734,
+    "derived_from": "13 metro-years before 2016; split by ward reach (corr +0.393 on log vote)",
+    "n_observations": 13,
+    "total_log_mean": -4.239066024984355,
+    "total_log_sd": 0.796079274728338,
+    "weights": {
+      "AGENCY_FOR_NEW_AGENDA": 0.04,
+      "AIC": 0.26,
+      "AZANIAN_ALLIANCE_CONGRESS": 0.1,
+      "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.18
+    }
+  },
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "mangaung",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "bed2e1a147c10f2d",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "d76ab60ca822d140",
+    "pools_sha": "c70b8fc5bcd79279",
+    "schema": 2,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [
+    [
+      0.0001110268461123144,
+      0.24324324324324326
+    ],
+    [
+      0.00011925248870770664,
+      0.25384615384615383
+    ],
+    [
+      0.00014863271334390475,
+      0.990990990990991
+    ],
+    [
+      0.0001495280911351331,
+      0.04504504504504504
+    ],
+    [
+      0.00021648913334629822,
+      0.015384615384615385
+    ],
+    [
+      0.0002372751146755106,
+      0.08108108108108109
+    ],
+    [
+      0.000246228892587794,
+      0.2702702702702703
+    ],
+    [
+      0.0002852886460622828,
+      0.023076923076923078
+    ],
+    [
+      0.0003372877091805844,
+      1.0
+    ],
+    [
+      0.000347475854232611,
+      0.04950495049504951
+    ],
+    [
+      0.0004107923362581748,
+      0.038834951456310676
+    ],
+    [
+      0.00041608032976785206,
+      1.0
+    ],
+    [
+      0.00048050125891329834,
+      0.2
+    ],
+    [
+      0.0004806326596867137,
+      0.8910891089108911
+    ],
+    [
+      0.000487100550029171,
+      0.25384615384615383
+    ],
+    [
+      0.00048796131697027167,
+      0.0761904761904762
+    ],
+    [
+      0.000505274573597555,
+      1.0
+    ],
+    [
+      0.0005139468521650683,
+      0.11711711711711711
+    ],
+    [
+      0.0005631926306826271,
+      0.4954954954954955
+    ],
+    [
+      0.0005999317508833858,
+      0.08461538461538462
+    ],
+    [
+      0.0006330320983984378,
+      1.0
+    ],
+    [
+      0.0006482535208493195,
+      0.22522522522522523
+    ],
+    [
+      0.0006891041440730882,
+      0.1553398058252427
+    ],
+    [
+      0.0007063416638841086,
+      0.9846153846153847
+    ],
+    [
+      0.000756594233587949,
+      0.04504504504504504
+    ],
+    [
+      0.000764700511322133,
+      1.0
+    ],
+    [
+      0.0008103542731921111,
+      0.04950495049504951
+    ],
+    [
+      0.00084966723480237,
+      1.0
+    ],
+    [
+      0.0009316881802775159,
+      0.9904761904761905
+    ],
+    [
+      0.0009383559252073024,
+      0.27927927927927926
+    ],
+    [
+      0.0009746048177725196,
+      1.0
+    ],
+    [
+      0.001112176365554744,
+      0.0891089108910891
+    ],
+    [
+      0.0011380251726512225,
+      0.08108108108108109
+    ],
+    [
+      0.0012466013310607905,
+      0.04950495049504951
+    ],
+    [
+      0.0012898879358506689,
+      0.9805825242718447
+    ],
+    [
+      0.001317100730896891,
+      0.6576576576576577
+    ],
+    [
+      0.0013547065981284814,
+      0.6036036036036037
+    ],
+    [
+      0.0013568386649499852,
+      0.9795918367346939
+    ],
+    [
+      0.0013646235753137673,
+      0.9833333333333333
+    ],
+    [
+      0.0014657334442407957,
+      0.06306306306306306
+    ],
+    [
+      0.0014855897791423195,
+      0.12244897959183673
+    ],
+    [
+      0.00163095855882571,
+      1.0
+    ],
+    [
+      0.002314858379599134,
+      0.2
+    ],
+    [
+      0.0024533351479656567,
+      0.990990990990991
+    ],
+    [
+      0.0027171220888632854,
+      0.13846153846153847
+    ],
+    [
+      0.003517043963944927,
+      0.918918918918919
+    ],
+    [
+      0.004077113937362384,
+      0.8155339805825242
+    ],
+    [
+      0.004324511330219685,
+      0.08333333333333333
+    ],
+    [
+      0.004610059467693643,
+      0.9238095238095239
+    ],
+    [
+      0.005271877327716847,
+      0.9923076923076923
+    ],
+    [
+      0.0054062911034367285,
+      0.990990990990991
+    ],
+    [
+      0.005511538080618005,
+      0.5918367346938775
+    ],
+    [
+      0.006816360279198117,
+      0.9207920792079208
+    ],
+    [
+      0.03583325491672156,
+      0.06
+    ]
+  ],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/mangaung-2016.toml",
+  "mergers": [],
+  "no_measured_vector": {
+    "AGENCY_FOR_NEW_AGENDA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AZANIAN_ALLIANCE_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.7224669513360624,
+    0.04606261144106814,
+    0.024621493136357673,
+    0.20684894408651183
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 44.1973261222158,
+      "derived_from": "pool vectors fitted on mangaung 2011; size from the 2016 roll split by each ward's own composition; turnout from mangaung's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+        "PAC"
+      ],
+      "members": {
+        "ACDP": 0.5196339809960053,
+        "AGENCY_FOR_NEW_AGENDA": 0.7246545825346207,
+        "AIC": 0.7246545825346208,
+        "ANC": 0.9738655311170836,
+        "APC": 0.9870487422405773,
+        "AZANIAN_ALLIANCE_CONGRESS": 0.7246545825346207,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.7246545825346207,
+        "COPE": 0.9839361926245318,
+        "DA": 0.09562387466871904,
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 1.0,
+        "EFF": 0.8118784145384828,
+        "PAC": 0.982141375807436,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.7246545825346208,
+        "UNITED_RESIDENTS_FRONT": 1.0,
+        "VFPLUS": 0.03112862459170584
+      },
+      "registered": 313304.9640368967,
+      "turnout": [
+        0.3820112970288233,
+        0.5140107132816064,
+        0.6440841485470657
+      ]
+    },
+    "Coloured": {
+      "alpha": 27.942480840357444,
+      "derived_from": "pool vectors fitted on mangaung 2011; size from the 2016 roll split by each ward's own composition; turnout from mangaung's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "COPE"
+      ],
+      "members": {
+        "ACDP": 0.0774670490378529,
+        "AGENCY_FOR_NEW_AGENDA": 0.0445764805096783,
+        "AIC": 0.0445764805096783,
+        "ANC": 0.021183095340021937,
+        "APC": 0.012951257759422744,
+        "AZANIAN_ALLIANCE_CONGRESS": 0.0445764805096783,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.0445764805096783,
+        "COPE": 0.01369641634991447,
+        "DA": 0.1035584463827106,
+        "EFF": 0.03638879570029858,
+        "PAC": 0.006405867570086799,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.04457648050967831,
+        "VFPLUS": 0.000617700038663053
+      },
+      "registered": 17803.760218750922,
+      "turnout": [
+        0.2281770016808971,
+        0.5531388250876107,
+        0.8382623668480876
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 43.37730615559282,
+      "derived_from": "pool vectors fitted on mangaung 2011; size from the 2016 roll split by each ward's own composition; turnout from mangaung's local elections before 2016",
+      "identified": [],
+      "members": {
+        "ACDP": 0.004512683332433354,
+        "AGENCY_FOR_NEW_AGENDA": 0.006374780905995394,
+        "AIC": 0.006374780905995393,
+        "AZANIAN_ALLIANCE_CONGRESS": 0.006374780905995394,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.006374780905995394,
+        "COPE": 0.001496140500538074,
+        "DA": 0.022953472973760547,
+        "EFF": 0.004143607588897007,
+        "PAC": 0.0009088705461276225,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.006374780905995395,
+        "VFPLUS": 0.0019864412220654
+      },
+      "registered": 2697.7843943685925,
+      "turnout": [
+        0.29459915771941503,
+        0.5418415206121945,
+        0.7700630743484004
+      ]
+    },
+    "White": {
+      "alpha": 60.0833719994499,
+      "derived_from": "pool vectors fitted on mangaung 2011; size from the 2016 roll split by each ward's own composition; turnout from mangaung's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.3983862866337084,
+        "AGENCY_FOR_NEW_AGENDA": 0.22439415604970556,
+        "AIC": 0.22439415604970558,
+        "ANC": 0.00495137354289443,
+        "AZANIAN_ALLIANCE_CONGRESS": 0.22439415604970556,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.22439415604970556,
+        "COPE": 0.0008712505250156504,
+        "DA": 0.7778642059748099,
+        "EFF": 0.14758918217232167,
+        "PAC": 0.010543886076349348,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.22439415604970558,
+        "VFPLUS": 0.9662672341475657
+      },
+      "registered": 82554.49134998386,
+      "turnout": [
+        0.46416563963864915,
+        0.6441703266794877,
+        0.7909407937053102
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2016 ward ballot",
+  "rates_on_a_bound": [
+    "Indian/Asian: turnout fitted to 0.0000, which is ON A BOUND \u2014 a pool of 2,393 registered voters fitted to none at this level. HELD at the city's own rate 0.5418 and the other pools re-fitted around it: a declared fallback, not a measurement (JUDGEMENT-CALLS \u00a7L14).",
+    "Indian/Asian: adult_share fitted to 1.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 2.4%."
+  ],
+  "reach_source": "2016 ward ballot",
+  "registration_series": {
+    "2006": [
+      0.7981478863176016,
+      0.03223484279508966,
+      0.006406818249233763,
+      0.16321045263807493
+    ],
+    "2009": [
+      0.7745418654463355,
+      0.0309246059447773,
+      0.0042649670933322,
+      0.19026856151555496
+    ],
+    "2011": [
+      0.7611954082572935,
+      0.04351337887948387,
+      0.006420037593499048,
+      0.18887117526972358
+    ],
+    "2014": [
+      0.7355626426432142,
+      0.04545757428912864,
+      0.016820666929498164,
+      0.20215911613815887
+    ]
+  },
+  "roster": [
+    "ACDP",
+    "AGENCY_FOR_NEW_AGENDA",
+    "AIC",
+    "ANC",
+    "APC",
+    "AZANIAN_ALLIANCE_CONGRESS",
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT",
+    "COPE",
+    "DA",
+    "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+    "EFF",
+    "IND",
+    "PAC",
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY",
+    "UNITED_RESIDENTS_FRONT",
+    "VFPLUS"
+  ],
+  "roster_source": "published",
+  "seed_bands": {
+    "AGENCY_FOR_NEW_AGENDA": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "AIC": [
+      0.16591004335617487,
+      1.0,
+      1.7578402854796584
+    ],
+    "AZANIAN_ALLIANCE_CONGRESS": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ]
+  },
+  "seed_notes": {
+    "AGENCY_FOR_NEW_AGENDA": "entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (4% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.64: 4 entrants summing to 0.85% against an arrival-total record of 1.40%",
+    "AIC": "entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 29 arrivals that contested about as much of a city (26% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.64: 4 entrants summing to 0.85% against an arrival-total record of 1.40%",
+    "AZANIAN_ALLIANCE_CONGRESS": "entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (10% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.64: 4 entrants summing to 0.85% against an arrival-total record of 1.40%",
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT": "entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (18% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.64: 4 entrants summing to 0.85% against an arrival-total record of 1.40%"
+  },
+  "seeded_arrival_mass": 0.01397665129995956,
+  "seeds": {
+    "AGENCY_FOR_NEW_AGENDA": 0.0035165332468560743,
+    "AIC": 0.003427051559391338,
+    "AZANIAN_ALLIANCE_CONGRESS": 0.0035165332468560743,
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.0035165332468560743
+  },
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 8,
+      "offered": 24,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 17,
+      "metro": 8,
+      "offered": 32,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 4,
+      "metro": 0,
+      "offered": 4,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 52,
+      "metro": 0,
+      "offered": 52,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.5958389059975201,
+      "low": 0.3904823221369273,
+      "observed_high": 0.5416717327250182,
+      "observed_low": 0.4338692468188081,
+      "previous": 0.5416717327250182
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5654117846097672,
+        "low": 0.39279224034949345,
+        "observed_high": 0.5140107132816064,
+        "observed_low": 0.43643582261054825,
+        "previous": 0.5140107132816064
+      },
+      {
+        "high": 0.6084527075963718,
+        "low": 0.2231137117141718,
+        "observed_high": 0.5531388250876107,
+        "observed_low": 0.24790412412685756,
+        "previous": 0.5531388250876107
+      },
+      {
+        "high": 0.596025672673414,
+        "low": 0.3923686094634947,
+        "observed_high": 0.5418415206121945,
+        "observed_low": 0.43596512162610523,
+        "previous": 0.5418415206121945
+      },
+      {
+        "high": 0.7085873593474366,
+        "low": 0.4177490756747842,
+        "observed_high": 0.6441703266794877,
+        "observed_low": 0.4641656396386491,
+        "previous": 0.6441703266794877
+      }
+    ]
+  },
+  "unclassified_with_national_record": {}
+}

@@ -23,6 +23,17 @@ Output: data/processed/interactive_data.json
 
 Usage:
     python src/export_interactive.py
+
+Who runs it: the `--interactive` step in `build_all.plan` ('interactive data
+pack'), as a subprocess. OPTIONAL and currently off by design: it feeds
+`build_interactive.py`, which refuses. ⚠️ ON NOTICE: the only thing that runs
+it is a flag nobody sets, so it is the closest thing here to `leverage.py`'s
+position. PUBLISHING-BACKLOG.md §308 carries the decision to port it; if that
+decision is reversed, this module is retired, not left here. (This paragraph
+was its `tests/test_standalone_modules.py` ENTRY_POINTS exemption until
+2026-10-10, when `tests/test_stage_inputs.py` began importing
+`read_pool_spec_or_refuse` and the exemption stopped exempting anything. A
+test importing it is not a caller running it.)
 """
 
 from __future__ import annotations
@@ -36,7 +47,29 @@ from collections import defaultdict
 from pathlib import Path
 
 from fold import citywide, load, load_parameters, shares
-from montecarlo import BLOCS, DEFAULTS, PLAN_BOUNDS
+import montecarlo as _M
+from montecarlo import DEFAULTS
+# PLAN_BOUNDS is READ THROUGH THE MODULE, not imported by name.
+# `apply_city` REBINDS montecarlo.PLAN_BOUNDS (it does not mutate it,
+# unlike DEFAULTS which is cleared and updated in place), so a
+# `from montecarlo import PLAN_BOUNDS` pins this module to the
+# Johannesburg literal and publishes Johannesburg's theta bounds for
+# whatever city is exported. Found 2026-08-23.
+
+
+# --- THE DATA SIDE OF THE POOL PORT -----------------------------------------
+# The interactive carries its own drawer, reimplemented in JavaScript so the
+# reader can move the dials in the browser. That drawer is still the two-bloc
+# engine and is not ported yet, so `build_interactive.py` — which writes the
+# page — still refuses.
+#
+# THIS module only prepares data, and it prepares the right data now: the pool
+# spec exactly as `pools.py --emit` wrote it, N pools each with its own
+# registered count, turnout band, concentration and member weights. Exporting
+# it is what makes the rest of the port testable, because the JS can be
+# written and checked against a real payload before the page is unfrozen. The
+# refusal stays where the risk is: on the thing that publishes.
+
 
 # Parties carried individually to the page; the rest is OTHER. Order fixes
 # display order. Chip colours are party identification only.
@@ -56,15 +89,49 @@ PAGE_PARTIES = [
 ]
 
 
+def read_pool_spec_or_refuse(city, year: str = "2026") -> dict:
+    """The pool spec the interactive draws from, or ``SystemExit``.
+
+    The page must draw from the same numbers the forecast does, so it refuses
+    exactly what ``run_model`` refuses: a missing spec, and a stale,
+    unverifiable or unreadable one, through the same
+    ``montecarlo.read_pool_spec`` and the same refusal text (step 8 review
+    row 4). Until 2026-10-10 this read the file with no check, so a stale
+    spec reached the published interactive in silence. There is no escape
+    here: ``allow_stale_pools`` is for a diagnostic model run, and nothing
+    this module writes is diagnostic.
+    """
+    spec_path = city.processed / f"pools_{year}.json"
+    if not spec_path.exists():
+        raise SystemExit(
+            f"no pool spec at {spec_path}. The interactive must draw from the "
+            f"same spec as the forecast; build it with\n"
+            f"  python src/pools.py --city {city.slug} "
+            f"--target {year} --emit")
+    spec, why_not = _M.read_pool_spec(
+        spec_path, city, cityconfig.Target(city=city, year=str(year)))
+    if why_not:
+        raise _M.stale_pool_spec_refusal(spec_path, why_not)
+    return spec
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw/elections"))
-    parser.add_argument("--processed", type=Path, default=Path("data/processed"))
-    parser.add_argument("--out", type=Path,
-                        default=Path("data/processed/interactive_data.json"))
+    # Both resolved from the target after --city is parsed. Hard-coding
+    # data/processed made every non-Johannesburg run read Johannesburg's
+    # turnout, γ and ward parts, and then WRITE its interactive_data.json over
+    # Johannesburg's — the file the published forecast page loads.
+    parser.add_argument("--processed", type=Path, default=None,
+                        help="input directory (default: the target's own)")
+    parser.add_argument("--out", type=Path, default=None,
+                        help="output json (default: <processed>/interactive_data.json)")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+    args.processed = args.processed or cityconfig.use_target(
+        getattr(args, "target", None)).processed
+    args.out = args.out or args.processed / "interactive_data.json"
 
     codes = [c for c, _, _ in PAGE_PARTIES]
 
@@ -79,7 +146,16 @@ def main(argv: list[str] | None = None) -> int:
     wc, pc = citywide(ward21), citywide(pr21)
 
     # --- gamma: fold 1, then 2021→2024, then 1.0 (as montecarlo resolves) -----
-    params = load_parameters(args.processed / "fold1_parameters.csv")
+    # CITY-LEVEL ARTEFACTS, not target-level (§1.97 F15, §1.120). Both the
+    # ward crosswalk and the fold parameters are keyed by something other than
+    # the running target — `build_concordance` is city-scoped, and fold 3 is
+    # the 2009→2011 transition whichever election is being built — so both are
+    # written to and read from the CITY's directory. `montecarlo` already reads
+    # the fold parameters that way and says why; this file did not, and was
+    # therefore broken for every city except Johannesburg, where
+    # `legacy_processed_root` collapses the two.
+    _city_processed = cityconfig.active().processed
+    params = load_parameters(_city_processed / "fold1_parameters.csv")
     recent = {}
     recent_path = args.processed / "gamma_recent.csv"
     if recent_path.exists():
@@ -105,9 +181,9 @@ def main(argv: list[str] | None = None) -> int:
                     }
 
     # --- ward-level aggregation ----------------------------------------------
-    with (args.processed / "vd_ward_2026.csv").open(encoding="utf-8", newline="") as fh:
-        parts = [(r["VD_Number"], r["Ward_2026"], int(r["part_registered"]))
-                 for r in csv.DictReader(fh)]
+    # One reader, shared with `montecarlo.ward_parts` (§1.97 F18).
+    parts, _vds, _split = _M.read_ward_crosswalk(
+        cityconfig.active().processed / "vd_ward_2026.csv", "2026")
 
     ratio_pattern, level_pattern = {}, {}
     thi_pattern, tlo_pattern = {}, {}
@@ -181,19 +257,47 @@ def main(argv: list[str] | None = None) -> int:
                  + [round(row["tallies"]["OTHER"] / tw, 5)],
         })
 
+    # --- the pools the browser will draw from ---------------------------------
+    # Straight from the spec `pools.py --emit` writes, because the page must
+    # draw from the same numbers the published forecast does. The old payload
+    # carried a per-party "bloc" label and two hard-coded groups; a pool has
+    # its own registered count, its own turnout band and its own
+    # concentration, and there can be any number of them.
+    spec = read_pool_spec_or_refuse(cityconfig.active())
+    pools_out = []
+    for pool_name, cfg in spec["pools"].items():
+        pools_out.append({
+            "name": pool_name,
+            "registered": round(float(cfg["registered"])),
+            "turnout": [round(float(x), 4) for x in cfg["turnout"]],
+            "alpha": round(float(cfg["alpha"]), 2),
+            "tie": cfg.get("tie") or pool_name,
+            "identified": bool(cfg.get("identified", True)),
+            # each member's share of ITS OWN vote drawn from this pool
+            "members": {q: round(float(w), 5)
+                        for q, w in cfg["members"].items() if w > 0},
+        })
+    pool_of: dict[str, tuple[str, float]] = {}
+    for pool in pools_out:
+        for party, weight in pool["members"].items():
+            if weight > pool_of.get(party, ("", 0.0))[1]:
+                pool_of[party] = (pool["name"], weight)
+
     # --- assemble -------------------------------------------------------------
-    blocs = {p: b for b, members in BLOCS.items() for p in members}
     parties_out = []
     for code, name, chip in PAGE_PARTIES:
         parties_out.append({
             "code": code, "name": name, "chip": chip,
-            "bloc": blocs.get(code, "IND"),
+            # where most of this party's vote comes from, and how much of it —
+            # a label for the reader, not a partition of the parties
+            "mainPool": pool_of.get(code, ("none", 0.0))[0],
+            "mainPoolShare": round(pool_of.get(code, ("none", 0.0))[1], 3),
             "base2024": round(base_city.get(code, 0.0), 5),
             "pr2021": round(pc.get(code, 0.0), 5),
             "ward2021": round(wc.get(code, 0.0), 5),
             "gammaPR": round(gamma_for(code, "PR"), 3),
             "gammaWard": round(gamma_for(code, "Ward"), 3),
-            "bounds": PLAN_BOUNDS.get(code),
+            "bounds": _M.PLAN_BOUNDS.get(code),
             "bye": bye.get(code),
         })
 
@@ -206,6 +310,9 @@ def main(argv: list[str] | None = None) -> int:
         "polls": polls,
         "ward_map": ward_map,
         "parties": parties_out,
+        "pools": pools_out,
+        "pool_spec_fitted_on": spec.get("fitted_on"),
+        "turnout_limits": spec.get("turnout_limits"),
         "other_base2024": round(other_base, 5),
         "wards": wards_out,
         "defaults": DEFAULTS,

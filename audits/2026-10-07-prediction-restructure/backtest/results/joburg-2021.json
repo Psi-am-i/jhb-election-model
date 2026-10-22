@@ -1,0 +1,95 @@
+{
+ "city": "joburg",
+ "year": "2021",
+ "draws": 1000,
+ "council": 270,
+ "wards": 135,
+ "A": {
+  "seats": {
+   "ANC": 104,
+   "IFP": 5,
+   "PAC": 1,
+   "AIC": 2,
+   "COPE": 1,
+   "EFF": 38,
+   "DA": 90,
+   "ASA": 16,
+   "GOOD": 1,
+   "ALJAMAAH": 1,
+   "ACDP": 2,
+   "UDM": 1,
+   "AZAPO": 1,
+   "APC": 1,
+   "ATM": 1,
+   "VFPLUS": 3,
+   "PA": 1,
+   "BLACK_FIRST_LAND_FIRST": 1
+  },
+  "seat_err": 86.0,
+  "wards_ok": 127,
+  "ward_vote_err_pp": 32.08679473822008,
+  "list_vote_err_pp": 35.67605614849231,
+  "top": "ANC",
+  "top_wards": 86,
+  "top_actual_wards": 87,
+  "excessive": {},
+  "council": 270,
+  "ward_wins": {
+   "ANC": 86,
+   "DA": 48,
+   "IFP": 1
+  }
+ },
+ "B": {
+  "draw": 478,
+  "seats": {
+   "ALJAMAAH": 1,
+   "ANC": 113,
+   "ASA": 17,
+   "DA": 91,
+   "EFF": 38,
+   "GOOD": 2,
+   "IFP": 3,
+   "NATIONAL_PEOPLE_S_FRONT": 1,
+   "NFP": 1,
+   "ROYAL_LOYAL_PROGRESS": 1,
+   "VFPLUS": 2
+  },
+  "seat_err": 110.0,
+  "wards_ok": 127,
+  "ward_vote_err_pp": 38.364131283132814,
+  "list_vote_err_pp": 42.84722654597704
+ },
+ "median_seat_err": 96.0,
+ "median_total": 252.0,
+ "coherent_seat_err": 86.0,
+ "actual": {
+  "seats": {
+   "ANC": 91,
+   "UIM": 1,
+   "IFP": 7,
+   "PAC": 1,
+   "AIC": 2,
+   "COPE": 1,
+   "EFF": 29,
+   "DA": 71,
+   "PA": 8,
+   "ASA": 44,
+   "AHC": 1,
+   "GOOD": 1,
+   "ALJAMAAH": 3,
+   "ACDP": 3,
+   "UDM": 1,
+   "APC": 1,
+   "ATM": 1,
+   "VFPLUS": 4
+  },
+  "ward_wins": {
+   "ANC": 87,
+   "ALJAMAAH": 1,
+   "PA": 2,
+   "DA": 43,
+   "IFP": 2
+  }
+ }
+}

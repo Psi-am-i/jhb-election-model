@@ -1,0 +1,958 @@
+{
+ "absorption": {
+  "blend": {
+   "at_full_local": 4,
+   "at_full_national": 0,
+   "disagreement": 8.83159190118786,
+   "moved_from_local": 5.2459801747261885,
+   "moved_from_national": 3.585611726461672,
+   "n": 20,
+   "nonfinite": 0,
+   "share_local": 0.4059983484947264
+  },
+  "centre_fallback": {
+   "rho": 35,
+   "theta": 57
+  },
+  "dropped_parties": [],
+  "local_only_unused": [
+   "ABAHLALY_BAAHI",
+   "ABANTU_BATHO_CONGRESS",
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
+   "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA",
+   "AFRICAN_FREEDOM_REVOLUTION",
+   "AFRICAN_PEOPLE_S_MOVEMENT",
+   "AFRICAN_SECURITY_CONGRESS",
+   "AGANG",
+   "AGENCY_FOR_NEW_AGENDA",
+   "AMALGAMATED_RAINBOW_MOVEMENT",
+   "BLACK_AND_WHITE_PARTY",
+   "BLACK_FIRST_LAND_FIRST",
+   "CHANGE",
+   "CIVIC_MOVEMENT_OF_SOUTH_AFRICA",
+   "COMMUNITY_SOLIDARITY_ASSOCIATION",
+   "DEMOCRATIC_ARTISTS_PARTY",
+   "DISRUPT_PARTY",
+   "DOP",
+   "ECONOMIC_EMANCIPATION_FORUM",
+   "FORUM_4_SERVICE_DELIVERY",
+   "GOOD",
+   "INTERNATIONAL_PARTY",
+   "INTERNATIONAL_REVELATION_CONGRESS",
+   "JUSTICE_AND_EMPLOYMENT_PARTY",
+   "NATIONAL_PEOPLE_S_FRONT",
+   "PARTY_OF_ACTION",
+   "PEOPLE_S_FREEDOM_PARTY",
+   "ROYAL_LOYAL_PROGRESS",
+   "SHOSHOLOZA_PROGRESSIVE_PARTY",
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "UIM",
+   "UNITED_CULTURAL_MOVEMENT",
+   "US_THE_PEOPLE"
+  ],
+  "rho_shrink": {
+   "absorbed": 28.376243684895314,
+   "empty": false,
+   "n": 59,
+   "offered": 41.10897163189893,
+   "share": 0.6902688770466949,
+   "target": "size_centre"
+  },
+  "routes": {
+   "blend": 20,
+   "dropped": 0,
+   "local_only": 34,
+   "national_only": 55
+  },
+  "theta_shrink": {
+   "absorbed": 17.735019269018064,
+   "empty": false,
+   "n": 52,
+   "offered": 27.623473439820835,
+   "share": 0.6420271262285215,
+   "target": "size_centre"
+  }
+ },
+ "detail": {
+  "ABAHLALY_BAAHI": {
+   "local": 0.0003377517409942183,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "ABANTU_BATHO_CONGRESS": {
+   "local": 0.0009366766659553264,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "ACDP": {
+   "local": 0.008674094428933273,
+   "national": 0.006204008553104063,
+   "route": "blend",
+   "w_local": 0.035546424060904046,
+   "worth": 27.132225010499894
+  },
+  "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": {
+   "local": 0.0,
+   "national": 0.0005870639752901975,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": {
+   "local": 0.00039901458661608134,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA": {
+   "local": 0.0005666813220022327,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
+   "local": 0.0,
+   "national": 0.0003537504773743986,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AFRICAN_ECONOMIC_FREEDOM": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AFRICAN_FREEDOM_REVOLUTION": {
+   "local": 0.00018056417656970146,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AFRICAN_LABOUR_CONVENTION": {
+   "local": 0.0,
+   "national": 0.00034814632480050314,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AFRICAN_PEOPLE_S_MOVEMENT": {
+   "local": 0.0003522613623257122,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AFRICAN_RENAISSANCE_UNITY": {
+   "local": 0.0,
+   "national": 0.0006160340736379125,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
+   "local": 0.0,
+   "national": 0.00028786654700888243,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AFRICAN_SECURITY_CONGRESS": {
+   "local": 0.000469144423051635,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AFRICAN_UNEMPLOYED_CONGRESS": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AFRICA_RESTORATION_ALLIANCE": {
+   "local": 0.0003038959578873993,
+   "national": 0.0003759824851946011,
+   "route": "blend at full local (no \u03b8 evidence)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AFRIKA_MAYIBUYE_MOVEMENT": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AFRIKA_UNITE_CONGRESS": {
+   "local": 0.0,
+   "national": 0.00026589009227828773,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AGANG": {
+   "local": 0.0008347662138117024,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 2.5252752753937955
+  },
+  "AGENCY_FOR_NEW_AGENDA": {
+   "local": 9.478664471646314e-05,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AHC": {
+   "local": 0.003174382711301269,
+   "national": 0.0009311287981167164,
+   "route": "blend at full local (no \u03b8 evidence)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "AIC": {
+   "local": 0.003685797887646491,
+   "national": 0.003049765470581527,
+   "route": "blend",
+   "w_local": 0.12718697063305115,
+   "worth": 6.862440586662871
+  },
+  "ALJAMAAH": {
+   "local": 0.0102934113022999,
+   "national": 0.007259279007385795,
+   "route": "blend",
+   "w_local": 0.1695409541130778,
+   "worth": 4.898279888958484
+  },
+  "ALLIED_INDEPENDENTS_UMBRELLA": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "ALL_CITIZENS_PARTY": {
+   "local": 0.0,
+   "national": 0.0003366981034904027,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "ALL_NATIVES_OF_SOUTH_AFRICA": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AMALGAMATED_RAINBOW_MOVEMENT": {
+   "local": 0.00020313469864091413,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "ANC": {
+   "local": 0.28137592208378853,
+   "national": 0.27987435510681763,
+   "route": "blend",
+   "w_local": 0.02951713162825961,
+   "worth": 32.87863064047196
+  },
+  "APC": {
+   "local": 0.0005839413572205541,
+   "national": 0.0010377016459097328,
+   "route": "blend",
+   "w_local": 0.12111293565691517,
+   "worth": 7.256756345439167
+  },
+  "ASA": {
+   "local": 0.13509203092939215,
+   "national": 0.05755016777292596,
+   "route": "blend at full local (no \u03b8 evidence)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "ATM": {
+   "local": 0.002397311879992376,
+   "national": 0.003837134457848354,
+   "route": "blend",
+   "w_local": 0.1696555639581954,
+   "worth": 4.894295339741459
+  },
+  "AZANIAN_GROUND_FORCES": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AZANIA_PEACEFUL_REVOLUTION": {
+   "local": 0.0,
+   "national": 0.00015627793732436463,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AZAPO": {
+   "local": 0.0005088492886840954,
+   "national": 0.0008344864861582162,
+   "route": "blend",
+   "w_local": 0.09956634135084677,
+   "worth": 9.043554743829054
+  },
+  "BLACK_AND_WHITE_PARTY": {
+   "local": 9.189426843279449e-05,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "BLACK_FIRST_LAND_FIRST": {
+   "local": 0.0008891173515909853,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 1.7170786957163189
+  },
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
+   "local": 0.0002931634948589764,
+   "national": 0.00017066335414920154,
+   "route": "blend at full local (no \u03b8 evidence)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "BOSA": {
+   "local": 0.0,
+   "national": 0.0094172169596046,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "CHANGE": {
+   "local": 0.00028293761596413043,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "CHRIST_KINGDOM_PARTY": {
+   "local": 0.0,
+   "national": 0.00026589009227828773,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "CIVIC_MOVEMENT_OF_SOUTH_AFRICA": {
+   "local": 0.0001217196011697541,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "COMBAT": {
+   "local": 0.0,
+   "national": 0.0002887288421519603,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "COMMUNITY_FIRST_MOVEMENT": {
+   "local": 0.0,
+   "national": 0.0002887288421519603,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "COMMUNITY_SOLIDARITY_ASSOCIATION": {
+   "local": 0.00019507379790119532,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "COPE": {
+   "local": 0.0006919559090723207,
+   "national": 0.00047758310221297426,
+   "route": "blend",
+   "w_local": 0.05219652535331376,
+   "worth": 18.158363382065886
+  },
+  "DA": {
+   "local": 0.26784121427631397,
+   "national": 0.3100917587496977,
+   "route": "blend",
+   "w_local": 0.029679036409182857,
+   "worth": 32.69381627533549
+  },
+  "DEMOCRATIC_ARTISTS_PARTY": {
+   "local": 0.0004465739009804224,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "DISRUPT_PARTY": {
+   "local": 0.00012252569124372598,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "DOP": {
+   "local": 0.0009141061438841136,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "DUDULA": {
+   "local": 0.0,
+   "national": 0.0009899782305819583,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "ECONOMIC_EMANCIPATION_FORUM": {
+   "local": 0.0002797132556682429,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.3503437314511434
+  },
+  "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
+   "local": 0.0,
+   "national": 0.0004302547395792131,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "ECONOMIC_REDRESS_MOVEMENT": {
+   "local": 0.0,
+   "national": 0.00029554110478095076,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "EFF": {
+   "local": 0.11877492326208768,
+   "national": 0.1225643299846143,
+   "route": "blend",
+   "w_local": 0.06047245046781993,
+   "worth": 15.536455729243919
+  },
+  "EKHETHU_PEOPLES_PARTY": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "FORUM_4_SERVICE_DELIVERY": {
+   "local": 7.20983164181387e-05,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "GAP_FIXERS_OF_SOUTH_AFRICA": {
+   "local": 0.0,
+   "national": 0.00029355210762613547,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "GAZA_DEMOCRATIC_FRONT": {
+   "local": 0.0,
+   "national": 0.00028786654700888243,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "GOOD": {
+   "local": 0.0024900122384991417,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 3.6470413062710785
+  },
+  "IFP": {
+   "local": 0.019048108335692107,
+   "national": 0.013075067474565676,
+   "route": "blend",
+   "w_local": 0.06002552048075472,
+   "worth": 15.659580658207178
+  },
+  "ILIZWE_NATHI": {
+   "local": 0.0,
+   "national": 0.00028786654700888243,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "IMSTAYING": {
+   "local": 0.0,
+   "national": 0.00028786654700888243,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "IND": {
+   "local": 0.0,
+   "national": 0.00033413399988598463,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "INDEPENDENT_CITIZENS_MOVEMENT": {
+   "local": 0.0,
+   "national": 0.0005935860570956028,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "INTERNATIONAL_PARTY": {
+   "local": 0.00015154493390671372,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "INTERNATIONAL_REVELATION_CONGRESS": {
+   "local": 0.0008436716708452006,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.07703019885874474
+  },
+  "JUSTICE_AND_EMPLOYMENT_PARTY": {
+   "local": 0.0003957902263201938,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.5374476795027202
+  },
+  "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
+   "local": 0.0,
+   "national": 0.00029355210762613547,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "KNOW_YOUR_POWER": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "LABOUR_PARTY_OF_SOUTH_AFRICA": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "LAND_PARTY": {
+   "local": 0.0,
+   "national": 0.000362439721067731,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.28169924802466023
+  },
+  "LEKWE_BEPE_KINGDOM_PARTY": {
+   "local": 0.0,
+   "national": 0.00026589009227828773,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "MAWUSA_MOVEMENT_PARTY": {
+   "local": 0.0,
+   "national": 0.00028786654700888243,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "MINORITY_FRONT": {
+   "local": 0.0,
+   "national": 0.000418850769651502,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 3.7006183744798906
+  },
+  "MK": {
+   "local": 0.0,
+   "national": 0.11309422378137012,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "MOVEMENT_OF_RESIDENTS_PARTY": {
+   "local": 0.0,
+   "national": 0.00028786654700888243,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "MOVE_SA": {
+   "local": 0.0,
+   "national": 0.0005931531231038182,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "NATIONAL_DEMOCRATIC_CONVENTION": {
+   "local": 0.0,
+   "national": 0.0005581010238266722,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "NATIONAL_PEOPLE_S_FRONT": {
+   "local": 0.00034017001121613397,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.31674248764991353
+  },
+  "NCC": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "NFP": {
+   "local": 0.0008197936052294035,
+   "national": 0.00040580271105279366,
+   "route": "blend",
+   "w_local": 0.33147551029473776,
+   "worth": 2.016814120327716
+  },
+  "PA": {
+   "local": 0.08115945946575102,
+   "national": 0.058020501054162905,
+   "route": "blend",
+   "w_local": 0.30498475234607875,
+   "worth": 2.278852441991129
+  },
+  "PAC": {
+   "local": 0.0016340939244924785,
+   "national": 0.0029018442380528107,
+   "route": "blend",
+   "w_local": 0.0494198816327108,
+   "worth": 19.234771249191024
+  },
+  "PARTY_OF_ACTION": {
+   "local": 0.0009495741071388765,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "PEOPLE_OF_JOBURG": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "PEOPLE_S_CONSENT_PARTY": {
+   "local": 0.0,
+   "national": 0.00022709059875638545,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "PEOPLE_S_FREEDOM_PARTY": {
+   "local": 0.00041029984765168765,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "PRO_SOUTH_AFRICA": {
+   "local": 0.0,
+   "national": 0.00041623241444490737,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "RESIDENT_DEVELOPMENT": {
+   "local": 0.0,
+   "national": 0.00022709059875638545,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "RISE": {
+   "local": 0.0,
+   "national": 0.01441091824557185,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "ROYAL_LOYAL_PROGRESS": {
+   "local": 0.00011849524087386657,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "SERVICE_DELIVERY_PARTY": {
+   "local": 0.0,
+   "national": 0.0005912647475662955,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "SHOSHOLOZA_PROGRESSIVE_PARTY": {
+   "local": 0.00012091351109578222,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+   "local": 0.0,
+   "national": 0.01212538859108598,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": {
+   "local": 0.0,
+   "national": 0.0005845649568085779,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": {
+   "local": 0.00023215394130390187,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
+   "local": 0.0,
+   "national": 0.00022709059875638545,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "THE_ORGANIC_HUMANITY_MOVEMENT": {
+   "local": 0.0003167933990709494,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "TRUTH_AND_SOLIDARITY_MOVEMENT": {
+   "local": 0.0,
+   "national": 0.0005931531231038182,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "UDM": {
+   "local": 0.0017669822997048446,
+   "national": 0.0012618100635103783,
+   "route": "blend",
+   "w_local": 0.04469465561263704,
+   "worth": 21.374039721144165
+  },
+  "UIM": {
+   "local": 0.0009366766659553264,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "UMPHAKATHI_WARONA": {
+   "local": 0.0,
+   "national": 0.0005845649568085779,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "UNITED_AFRICANS_TRANSFORMATION": {
+   "local": 0.0,
+   "national": 0.0013875388410138148,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "UNITED_CULTURAL_MOVEMENT": {
+   "local": 0.00012010742102181033,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "US_THE_PEOPLE": {
+   "local": 0.00041836074839140646,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "VFPLUS": {
+   "local": 0.01497824461952454,
+   "national": 0.0074077910906184905,
+   "route": "blend",
+   "w_local": 0.043779943367598745,
+   "worth": 21.841509674955258
+  },
+  "VUKA_SA": {
+   "local": 0.0,
+   "national": 0.0005979901469232766,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  }
+ },
+ "k": 1.0,
+ "level": {
+  "ABAHLALY_BAAHI": 0.0003377517409942183,
+  "ABANTU_BATHO_CONGRESS": 0.0009366766659553264,
+  "ACDP": 0.006278360259374166,
+  "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0005870639752901975,
+  "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.00039901458661608134,
+  "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA": 0.0005666813220022327,
+  "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0003537504773743986,
+  "AFRICAN_ECONOMIC_FREEDOM": 0.0005912647475662955,
+  "AFRICAN_FREEDOM_REVOLUTION": 0.00018056417656970146,
+  "AFRICAN_LABOUR_CONVENTION": 0.00034814632480050314,
+  "AFRICAN_PEOPLE_S_MOVEMENT": 0.0003522613623257122,
+  "AFRICAN_RENAISSANCE_UNITY": 0.0006160340736379125,
+  "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.00028786654700888243,
+  "AFRICAN_SECURITY_CONGRESS": 0.000469144423051635,
+  "AFRICAN_UNEMPLOYED_CONGRESS": 0.0005912647475662955,
+  "AFRICA_RESTORATION_ALLIANCE": 0.00030389595788739916,
+  "AFRIKA_MAYIBUYE_MOVEMENT": 0.0005912647475662955,
+  "AFRIKA_UNITE_CONGRESS": 0.00026589009227828773,
+  "AGANG": 0.0008347662138117024,
+  "AGENCY_FOR_NEW_AGENDA": 9.478664471646314e-05,
+  "AHC": 0.003174382711301268,
+  "AIC": 0.003124132814809163,
+  "ALJAMAAH": 0.007702062873270428,
+  "ALLIED_INDEPENDENTS_UMBRELLA": 0.0005912647475662955,
+  "ALL_CITIZENS_PARTY": 0.0003366981034904027,
+  "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0005912647475662955,
+  "AMALGAMATED_RAINBOW_MOVEMENT": 0.00020313469864091413,
+  "ANC": 0.27991856207454713,
+  "APC": 0.000967899375001589,
+  "ASA": 0.13509203092939212,
+  "ATM": 0.0035428222074565846,
+  "AZANIAN_GROUND_FORCES": 0.0005912647475662955,
+  "AZANIA_PEACEFUL_REVOLUTION": 0.00015627793732436463,
+  "AZAPO": 0.0007943821142734398,
+  "BLACK_AND_WHITE_PARTY": 9.189426843279449e-05,
+  "BLACK_FIRST_LAND_FIRST": 0.0008891173515909853,
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.0002931634948589765,
+  "BOSA": 0.0094172169596046,
+  "CHANGE": 0.00028293761596413043,
+  "CHRIST_KINGDOM_PARTY": 0.00026589009227828773,
+  "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.0005912647475662955,
+  "CIVIC_MOVEMENT_OF_SOUTH_AFRICA": 0.0001217196011697541,
+  "COMBAT": 0.0002887288421519603,
+  "COMMUNITY_FIRST_MOVEMENT": 0.0002887288421519603,
+  "COMMUNITY_SOLIDARITY_ASSOCIATION": 0.00019507379790119532,
+  "COPE": 0.0004869160957671201,
+  "DA": 0.308746652130964,
+  "DEMOCRATIC_ARTISTS_PARTY": 0.0004465739009804224,
+  "DISRUPT_PARTY": 0.00012252569124372598,
+  "DOP": 0.0009141061438841136,
+  "DUDULA": 0.0009899782305819583,
+  "ECONOMIC_EMANCIPATION_FORUM": 0.0002797132556682429,
+  "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0004302547395792131,
+  "ECONOMIC_REDRESS_MOVEMENT": 0.00029554110478095076,
+  "EFF": 0.12233177895190653,
+  "EKHETHU_PEOPLES_PARTY": 0.0005912647475662955,
+  "FORUM_4_SERVICE_DELIVERY": 7.20983164181387e-05,
+  "GAP_FIXERS_OF_SOUTH_AFRICA": 0.00029355210762613547,
+  "GAZA_DEMOCRATIC_FRONT": 0.00028786654700888243,
+  "GOOD": 0.0024900122384991417,
+  "IFP": 0.013373731008852856,
+  "ILIZWE_NATHI": 0.00028786654700888243,
+  "IMSTAYING": 0.00028786654700888243,
+  "IND": 0.00033413399988598463,
+  "INDEPENDENT_CITIZENS_MOVEMENT": 0.0005935860570956028,
+  "INTERNATIONAL_PARTY": 0.00015154493390671372,
+  "INTERNATIONAL_REVELATION_CONGRESS": 0.0008436716708452006,
+  "JUSTICE_AND_EMPLOYMENT_PARTY": 0.0003957902263201938,
+  "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.00029355210762613547,
+  "KNOW_YOUR_POWER": 0.0005912647475662955,
+  "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0005912647475662955,
+  "LAND_PARTY": 0.000362439721067731,
+  "LEKWE_BEPE_KINGDOM_PARTY": 0.00026589009227828773,
+  "MAWUSA_MOVEMENT_PARTY": 0.00028786654700888243,
+  "MINORITY_FRONT": 0.000418850769651502,
+  "MK": 0.11309422378137012,
+  "MOVEMENT_OF_RESIDENTS_PARTY": 0.00028786654700888243,
+  "MOVE_SA": 0.0005931531231038182,
+  "NATIONAL_DEMOCRATIC_CONVENTION": 0.0005581010238266722,
+  "NATIONAL_PEOPLE_S_FRONT": 0.00034017001121613397,
+  "NCC": 0.0005912647475662955,
+  "NFP": 0.0005123233047834224,
+  "PA": 0.06427400202712101,
+  "PAC": 0.002820648199432461,
+  "PARTY_OF_ACTION": 0.0009495741071388765,
+  "PEOPLE_OF_JOBURG": 0.0005912647475662955,
+  "PEOPLE_S_CONSENT_PARTY": 0.00022709059875638545,
+  "PEOPLE_S_FREEDOM_PARTY": 0.00041029984765168765,
+  "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0005912647475662955,
+  "PRO_SOUTH_AFRICA": 0.00041623241444490737,
+  "RESIDENT_DEVELOPMENT": 0.00022709059875638545,
+  "RISE": 0.01441091824557185,
+  "ROYAL_LOYAL_PROGRESS": 0.00011849524087386657,
+  "SERVICE_DELIVERY_PARTY": 0.0005912647475662955,
+  "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.00012091351109578222,
+  "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.01212538859108598,
+  "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0005845649568085779,
+  "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.00023215394130390187,
+  "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.00022709059875638545,
+  "THE_ORGANIC_HUMANITY_MOVEMENT": 0.0003167933990709494,
+  "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.0005931531231038182,
+  "UDM": 0.0012809437331852058,
+  "UIM": 0.0009366766659553264,
+  "UMPHAKATHI_WARONA": 0.0005845649568085779,
+  "UNITED_AFRICANS_TRANSFORMATION": 0.0013875388410138148,
+  "UNITED_CULTURAL_MOVEMENT": 0.00012010742102181033,
+  "US_THE_PEOPLE": 0.00041836074839140646,
+  "VFPLUS": 0.00763968435576272,
+  "VUKA_SA": 0.0005979901469232766
+ },
+ "n_rho": 292,
+ "n_theta": 410,
+ "rho_centre": 0.7446047474896023,
+ "theta_centre": 0.9256021825256473
+}

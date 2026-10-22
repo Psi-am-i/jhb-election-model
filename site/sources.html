@@ -3,159 +3,80 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Johannesburg 2026 — Where the data comes from — and what it took to get it</title>
+<title>Johannesburg 2026 — Where the data comes from</title>
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="5,000 simulations of the November vote. Nobody wins — and an obscure clause of the seat law hands the shrinking ANC an unbreakable floor. Explore every ward, every coalition, every assumption.">
-<meta property="og:url" content="https://joburg.whysoserious.city/">
-<link rel="canonical" href="https://joburg.whysoserious.city/">
-<meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
+<meta property="og:title" content="Johannesburg 2026 — Where the data comes from">
+<meta property="og:description" content="The model is built from election results, boundary maps, by-election returns and census tables. This page traces each to its origin and records the state it was in when we found it.">
+<meta property="og:url" content="https://joburg.whysoserious.city/sources">
+<link rel="canonical" href="https://joburg.whysoserious.city/sources">
+<meta property="og:image" content="https://joburg.whysoserious.city/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Hillbrow Tower silhouetted against a Johannesburg sunset">
+<meta property="og:image:alt" content="joburg.whysoserious.city, modelling and forecasting: the Hillbrow Tower as the J">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
-<style>
-  :root{
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
-    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
-    }
-  }
-  *{box-sizing:border-box;margin:0;}
-  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
-    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
-  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
-    justify-content:space-between;font-family:var(--mono);font-size:14px;color:var(--ink-3);
-    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:26px;}
-  .topnav a{color:var(--ink-3);text-decoration:none;}
-  .topnav a:hover{color:var(--accent);}
-  .topnav a.home{color:var(--accent);font-weight:600;}
-  .topnav a.active{color:var(--accent);}
-
-  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--accent);margin-bottom:10px;}
-  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
-    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
-  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
-    color:var(--ink-2);text-wrap:pretty;margin-bottom:6px;}
-  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
-    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
-    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
-  .dateline b{color:var(--ink-2);font-weight:600;}
-
-  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
-    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
-    border-top:1px solid var(--rule);}
-  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
-  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
-  p{margin:10px 0;}
-  ul,ol{margin:10px 0;padding-left:20px;
-    display:flex;flex-direction:column;gap:5px;}
-  strong{font-weight:650;}
-  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
-  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
-
-  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
-    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
-  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
-    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
-  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
-
-  .tablewrap{overflow-x:auto;margin:14px 0;}
-  table{border-collapse:collapse;width:100%;font-size:13.5px;}
-  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--ink-3);text-align:left;
-    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
-  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
-    vertical-align:top;color:var(--ink-2);}
-  td:first-child{color:var(--ink);}
-
-  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
-    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
-  blockquote p{margin:6px 0;}
-  blockquote h3,blockquote h4{margin-top:8px;}
-
-  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
-  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:14px;margin-top:20px;}
-  .sitefooter a{color:var(--ink-3);}
-  .sitefooter a:hover{color:var(--accent);}
-
-  /* index cards */
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:14px;margin:22px 0;}
-  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
-    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
-    transition:border-color .15s;}
-  .card:hover{border-color:var(--accent);}
-  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
-  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
-  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
-  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
-    text-transform:uppercase;color:var(--accent);}
-
-  @media print{
-    body{background:#fff;color:#000;font-size:10pt;}
-    .page{max-width:none;padding:0;}
-    .topnav{display:none;}
-    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
-  }
-</style>
+<meta name="twitter:image" content="https://joburg.whysoserious.city/og.png">
+<link rel="stylesheet" href="css/site.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="js/theme.js"></script>
+<script defer src="js/stat-tip.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c14bef699fb74863b4db775ea910b533"}'></script>
 </head>
-<body>
+<body class="pg-doc">
 <div class="page">
 <nav class="topnav">
-  <a class="home" href="./">joburg.whysoserious.city</a>
-  <a href="./">forecast</a>
-  <a href="interactive">interactive</a>
-  <a href="methodology">methodology</a>
-  <a href="review">review</a>
-  <a class="active" href="sources">sources</a>
-  <a href="plan">plan</a>
-  <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
+  <a class="home" href="./" aria-label="Johannesburg election forecast — joburg.whysoserious.city"><svg class="logo" viewBox="19 87 2826 1296" aria-hidden="true" focusable="false"><use href="logo.svg#logo"></use></svg></a>
+  <div class="navlinks">
+  <span class="navgroup"><a href="forecast">our forecast</a><a href="your-forecast/">your prediction</a><a href="commentary">commentary</a><a href="claims">party claims</a></span>
+  <span class="navgroup"><a href="methodology">methodology</a><a href="review">review</a><a href="corrections">corrections</a><a class="active" href="sources">sources</a><a href="https://github.com/Psi-am-i/jhb-election-model">source code</a></span>
+  </div>
+  <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
 </nav>
+<p class="strapline">Made for the benefit of all the residents, businesses, professional and civic organisations and political parties that make our city so interesting.</p>
 <header>
   <div class="kicker">Data sources</div>
-  <h1>Where the data comes from — and what it took to get it</h1>
-  <p class="standfirst">Every number in this model traces back to a public record. Where each one lives, what state it was in, and how hard South Africa's public records actually are to reach.</p>
+  <h1>Where the data comes from</h1>
+<div class="pgshare" data-pgshare>
+  <button class="btn model pgshare-open" type="button">Share</button>
+  <dialog class="sharesheet" aria-labelledby="pgshare-title">
+    <div class="dh"><h2 id="pgshare-title">Share this page</h2>
+      <button class="x" type="button" aria-label="Close">×</button></div>
+    <div class="db">
+      <div class="urlrow">
+        <input class="shurl" type="text" readonly value="" aria-label="Link to this page">
+        <button class="btn shcopy" type="button">Copy link</button>
+      </div>
+      <div class="preview"><img src="og.png" alt="The image a link to this page shows when it is shared" loading="lazy"></div>
+      <div class="shcta">
+        <button class="btn model shnative" type="button" hidden>Share…</button>
+        <a class="btn shwa" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn shx" target="_blank" rel="noopener">X</a>
+        <button class="btn shdl" type="button">Download image</button>
+      </div>
+      <p class="toast" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+  <script type="module" src="js/page-share.js"></script>
+</div>
+  <p class="standfirst">The model is built from election results, boundary maps, by-election returns and census tables. This page traces each to its origin and records the state it was in when we found it.</p>
 </header>
-<p>Election results at voting-district level, boundary maps of wards and voting
-districts, by-election returns, census tables — this page tracks each to its
-origin and records the state it was in when we found it. The full technical
-recipes, file by file, are in
+<p>The technical recipes, file by file, are in
 <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md"><code>SOURCES.md</code> on GitHub</a>.</p>
-<h2>Public records, deliberately hard to reach</h2>
-<p>The IEC&rsquo;s results sites — <code>results.elections.org.za</code> and
-<code>www.elections.org.za</code> — do not allow programmatic collection of their data:
-automated requests are simply refused at the door. Why that should be true of
-a public record is unexplained. Election results belong to everyone, and they
-should be freely and easily available — not guarded in ways that make
-independent analysis a test of patience. In practice, most of the raw data
-behind this model had to be collected through an ordinary browser session,
-clicking each file one by one.</p>
-<p>It gets stranger. The portal identifies each election not by its year but by
-an arbitrary internal code — and the codes for the national and provincial
-halves of the same election day differ. Guess wrong and the site does not
-error: it quietly hands you a different election&rsquo;s results. And one election —
-the 2014 national and provincial vote — is missing from the results portal
-altogether; its files turned out to live on a second, older IEC site.</p>
-<h2>The election results themselves</h2>
-<p>The model rests on six elections at voting-district level — the finest grain
-the IEC publishes:</p>
+<h2 id="public-records-that-are-hard-to-reach">Public records that are hard to reach</h2>
+<p>The IEC&rsquo;s results sites, <code>results.elections.org.za</code> and <code>www.elections.org.za</code>,
+refuse automated requests. Election results are public records, and no reason
+for the restriction is given. Most of the raw data behind this model was
+collected through an ordinary browser session, one file at a time.</p>
+<p>The portal identifies each election by an internal code, not by its year, and
+the national and provincial halves of the same election day have different
+codes. A wrong guess raises no error: the site returns a different election&rsquo;s
+results. One election, the 2014 national and provincial vote, is missing from
+the results portal; its files are on a second, older IEC site.</p>
+<h2 id="the-election-results">The election results</h2>
+<p>The model rests on six elections at voting-district level, the finest grain the
+IEC publishes:</p>
 <div class="tablewrap"><table>
 <thead>
 <tr>
@@ -174,72 +95,73 @@ the IEC publishes:</p>
 </tr>
 </tbody>
 </table></div>
-<p>The files themselves were not clean. Different years arrive in different
-character encodings — one in a format from the DOS era. A voting station with
-a comma in its name silently shifts every later column in the row. One year&rsquo;s
-&ldquo;valid votes&rdquo; column does not contain what its name says. Each of these
-corrupts results without raising any error; each had to be caught by
-cross-checking totals against the IEC&rsquo;s own published reports. The full list
-of traps, and the code that handles them, is on GitHub.</p>
-<h2>The maps</h2>
-<p>Council seats follow geography, so the model needs the boundaries of every
-ward and voting district — across four different boundary revisions, because
-Johannesburg&rsquo;s wards have been redrawn before every election. The Municipal
-Demarcation Board publishes the recent layers through its mapping portal; the
-two older ward sets survive only as archived file downloads.</p>
-<p>Public geodata also quietly disappears: the Demarcation Board has already
-retired the per-municipality downloads its old website offered. One dataset
-this model needed — the complete voting-district results of the 2016
-election — now exists in the Internet Archive and nowhere official.</p>
-<p>One trap worth recording: the 2026 voting-district layer carries a field that
-looks like current voter registration. It is actually a snapshot from 2024.
-Take it at face value and every turnout figure built on it is wrong.</p>
-<h2>By-elections</h2>
-<p>Fifteen wards in Johannesburg have held by-elections since 2021 — the only
-hard evidence of how opinion has moved between elections, and an input to this
-forecast. The IEC&rsquo;s official download page could not supply them: its report
-links only work inside the browser session that created them. The IEC&rsquo;s own
-public dashboard, however, is fed by plain data files that anyone can read —
-richer than the reports, down to voting-district level with every party and
-candidate. That is what the model uses.</p>
-<h2>People</h2>
+<p>The files were not clean. Different years arrive in different character
+encodings, one from the DOS era. A voting station with a comma in its name
+shifts every later column in the row. One year&rsquo;s &ldquo;valid votes&rdquo; column does not
+contain what its name says. None of these raises an error; each was caught by
+cross-checking totals against the IEC&rsquo;s own published reports. The full list,
+and the code that handles each, is on GitHub.</p>
+<h2 id="the-maps">The maps</h2>
+<p>Council seats follow geography, so the model needs the boundaries of every ward
+and voting district across four boundary revisions: Johannesburg&rsquo;s wards have
+been redrawn before every election. The Municipal Demarcation Board publishes
+the recent layers through its mapping portal; the two older ward sets survive
+only as archived file downloads.</p>
+<p>The Demarcation Board has retired the per-municipality downloads its old website
+offered. One dataset this model needed, the complete voting-district results of
+the 2016 election, now exists in the Internet Archive and nowhere official.</p>
+<p>The 2026 voting-district layer carries a field that looks like current voter
+registration. It is a snapshot from 2024. Every turnout figure built on it as
+current would be wrong.</p>
+<h2 id="by-elections">By-elections</h2>
+<p>Fifteen Johannesburg wards have held by-elections since 2021. They are the only
+direct evidence of how opinion has moved between elections. The model reads them
+and moves each party&rsquo;s expected share up to halfway toward what they imply (see the methodology). The IEC&rsquo;s official download page could not supply them: its report
+links work only inside the browser session that created them. The IEC&rsquo;s public
+dashboard is fed by plain data files that anyone can read, with more detail than
+the reports, down to voting-district level with every party and candidate. The
+model uses those.</p>
+<h2 id="people">People</h2>
 <p>Statistics South Africa publishes ward-level population estimates from Census
-2022 — age, sex and population group for all 135 wards — and those are used in
-the turnout modelling. The more detailed small-area data (income, dwelling
-type, employment) is not published at all: it is supplied on request, by
-email, to those who know to ask. A national census, funded publicly, should
-not work that way.</p>
-<h2>What nobody publishes</h2>
-<p>Some records could not be obtained because they do not exist in public:</p>
+2022 (age, sex and population group for all 135 wards). The model uses one
+thing from them: each ward&rsquo;s population-group shares, which split that ward&rsquo;s
+registered voters into groups. The more detailed small-area data (income, dwelling type,
+employment) is not published, because at ward level it can identify households.
+Access under conditions exists, and we have not sought it.</p>
+<h2 id="what-nobody-publishes">What nobody publishes</h2>
 <ul>
 <li><strong>Historic voting-district boundaries.</strong> The IEC draws these with its own
   mapping systems and appears never to have published them. Five archives and
   catalogues were searched; a request to the IEC&rsquo;s Delimitation Directorate is
-  the only remaining route. The model works around the gap and tests that the
+  the remaining route. The model works around the gap and tests that the
   workaround does not change its conclusions.</li>
 <li><strong>The voters&rsquo; roll by age and sex below municipality level</strong>, and the
-  registration figures from the 2026 sign-up weekends — the latter simply not
-  released yet.</li>
+  registration figures from the 2026 sign-up weekends, which are not released
+  yet.</li>
 </ul>
-<h2>Keeping ourselves honest</h2>
-<p>Because the raw files were assembled by hand from sources that can change or
-vanish, we fingerprint every one of them ourselves: when a file is collected,
-the model&rsquo;s build records its cryptographic checksum — a short code that
-changes if even one byte of the file does. Those fingerprints are published in
-this project&rsquo;s own repository on
-<a href="https://github.com/Psi-am-i/jhb-election-model">GitHub</a> (the raw files are
-bulky, so we publish the fingerprints and the instructions to fetch the files
-rather than the files themselves). That gives everyone two guarantees: anyone
-who re-downloads the same sources can prove they hold exactly the data this
-forecast was computed from, byte for byte — and if a source file is ever
-quietly altered or withdrawn upstream, the mismatch shows up immediately
-instead of silently corrupting the model.</p>
+<h2 id="checksums">Checksums</h2>
+<p>The raw files were assembled by hand from sources that can change or vanish, so
+the build records a cryptographic checksum of each file when it is collected: a
+short code that changes if one byte of the file does. The checksums, and the
+instructions to fetch each file, are published in the project&rsquo;s repository on
+<a href="https://github.com/Psi-am-i/jhb-election-model">GitHub</a>; the raw files are too
+large to publish. Anyone who downloads the same sources can confirm they hold
+exactly the data this forecast was computed from, and a file altered or
+withdrawn upstream shows up as a mismatch.</p>
 <div class="colophon">
-  Reader edition, generated from docs-public/sources.md on 2026-08-08. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
+  Reader edition, generated from docs-public/sources.md on 2026-10-22. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
+  <div class="foot-text">
+  <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="https://www.statssa.gov.za/">Stats SA</a>. Ward and voting-district boundaries from the <a href="https://spatialhub-mdb-sa.opendata.arcgis.com/">Municipal Demarcation Board</a>. Raw election results from the <a href="https://results.elections.org.za/">IEC</a>. <a href="https://github.com/Psi-am-i/jhb-election-model">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
+  <hr class="foot-rule">
+  <div class="foot-independence">
+    <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+  </div>
+  </div>
+  <div class="foot-side"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="0 0 1969 1002" aria-hidden="true" focusable="false"><use href="whysoseriouscity.svg#wsc"></use></svg></a>
+    <a class="foot-support" href="support">Support Our Work</a>
+  </div>
 </footer>
 </div>
 </body>

@@ -8,7 +8,7 @@ them differently on purpose:
   printed ready to paste. Never type them: Johannesburg's council was 260
   in 2011 and 270 since, so even a single city has no constant.
 
-* **Judgements** — bloc membership, θ ranges, national-to-local shift
+* **Judgements** — θ ranges, national-to-local shift
   ranges, which parties get their own dial. These cannot be derived, only
   *informed*. The script measures each party's observed NPE→LGE retention
   across the city's own transitions and prints a proposal with the evidence
@@ -56,6 +56,20 @@ def structure_from(rows: list[dict]) -> dict:
     return {"wards": len(wards), "vds": len(vds), "registered": sum(reg.values())}
 
 
+def target_registered(slug: str, fallback: int) -> tuple[int, str]:
+    """``(registered, where from)`` for the TARGET election: the sum of the
+    newest registration snapshot's ward rows when the city has one
+    (``inputs_preflight.roll_snapshot``), else ``fallback`` (the latest past
+    election's roll). The snapshot's own demographics-block total is not read;
+    JUDGEMENT-CALLS records the choice of the ward rows."""
+    import inputs_preflight
+    snap = inputs_preflight.roll_snapshot(slug)
+    if snap is None:
+        return fallback, "the latest past election's roll (no registration snapshot)"
+    return (sum(inputs_preflight.read_roll_snapshot(snap).values()),
+            inputs_preflight.snapshot_label(snap))
+
+
 def shares_from(rows: list[dict], ballot: str = "PR") -> dict[str, float]:
     tot: defaultdict[str, int] = defaultdict(int)
     for r in rows:
@@ -94,6 +108,9 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"no LGE files for {args.code} — run fetch_iec.py first")
 
     year, st, rows = latest
+    st = dict(st)
+    st["registered"], reg_from = target_registered(args.slug, st["registered"])
+    print(f"\n  registered for the target election: {st['registered']:,}  (from {reg_from})")
     council = st["wards"] * 2
     print(f"\n  → council = {council} (wards x2; CONFIRM against that city's "
           f"Seat Calculation Detail PDF — this is the one number worth\n"
@@ -108,14 +125,16 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  {tail:6.1%}  (residual tail -> OTHER)")
 
     print("\n=== judgements: PROPOSALS ONLY — a human decides ===")
-    print("  Bloc membership, θ ranges and the national-to-local shift ranges")
+    print("  θ ranges and the national-to-local shift ranges")
     print("  cannot be derived from one election. Measure them against this")
     print("  city's own NPE→LGE transitions before accepting anything, and")
     print("  record the evidence in the config's *_note fields.\n")
     print("  Sanity checks worth doing for a new city:")
     print("   · does any party here have no Johannesburg analogue? (VF+ in")
     print("     Tshwane is first-class at ~8%; the PA is marginal)")
-    print("   · is the ANC/DA bloc split even the right frame in this city?")
+    print(f"   · run pools.py --city {args.slug} --target <year> --emit, and")
+    print("     read the R2 column: a party that fails to decompose into")
+    print("     pools has cross-pool appeal and needs a judgement")
     print("   · does a local formation need its own dial and chip colour?")
     print(f"   · run validate_seats.py --city {args.slug} — the allocator must")
     print("     reproduce the published council exactly before anything else")

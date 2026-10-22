@@ -1,0 +1,24 @@
+joburg 2011 2009 {'IND excluded': 1, 'no NPE baseline, not seeded': 9}
+joburg 2016 2014 {'IND excluded': 1, 'no NPE baseline, not seeded': 3}
+joburg 2021 2019 {'IND excluded': 1, 'no NPE baseline, not seeded': 1}
+tshwane 2011 2009 {'IND excluded': 1, 'no NPE baseline, not seeded': 5}
+tshwane 2016 2014 {'IND excluded': 1, 'no NPE baseline, not seeded': 3}
+tshwane 2021 2019 {'IND excluded': 1, 'no NPE baseline, not seeded': 3}
+ekurhuleni 2011 2009 {'IND excluded': 1, 'no NPE baseline, not seeded': 12}
+ekurhuleni 2016 2014 {'IND excluded': 1, 'no NPE baseline, not seeded': 1}
+ekurhuleni 2021 2019 {'IND excluded': 1, 'no NPE baseline, not seeded': 1}
+ethekwini 2011 2009 {'IND excluded': 1, 'no NPE baseline, not seeded': 8}
+ethekwini 2016 2014 {'IND excluded': 1}
+ethekwini 2021 2019 {'IND excluded': 1, 'no NPE baseline, not seeded': 5}
+capetown 2011 2009 {'IND excluded': 1, 'no NPE baseline, not seeded': 15}
+capetown 2016 2014 {'IND excluded': 1, 'no NPE baseline, not seeded': 4}
+capetown 2021 2019 {'IND excluded': 1, 'no NPE baseline, not seeded': 6}
+mangaung 2011 2009 {'IND excluded': 1, 'no NPE baseline, not seeded': 2}
+mangaung 2016 2014 {'IND excluded': 1, 'no NPE baseline, not seeded': 2}
+mangaung 2021 2019 {'IND excluded': 1, 'no NPE baseline, not seeded': 4}
+nelsonmandelabay 2011 2009 {'IND excluded': 1, 'no NPE baseline, not seeded': 4}
+nelsonmandelabay 2016 2014 {'IND excluded': 1, 'no NPE baseline, not seeded': 1}
+nelsonmandelabay 2021 2019 {'IND excluded': 1, 'no NPE baseline, not seeded': 2}
+buffalocity 2011 2009 {'IND excluded': 1}
+buffalocity 2016 2014 {'IND excluded': 1, 'no NPE baseline, not seeded': 1}
+buffalocity 2021 2019 {'IND excluded': 1}

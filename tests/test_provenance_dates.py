@@ -1,0 +1,434 @@
+"""The dates a reader is shown beside a figure, and the scope of a registered fact.
+
+The owner's sweep of 2026-10-03, items 1 and 2:
+
+* **"Unchanged since" named the last edition, not the first.** A figure printed
+  unchanged in every edition since 8 August read "Unchanged since 30 September".
+  The date is now the start of the value's unbroken run in the ledger
+  (`publication.run_starts`).
+* **A dated article printed live figures.** The 8 August standfirst sat inside
+  `data-asof` and carried the live `{{n_draws}}`; three passages were dated 31
+  August, a date the piece was never published on. A figure in a dated passage
+  must be one that was true on that date (`publication.misdated_figures`).
+* **`page` on a registered fact was ignored**, and an `[audit].allow` phrase
+  cleared any "NN%" near it on any page. A fact now clears only on the pages it
+  lists, and an allow phrase clears no number (`stats.for_page`).
+
+Inputs are constructed unless a test says it reads the tree, and each detector
+is shown to fire and to go quiet again.
+"""
+from __future__ import annotations
+
+import subprocess
+import sys
+import tempfile
+import tomllib
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import publication as P  # noqa: E402
+import stats as S  # noqa: E402
+from _support import run_module, skip  # noqa: E402
+
+STATS = ROOT / "content" / "joburg" / "stats.toml"
+
+
+def _row(token="t", display="44", published_at="2026-08-08T17:29:45+00:00",
+         movement="none", value=44, superseded_at=None):
+    return P.Row(token=token, value=value, display=display, fmt="int",
+                 source="s", model_run_id="r1", run_at=None, as_of=None,
+                 published_at=published_at, change_class=None, reason=None,
+                 movement=movement, superseded_at=superseded_at)
+
+
+# --- "since" is the first date of the current value's unbroken run -----------
+
+def test_since_is_the_first_row_of_the_unbroken_run_not_the_last():
+    rows = [
+        # A: the same figure in three editions -> its first edition
+        _row("a", "44", "2026-08-08T17:29:45+00:00", "new"),
+        _row("a", "44", "2026-09-26T13:58:54+00:00"),
+        _row("a", "44", "2026-09-30T04:21:21+00:00"),
+        # B: moved in the second edition, then held -> the second edition
+        _row("b", "74", "2026-08-08T17:29:45+00:00", "new", 74),
+        _row("b", "61", "2026-09-26T13:58:54+00:00", "material", 61),
+        _row("b", "61", "2026-09-30T04:21:21+00:00", "none", 61),
+        # C: a raw move below the displayed precision continues the run
+        _row("c", "47%", "2026-09-26T13:58:54+00:00", "new", 0.471),
+        _row("c", "47%", "2026-09-30T04:21:21+00:00", "rounding", 0.468),
+        # D: a value that returns after a different one starts a NEW run
+        _row("d", "5", "2026-08-08T17:29:45+00:00", "new", 5),
+        _row("d", "6", "2026-09-26T13:58:54+00:00", "material", 6),
+        _row("d", "5", "2026-09-30T04:21:21+00:00", "material", 5),
+    ]
+    got = P.run_starts(reversed(rows))   # order of the input is not trusted
+    assert got == {"a": "2026-08-08T17:29:45+00:00",
+                   "b": "2026-09-26T13:58:54+00:00",
+                   "c": "2026-09-26T13:58:54+00:00",
+                   "d": "2026-09-30T04:21:21+00:00"}, got
+
+
+def test_a_retirement_ends_the_run():
+    rows = [_row("r", "9", "2026-08-08T00:00:00Z", "new", 9),
+            _row("r", "9", "2026-09-01T00:00:00Z", "none", 9,
+                 superseded_at="2026-09-01T00:00:00Z"),
+            _row("r", "9", "2026-09-26T00:00:00Z", "new", 9)]
+    assert P.run_starts(rows) == {"r": "2026-09-26T00:00:00Z"}
+
+
+def test_the_change_record_carries_both_dates():
+    """`changes.json` and every tooltip read `since` from `_ledger_candidates`,
+    so it must be there, and be the run start, not the latest row."""
+    import build_site as B
+    ledger = [_row("same", "44", "2026-08-08T00:00:00Z", "new"),
+              _row("same", "44", "2026-09-30T00:00:00Z"),
+              _row("moved", "74", "2026-08-08T00:00:00Z", "new", 74),
+              _row("moved", "74", "2026-09-30T00:00:00Z", "none", 74)]
+    latest = {r.token: r for r in ledger}
+    occ = [{"token": t, "value": v, "display": d, "fmt": "int", "source": "s",
+            "mode": "free", "tolerance": None, "dated": False, "page": "x.html"}
+           for t, v, d in (("same", 44, "44"), ("moved", 60, "60"), ("new", 1, "1"))]
+    ident = {"model_run_id": "r-abc-1234", "run_at": None, "as_of": None}
+    _, changes = B._ledger_candidates(occ, latest, ident, "2026-10-03T00:00:00Z",
+                                      reason="r", change_class="mechanism",
+                                      since=P.run_starts(ledger))
+    by = {c["token"]: c for c in changes}
+    assert by["same"]["since"] == "2026-08-08T00:00:00Z", by["same"]
+    assert by["same"]["previous_published_at"] == "2026-09-30T00:00:00Z"
+    assert by["moved"]["since"] is None, "a moved value has no run yet"
+    assert by["moved"]["previous_since"] == "2026-08-08T00:00:00Z", by["moved"]
+    assert by["new"]["since"] is None and by["new"]["previous_since"] is None
+
+
+def test_the_built_tooltip_dates_an_unchanged_figure_to_its_first_edition():
+    """End to end: the tooltip text is assembled inside `build_site.main`, which
+    no unit test reaches. A throwaway ledger holds one token in three editions;
+    the page must say the first."""
+    if not (ROOT / "data" / "processed" / "forecast_summary.json").exists():
+        skip("needs data/processed/forecast_summary.json; run montecarlo.py")
+    token = "asa_2021_seats"     # a fixed, unchanging IEC figure on /forecast
+    reg = tomllib.loads(STATS.read_text(encoding="utf-8"))
+    assert reg[token]["mode"] == "fixed", reg[token]
+    shown = S._fmt(reg[token]["value"], reg[token].get("format"))
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        led = tmp / "led" / "joburg"
+        led.mkdir(parents=True)
+        import json
+        led.joinpath("ledger.jsonl").write_text("".join(
+            json.dumps(_row(token, shown, when, mv, reg[token]["value"]).as_json()) + "\n"
+            for when, mv in (("2026-08-08T17:29:45+00:00", "new"),
+                             ("2026-09-26T13:58:54+00:00", "none"),
+                             ("2026-09-30T04:21:21+00:00", "none"))), encoding="utf-8")
+        r = subprocess.run(
+            [str(ROOT / ".venv/bin/python"), str(ROOT / "src/build_site.py"),
+             "--out", str(tmp / "site"), "--ledger-root", str(tmp / "led"),
+             "--allow-orphans", "--allow-stale-sources"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 0, r.stdout[-1500:] + r.stderr[-1500:]
+        page = (tmp / "site" / "forecast.html").read_text(encoding="utf-8")
+    import html
+    import re
+    tips = [html.unescape(m) for m in re.findall(
+        rf'data-token="{token}"[^>]*data-prov="([^"]*)"', page)]
+    assert tips, f"{token} is not on /forecast; the test is looking at nothing"
+    # The wording is the 2026-10-22 structure (build_site.tooltip_text): a
+    # pinned (fixed) figure reads "<v> on <date>.", not "since", because it is
+    # not current; the year is left off a date in the edition's year. What is
+    # checked is unchanged: the date is the FIRST edition, not the last.
+    unit = " seats" if token == "asa_2021_seats" else ""
+    for tip in tips:
+        assert tip.startswith(f"{shown}{unit} on 8 August.\n"), tip
+        assert "30 September" not in tip, tip
+
+
+def test_a_figure_typed_before_it_was_a_token_is_dated_from_its_first_publication():
+    """Owner's list, 2026-10-03, items 1 and 2: the figures typed into "When
+    the ANC falls, nobody catches the votes" are tokens now, and with no
+    ledger row yet their tooltip dates them from the article (``on_site``),
+    not from the edition that first ledgers them. A fixed token WITHOUT
+    ``on_site`` still says it is new, so the branch is seen to discriminate.
+    End to end, on an empty throwaway ledger."""
+    if not (ROOT / "data" / "processed" / "forecast_summary.json").exists():
+        skip("needs data/processed/forecast_summary.json; run montecarlo.py")
+    reg = tomllib.loads(STATS.read_text(encoding="utf-8"))
+    dated = {"hist_da_bloc_change_votes": "nobody-catches-the-votes.html",
+             "hist_asa_pr_2021_rounded": "nobody-catches-the-votes.html"}
+    undated = ("blind_test_called", "methodology.html")
+    assert all(reg[t].get("on_site") == "2026-08-08" for t in dated)
+    assert "on_site" not in reg[undated[0]]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        (tmp / "led" / "joburg").mkdir(parents=True)
+        (tmp / "led" / "joburg" / "ledger.jsonl").write_text("", encoding="utf-8")
+        r = subprocess.run(
+            [str(ROOT / ".venv/bin/python"), str(ROOT / "src/build_site.py"),
+             "--out", str(tmp / "site"), "--ledger-root", str(tmp / "led"),
+             "--allow-orphans", "--allow-stale-sources"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 0, r.stdout[-1500:] + r.stderr[-1500:]
+        pages = {p: (tmp / "site" / p).read_text(encoding="utf-8")
+                 for p in {*dated.values(), undated[1]}}
+    import html
+    import re
+
+    def tips(token, page):
+        return [html.unescape(m) for m in re.findall(
+            rf'data-token="{token}"[^>]*data-prov="([^"]*)"', pages[page])]
+    for token, page in dated.items():
+        shown = S._fmt(reg[token]["value"], reg[token].get("format"))
+        assert tips(token, page), f"{token} is not on {page}"
+        for tip in tips(token, page):
+            # 2026-10-22 structure (build_site.tooltip_text: a pinned figure
+            # reads "on <date>"); still dated from the article, not this build
+            assert tip.startswith(f"{shown} on 8 August.\n"), tip
+    # A fixed figure WITHOUT on_site is not dated from 8 August, so the branch
+    # is still seen to discriminate. (It said "new in this edition"; since
+    # 2026-10-22 a pinned figure reads "on" the date of the dated passage it
+    # sits in, here methodology's, or "in this build" with no date at all.)
+    assert tips(*undated) and all(" 8 August" not in t.split("\n")[0]
+                                  and " since " not in t.split("\n")[0]
+                                  for t in tips(*undated)), tips(*undated)
+
+
+def test_no_typed_figure_is_left_in_an_article():
+    """Owner's list, 2026-10-03, item 2: every typed number in an article is
+    a token. No fixed fact registered on an article page carries a digit,
+    except a date (a piece's own dated label). The articles are
+    articles.toml's list; a constructed digit fact on one is caught."""
+    arts = tomllib.loads((ROOT / "content" / "joburg" / "articles.toml").read_text(encoding="utf-8"))["article"]
+    pages = {a["href"] + ".html" for a in arts}
+    assert len(pages) == len(arts) >= 4
+    import re
+    fixed = tomllib.loads(STATS.read_text(encoding="utf-8"))["audit"]["fixed"]
+
+    def typed(facts):
+        return [f["value"] for f in facts
+                if {p.strip() for p in f.get("page", "").split(",")} & pages
+                and re.search(r"\d", f["value"]) and f.get("kind") != "rule"
+                and not re.fullmatch(r"\d{1,2}( [A-Z][a-z]+( \d{4})?)?", f["value"])]
+    assert typed(fixed) == []
+    assert typed(fixed + [{"value": "52,000", "page": "nobody-catches-the-votes.html", "kind": "history"}]) == ["52,000"]
+
+
+# --- a figure in a dated passage is the figure of that date ------------------
+
+def _occ(token, mode, captured, asof, display="61"):
+    return {"token": token, "mode": mode, "captured": captured, "asof": asof,
+            "dated": bool(asof), "display": display, "page": "a.html"}
+
+
+def test_a_dated_passage_accepts_only_figures_of_its_date():
+    good = [_occ("pub", "fixed", "2026-08-08", "2026-08-08"),
+            _occ("older", "fixed", "2026-08-06", "2026-08-08"),
+            _occ("council_size", "free", "", "2026-08-08", display="270"),
+            _occ("live_undated", "free", "", "")]
+    consts = {"council_size", "majority"}
+    assert P.misdated_figures(good, consts) == []
+    bad = [_occ("live", "free", "", "2026-08-08"),
+           _occ("generated", "generated", "", "2026-08-08"),
+           _occ("pinned_later", "fixed", "2026-09-01", "2026-08-08"),
+           _occ("pinned_undated", "fixed", "", "2026-08-08"),
+           # a forecast that happens to print the council's majority
+           _occ("anc_seats_median", "free", "", "2026-08-08", display="136"),
+           # the same value as an exempt constant on the same date: only the
+           # token tells them apart
+           _occ("anc_seats_p95", "free", "", "2026-08-08", display="270")]
+    caught = P.misdated_figures(good + bad, consts)
+    assert sorted(v["token"] for v in caught) == sorted(o["token"] for o in bad), caught
+    # and quiet again once the bad occurrences are taken out
+    assert P.misdated_figures(good, consts) == []
+    # the constant is exempt by its token, not by the number it shows
+    assert P.misdated_figures([_occ("council_size", "free", "", "2026-08-08", "270")]), (
+        "a free figure was exempted without the council's constants passed in")
+
+
+def test_the_council_constants_are_found_by_source():
+    """`council_constant_tokens` reads the registry: the tree's council size and
+    majority are found, and a token printing the same value from another
+    source is not."""
+    reg = {"council_size": {"source": "derived:council_size"},
+           "majority": {"source": "derived:majority"},
+           "anc_seats_median": {"source": "model:parties.ANC.median"},
+           "audit": {"fixed": []}}
+    assert S.council_constant_tokens(reg) == {"council_size", "majority"}
+    tree = S.council_constant_tokens(S.load_registry(STATS))
+    assert {"council_size", "majority"} <= tree and len(tree) <= 4, tree
+
+
+def _build_with_a_dated_passage(token: str, tmp: Path):
+    """Run `build_site.main` with /forecast's source carrying one dated passage
+    that prints ``token``. The source is a temporary copy; the tree is not
+    touched. Returns the completed process."""
+    import json
+    src = (ROOT / "forecast-sheet.html").read_text(encoding="utf-8")
+    probe = f'<p><span data-asof="2026-08-08">{{{{{token}}}}} probe.</span></p>'
+    assert src.count("</body>") == 1
+    (tmp / "sheet.html").write_text(src.replace("</body>", probe + "</body>"),
+                                    encoding="utf-8")
+    (tmp / "led" / "joburg").mkdir(parents=True)
+    driver = (
+        "import sys; sys.path.insert(0, 'src'); import build_site as B; "
+        f"B.ARTEFACTS['forecast.html'] = ({json.dumps(str(tmp / 'sheet.html'))},"
+        " *B.ARTEFACTS['forecast.html'][1:]); "
+        f"raise SystemExit(B.main(['--out', {json.dumps(str(tmp / 'site'))}, "
+        f"'--ledger-root', {json.dumps(str(tmp / 'led'))}, "
+        "'--allow-orphans', '--allow-stale-sources']))")
+    return subprocess.run([str(ROOT / ".venv/bin/python"), "-c", driver],
+                          capture_output=True, text=True, cwd=ROOT)
+
+
+def test_the_build_refuses_a_live_figure_in_a_dated_passage():
+    """End to end: the refusal is assembled inside `build_site.main`. A live
+    `{{n_draws}}` dated 8 August is refused; the frozen `{{pub0808_n_draws}}`
+    in the same place builds."""
+    if not (ROOT / "data" / "processed" / "forecast_summary.json").exists():
+        skip("needs data/processed/forecast_summary.json; run montecarlo.py")
+    with tempfile.TemporaryDirectory() as bad, tempfile.TemporaryDirectory() as good:
+        r = _build_with_a_dated_passage("n_draws", Path(bad))
+        assert r.returncode != 0, r.stdout[-1500:]
+        assert "NOT OF ITS DATE" in r.stdout, r.stdout[-1500:]
+        assert "n_draws on forecast.html, dated 2026-08-08" in r.stdout, r.stdout[-1500:]
+        r = _build_with_a_dated_passage("pub0808_n_draws", Path(good))
+        assert "NOT OF ITS DATE" not in r.stdout, r.stdout[-1500:]
+        assert r.returncode == 0, r.stdout[-1500:] + r.stderr[-1500:]
+
+
+def test_every_dated_figure_in_the_lead_article_is_of_the_article_date():
+    """Reads the tree: the 8 August piece, rendered as the build renders it.
+    Every token inside one of its dated passages is dated to the piece's own
+    `date` in articles.toml, and passes `misdated_figures`."""
+    import build_site as B
+    import cityconfig
+    cityconfig.use(None)
+    processed = cityconfig.use_target(None).processed
+    if not (processed / "forecast_summary.json").exists():
+        skip("needs data/processed/forecast_summary.json; run montecarlo.py")
+    arts = tomllib.loads((ROOT / "content/joburg/articles.toml").read_text())["article"]
+    lead = next(a for a in arts if a.get("lead"))
+    page = lead["href"].split("#")[0] + ".html"
+    source, cut, *_ = B.ARTEFACTS[page]
+    html = B.cut_spans((ROOT / source).read_text(encoding="utf-8"), cut)
+    registry = S.load_registry(STATS)
+    ctx = S.load_context(processed)
+    rec: list = []
+    S.render(html, registry, ctx, record=rec)
+    dated = [r for r in rec if r.get("token") and r.get("dated")]
+    # it looked: the standfirst and the two commentary passages, no more
+    assert 3 <= len(dated) <= 20, [r["token"] for r in dated]
+    assert {r["asof"] for r in dated} == {lead["date"]}, sorted(
+        {(r["token"], r["asof"]) for r in dated})
+    assert P.misdated_figures(dated, S.council_constant_tokens(registry)) == []
+
+
+# --- a registered fact clears only on its own page; an allow phrase, nowhere ---
+
+def test_a_fixed_fact_clears_only_on_the_pages_it_lists():
+    html = "<p>The DA won three wards on just 23% of the vote.</p>"
+    fact = {"value": "23%", "context": "on just 23% of the vote", "page": "a.html, b.html"}
+
+    def status(**kw):
+        return [h["status"] for h in S.scan_numbers(html, fixed=[fact], **kw)
+                if h["value"] == "23%"]
+    assert status(page="a.html") == ["fixed"]
+    assert status(page="b.html") == ["fixed"]
+    assert status(page="c.html") == ["unreviewed"], "cleared on a page it does not list"
+    assert status() == ["unreviewed"], "a caller naming no page got a scoped fact"
+    assert [h["status"] for h in S.scan_numbers(
+        html, page="c.html", fixed=[{**fact, "page": "*"}]) if h["value"] == "23%"] == ["fixed"]
+
+
+def test_an_allow_phrase_clears_no_number_and_excuses_a_claim_only_on_its_page():
+    html = "<p>In Laingsburg the DA won 23% and nobody will win Johannesburg.</p>"
+    allow = [{"phrase": "laingsburg", "page": "a.html"},
+             {"phrase": "nobody will win johannesburg", "page": "a.html"}]
+    numbers, claims = S.audit(html, page="a.html", allow=allow)
+    assert any("'23%'" in n for n in numbers), "an allow phrase cleared a number"
+    assert claims == [], claims
+    numbers, claims = S.audit(html, page="b.html", allow=allow)
+    assert claims, "an allow phrase excused a claim on a page it does not list"
+
+
+def test_the_registry_refuses_an_entry_without_a_page():
+    ok = {"audit": {"fixed": [{"value": "1", "context": "x 1", "page": "a.html"}],
+                    "allow": [{"phrase": "x", "page": "a.html"}]}}
+    S.load_audit_config(ok)
+    for bad in ({"audit": {"fixed": [{"value": "1", "context": "x 1"}]}},
+                {"audit": {"allow": [{"phrase": "x"}]}},
+                {"audit": {"allow": ["x"]}}):
+        try:
+            S.load_audit_config(bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"accepted an entry with no page: {bad}")
+
+
+def test_every_registered_page_is_a_page_the_build_writes():
+    """Reads the tree, both directions of the registry's page names: every page
+    an entry names is one the build writes, and the entries cover more than
+    one page (a registry scoped to nothing would pass the check above)."""
+    import build_your_forecast
+    import build_site as B
+    built = ({spec[0] for spec in B.DOCS.values()} | set(B.ARTEFACTS)
+             | {build_your_forecast.YF_PAGE, "portal.html"})
+    cfg = S.load_audit_config(S.load_registry(STATS))
+    named = set()
+    for e in cfg["fixed"] + cfg["allow"]:
+        for p in str(e["page"]).split(","):
+            p = p.strip()
+            if p != S.ALL_PAGES:
+                named.add(p)
+                assert p in built, f"{e} names {p!r}, which the build does not write"
+    assert 4 <= len(named) <= len(built), sorted(named)
+
+
+def test_every_registered_entry_clears_something_on_every_page_it_names():
+    """Reads the tree, the other direction: a page the build writes is cleared
+    by the entries (the build's own refusal), and every entry clears at least
+    one occurrence on EACH page it names. An entry that clears nothing there is
+    a stale scope — the state eleven entries were in, naming index.html for an
+    article that had moved — or a dead entry for prose that is gone."""
+    if not (ROOT / "data" / "processed" / "forecast_summary.json").exists():
+        skip("needs data/processed/forecast_summary.json; run montecarlo.py")
+    import build_site as B
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        (tmp / "led" / "joburg").mkdir(parents=True)
+        r = subprocess.run(
+            [str(ROOT / ".venv/bin/python"), str(ROOT / "src/build_site.py"),
+             "--out", str(tmp / "site"), "--ledger-root", str(tmp / "led"),
+             "--allow-orphans", "--allow-stale-sources"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 0, r.stdout[-1500:] + r.stderr[-1500:]
+        texts = {str(f.relative_to(tmp / "site")): f.read_text(encoding="utf-8")
+                 for f in (tmp / "site").rglob("*.html")}
+    import cityconfig
+    cityconfig.use(None)
+    registry = S.load_registry(STATS)
+    ctx = S.load_context(cityconfig.use_target(None).processed)
+    audit_cfg, scan_cfg = B.audit_configs(registry, ctx)
+    generated = {"portal.html"}
+    stale = []
+    for f in audit_cfg["fixed"]:
+        listed = [x.strip() for x in str(f["page"]).split(",")]
+        for page in (sorted(texts) if S.ALL_PAGES in listed else listed):
+            hits = S.scan_numbers(texts.get(page, ""), page=page, fixed=[f],
+                                  structural=scan_cfg["structural"],
+                                  generated_page=page in generated)
+            if not any(h["status"] == "fixed" for h in hits):
+                stale.append(f"fixed {f['value']!r} ({f['context'][:40]}…) on {page}")
+    for a in audit_cfg["allow"]:
+        for page in (x.strip() for x in str(a["page"]).split(",")):
+            kw = dict(page=page, fixed=audit_cfg["fixed"],
+                      structural=audit_cfg["structural"])
+            if not len(S.audit(texts.get(page, ""), allow=[a], **kw)[1]) < len(
+                    S.audit(texts.get(page, ""), allow=[], **kw)[1]):
+                stale.append(f"allow {a['phrase']!r} on {page}")
+    assert len(audit_cfg["fixed"]) >= 10 and audit_cfg["allow"], audit_cfg.keys()
+    assert not stale, "entries that clear nothing where they say they do:\n  " + "\n  ".join(stale)
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_module(sys.modules[__name__]))

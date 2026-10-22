@@ -1,0 +1,79 @@
+{
+ "city": "ethekwini",
+ "year": "2016",
+ "draws": 1000,
+ "council": 219,
+ "wards": 109,
+ "A": {
+  "seats": {
+   "DA": 68,
+   "TRULY_ALLIANCE": 1,
+   "UNITED_RESIDENTS_FRONT": 1,
+   "APC": 1,
+   "ACDP": 2,
+   "ANC": 120,
+   "EFF": 6,
+   "MINORITY_FRONT": 8,
+   "ALLIED_MOVEMENT_FOR_CHANGE": 1,
+   "THE_PROMISE_OF_FREEDOM": 1,
+   "PAC": 1,
+   "AZAPO": 1,
+   "IFP": 8
+  },
+  "seat_err": 36.0,
+  "wards_ok": 97,
+  "ward_vote_err_pp": 23.147119035724856,
+  "list_vote_err_pp": 11.19816422675143,
+  "top": "ANC",
+  "top_wards": 72,
+  "top_actual_wards": 73,
+  "excessive": {},
+  "council": 219,
+  "ward_wins": {
+   "ANC": 72,
+   "DA": 36,
+   "IFP": 1
+  }
+ },
+ "B": {
+  "draw": 591,
+  "seats": {
+   "ACDP": 1,
+   "ANC": 126,
+   "DA": 70,
+   "EFF": 8,
+   "IFP": 6,
+   "MINORITY_FRONT": 7,
+   "TRULY_ALLIANCE": 1
+  },
+  "seat_err": 26.0,
+  "wards_ok": 96,
+  "ward_vote_err_pp": 26.162588813456967,
+  "list_vote_err_pp": 11.153242836799246
+ },
+ "median_seat_err": 30.0,
+ "median_total": 211.0,
+ "coherent_seat_err": 34.0,
+ "actual": {
+  "seats": {
+   "DA": 61,
+   "AIC": 3,
+   "TRULY_ALLIANCE": 1,
+   "MINORITIES_OF_SOUTH_AFRICA": 1,
+   "DEMOCRATIC_LIBERAL_CONGRESS": 1,
+   "APC": 1,
+   "ALJAMAAH": 1,
+   "ACDP": 1,
+   "ANC": 126,
+   "EFF": 8,
+   "MINORITY_FRONT": 1,
+   "IFP": 10
+  },
+  "ward_wins": {
+   "ANC": 73,
+   "IND": 5,
+   "DA": 30,
+   "IFP": 2
+  }
+ }
+}

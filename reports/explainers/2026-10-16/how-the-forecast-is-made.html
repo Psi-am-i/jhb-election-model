@@ -1,0 +1,263 @@
+<title>How the Forecast Is Made</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap");
+:root {
+  --bg: #f7f8f6; --surface: #ffffff; --fg: #1d221f; --muted: #66706a; --rule: #d9ddd8;
+  --old: #9aa29c; --new: #1d221f; --better: #1f7a46; --worse: #b3402b; --same: #8a918c;
+  --hl: #f2c94c; --tint: #f0f2ee;
+  --display: "IBM Plex Serif", Georgia, serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #151816; --surface: #1d211f; --fg: #e7ebe8; --muted: #9aa49e; --rule: #333a36;
+  --old: #6f7873; --new: #e7ebe8; --better: #4cc282; --worse: #ef7a62; --same: #8a918c; --hl: #f2c94c; --tint: #242926; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #151816; --surface: #1d211f; --fg: #e7ebe8; --muted: #9aa49e; --rule: #333a36;
+  --old: #6f7873; --new: #e7ebe8; --better: #4cc282; --worse: #ef7a62; --same: #8a918c; --hl: #f2c94c; --tint: #242926; color-scheme: dark }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); margin: 0; }
+.wrap { max-width: 880px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px; }
+h1 { font: 600 2rem/1.15 var(--display); margin: 0 0 8px; text-wrap: balance; }
+h2 { font: 600 1.4rem/1.2 var(--display); margin: 48px 0 8px; text-wrap: balance; }
+h3 { font: 600 1.05rem/1.3 var(--body); margin: 24px 0 6px; }
+p, ul, ol { max-width: 68ch; margin: 0 0 12px; }
+li { margin-bottom: 6px; }
+.lede { color: var(--muted); max-width: 68ch; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0 8px; padding: 0; list-style: none; max-width: none; }
+.steps li { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; min-width: 0; margin: 0; }
+.steps b { display: block; font: 600 .78rem var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.scroll { overflow-x: auto; margin: 8px 0 4px; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; background: var(--surface); }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+th { font: 600 .78rem var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); vertical-align: bottom; }
+th.grp { text-align: center; border-bottom: 2px solid var(--rule); }
+td:first-child, th:first-child { text-align: left; }
+td.wrap-cell, th.wrap-cell { white-space: normal; min-width: 14em; }
+td.old { color: var(--muted); }
+td.new { font-weight: 600; }
+tr.total td { font-weight: 600; border-top: 2px solid var(--rule); }
+tr.model td { background: var(--tint); font-weight: 600; }
+.note { font-size: .88rem; color: var(--muted); max-width: 72ch; }
+.est { font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--rule); border-radius: 3px; padding: 0 4px; margin-left: 4px; white-space: nowrap; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; margin: 16px 0; }
+.card h3 { margin-top: 0; }
+.card p:last-child { margin-bottom: 0; }
+ol.sources { font-size: .85rem; color: var(--muted); }
+ol.sources code { font: .82rem var(--mono); overflow-wrap: anywhere; }
+</style>
+
+<div class="wrap">
+<h1>How the forecast is made</h1>
+<p class="lede">Draft for the owner, 16 October 2026. The forecast is how often each outcome happens across 5,000 simulations of the Johannesburg 2026 local election. Worked examples use real parties and real voting districts. Forecast figures are from the 5,000-simulation run of 16 October 2026 (seed 20261104).</p>
+
+<h2>The forecast in four steps</h2>
+<ol class="steps">
+<li><b>1. City-wide level</b>Each party gets a 2026 city-wide share of the vote. It starts from the party's latest results and how its national vote has converted into local vote in the past.</li>
+<li><b>2. Placement</b>That city-wide share is spread across Johannesburg's voting districts and wards. A party that stood in 2024 keeps the shape of its 2024 map: where it ran ahead of its city average, it stays ahead. Each voting district counts wholly in one ward. A party that stands only for ward seats gets no city-wide share and can win only the wards it contests.</li>
+<li><b>3. Variation</b>The election is simulated 5,000 times. Each simulation moves every party's city-wide share, the turnout in every voting district and every party's tally in every ward by a random amount.</li>
+<li><b>4. Seats</b>Each simulation's votes become a council of 270 seats. Seats follow combined ward and list votes: a party's ward wins count against the seats its combined vote entitles it to. Every one of the 5,000 simulations seats exactly 270.</li>
+</ol>
+
+<h2>The ANC's 2026 city-wide level is set from two routes and a shrink</h2>
+<p>The model estimates a party's 2026 share two ways and blends them. The national route takes the party's 2024 national-ballot result in Johannesburg and multiplies it by the ratio between its national and local results in past cycles. The local route takes its 2021 local result and multiplies it by the ratio between consecutive local results. Both ratios are averages over past elections, pulled toward the value typical for a party of that size.</p>
+
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">Step (ANC, Johannesburg)</th><th>Multiplier</th><th>Share</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">2024 national ballot, counted</td><td></td><td>31.96%</td></tr>
+<tr><td class="wrap-cell">National route: × average past national-to-local ratio <span class="est">estimate</span></td><td>0.878</td><td>28.07%</td></tr>
+<tr><td class="wrap-cell">2021 local list (PR) ballot, counted</td><td></td><td>33.22%</td></tr>
+<tr><td class="wrap-cell">Local route: × average five-year local-to-local ratio <span class="est">estimate</span></td><td>0.848</td><td>28.17%</td></tr>
+<tr><td class="wrap-cell">Blend: national route weighted 32.9, local route 1.0, so about 97% national</td><td></td><td>28.07%</td></tr>
+<tr><td class="wrap-cell">Large-party shrink <span class="est">set value</span></td><td></td><td>26.40% (level)</td></tr>
+<tr class="model"><td class="wrap-cell">Scale all parties so they add up to 100% (every party divided by the same 1.112) <span class="est">estimate</span></td><td></td><td>23.7%</td></tr>
+</tbody></table></div>
+<p class="note">The shrink takes a larger fraction from a larger party. Its strength, 0.35, is a value set by hand, not derived from data. Each party keeps 1 − 0.35 × s ÷ (s + 0.04) of its level s. After the shrink the parties' levels add up to 1.1119, so every party is divided by that same total; the scaling treats every party alike. The result, 23.7%, is the ANC's expected 2026 list share.</p>
+
+<h3>The ANC's record since 2000 and three straight lines through it</h3>
+<div class="scroll"><table>
+<thead><tr><th>Election</th><th>Ballot</th><th>ANC share, Johannesburg</th></tr></thead>
+<tbody>
+<tr><td>1999</td><td>National</td><td>67.4%</td></tr>
+<tr><td>2000</td><td>Local list</td><td>58.8%</td></tr>
+<tr><td>2004</td><td>National</td><td>68.6%</td></tr>
+<tr><td>2006</td><td>Local list</td><td>62.7%</td></tr>
+<tr><td>2009</td><td>National</td><td>62.4%</td></tr>
+<tr><td>2011</td><td>Local list</td><td>59.3%</td></tr>
+<tr><td>2014</td><td>National</td><td>52.3%</td></tr>
+<tr><td>2016</td><td>Local list</td><td>44.9%</td></tr>
+<tr><td>2019</td><td>National</td><td>49.6%</td></tr>
+<tr><td>2021</td><td>Local list</td><td>33.2%</td></tr>
+<tr><td>2024</td><td>National</td><td>32.0%</td></tr>
+</tbody></table></div>
+
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">2026 value by method</th><th>ANC share</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">Straight line through the five local results, 2000-2021</td><td>~32.0%</td></tr>
+<tr><td class="wrap-cell">Straight line through the national results, 2004-2024</td><td>~32.3%</td></tr>
+<tr><td class="wrap-cell">The 2016-2021 local fall repeated once more</td><td>~21.5%</td></tr>
+<tr class="model"><td class="wrap-cell">The model's expected share (table above) <span class="est">estimate</span></td><td>23.7%</td></tr>
+</tbody></table></div>
+
+<p>The model has no trend term. A party's decline from one election to the next does not carry forward as momentum; only the latest results and the average past conversion ratios enter. The straight lines are shown for comparison and are not used. A recency-weighted version of one related quantity, the total vote going to parties standing for the first time, was tested on the 2016 and 2021 elections and did not score better than a plain average of past elections. That test has two elections behind it. The owner's proposal to add momentum and acceleration terms (4 September 2026) is recorded and not started.</p>
+
+<h2>MK's vote in two voting districts: Dube Hostel Hall and Bryanston</h2>
+<p>A party that stood in 2024 is placed by its own 2024 map. In each voting district the model measures MK's lean: the gap between its share there and its city-wide share, taken on a scale (log-odds) that keeps every share between 0% and 100%. That lean carries into 2026 in full. The whole map is then scaled by one multiplier so the districts add up to MK's 2026 city-wide total. Finally, each district's party shares are divided by their sum so they total 100%. The same lean is used on the ward and list ballots.</p>
+<p>MK's 2024 city-wide share was 12.22% (172,958 of 1,415,548 valid votes, national ballot). The example uses 9.02%, MK's average share of list votes across the 5,000 simulations. Reaching it takes a multiplier of 0.724 on the 2024 share, giving MK a base level of 8.85%.</p>
+
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell"></th><th>Dube Hostel Hall<br>(2026 ward 38, whole district)</th><th>Bryanston Parallel Medium<br>(2026 ward 106, whole district)</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">Voter mix, Black African / Coloured / Indian / White <span class="est">estimate</span></td><td>98.1 / 1.1 / 0.1 / 0.7%</td><td>4.5 / 1.3 / 3.4 / 90.7%</td></tr>
+<tr><td class="wrap-cell">MK 2024, counted (votes / valid votes)</td><td>817 / 1,731 = 47.2%</td><td>70 / 2,792 = 2.51%</td></tr>
+<tr><td class="wrap-cell">Lean against MK's 2024 city share (log-odds)</td><td>+1.860</td><td>−1.689</td></tr>
+<tr><td class="wrap-cell">Share before rescaling: 8.85% base plus the lean</td><td>38.4%</td><td>1.76%</td></tr>
+<tr><td class="wrap-cell">Divided by the district's total of all party shares (1.132 / 1.084)</td><td>33.9%</td><td>1.63%</td></tr>
+<tr><td class="wrap-cell">Expected votes cast: roll × turnout <span class="est">estimate</span></td><td>4,103 × 38.0% = 1,560</td><td>4,323 × 48.7% = 2,105</td></tr>
+<tr class="model"><td class="wrap-cell">MK votes in this example</td><td>≈ 529</td><td>≈ 34</td></tr>
+</tbody></table></div>
+<p class="note">The multiplier 0.724 comes from running the model's own scaling step once, on the average targets and average turnout of a 100-simulation sample, with MK's target set to 9.02%. The same step reproduces a single simulation's district shares exactly (checked on five simulations). The 100 simulations themselves averaged 30.1% and 1.81% in the two districts at an MK city total of 7.73%; the same step at that total gives 31.2% and 1.31%, because shares vary from simulation to simulation and an average of inputs is not an average of outputs.</p>
+
+<h3>The population-group mix does not place MK's votes</h3>
+<p>The voter-mix row is not used in the arithmetic above. For a party with a 2024 record, the population-group mix only books its city-wide votes to the four groups. That booking decides which group's turnout swing moves MK's city-wide total in a given simulation. It does not move MK up or down in any district.</p>
+<p>The booking is fitted from MK's own 2024 results. Fitting MK's 2024 national-ballot votes, ward by ward, against each ward's voter mix gives support rates of 19.5% among Black African voters, 0.0% among Coloured, 0.3% among Indian/Asian and 1.9% among White voters. The data pin down the Black African and White rates only; the Black African rate is bounded between 12.6% and 20.5% by the ward totals. Applied to the groups' numbers, that books 94.3% of MK's votes to Black African voters, 0.0% to Coloured, 0.1% to Indian/Asian and 5.6% to White voters. RISE and BOSA are booked the same way, from their own 2024 results.</p>
+<p>A group mix places a party on the map only when it has no 2024 record: a new party, or one that stands only in local elections.</p>
+
+<h2>The forecast starts from the previous ward map because group arithmetic misses wards</h2>
+<p>An alternative to the previous map is to build each ward from the bottom up: count each population group in the ward, apply each group's turnout and party support, and add. This check ran that recipe against two counted elections on the 2021 ward map (135 wards): the 2019 national ballot and the 2021 local list ballot.</p>
+
+<h3>Splitting the roll by population misses the city total</h3>
+<p>The literal recipe splits each ward's voters' roll by the census population share of each group.</p>
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">Roll split by census population share <span class="est">estimate</span>, against counted</th><th>2019 national</th><th>2021 local list</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">Total votes</td><td>−25,602</td><td>−39,782</td></tr>
+<tr><td class="wrap-cell">ANC city-wide share</td><td>+6.6 points</td><td>+6.1 points</td></tr>
+<tr><td class="wrap-cell">DA city-wide share</td><td>−8.1 points</td><td>−8.4 points</td></tr>
+</tbody></table></div>
+<p>White residents register at more than twice the Black African rate. Splitting the 2021 roll by population puts 309,000 voters in the White group; splitting it by fitted registration rates puts 560,000 there. With registration rates fitted per group, the city-wide totals match the count by construction. The wards still miss.</p>
+
+<h3>Six wards, estimated against counted</h3>
+<p>Worked for ward 33 (Soweto), 2021: 13,548 Black African registered voters <span class="est">estimate</span> × 36.4% Black African turnout <span class="est">estimate</span> = 4,930 voters; × 53.3% ANC support among them <span class="est">estimate</span> = 2,629, plus 8 from the other groups = 2,636 ANC votes. Counted: 3,370.</p>
+<div class="scroll"><table>
+<thead>
+<tr><th rowspan="2">Ward</th><th class="grp" colspan="4">2021 local list: estimated / counted votes</th><th class="grp" colspan="3">2019 national: estimated / counted votes</th></tr>
+<tr><th>ANC</th><th>ASA</th><th>DA</th><th>EFF</th><th>ANC</th><th>DA</th><th>EFF</th></tr>
+</thead>
+<tbody>
+<tr><td>9 Lenasia (71% Indian)</td><td>1,378 / 1,556</td><td>1,979 / 1,527</td><td>2,138 / 2,170</td><td>205 / 122</td><td>4,570 / 4,815</td><td>5,529 / 6,027</td><td>1,214 / 538</td></tr>
+<tr><td>18 Eldorado Park (92.5% Coloured)</td><td>1,349 / 694</td><td>722 / 589</td><td>2,420 / 1,984</td><td>217 / 116</td><td>1,977 / 1,620</td><td>9,305 / 10,731</td><td>756 / 385</td></tr>
+<tr><td>33 Soweto (99.5% Black African)</td><td>2,636 / 3,370</td><td>913 / 1,512</td><td>134 / 177</td><td>793 / 886</td><td>6,236 / 7,491</td><td>462 / 594</td><td>1,775 / 1,969</td></tr>
+<tr><td>54 Mondeor (most mixed)</td><td>1,500 / 1,656</td><td>1,735 / 2,443</td><td>3,719 / 3,974</td><td>417 / 524</td><td>4,067 / 4,476</td><td>7,258 / 7,243</td><td>1,304 / 1,624</td></tr>
+<tr><td>74 Bramley (best independent ward)</td><td>696 / 934</td><td>1,557 / 1,714</td><td>4,910 / 4,985</td><td>287 / 295</td><td>2,086 / 2,682</td><td>7,871 / 7,816</td><td>844 / 842</td></tr>
+<tr><td>83 Helderkruin (77% White)</td><td>508 / 554</td><td>1,532 / 1,037</td><td>5,224 / 5,849</td><td>245 / 115</td><td>1,699 / 1,203</td><td>8,668 / 8,670</td><td>771 / 407</td></tr>
+</tbody></table></div>
+<p class="note">Wards and group shares on the 2021 ward map. Place names inferred from voting-station names. Also estimated / counted: PA in ward 18, 2021: 3,898 / 6,301; FF Plus in ward 83, 2019: 372 / 1,715.</p>
+
+<h3>Ward 65, a hostel ward: IFP 59.5% counted, 3.6% estimated</h3>
+<p>Group arithmetic gives every Black African voter in the city the same IFP support. In ward 65 (a hostel ward) the IFP took 59.5% of the 2021 local list vote; the estimate was 3.6%. Ward 61 (Jeppe Hostel), where the IFP took 33%, misses the same way. In the 9 wards where the IFP took more than 10%, the vote placed with the wrong party averaged 23.9 points per ward, against 9.9 elsewhere. The misses are mostly specific to each ward. Refitting the group rates by region does not remove them.</p>
+
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">Method, 2021 local list</th><th>ANC</th><th>ASA</th><th>DA</th><th>Wrong-party share</th><th>Winners right (of 135)</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">Roll split by census population</td><td>7.7</td><td>4.6</td><td>6.8</td><td>15.0</td><td>117</td></tr>
+<tr><td class="wrap-cell">Roll split by fitted registration, one city-wide rate per group</td><td>4.7</td><td>4.6</td><td>2.9</td><td>10.8</td><td>128</td></tr>
+<tr><td class="wrap-cell">Rates refitted in 7 regions (fitted to the same results)</td><td>4.0</td><td>3.1</td><td>2.0</td><td>8.1</td><td>129</td></tr>
+<tr><td class="wrap-cell">Rates refitted in 12 regions (fitted to the same results)</td><td>3.9</td><td>3.0</td><td>2.0</td><td>7.9</td><td>129</td></tr>
+<tr><td class="wrap-cell">Rates from the 20 nearest other wards (not fitted to the ward itself)</td><td>4.9</td><td>4.5</td><td>2.6</td><td>10.1</td><td>127</td></tr>
+<tr><td class="wrap-cell">Every group in a ward votes like the ward as a whole</td><td>7.9</td><td>4.7</td><td>7.8</td><td>15.9</td><td>126</td></tr>
+</tbody></table></div>
+<p class="note">Party columns: average error in the party's ward share, percentage points, over 135 wards. Wrong-party share: in each ward, half the summed error across all parties' shares (the share of the vote placed with the wrong party), averaged over 135 wards, percentage points.</p>
+
+<h3>The 2019 ward map beats 2019 group arithmetic at predicting 2021</h3>
+<p>The decisive test is forward: take 2019 and predict the 2021 wards. Both methods were scaled to the counted 2021 city-wide shares and scored on the 22 parties on both ballots.</p>
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">Method, 2019 to 2021 wards</th><th>ANC</th><th>DA</th><th>EFF</th><th>IFP</th><th>Wrong-party share</th><th>Winners right (of 135)</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">2019 group support × 2021 roll by group × 2019 group turnout</td><td>6.0</td><td>5.7</td><td>3.2</td><td>3.6</td><td>12.4</td><td>127</td></tr>
+<tr><td class="wrap-cell">The same with 2021 group turnout</td><td>6.1</td><td>5.8</td><td>3.3</td><td>3.6</td><td>12.5</td><td>126</td></tr>
+<tr class="model"><td class="wrap-cell">2019 ward results scaled to the 2021 city-wide shares (the model's approach)</td><td>3.9</td><td>4.8</td><td>2.5</td><td>0.7</td><td>9.1</td><td>130</td></tr>
+<tr><td class="wrap-cell">2021 group support fitted to 2021 itself (not a forecast; fitted to the answer)</td><td>5.0</td><td>3.4</td><td>3.0</td><td>3.6</td><td>10.3</td><td>130</td></tr>
+<tr><td class="wrap-cell">Every ward equal to the city</td><td>22.3</td><td>27.3</td><td>6.9</td><td>3.6</td><td>35.7</td><td>88</td></tr>
+</tbody></table></div>
+<p class="note">Units as in the table above. This is one city and one pair of elections, and the group fits are fitted to the results they are scored on. Neither method places a new party: 20% of the 2021 local list vote went to parties that were not on the 2019 ballot.</p>
+
+<h3>The census White group and the roll's White group are different populations</h3>
+<p>To match the 2021 results, the fit needs 1.74 registered White voters for every White adult the census counts. A rate above 1 is impossible, so the White group in the model is not White voters only. About 43% of its estimated registrations are people the census does not count as White adults. Any recipe that starts from census population carries this mismatch.</p>
+
+<h2>Uncertainty comes from three random terms</h2>
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">What varies in each of the 5,000 simulations</th><th class="wrap-cell">How much</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">Each party's city-wide share, drawn around its 2026 centre</td><td class="wrap-cell">Width measured from how far past local results fell from what was expected before them</td></tr>
+<tr><td class="wrap-cell">Turnout in each voting district</td><td class="wrap-cell">Drawn separately for every district</td></tr>
+<tr><td class="wrap-cell">Each party's tally in each ward</td><td class="wrap-cell">Multiplied by an independent random factor with a standard deviation of 0.10 (about two in three draws fall within 0.10 of 1)</td></tr>
+</tbody></table></div>
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">Party, 2026 <span class="est">estimate</span></th><th>Expected list share</th><th>Average list share, 5,000 simulations</th><th>Average seats, 5,000 simulations</th><th>Seats, 5th to 95th percentile</th><th>Average ward wins, 5,000 simulations</th></tr></thead>
+<tbody>
+<tr><td>ActionSA</td><td>11.7%</td><td>11.7%</td><td>27.2</td><td>17-40</td><td>0.0</td></tr>
+<tr><td>ANC</td><td>23.7%</td><td>23.8%</td><td>71.7</td><td>51-83</td><td>69.2</td></tr>
+<tr><td>DA</td><td>26.0%</td><td>26.1%</td><td>69.8</td><td>52-88</td><td>44.4</td></tr>
+<tr><td>EFF</td><td>11.0%</td><td>11.0%</td><td>30.3</td><td>18-46</td><td>3.4</td></tr>
+<tr><td>MK</td><td>9.1%</td><td>9.0%</td><td>23.4</td><td>4-64</td><td>10.5</td></tr>
+<tr><td>PA</td><td>5.8%</td><td>6.0%</td><td>15.8</td><td>5-33</td><td>4.7</td></tr>
+</tbody></table></div>
+<p class="note">Expected list share: the party's 2026 level after the shrink, divided by the 1.112 total. Average list share: each simulation's share of all list votes, averaged. Seats: the council of 270, with ward seats counted in the party's total. The draws are not symmetric for every party: MK's middle simulation gives it 6.7% of list votes and 17 seats against averages of 9.0% and 23.4, because some simulations give MK much more. The ANC's middle simulation gives 74 seats against an average of 71.7.</p>
+<p>The shape of the map does not vary systematically. No term moves a party up in one area and down in another; only the random district turnout and ward factors do that. A party that gains city-wide gains in every district in proportion to its lean. Polls are switched off and by-elections carry zero weight in the 2026 forecast, so neither reshapes the map.</p>
+
+<h2>The voters' roll is the IEC's 26 September 2026 roll</h2>
+<p>The forecast reads the IEC roll of 26 September 2026: 2,417,915 registered voters in 865 voting districts and 135 wards. The roll published on 29 September was identical. The IEC counts each voting district wholly in one ward, and the model does the same. The delimitation planners' files split 181 districts across wards. The IEC publishes ward totals, not which districts sit in a ward, so an assignment of each district to one ward was solved so that every ward's total matches the IEC's. As a check, compare each ward's 2026 IEC count with the 2024 registration of the districts assigned to it. Under the planners' splits scaled to the IEC totals that ratio ranged from 0.70 to 1.70 across wards (standard deviation 0.168); ward 60, for example, held 14,810 registered voters in 2024 and the IEC counts 25,231 in 2026. With the solved assignment the ratio ranges from 0.82 to 1.27 (standard deviation 0.060), close to what real registration growth looks like. About 17 districts cannot be placed from the files available, and 40 placements are near-ties; those wards carry the remaining error.</p>
+<p>The roll changes where votes are, not city-wide shares, which are set first. With the IEC ward totals alone, 2 ward favourites changed (wards 120 and 124, both DA to ANC), and the ANC's average seats rose by 0.5. Placing each district wholly in one ward changed 5 more favourites (wards 34, 68, 82, 92 and 120) and moved no party's average seats by more than 0.12.</p>
+
+<h2>Small parties, independents and ward-only candidates rarely win wards</h2>
+<p>Base rates from the ward ballot in all eight metros, 2006-2021, counted:</p>
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">Candidate type</th><th>Candidacies</th><th>Ward wins</th><th class="wrap-cell">Notes</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">Ward-only small parties (on the ward ballot in fewer than 20% of wards, with no list or under 1% on it)</td><td>1,598</td><td>0</td><td class="wrap-cell">Median 0.15% where they stood</td></tr>
+<tr><td class="wrap-cell">Independents outside eThekwini, 2011-2021</td><td>372</td><td>0</td><td class="wrap-cell"></td></tr>
+<tr><td class="wrap-cell">Independents in eThekwini, 2011-2021</td><td></td><td>5</td><td class="wrap-cell">1 in 2011, 4 in 2016 (ward seats the IEC reports for independents)</td></tr>
+</tbody></table></div>
+<p>Where an independent topped the poll, the typical winning margin was about 4 points. In 9 of 10 such cases the independent beat the ANC in a ward the ANC had dominated, with about 76% of the vote before. An independent's earlier showing in a ward does not predict a win. In 6 of 9 cases the independent vote was zero at the next election. The files are consistent with splits in the dominant party's local base; they carry no candidate names, so that reading is an interpretation, not a measurement.</p>
+<h3>Ward-only parties in the 2026 forecast</h3>
+<p>The certified Johannesburg candidate list names 82 parties: 75 with a list, 80 with ward candidates, and 7 with ward candidates only. A party that stands only for ward seats gets no list votes in any simulation, takes no part in the city-wide calculation, and can win only the wards it contests. Its vote is placed first by which ward it stands in, then by who lives there. Six of the seven are in the model; the seventh, independents, is not (see below). The table shows the six.</p>
+<div class="scroll"><table>
+<thead><tr><th class="wrap-cell">Ward-only party</th><th>Wards contested</th><th class="wrap-cell">Simulations with a ward win, of 5,000</th></tr></thead>
+<tbody>
+<tr><td class="wrap-cell">Tau Dia Rora Cultural and Traditional Lekgotla</td><td>1</td><td>65</td></tr>
+<tr><td class="wrap-cell">Resident Development</td><td>1</td><td>71</td></tr>
+<tr><td class="wrap-cell">Afrika Unite Congress</td><td>2</td><td>42</td></tr>
+<tr><td class="wrap-cell">MAWUSA Movement Party</td><td>26</td><td>0</td></tr>
+<tr><td class="wrap-cell">UDM</td><td>134</td><td>0</td></tr>
+<tr><td class="wrap-cell">Civic Movement for Progressive Citizens</td><td>135</td><td>0</td></tr>
+</tbody></table></div>
+<p class="note">Each winner took only wards it contests. In 175 of the 5,000 simulations (3.5%) at least one such ward is won, at most 3, and the seat comes out of the 270, not on top of it.</p>
+<p>The model also gives the 53 parties placed by population-group arithmetic (the new parties and local-only parties) a district map of their own: each one's share varies from district to district with the voter mix, by up to 6.57 on the log-odds scale between its highest and lowest district. On the ward ballot every party appears only in the wards where it fields a candidate: 49 of the 81 parties in the model are limited this way, and two (CHANGE and PRO SOUTH AFRICA) stand for the list only.</p>
+
+<h2>What the forecast cannot see</h2>
+<ul>
+<li><b>Trends.</b> There is no trend term. A party in steady decline is forecast from its latest results and past conversion ratios, not from the direction of travel.</li>
+<li><b>Changes in the map's shape.</b> Each party keeps its most recent map. Only random district turnout and ward factors move it. A party that gains in one region and loses in another between elections is not anticipated.</li>
+<li><b>Polls.</b> Switched off in the 2026 forecast.</li>
+<li><b>By-elections.</b> Weighted at zero in the 2026 forecast.</li>
+<li><b>New parties.</b> A party with no 2024 record is placed by population-group arithmetic: its group vector times each district's voter mix. The ward check above scores that method worse than the previous map.</li>
+<li><b>Independents.</b> Not in the model's party list, so they win no ward in any simulation. The base rates above are the only evidence on them.</li>
+</ul>
+
+<h2>Sources</h2>
+<ol class="sources">
+<li>Forecast figures: <code>site/draws/base.bin</code> and <code>site/draws/manifest.json</code> (5,000 simulations, seed 20261104, code <code>08136c5</code>, regenerated 16 October 2026), <code>data/processed/forecast_summary.json</code>, <code>data/processed/ward_winner_probs.csv</code>. Worked-example arithmetic re-derived in process on code <code>369adb5</code> from <code>src/montecarlo.py</code> (<code>solve_and_predict</code>) with no file written.</li>
+<li>City-wide level and shrink: <code>src/levels.py</code> (<code>spine</code>, <code>_shrink_one</code>); national route ratio, local route ratio, blend constant <code>SPINE_K</code>, <code>level_shrink</code>; run trace stages <code>20_spine</code> and <code>30_centres</code>.</li>
+<li>No trend term: <code>MODEL-LOG.md</code> entry on the trend term and the owner's momentum proposal; recency-weighted arrival total in <code>JUDGEMENT-CALLS.md</code> (arrival-total entry).</li>
+<li>Uncertainty: universal draw in <code>JUDGEMENT-CALLS.md</code>; turnout noise and <code>ward_noise_sd</code> in <code>src/montecarlo.py</code>.</li>
+<li>MK placement: lean strength 1.0 (<code>JUDGEMENT-CALLS.md</code>, lean-strength entry); multiplier 0.724; group vector fitted from MK's 2024 results (<code>data/processed/pools_2026.json</code>, <code>fitted_from_national</code>; <code>MODEL-LOG.md</code> entry of 16 October 2026 on parties with a national record); voting districts 32871078 and 32850772; voter mix from 2021 wards 79800038 and 79800106.</li>
+<li>Ward check: <code>/private/tmp/wardcheck/out/REPORT.md</code>, script <code>wardcheck.py</code>; White-group mismatch in <code>DATA-QUALITY.md</code>. Not re-run for this draft; it scores 2019 and 2021 and does not depend on the 2026 model.</li>
+<li>Voters' roll: <code>MODEL-LOG.md</code> entry of 15 October 2026 on the IEC roll; <code>archive/vd-ward-assignment-2026/README.md</code>; <code>tests/test_roll_2026.py</code>.</li>
+<li>Ward-only parties and small-party maps: <code>MODEL-LOG.md</code> entries of 15 and 16 October 2026 (small-party geography, ward-contest rule, council of 270); counts from <code>site/draws/base.bin</code> and an in-process run.</li>
+<li>Small parties and independents: eight-metro ward-ballot records 2006-2021; independents' ward seats as published by the IEC.</li>
+</ol>
+</div>

@@ -1,0 +1,3 @@
+  ! pools_2011.json is STALE: src/pools.py changed since this spec was emitted (pools_sha 7264a92947ba4529 -> fac628d1b0218005); re-emit before believing any measurement taken against it
+WARNING *** file size (30601) not 512 + multiple of sector size (512)
+ekurhuleni 2011 none: 26s, zero cells excl. control 1363, control found 2

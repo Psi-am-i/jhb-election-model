@@ -1,0 +1,739 @@
+"""The judgement calls, laid out for a person rather than for a grep.
+
+    .venv/bin/python src/judgement_sheet.py        # write JUDGEMENT-SHEET.md
+    .venv/bin/python src/judgement_sheet.py --methodology
+                                  # refresh the /methodology section from the
+                                  # register's Plain fields (build_site does too)
+
+⛔ THE SHEET IS GENERATED. DO NOT EDIT `JUDGEMENT-SHEET.md` BY HAND.
+`tests/test_judgement_sheet.py` regenerates it and compares, so a hand edit is
+reverted by the next run and reported as a failure in the meantime.
+
+WHY A SECOND DOCUMENT, WHEN `JUDGEMENT-CALLS.md` ALREADY EXISTS. That file is
+the register: authoritative, and organised so a symbol can be found. It answers
+*"what did we choose for X, and why"*. It cannot answer the three questions a
+reader actually arrives with, because no single register holds them:
+
+    1. what IS this thing, in a sentence?          -> the register
+    2. is it doing anything AT 2026?               -> `test_levers_are_live`
+    3. can I, the reader, move it?                 -> the interactive's own code
+
+Each register is internally consistent; the gaps live between them. This module
+joins them and narrates the join. It invents no prose about any individual call:
+the sentence beside each row is the register's own `current state` cell, carried
+through verbatim, so there is exactly one place where that sentence is written.
+
+⛔ IT TYPES NO LEVER NAME, EVER, AND THAT IS A HARD CONSTRAINT RATHER THAN A
+STYLE. `test_register_matches_code` harvests every string literal in `src/` into
+the population it checks the judgement register against. A module here that
+merely SPELLED a deleted lever — in a docstring, in an example, in a heading —
+would make that name "defined", and the `DELETED` clause would stop excusing
+anything while the suite stayed green. `src/model_index.py` carries the same
+constraint for the same reason, and both are held to it by a test. So every name
+below is read out of a register or out of a syntax tree at run time.
+
+WHAT THIS DOES NOT DO. It does not judge a call, re-measure one, or decide
+whether a value is right — `MODEL-LOG.md` holds measurements and
+`JUDGEMENT-CALLS.md` holds the arguments. It reports what the registers say
+about each other, including where they disagree, and its own test checks only
+that it is current: equality with the generator is a staleness guard, never a
+correctness one.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import re
+import sys
+import tomllib
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+CITIES = ROOT / "cities"
+REGISTER = ROOT / "JUDGEMENT-CALLS.md"
+OUTPUT = ROOT / "JUDGEMENT-SHEET.md"
+
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+import model_index  # noqa: E402  (same package, and it owns the register loader)
+
+# The target the live forecast is for. Read from the register loader's own
+# scenario defaults would be wrong -- the year is not a scenario key -- so it is
+# derived from the city configurations, which name their targets.
+LIVE_TARGET_KEY = "by_year"
+
+
+# ---------------------------------------------------------------------------
+# the register, parsed
+# ---------------------------------------------------------------------------
+
+def _tables(text: str) -> tuple[list[list[str]], list[list[str]]]:
+    """The two register tables as raw cell lists: (named constants, structural).
+
+    Rows are split naively on `|`, and a row whose cell count is not what its
+    header declares is DROPPED AND COUNTED rather than guessed at. The register
+    has been through exactly that failure -- rows carrying an unescaped pipe
+    spilled across phantom columns and a renderer silently dropped the last
+    cell, which is how status markers went invisible on eleven rows. A parser
+    that silently accepts a malformed row reproduces that defect one layer up.
+    """
+    named: list[list[str]] = []
+    structural: list[list[str]] = []
+    current: list[list[str]] | None = None
+    width = 0
+    # The first well-formed row under each heading is the table's HEADER. It
+    # was counted as data (register audit, 2026-09-24): every total the sheet
+    # printed was one high per table, and the rendered sheet carried rows
+    # reading "constant" and "the call".
+    header_pending = False
+    for line in text.splitlines():
+        if line.startswith("### "):
+            heading = line[4:].strip().lower()
+            if heading.startswith("named"):
+                current, width, header_pending = named, 6, True
+            elif heading.startswith("judgements with no symbol"):
+                current, width, header_pending = structural, 5, True
+            else:
+                current = None
+            continue
+        if line.startswith("## "):
+            current = None
+            continue
+        if current is None or not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != width or set("".join(cells)) <= set("-: "):
+            continue
+        if cells[0].startswith("---"):
+            continue
+        if header_pending:
+            header_pending = False
+            continue
+        current.append(cells)
+    return named, structural
+
+
+def _symbols(cell: str) -> list[str]:
+    """Backticked identifiers in a register cell, strikes removed.
+
+    The same reading `test_register_matches_code` takes: a struck row is an
+    obituary and its symbol is meant to be gone.
+    """
+    cell = re.sub(r"~~.*?~~", "", cell)
+    return [token for token in re.findall(r"`([^`]+)`", cell)
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", token.strip())]
+
+
+def _legend(text: str) -> list[str]:
+    """The status legend, lifted from the register so it cannot drift from it."""
+    out, taking = [], False
+    for line in text.splitlines():
+        if line.startswith("Status:"):
+            taking = True
+        elif taking and not line.strip():
+            break
+        if taking:
+            out.append(line.strip())
+    return out
+
+
+# ---------------------------------------------------------------------------
+# the reader's version: Plain fields, and the methodology section built from them
+# ---------------------------------------------------------------------------
+#
+# Owner, 2026-10-02: "where are judgement calls in plain English? Those should
+# be methodology." A call a lay reader can follow and might dispute carries a
+# Plain field in its register entry; the public section is those fields, in
+# register order, and nothing else. ONE SOURCE: the field is written once, in
+# the register, and the page is regenerated from it by the site build. Which
+# calls carry one is recorded in audits/2026-10-02-judgement-public/SELECTION.md.
+
+METHODOLOGY = ROOT / "docs-public" / "methodology.md"
+#: The region the section lives in. NOT one of `stats.GENERATED_MARKERS`, on
+#: purpose: the words are typed by a person into the register, so the number
+#: gate scans them as prose and a figure needs a token or a fixed fact.
+SECTION_START = "<!-- __JUDGEMENTS_START__ -->"
+SECTION_END = "<!-- __JUDGEMENTS_END__ -->"
+SECTION_HEADING = "The judgement calls"
+REGISTER_URL = ("https://github.com/Psi-am-i/jhb-election-model/blob/main/"
+                "JUDGEMENT-CALLS.md")
+
+_ENTRY = re.compile(r"^### (§[A-Z]\d+) · (.*)$")
+_PLAIN = re.compile(r"^\*\*Plain — (?P<title>[^*]+?)\.\*\* (?P<body>.+)$")
+#: An entry in one of these states is an obituary, not a choice the forecast
+#: makes, and a reader is never told about it as though it were live.
+_RETIRED = ("⚪", "⚫", "SUPERSEDED", "DELETED", "REMOVED")
+
+
+def plain_calls(text: str) -> list[dict]:
+    """Every Plain field in the register, in register order.
+
+    Each is ``{"entry": "§A35", "heading": …, "title": …, "body": …}``, the
+    body joined onto one line. A field is the paragraph opened by a line that
+    starts ``**Plain``, and it REFUSES rather than guesses: a malformed opening,
+    a field outside an entry, two in one entry, a backtick (the register→code
+    guard would read it as a symbol), or a field on a retired entry each raise
+    ``ValueError`` naming the line.
+    """
+    calls: list[dict] = []
+    entry: tuple[str, str] | None = None
+    seen: set[tuple[str, str]] = set()
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("#"):
+            m = _ENTRY.match(line)
+            entry = (m.group(1), m.group(2)) if m else None
+            i += 1
+            continue
+        if not line.startswith("**Plain"):
+            i += 1
+            continue
+        where = f"JUDGEMENT-CALLS.md line {i + 1}"
+        para = [line]
+        i += 1
+        while i < len(lines) and lines[i].strip():
+            para.append(lines[i].strip())
+            i += 1
+        joined = " ".join(para)
+        m = _PLAIN.match(joined)
+        if not m:
+            raise ValueError(f"{where}: a Plain field opens "
+                             f"'**Plain — <title>.** <text>'")
+        if entry is None:
+            raise ValueError(f"{where}: a Plain field outside a § entry")
+        if entry in seen:
+            raise ValueError(f"{where}: a second Plain field in {entry[0]}")
+        if any(mark in entry[1] for mark in _RETIRED):
+            raise ValueError(f"{where}: {entry[0]} is retired; a reader is "
+                             f"not told about it as a live choice")
+        if "`" in joined:
+            raise ValueError(f"{where}: a backtick in a Plain field")
+        seen.add(entry)
+        calls.append({"entry": entry[0], "heading": entry[1],
+                      "title": m.group("title").strip(),
+                      "body": m.group("body").strip()})
+    return calls
+
+
+def methodology_section(calls: list[dict]) -> str:
+    """The region, markers included, that /methodology carries."""
+    out = [SECTION_START, "",
+           "<!-- Written by src/judgement_sheet.py from the Plain fields in "
+           "JUDGEMENT-CALLS.md. Edit those; this region is regenerated by the "
+           "site build. -->", ""]
+    if calls:
+        out += [f"## {SECTION_HEADING}", "",
+                "These are choices about how This Model works that the data "
+                "did not make for us. Each is filed, with its evidence, in the "
+                f"[register of judgement calls]({REGISTER_URL}).", ""]
+        for call in calls:
+            out += [f"**{call['title']}.** {call['body']}", ""]
+    out.append(SECTION_END)
+    return "\n".join(out)
+
+
+def section_in(page: str) -> str:
+    """The committed region of a page, markers included. Exactly one, or raise."""
+    starts, ends = page.count(SECTION_START), page.count(SECTION_END)
+    if starts != 1 or ends != 1:
+        raise ValueError(f"expected one {SECTION_START} … {SECTION_END} pair, "
+                         f"found {starts} start(s) and {ends} end(s)")
+    lo = page.index(SECTION_START)
+    hi = page.index(SECTION_END) + len(SECTION_END)
+    if hi < lo:
+        raise ValueError("the section's end marker precedes its start")
+    return page[lo:hi]
+
+
+def refresh_methodology(page_path: Path | None = None,
+                        register_path: Path | None = None) -> bool:
+    """Rewrite the section from the register. True if the page changed.
+
+    Called by `build_site.main` before any page is rendered, so the site never
+    carries a section older than the register it was built beside.
+    """
+    page_path = METHODOLOGY if page_path is None else page_path
+    register_path = REGISTER if register_path is None else register_path
+    page = page_path.read_text(encoding="utf-8")
+    fresh = methodology_section(
+        plain_calls(register_path.read_text(encoding="utf-8")))
+    have = section_in(page)
+    if have == fresh:
+        return False
+    page_path.write_text(page.replace(have, fresh), encoding="utf-8")
+    return True
+
+
+# ---------------------------------------------------------------------------
+# what a reader can move: the interactive's own slider map, read from its AST
+# ---------------------------------------------------------------------------
+
+def _interactive() -> dict:
+    """What the published interactive exposes, and whether it can be built.
+
+    Read from the syntax tree rather than by importing, because the module
+    REFUSES at import: it raises at module level on purpose, since its
+    in-browser drawer is the old two-bloc engine. Importing it here would take
+    this generator down with it -- and the refusal is itself the answer to
+    "which of these can a reader move today", so it is reported, not defeated.
+    """
+    path = SRC / "build_interactive.py"
+    if not path.exists():
+        return {"present": False, "refuses": False, "keys": [], "reason": ""}
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+
+    refuses, reason = False, ""
+    for node in tree.body:                       # MODULE LEVEL ONLY: a raise
+        if isinstance(node, ast.Raise):          # inside a function is control
+            refuses = True                       # flow, not a refusal to load.
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.Constant) and isinstance(sub.value, str):
+                    reason = " ".join(sub.value.split())
+                    break
+        elif isinstance(node, ast.If):
+            for inner in node.body:
+                if isinstance(inner, ast.Raise):
+                    refuses = True
+
+    # ⛔ GROUPED BY THE BLOCK EACH LOOKUP READS, NOT SWEPT UP FLAT.
+    #
+    # The first version of this walked EVERY `.get("x")` in the file and called
+    # the result "keys the interactive reads". It collected party codes and the
+    # names of the judgement tables themselves alongside the actual controls,
+    # and the rendered sheet then asserted that each one was a deleted lever —
+    # a scan over the wrong set, reported confidently, which is the defect class
+    # this repository keeps finding in its own guards. The receiver is what
+    # gives a lookup its meaning: a key read off the scalars block is a lever, a
+    # key read off a per-party block is a party.
+    #
+    # So: resolve each local name to the judgement block it was bound from, and
+    # attribute a lookup only to a receiver that resolves. A lookup on anything
+    # else is ignored rather than guessed at.
+    groups: dict[str, set[str]] = {}
+    for function in ast.walk(tree):
+        if not isinstance(function, ast.FunctionDef):
+            continue
+        bound: dict[str, str] = {}
+        for node in ast.walk(function):
+            if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                    and isinstance(node.targets[0], ast.Name)
+                    and isinstance(node.value, ast.Call)
+                    and isinstance(node.value.func, ast.Attribute)
+                    and node.value.func.attr == "get" and node.value.args
+                    and isinstance(node.value.args[0], ast.Constant)
+                    and isinstance(node.value.args[0].value, str)):
+                bound[node.targets[0].id] = node.value.args[0].value
+        for node in ast.walk(function):
+            if (isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "get" and node.args
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id in bound
+                    and isinstance(node.args[0], ast.Constant)
+                    and isinstance(node.args[0].value, str)):
+                groups.setdefault(bound[node.func.value.id], set()).add(
+                    node.args[0].value)
+
+    # The scalar block is the one holding levers; the others hold party codes.
+    # Named by the longest-matching block rather than typed, so a renamed block
+    # shows up as an empty group here instead of as a silently wrong list.
+    scalar_block = max(groups, key=lambda name: len(groups[name]), default="")
+    declared = set().union(*_city_scalars().values()) if _city_scalars() else set()
+    scalar_block = next((name for name, keys in sorted(groups.items())
+                         if keys & declared), scalar_block)
+    return {"present": True, "refuses": refuses, "reason": reason,
+            "keys": sorted(groups.get(scalar_block, set())),
+            "block": scalar_block,
+            "other": {name: sorted(keys) for name, keys in sorted(groups.items())
+                      if name != scalar_block}}
+
+
+def _city_scalars() -> dict[str, set[str]]:
+    """Each city's declared `[judgements.scalars]` keys.
+
+    Parsed straight from the TOML: this reads a configuration file's KEY SET,
+    which is not model logic, and importing `cityconfig` here would set the
+    process-global active city as a side effect of writing a document.
+    """
+    out: dict[str, set[str]] = {}
+    for path in sorted(CITIES.glob("*.toml")):
+        try:
+            raw = tomllib.loads(path.read_text(encoding="utf-8"))
+        except tomllib.TOMLDecodeError:
+            continue
+        block = (raw.get("judgements") or {}).get("scalars") or {}
+        out[path.stem] = set(block)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# the join
+# ---------------------------------------------------------------------------
+
+def build() -> dict:
+    """Every judgement call, joined to what each register says about it."""
+    text = REGISTER.read_text(encoding="utf-8")
+    named, structural = _tables(text)
+    index = model_index.build()
+    reg = model_index._load_registers()
+
+    levers = {row["lever"]: row for row in index["levers"]}
+    constants = {row["constant"]: row for row in index["constants"]}
+
+    # firing, at the live target -- keyed off the registers, not off a year
+    # typed here. EXPECTED_INERT is keyed (lever, target); CONDITIONAL is
+    # keyed "lever@target".
+    targets = sorted({target for _, target in reg["EXPECTED_INERT"]}
+                     | {key.partition("@")[2] for key in reg["CONDITIONAL"]})
+    live_target = targets[-1] if targets else ""
+
+    inert = {lever: null for (lever, target), null in reg["EXPECTED_INERT"].items()
+             if target == live_target}
+    conditional = {key.partition("@")[0]: value
+                   for key, value in reg["CONDITIONAL"].items()
+                   if key.partition("@")[2] == live_target}
+
+    interactive = _interactive()
+    scalars = _city_scalars()
+    # THE INERT RECORD, kept whole rather than flattened into one column.
+    # Owner, 2026-09-27: "set those inert ones aside in their own section and
+    # describe why for each, for our record — so we can consult it to see if we
+    # can reinstate them, or avoid doing so by mistake only to retire them
+    # again when we rediscover why." Section 5 below is that record; it is
+    # INTERNAL and is not published.
+    inert_record = sorted(
+        ((lever, target, null) for (lever, target), null in reg["EXPECTED_INERT"].items()),
+        key=lambda t: (t[2].blocker or "", t[0]))
+    exposed = {key for key in interactive["keys"]
+               for keys in scalars.values() if key in keys}
+    wanted_missing = sorted(
+        key for key in interactive["keys"]
+        if scalars and not any(key in keys for keys in scalars.values()))
+
+    rows = []
+    for cells in named:
+        constant, value, where, state, status, entry = cells
+        names = _symbols(constant)
+        primary = next((name for name in names if name in levers), None)
+        kind = "lever"
+        if primary is None:
+            # The register writes BARE names (`LEVEL_DF`); the index keys
+            # constants QUALIFIED (`montecarlo.LEVEL_DF`). Matching one against
+            # the other linked nothing, so every module-constant row read "not
+            # linked" (register audit, 2026-09-24). A bare name defined in one
+            # module resolves to it; defined in several, the row's own Where
+            # cell must name the module, or the row is reported ambiguous
+            # rather than guessed.
+            for name in names:
+                found = _qualify(name, where, constants)
+                if found:
+                    primary = found
+                    break
+            kind = "module constant" if primary else "unlinked"
+        null = inert.get(primary) if primary else None
+        rows.append({
+            "shown": constant,
+            "symbols": names,
+            "symbol": primary or "",
+            "kind": kind,
+            "value": value,
+            "where": where,
+            "state": state,
+            "status": status,
+            "entry": entry,
+            "firing": _firing(primary, null, conditional, levers),
+            "reader": _reader(names, interactive, exposed),
+        })
+
+    # ⛔ A SCENARIO KEY WHOSE ROW IS FILED UNDER ANOTHER SPELLING IS NOT COVERED,
+    # AND "REGISTERED" IS A WEAKER CLAIM THAN IT READS AS.
+    #
+    # Found by this module's own population test, which is the only reason it is
+    # here: one lever has register rows filed under its UPPERCASE module
+    # constant and none under the key itself, so a join on row symbols drops it
+    # silently. The index calls such a lever `registered: yes` because its check
+    # harvests every backticked identifier ANYWHERE in the register — a prose
+    # mention counts. That is the right reading for the index's question and the
+    # wrong one for this document's, so the difference is printed rather than
+    # smoothed over: a shadow row that is TIED really does describe the lever; a
+    # prose mention does not.
+    covered = {name for row in rows for name in row["symbols"]}
+    mentioned = model_index._register_symbols()
+    uncovered = []
+    for lever in sorted(reg["DEFAULTS"]):
+        if lever in covered:
+            continue
+        lever_row = levers.get(lever, {})
+        shadow = lever_row.get("shadow") or ""
+        if shadow.rpartition(".")[2] in covered and shadow:
+            tied = lever_row.get("shadow_tied")
+            how = (f"its row is filed under the shadow constant `{shadow}`, "
+                   + ("tied to it by an assert, so the row does describe it"
+                      if tied else
+                      "⚠️ and the two are UNTIED — one number in two places"))
+        elif lever in mentioned:
+            how = ("⚠️ named only in the register's prose, with no row of its "
+                   "own — enough to count as registered, not enough to read")
+        else:
+            how = "⛔ not in the register at all"
+        uncovered.append({"lever": lever, "how": how})
+
+    return {
+        "inert_record": inert_record,
+        "live_target": live_target,
+        "legend": _legend(text),
+        "uncovered": uncovered,
+        "rows": rows,
+        "structural": [dict(zip(("call", "where", "state", "status", "entry"),
+                                cells)) for cells in structural],
+        "interactive": interactive,
+        "interactive_missing": wanted_missing,
+        "unregistered_levers": sorted(
+            row["lever"] for row in index["levers"] if not row["registered"]),
+        "parsed": {"named": len(named), "structural": len(structural)},
+    }
+
+
+def _qualify(name: str, where: str, constants: dict) -> str | None:
+    """The one qualified constant a bare register name refers to, or None."""
+    hits = [q for q in constants if q.rpartition(".")[2] == name]
+    if len(hits) == 1:
+        return hits[0]
+    named_here = [q for q in hits if f"{q.rpartition('.')[0]}.py" in where]
+    return named_here[0] if len(named_here) == 1 else None
+
+
+def _firing(symbol, null, conditional, levers) -> str:
+    """One phrase for 'is this doing anything at the live target'."""
+    # ⛔ INERT AND CONDITIONAL ARE NOT ALTERNATIVES, AND REPORTING ONLY THE FIRST
+    # HIDES THE EVIDENCE THAT MATTERS MOST.
+    #
+    # The first version returned on the inert entry. But a lever may hold BOTH:
+    # the poll family is inert BY CONFIGURATION at the live target and each one
+    # also carries a conditional entry that opens the gate and proves it still
+    # moves. HANDOVER records that the conditional half is the sole justification
+    # for keeping one of them — so a sheet that printed "CERTIFIED INERT" and
+    # stopped would argue for deleting a lever on evidence it had suppressed.
+    # Rendering both is the difference between "this does nothing" and "this does
+    # nothing HERE, and here is what it does when its gate is open".
+    if not symbol:
+        return "not linked to a scenario key or module constant"
+    parts: list[str] = []
+    if null is not None:
+        cause = getattr(null, "cause", "")
+        where = " ".join(str(getattr(null, "where", "")).split())
+        parts.append(f"CERTIFIED INERT ({cause})" + (f" — {where}" if where else ""))
+    if symbol in conditional:
+        why = " ".join(str(getattr(conditional[symbol], "why", "")).split())
+        parts.append(
+            ("ALSO CONDITIONAL" if parts else "CONDITIONAL")
+            + " — measured with its gate held open"
+            + (f": {why}" if why else ""))
+    if parts:
+        return "; ".join(parts)
+    if symbol in levers:
+        return "not certified dead here"
+    return "module constant"
+
+
+def _reader(names, interactive, exposed) -> str:
+    """Whether a reader could move this from the published page."""
+    hit = [name for name in names if name in interactive["keys"]]
+    if not hit:
+        return "no"
+    if interactive["refuses"]:
+        return "named by the interactive, which is WITHHELD"
+    return "yes" if any(name in exposed for name in hit) else \
+        "named by the interactive, but no city declares it"
+
+
+# ---------------------------------------------------------------------------
+# rendering
+# ---------------------------------------------------------------------------
+
+
+def _inert_section(add, sheet: dict) -> None:
+    """Section 5 — INTERNAL, and never in the public edition."""
+    add("## 5 · Levers that are INERT, and what it would take to reinstate one\n")
+    add("⛔ **INTERNAL. This section is not published.** It exists so a lever "
+        "that was retired for a reason is not reinstated by someone who has "
+        "forgotten the reason, and so one that is only switched off is not "
+        "written off as impossible.\n")
+    add("`blocker` is the field that answers the question:\n")
+    add("* **SWITCH** — a value we ship shuts the gate, and the harness CAN "
+        "open it. These are the reinstatable ones; the `where` column names "
+        "the switch.\n"
+        "* **DATA** — the evidence this gate needs does not exist at that "
+        "target. No code or configuration change here opens it, so the lever "
+        "has never been measured there and nothing about it has been learned.\n"
+        "* **CODE** — the wiring is broken. That is a defect, not a null.\n")
+    add("⚠️ **A lever being inert is not a finding about the lever.** Only "
+        "`cause = INERT` is a result; `UNDELIVERED` means the value never "
+        "reached the computation, which says nothing about what it would do "
+        "if it did.\n")
+    add("| lever | target | cause | blocker | what holds it shut | proved by | what was observed |")
+    add("|---|---|---|---|---|---|---|")
+    for lever, target, null in sheet["inert_record"]:
+        where = (null.where or "").replace("|", "\\|")
+        ev = (null.evidence or "—").replace("|", "\\|")
+        add(f"| `{lever}` | {target} | {null.cause} | **{null.blocker or '—'}** | "
+            f"{where} | `{null.gate_check or '—'}` | {ev} |")
+    add("")
+
+
+def render(sheet: dict, public: bool = False) -> str:
+    """The sheet. `public` writes the reader's edition.
+
+    ⛔ **THE PUBLIC EDITION DROPS SECTION 5.** The inert record is the account
+    of what has been tried and why it is switched off — a working note, and the
+    owner asked for it as an internal record. Everything else is the same text:
+    a reader is shown the same calls, the same values and the same statuses as
+    we keep, which is the point of publishing it at all.
+
+    It opens with the marker `build_site` keys its typed-figure exemption off,
+    because every figure in it is read out of the registers by this script. A
+    hand-written page cannot claim that by accident: the marker is in the
+    generated source.
+    """
+    out: list[str] = []
+    add = out.append
+    if public:
+        add("<!-- GENERATED by src/judgement_sheet.py --public. Do not edit. -->\n")
+    add("# The judgement calls, laid out\n")
+    add("⛔ **GENERATED — do not edit.** `.venv/bin/python src/judgement_sheet.py`, "
+        "and `tests/test_judgement_sheet.py` regenerates it and compares.\n")
+    add("Every choice a person made that the data did not force, joined to what "
+        "the registers say about it: what it is, whether it is doing anything at "
+        "the live target, and whether a reader could move it. The sentence in "
+        "*what it is* is `JUDGEMENT-CALLS.md`'s own, carried through verbatim — "
+        "this document writes no new prose about any individual call, so there "
+        "is one place to correct it.\n")
+
+    add("## How to read the columns\n")
+    for line in sheet["legend"]:
+        add(line)
+    add("")
+    add("**doing anything?** is read from `tests/test_levers_are_live`:\n")
+    add("* **CERTIFIED INERT** — a registered null with a cause and a gate check "
+        "that proves it. It is not merely unobserved; something was measured.")
+    add("* **CONDITIONAL** — dead in the shipped configuration, and measured with "
+        "its gate held open, which is the only honest reading of such a lever.")
+    add("* **not certified dead here** — ⚠️ exactly that, and *not* evidence that "
+        "it fires. It means no null has been registered at this target. The "
+        "absence of a certificate is not a measurement.\n")
+    add(f"The live target below is **{sheet['live_target']}**, taken from the "
+        f"registers' own keys rather than typed here.\n")
+
+    add("## 1 · What a reader can move\n")
+    inter = sheet["interactive"]
+    if inter["refuses"]:
+        add("⛔ **NOTHING, TODAY. The interactive refuses to build**, and says "
+            "why:\n")
+        add(f"> {inter['reason']}\n")
+        add("So every 'named by the interactive' below describes a control on a "
+            "page that is **withheld**, not one a reader can touch. Two things "
+            "follow, and the second is the one that bites:\n")
+        add("* the published forecast exposes **no** judgement call to a reader;")
+        add("* the frozen page's controls are not a subset of today's levers. "
+            "The keys it reads that **no city declares** are listed below — each "
+            "is either a deleted lever or one that never existed here, and the "
+            "page would drive a control that moves nothing.\n")
+    if sheet["interactive_missing"]:
+        add(f"Controls the interactive reads off its `{inter['block']}` block "
+            f"that **no city declares** — each is a control with nothing behind "
+            f"it:\n")
+        for key in sheet["interactive_missing"]:
+            add(f"* `{key}`")
+        add("")
+    for name, keys in (inter.get("other") or {}).items():
+        add(f"It also reads {len(keys)} key(s) off its `{name}` block; those are "
+            f"party codes, not levers, and are not checked against "
+            f"`[judgements.scalars]` here.")
+    if inter.get("other"):
+        add("")
+
+    add("## 2 · The calls with a symbol\n")
+    add("| call | value | kind | doing anything at the live target? | reader can move it? | what it is | status | entry |")
+    add("|---|---|---|---|---|---|---|---|")
+    for row in sheet["rows"]:
+        add(f"| {row['shown']} | {row['value']} | {row['kind']} | "
+            f"{row['firing']} | {row['reader']} | {row['state']} | "
+            f"{row['status']} | {row['entry']} |")
+    add("")
+
+    add("## 3 · The calls with no symbol of their own\n")
+    add("Structural choices the code makes without a constant to name them — "
+        "the easiest kind to lose, because nothing can grep for them.\n")
+    add("| the call | where | what it is | status | entry |")
+    add("|---|---|---|---|---|")
+    for row in sheet["structural"]:
+        add(f"| {row['call']} | {row['where']} | {row['state']} | "
+            f"{row['status']} | {row['entry']} |")
+    add("")
+
+    if not public:
+        _inert_section(add, sheet)
+
+    add("## 4 · Gaps this join can see\n")
+    if sheet["unregistered_levers"]:
+        add("Scenario keys the judgement register does not name:\n")
+        for lever in sheet["unregistered_levers"]:
+            add(f"* `{lever}`")
+        add("")
+    else:
+        add("Every scenario key is named by the register.\n")
+    if sheet["uncovered"]:
+        add("Scenario keys with **no register row under their own name**. Each "
+            "is still a judgement call; the note says what stands in for its "
+            "row, and a prose mention is not a row:\n")
+        for row in sheet["uncovered"]:
+            add(f"* `{row['lever']}` — {row['how']}")
+        add("")
+    add(f"Register rows parsed: {sheet['parsed']['named']} with a symbol, "
+        f"{sheet['parsed']['structural']} structural. A row whose cell count "
+        f"does not match its header is dropped rather than guessed at, so these "
+        f"counts are the parser's own view and a drop shows up as a missing "
+        f"row here rather than as a mangled one.\n")
+    return "\n".join(out) + "\n"
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--out", type=Path, default=OUTPUT,
+                        help="write somewhere other than JUDGEMENT-SHEET.md")
+    parser.add_argument("--public", action="store_true",
+                    help="the reader's edition: no section 5, and the "
+                         "GENERATED marker build_site keys its audit "
+                         "exemption off")
+    parser.add_argument("--methodology", action="store_true",
+                        help="refresh the 'The judgement calls' section of "
+                             "docs-public/methodology.md from the register's "
+                             "Plain fields, and write nothing else")
+    parser.add_argument("--section-out", type=Path, default=None,
+                        help="write the methodology section alone to this "
+                             "path (what the test compares against)")
+    args = parser.parse_args(argv)
+    if args.section_out or args.methodology:
+        if args.section_out:
+            calls = plain_calls(REGISTER.read_text(encoding="utf-8"))
+            args.section_out.write_text(methodology_section(calls) + "\n",
+                                        encoding="utf-8")
+            print(f"wrote {args.section_out} ({len(calls)} calls)")
+        if args.methodology:
+            changed = refresh_methodology()
+            print(f"{METHODOLOGY.name}: "
+                  + ("section rewritten" if changed else "section current"))
+        return 0
+    text = render(build(), public=args.public)
+    args.out.write_text(text, encoding="utf-8")
+    print(f"wrote {args.out} ({text.count(chr(10))} lines)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

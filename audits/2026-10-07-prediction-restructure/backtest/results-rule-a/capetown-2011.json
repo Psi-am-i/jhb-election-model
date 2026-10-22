@@ -1,0 +1,38 @@
+{
+ "city": "capetown",
+ "year": "2011",
+ "draws": 1000,
+ "council": 221,
+ "wards": 111,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 4,
+   "AFRICA_MUSLIM_PARTY": 2,
+   "ALJAMAAH": 2,
+   "ANC": 59,
+   "AZAPO": 1,
+   "COPE": 17,
+   "DA": 128,
+   "NATIONAL_PARTY_SOUTH_AFRICA": 1,
+   "PAC": 1,
+   "UDM": 1,
+   "UNITED_INDEPENDENT_FRONT": 1,
+   "VFPLUS": 1,
+   "CAPE_MUSLIM_CONGRESS": 3
+  },
+  "seat_err": 42.0,
+  "wards_ok": 111,
+  "ward_vote_err_pp": 21.319610327383074,
+  "list_vote_err_pp": 21.85461420271169,
+  "top": "DA",
+  "top_wards": 78,
+  "top_actual_wards": 78,
+  "excessive": {},
+  "council": 221,
+  "ward_wins": {
+   "DA": 78,
+   "ANC": 33
+  }
+ }
+}

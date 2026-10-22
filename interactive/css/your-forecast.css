@@ -1,0 +1,452 @@
+/* "Your forecast" (/your-forecast/): the page's layout, and what its two
+   sections share, after interactive.css and play.css. Every class here
+   starts "yf-".
+
+   Numbers are never typed into the page (stats.scan_numbers): the section
+   numbers and the walkthrough's step numbers are CSS counters. */
+
+.yf{counter-reset:yfsec;}
+
+/* ---------- the shared widths (src/css/tokens.css; one definition for every page) ---------- */
+/* The page's column at the one wider width the map pages share, with the
+   site's gutter each side, as every page's column is (src/css/chrome.css,
+   THE COLUMN); the text blocks at the text width. The toolbar's width is
+   chrome.css's (THE FRAME), the same on every page (owner, 2026-10-10,
+   LAYOUT-BRIEF item 6). */
+.yf .yf-wrap{box-sizing:content-box;max-width:var(--wide-width);padding-left:var(--gutter);padding-right:var(--gutter);}
+.yf .lede,.yf-sdek,.yf .yf-ctanote{max-width:var(--text-width);}
+/* The notes run the page's full width in two columns (owner, 2026-10-13), one
+   at phone width; the numbering is one list across both. */
+.yf .pl-notes ol{column-count:2;column-gap:48px;}
+@media (max-width:760px){.yf .pl-notes ol{column-count:1;}}
+
+/* ---------- the two sections ---------- */
+.yf-jump{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 14px var(--sans);margin:0 0 8px;counter-reset:yfjump;}
+.yf-jump a{text-decoration:none;color:var(--ink-2);}
+.yf-jump a::before{counter-increment:yfjump;content:counter(yfjump);display:inline-block;width:20px;height:20px;
+  border-radius:50%;background:var(--reader-soft);color:var(--reader);font:700 12px/20px var(--sans);text-align:center;margin-right:6px;}
+.yf-jump a:hover{color:var(--ink);}
+.yf-section{scroll-margin-top:56px;padding-top:6px;}
+.yf-shead{font:600 clamp(24px,3.4vw,32px)/1.15 var(--serif);margin:18px 0 6px;color:var(--ink);}
+.yf-shead::before{counter-increment:yfsec;content:counter(yfsec);display:inline-block;min-width:1.4em;
+  color:var(--reader);margin-right:10px;}
+.yf-sdek{margin:0 0 6px;}
+/* the line under a heading that says what the section, lever or step does:
+   one style for every one of them on the page (owner, 2026-10-05) */
+.yf.pl .yf-sub{font-size:17px;line-height:1.5;color:var(--ink-2);}
+/* the clean break between adjusting and breaking the model */
+.yf-break{border-top:4px double var(--rule);margin:56px 0 18px;}
+
+/* ---------- section 1 on a wide screen: the results at full size ---------- */
+/* The column grid and which column holds still are play.css's. Here: the
+   map as wide as the column, capped only so the whole city fits in one
+   window; the seat table in larger type with every party on its own row. */
+@media (min-width:1100px){
+  .yf .pl-seatfig .pl-fhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;}
+  .yf .pl-seatfig .pl-fhead h2{margin:0;}
+  .yf .pl-rgrid{gap:22px;}
+  .yf .pl-wardmap{max-height:calc(100vh - 110px);}
+  .yf .pl-fhead h2{font-size:22px;}
+  .yf .pl-oneline{font-size:21px;margin:4px 0 12px;}
+  .yf .pl-key{font-size:14px;}
+  .yf .pl-seats .st-row{grid-template-columns:minmax(0,210px) minmax(0,1fr) 92px 92px;min-height:42px;gap:0 16px;}
+  .yf .pl-seats .st{--st-arrow:30px;}
+  .yf .pl-seats .st-name{font-size:17px;}
+  .yf .pl-seats .st-seats{font-size:17px;}
+  .yf .pl-seats .st-range{font-size:15.5px;}
+  .yf .pl-seats .st-head > div{font-size:12px;}
+  .yf .pl-seats .st-svg{height:24px;}
+  .yf .pl-seats .st-ticks{font-size:12px;height:16px;}
+}
+/* the map's key sits under the map on a phone, under the seat table in
+   the wide column */
+.yf .pl-seatfig{order:2;}
+@media (min-width:1100px){.yf .pl-seatfig{order:0;}}
+/* the levers' column: play.css's, which holds still at the window's height
+   and scrolls on its own, so the map and the table stay beside whichever
+   lever is moving (owner, 2026-10-05: "they used to, which was good as you
+   could see the effect"), with no scroll bar showing (owner, 2026-10-05: "a
+   visible scroll bar beside the results"). A fade at the column's foot says
+   there is more below: a sticky last item, the fade's height of paper, that
+   lies over the levers while any remain below and over its own blank place
+   once the column is scrolled to its end, or has nothing to scroll, where it
+   draws nothing visible. A focused lever scrolls into view clear of it
+   (scroll-padding-bottom). */
+@media (min-width:1100px){
+  .yf .pl-controls{--yf-fade:44px;scrollbar-width:none;scrollbar-gutter:auto;padding-right:0;
+    scroll-padding-bottom:var(--yf-fade);}
+  .yf .pl-controls::-webkit-scrollbar{display:none;}
+  .yf .pl-controls::after{content:"";flex:none;position:sticky;bottom:0;z-index:1;height:var(--yf-fade);
+    pointer-events:none;background:linear-gradient(to bottom,transparent,var(--paper));}
+}
+/* section 2's paint chips and "More parties" select where they wrap: a grid
+   of equal cells, so the number of rows depends on the width alone and a
+   change of seats, which changes the chips, cannot add a row (owner,
+   2026-10-05: the page must not jump when a lever moves). A long name is
+   cut, in full in its title. */
+@media (min-width:980px){
+  .yf .brush{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;align-items:center;}
+  .yf .brush .chip{min-width:0;justify-content:flex-start;}
+  .yf .brush .chipt{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .yf .brushpick{grid-column:span 2;margin-left:0;}
+  .yf .brushpick select{flex:1;min-width:0;max-width:none;}
+}
+/* the levers: one card per lever, separated */
+.yf .pl-controls{display:flex;flex-direction:column;gap:14px;}
+.yf .pl-ctl,.yf .pl-ctl:first-child{border:1px solid var(--rule);border-radius:8px;background:var(--paper-2);
+  padding:14px 16px 10px;}
+.yf .pl-ctl h3{display:flex;align-items:baseline;gap:8px;padding-bottom:8px;margin-bottom:10px;
+  border-bottom:1px solid var(--rule-soft);}
+.yf-section .pl-bannerwrap{margin:0 0 4px;border-bottom:0;
+  /* full width without overflow: the background and its rule drawn past the
+     column by border-image outset, which adds no scrollable width */
+  border-image:linear-gradient(to top,var(--rule) 1px,var(--paper) 1px) fill 0 / 0 / 0 100vmax;}
+.yf-section .pl-banner{padding-left:0;padding-right:0;}
+.yf-sharebox{padding-top:4px;margin-top:0;}
+
+/* ---------- the floating "computing" indicator: reserves no space ---------- */
+/* Owner, 2026-10-03 (item 5a): prominent, and fixed so it moves nothing on
+   the page. It floats at the bottom centre of the window, where it covers
+   neither the sticky banner nor the "Your changes" line under it; on a
+   phone it sits above the change toast. Solid, never faded. */
+.yf-busy{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:42;
+  pointer-events:none;margin:0;font:700 17px var(--sans);color:var(--paper);background:var(--ink);
+  border:2px solid var(--reader);padding:11px 24px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.45);white-space:nowrap;}
+@media (max-width:1099px){.yf-busy{bottom:calc(78px + env(safe-area-inset-bottom));font-size:16px;padding:10px 20px;}}
+.yf-busy[hidden]{display:none;}
+.yf-busy::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--reader);
+  margin-right:10px;vertical-align:1px;}
+@media (prefers-reduced-motion:no-preference){
+  .yf-busy::before{animation:yf-blink .8s ease-in-out infinite alternate;}
+  @keyframes yf-blink{from{opacity:.3;}to{opacity:1;}}
+}
+
+/* ---------- change cues ---------- */
+/* A figure that moved: a ring that fades (no fill, so wrapped banner rows
+   never paint over each other) and a spark with the direction. */
+.yf .st-seats{position:relative;}
+.yf-spark{position:absolute;top:-8px;right:-6px;font-size:13px;line-height:1;pointer-events:none;}
+/* one hue for both directions: a move is not good or bad news for a reader */
+.yf-spark{color:var(--reader);}
+.yf-cue{border-radius:4px;}
+/* the banner item keeps its spark inside its own box: room on its right */
+.pl-bi.yf-cue{position:relative;padding:0 11px 0 3px;}
+.pl-bi .yf-spark{top:-5px;right:0;font-size:11px;}
+@media (max-width:719px){.pl-bitems{row-gap:7px;}}
+@media (prefers-reduced-motion:no-preference){
+  .yf-cue{animation:yf-pulse 1.4s ease-out 1;}
+  .yf-cue .pchip{animation:yf-grow .9s ease-out 1;}
+  .yf-spark{animation:yf-spark 1.8s ease-out 1 forwards;}
+  @keyframes yf-pulse{0%,30%{box-shadow:0 0 0 2px var(--reader);}100%{box-shadow:0 0 0 2px transparent;}}
+  @keyframes yf-grow{0%{transform:scale(1);}35%{transform:scale(1.5);}100%{transform:scale(1);}}
+  @keyframes yf-spark{0%{opacity:0;transform:translateY(4px) scale(.6);}20%{opacity:1;transform:none;}
+    80%{opacity:1;}100%{opacity:0;transform:translateY(-4px);}}
+}
+@media (prefers-reduced-motion:reduce){
+  /* no motion: the direction stays, still, until the next change */
+  .yf-cue{outline:1px solid color-mix(in srgb,var(--reader) 45%,transparent);outline-offset:1px;}
+}
+
+/* the phone's toast, while the seat table is out of view */
+.yf-toast{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:41;
+  display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;max-width:calc(100vw - 24px);
+  background:var(--paper);color:var(--ink);border:1px solid var(--reader);border-radius:10px;padding:8px 12px;
+  font:600 13px var(--sans);box-shadow:0 4px 18px rgba(0,0,0,.28);}
+.yf-toast[hidden]{display:none;}
+.yf-thead{font-weight:700;color:var(--reader);}
+.yf-ti{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.yf-ti i{width:10px;height:10px;border-radius:2px;display:inline-block;background:var(--pc,var(--pc-other));}
+.yf-tlogo{width:20px;height:20px;object-fit:contain;border-radius:3px;background:#fff;}
+@media (prefers-reduced-motion:no-preference){
+  .yf-toast:not([hidden]){animation:yf-toast .25s ease-out;}
+  @keyframes yf-toast{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+}
+@media (min-width:1100px){.yf-toast{display:none;}}
+
+/* ---------- section 2: the walkthrough ---------- */
+.yf-builder{margin-top:14px;}
+.yf-step{transition:box-shadow .2s, border-color .2s;}
+.yf-step[data-step="now"],.yf-step4:has([data-live="b-actions"][data-step="now"]){
+  border-color:var(--reader);box-shadow:0 0 0 2px color-mix(in srgb,var(--reader) 45%,transparent);}
+.yf-step[data-step="done"] .stepno::after,
+.yf-step4:has([data-live="b-actions"][data-step="done"]) .stepno::after{content:" ✓";color:var(--good);font-size:.8em;}
+.yf-step[data-step="next"] .stepno::before,
+.yf-step4:has([data-live="b-actions"][data-step="next"]) .stepno::before{color:var(--ink-3);}
+.yf-nextrow{margin:10px 0 0;padding:0 12px 10px;}
+.step .body .yf-nextrow{padding:0;}
+.yf-step:not([data-step="now"]) .yf-next{opacity:.7;}
+@media (prefers-reduced-motion:reduce){.yf-step{transition:none;}}
+
+
+/* ---------- the calls to act: the site's button (owner, 2026-10-10) ---------- */
+/* "Share this forecast" after section 1 and at the foot of section 2, and
+   "Analyse my forecast" in step 4, are the site's one large button, `cta`
+   (src/css/components.css, as the home page's), and beside it a short line
+   on what it gives. Its own rule puts it the column's width on a phone, the
+   line under it. Any other line in the row (why sharing is refused) takes a
+   row of its own. Here only its place in the row, and its disabled state
+   while the page loads, which the component does not draw. */
+.yf .yf-cta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;border:0;padding:0;margin:22px 0 0;}
+.yf .yf-cta > :not(.cta):not(.yf-ctanote){flex:1 0 100%;}
+.yf .cta[disabled]{opacity:.45;cursor:not-allowed;}
+.yf .yf-ctanote{flex:1 1 28ch;margin:0;font-size:15px;line-height:1.45;color:var(--ink-2);}
+.yf .yf-actions .yf-ctanote{margin-top:10px;}
+.yf-ctafoot{margin-top:26px;}
+/* "Next" scrolls a step to the top of the window: a little air above it */
+.yf-step{scroll-margin-top:12px;}
+/* step 4's region is its body: room for the step's heading above it */
+.yf-step4 .yf-actions{scroll-margin-top:56px;}
+.yf-follow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px;color:var(--ink);
+  background:var(--k-soft,var(--paper-2));border-left:3px solid var(--reader);padding:8px 10px;margin:8px 0;}
+.yf-follow[hidden]{display:none;}
+
+/* ---------- "Analyse my forecast" ---------- */
+.yf-analysis{border:1px solid var(--rule-soft);border-top:3px solid var(--reader);background:var(--paper-2);
+  padding:16px;margin-top:22px;scroll-margin-top:60px;}
+.yf-analysis:has(> [data-live="b-analysis"][hidden]){display:none;}
+/* the reader is scrolled to the region; the heading above it stays in view */
+.yf-analysis [data-live="b-analysis"]{scroll-margin-top:110px;}
+.yf-analysis h3{font:600 20px var(--serif);margin:0 0 8px;}
+/* the reader's forecast scored as the competition scores it: seats, ward
+   calls, vote (JUDGEMENT-CALLS §N4), one line each */
+.yf-score{list-style:none;margin:0 0 6px;padding:0;font-size:15.5px;line-height:1.45;color:var(--ink);max-width:72ch;}
+.yf-score li{margin:0 0 4px;}
+.yf-score b{font-weight:650;}
+.yf-caveat{font:16px/1.4 var(--serif);color:var(--ink-2);margin:0 0 8px;}
+.yf-outcome{font-size:14px;color:var(--ink-2);margin:0 0 4px;}
+.yf-outcome:empty{display:none;}
+.yf-expected{font-size:14px;margin:0 0 10px;}
+/* the badge beside what it is and how entries are ranked (the arrival view's
+   .yf-arr-badge, the same layout) */
+.yf-abadge-what{font:17px/1.4 var(--serif);color:var(--ink);margin:0;max-width:62ch;}
+.yf-abadge-rank{font-size:14px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;max-width:62ch;}
+/* the two parts: ward wins ("Your map") and citywide vote and seats */
+.yf-apart{margin:18px 0 0;padding-top:12px;border-top:1px solid var(--rule-soft);}
+.yf-apart .eyebrow{margin:0 0 2px;}
+.yf-apart h4{font:600 17px var(--serif);color:var(--ink);margin:0 0 8px;}
+.yf-amapgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px 22px;}
+.yf-amap{margin:0;}
+/* the reader's map: each ward's fill is the party called, its fill-opacity
+   our chance for that call (make.js, through map.js setShade) */
+.yf-amapsvg{display:block;width:100%;height:auto;max-height:calc(100vh - 120px);}
+.yf-amapsvg .w{cursor:pointer;}
+.yf-alegend{font-size:13px;color:var(--ink-3);margin:6px 0 0;line-height:1.45;}
+.yf-ramp{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.yf-ramp i{display:inline-block;width:90px;height:10px;border-radius:2px;border:1px solid var(--rule);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--ink-2) 15%,transparent),var(--ink-2));}
+.yf-aside .yf-expected{font:600 18px/1.4 var(--serif);color:var(--ink);}
+.yf-ahint{font-size:13px;color:var(--ink-3);margin:0;}
+@media (min-width:720px){
+  .yf-amapgrid{grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start;}
+}
+.yf-atable{overflow-x:auto;}
+.yf-at td:first-child{white-space:nowrap;}
+.yf-at th.num{white-space:normal;}
+.yf-at{border-collapse:collapse;width:100%;font-size:13.5px;}
+.yf-at th,.yf-at td{padding:6px 8px;border-bottom:1px solid var(--rule-soft);text-align:left;vertical-align:baseline;}
+.yf-at th{font-weight:600;color:var(--ink-3);font-size:12.5px;}
+.yf-at .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.yf-at td .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;}
+/* a phone: each party is two rows, its seats and then its vote, so nothing
+   scrolls sideways (make.js writes both rows; this hides the wide layout's) */
+.yf-at .yf-narrow{display:none;}
+@media (max-width:599px){
+  .yf-at .yf-wide{display:none;}
+  .yf-at .yf-narrow{display:table-row;}
+  .yf-at tr.yf-narrow td{border-bottom:0;padding-bottom:0;}
+  .yf-at tr.yf-narrow + tr.yf-narrow td{border-bottom:1px solid var(--rule-soft);padding-bottom:6px;padding-top:2px;}
+}
+.ess:empty{display:none;}
+
+/* "Set the vote": its one line, and the footnote marker's number, drawn here
+   because the step is a LIVE region with no build-time digit (the note is
+   the eighth in the page's notes) */
+.yf-oneline{margin:0 0 8px;}
+.yf-fnvote::after{content:"8";}
+
+/* ---------- reserved message regions: a lever moves nothing ---------- */
+/* Owner, 2026-10-03: the page must not jump when a lever moves. Every
+   message that comes and goes is either floating (.yf-busy, .yf-toast,
+   above) or one of these: a .yf-slot, a region of fixed height that is
+   there, empty or not, in every state. A message longer than its slot
+   scrolls inside it rather than pushing the page. The heights are in lines
+   of each slot's own type, sized to the longest message measured with every
+   lever moved at once (interactive/tools/yf_jump_check.mjs, which fails on
+   any jump and on any slot that overflows in that state). */
+.yf .yf-slot{box-sizing:border-box;overflow-y:auto;overflow-wrap:anywhere;}
+/* a slot that empties stays: the :empty and [hidden] rules of the base
+   sheets would take it out of the page */
+.yf .pl-engine.yf-slot:empty,.yf .pl-sharewhy.yf-slot:empty,.yf .floornote.yf-slot:empty,
+.yf .ess.yf-slot:empty,.yf .pl-zonewhy.yf-slot:empty{display:block;}
+/* why a slider stops, or a poll cannot be chosen: under the turnout sliders
+   and under the poll's slider */
+.yf .pl-zonewhy.yf-slot{line-height:1.4;height:3lh;}
+.yf .pl-engine.yf-slot{line-height:1.5;height:4lh;margin:0 0 4px;}
+.yf .pl-status.yf-slot{line-height:1.4;height:calc(5lh + 20px);align-content:flex-start;overflow:hidden;}
+.yf .pl-status.yf-slot[hidden]{display:flex;visibility:hidden;}
+/* the settings line wraps inside its strip and never scrolls (owner,
+   2026-10-05: no visible inner scroll bar). When every lever is moved at
+   once and the settings run past the lines reserved here, model.js
+   (fitSettings) names as many as fit and ends the line with a "+N more"
+   button, which opens the whole list; the Back button stays in view. */
+.yf .pl-status .pl-settings.yf-clamp{max-height:3lh;overflow:hidden;}
+.yf .pl-status[data-open].yf-slot{height:auto;}
+.yf .pl-status[data-open] .pl-settings.yf-clamp{max-height:none;}
+.yf .pl-more{font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;}
+.yf .pl-oneline.yf-slot{height:6lh;}
+.yf .pl-flips.yf-slot{height:6.2em;font-size:13px;line-height:1.55;}
+.yf .pl-flips .pl-flipline{margin:0;}
+/* four lines: a refused by-election option's reason runs to four in the
+   narrow control column */
+.yf .pl-byenote.yf-slot{height:4lh;font-size:13px;line-height:1.55;}
+.yf .pl-byenote .pl-note{margin:0;}
+.yf .pl-lawnow.yf-slot{line-height:1.4;height:3lh;}
+.yf .pl-sharewhy.yf-slot{line-height:1.4;height:3lh;margin:6px 0 0;}
+.yf [data-live="b-status"].yf-slot{height:122px;}
+.yf [data-live="b-status"] .yf-follow[hidden]{display:flex;visibility:hidden;}
+.yf .nchanged.yf-slot{display:block;line-height:1.4;height:2lh;}
+.yf .restate.yf-slot{line-height:1.4;height:2lh;}
+.yf .stubnote.yf-slot{line-height:1.4;height:3lh;}
+.yf .floornote.yf-slot{line-height:1.4;height:calc(3lh + 12px);}
+.yf .floornote.yf-slot:empty{background:none;border-left-color:transparent;}
+.yf .coalstat.yf-slot{line-height:1.4;height:2lh;}
+.yf .yf-abadge.yf-slot{min-height:224px;}
+.yf .yf-score .yf-slot{height:2lh;}
+.yf .yf-score .yf-sseats.yf-slot{height:4lh;}
+.yf .yf-outcome.yf-slot{line-height:1.4;height:4lh;}
+.yf .yf-expected.yf-slot{line-height:1.4;height:3lh;}
+.yf .yf-anote.yf-slot{line-height:1.4;height:2lh;}
+.yf .painthint.yf-slot{line-height:1.4;height:calc(3lh + 16px);}
+.yf [data-live="ess"].yf-slot{display:block;line-height:1.4;height:3lh;}
+@media (min-width:1100px){
+  .yf .pl-engine.yf-slot{height:2lh;}
+  .yf .pl-status.yf-slot{height:calc(3lh + 20px);}
+  /* "Most seats: …" runs to four lines in the results column at the page's
+     column width (--wide-width) */
+  .yf .pl-oneline.yf-slot{height:4lh;}
+  .yf .pl-flips.yf-slot{height:4.7em;}
+  .yf [data-live="b-status"].yf-slot{height:70px;}
+  .yf .nchanged.yf-slot{display:inline;height:auto;}
+  .yf .stubnote.yf-slot{height:2lh;}
+  .yf .painthint.yf-slot{height:calc(2lh + 16px);}
+  .yf [data-live="ess"].yf-slot{height:2lh;}
+  .yf .yf-score .yf-slot{height:1lh;}
+  .yf .yf-score .yf-sseats.yf-slot{height:2lh;}
+  .yf .yf-outcome.yf-slot{height:2lh;}
+  .yf .floornote.yf-slot{height:calc(2lh + 12px);}
+}
+/* the legend lines that name the reader's changes take their place whether
+   or not they show */
+.yf.pl .pl-key .pl-live{display:inline;visibility:hidden;}
+.yf.pl .pl-glegend.pl-live{display:flex;visibility:hidden;}
+.yf.pl:has([data-live="result"][data-touched]) .pl-key .pl-live,
+.yf.pl:has([data-live="result"][data-touched]) .pl-glegend.pl-live{visibility:visible;}
+/* the seat table: room for --yf-spare-rows rows more than the published
+   forecast's, which a lever may add (page.py shows a party the reader's
+   settings lift to the row threshold); model.js marks the live table with
+   the rows it adds (data-extra). JUDGEMENT-CALLS §N5. */
+.yf .pl-seatfig{--yf-spare-rows:2;--yf-row:31px;}
+.yf .pl-seats{padding-bottom:calc(var(--yf-spare-rows) * var(--yf-row));}
+.yf .pl-liveseats:empty{display:none;}
+.yf .pl-liveseats[data-extra="1"]{padding-bottom:calc((var(--yf-spare-rows) - 1) * var(--yf-row));}
+.yf .pl-liveseats[data-extra="2"]{padding-bottom:0;}
+@media (min-width:1100px){.yf .pl-seatfig{--yf-row:43px;}}
+/* section 2's council: every party seated at the start keeps its row (make.js
+   councilRows), and the table keeps room for --yf-spare-rows NEW parties,
+   each a row of fixed height (data-new), which make.js counts on the table
+   (data-extra). JUDGEMENT-CALLS §N5. */
+.yf [data-live="b-council"] .bars{--yf-spare-rows:2;--yf-new-row:30px;
+  padding-bottom:calc(var(--yf-spare-rows) * var(--yf-new-row));}
+.yf [data-live="b-council"] .bars[data-extra="1"]{padding-bottom:calc((var(--yf-spare-rows) - 1) * var(--yf-new-row));}
+.yf [data-live="b-council"] .bars:not([data-extra="0"]):not([data-extra="1"]){padding-bottom:0;}
+/* the council's caption line keeps its line while its figures are on their
+   way (make.js paintPending draws the rows and the chips meanwhile) */
+.yf [data-live="b-council"] .cap{min-height:1lh;}
+.yf [data-live="b-council"] .bars .st-row[data-new]{box-sizing:border-box;height:var(--yf-new-row);min-height:0;overflow:hidden;}
+.yf [data-live="b-council"] .bars .st-row[data-new] .st-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* a vote row at the floor says so over its own slider's foot, inside the row */
+.yf .prrow{position:relative;}
+.yf .prrow .fl{position:absolute;left:17px;bottom:1px;padding:0;font-size:10.5px;line-height:1.2;
+  white-space:nowrap;pointer-events:none;}
+/* a row with a list-vote control under it keeps its floor note in the flow,
+   above the control, so the two never overlap; its line is reserved even when
+   empty, so a note appearing never moves what is below (yf_jump_check) */
+.yf .prrow:has(> .prgap) .fl{position:static;padding-left:17px;min-height:1.2em;}
+.yf .prrow:has(> .prgap) .fl:empty{display:block;}
+
+/* ---------- a shared link's arrival view (js/arrival.js) ---------- */
+/* The friend's forecast at the top of the page, read-only, then three ways
+   on (audits/2026-10-03-share-design §4). Party colours are site.css's
+   pc-<code> classes; no colour of a party is written here. */
+.yf-arrival{margin:8px auto 40px;padding-bottom:28px;border-bottom:4px double var(--rule);}
+.yf-arr-from{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;color:var(--ink-3);margin:0;}
+.yf-arr-from .sw{width:10px;height:10px;border-radius:2px;display:inline-block;}
+.yf-arr-seal[data-seal="sealed"]{color:var(--ink-2);}
+.yf-arr-title{font:600 clamp(32px,5vw,48px)/1.08 var(--serif);color:var(--ink);margin:10px 0 6px;}
+.yf-arr-sub{color:var(--ink-2);font-size:clamp(16px,1.6vw,18px);margin:0;}
+.yf-arr-verdict{border:1px solid var(--rule);background:var(--paper-2);border-radius:8px;padding:16px;margin-top:20px;}
+.yf-arr-what{color:var(--ink-2);font-size:15px;line-height:1.45;margin:0;}
+.yf-arr-call{font:17px/1.4 var(--serif);color:var(--ink);margin:6px 0 0;}
+/* the owner's badge (src/stamps/reader-*.svg) beside what it is and how
+   entries are ranked, in the arrival view and the analysis */
+.yf-arr-badge,.yf-abadge{display:flex;align-items:center;gap:16px;margin:8px 0 0;}
+.yf-stamp{width:112px;height:auto;flex:none;}
+/* the analysis draws the badge at twice the arrival view's size (owner, 2026-10-13) */
+.yf-abadge .yf-stamp{width:224px;height:224px;object-fit:contain;}
+.yf-abadge{flex-wrap:wrap;}
+.yf-arr-chance{font-size:15px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;}
+.yf-arr-how{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}
+.yf-arr-quick{margin:16px 0 0;}
+.yf-arr-quick .btn{width:100%;}
+.yf-arr-grid{display:grid;grid-template-columns:1fr;gap:26px;margin-top:22px;}
+.yf-arr-council{width:100%;height:auto;display:block;overflow:visible;}
+.yf-arr-council rect{fill:var(--pc,var(--pc-other));}
+.yf-arr-step{fill:none;stroke:var(--ink);stroke-width:2;}
+.yf-arr-maj{font:12px var(--sans);fill:var(--ink-2);}
+.yf-arr-key{font-size:13px;color:var(--ink-3);margin:8px 0 0;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;}
+.yf-arr-key i{display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--ink-2);margin-right:6px;vertical-align:-1px;}
+.yf-arr-key i.yf-key-pr{opacity:.42;}
+.yf-arr-gov{margin:10px 0 0;font-size:15px;color:var(--ink);}
+.yf-arr-table{border-collapse:collapse;width:100%;font-size:14px;}
+.yf-arr-table th,.yf-arr-table td{padding:6px 0 6px 6px;border-top:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums;}
+.yf-arr-table thead th{font-size:12.5px;font-weight:500;color:var(--ink-3);border-top:0;vertical-align:bottom;line-height:1.25;}
+.yf-arr-table th:first-child{text-align:left;padding-left:0;}
+.yf-arr-table tbody th{font-weight:600;color:var(--ink);}
+.yf-arr-party{display:inline-flex;align-items:center;gap:8px;}
+.yf-arr-party .sw{width:18px;height:18px;border-radius:3px;display:inline-block;flex:none;}
+.yf-arr-logo{width:18px;height:18px;border-radius:3px;background:#fff;object-fit:contain;flex:none;}
+.yf-arr-n{font-weight:700;color:var(--ink);}
+.yf-arr-d{color:var(--ink-2);}
+.yf-arr-wide{display:none;}
+.yf-arr-note{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}
+.yf-arr-fig{margin:18px 0 0;}
+.yf-arr-map{width:100%;max-width:520px;height:auto;display:block;}
+.yf-arr-map path{fill:var(--pc,var(--pc-other));stroke:var(--paper);stroke-width:.8;stroke-linejoin:round;}
+.yf-arr-fig figcaption{font-size:13px;color:var(--ink-3);margin-top:4px;}
+.yf-arr-ctas{margin-top:30px;border-top:1px solid var(--rule);padding-top:22px;}
+.yf-arr-ctas h3{font:600 22px var(--serif);color:var(--ink);margin:0;}
+.yf-arr-ctas p{color:var(--ink-2);font-size:15px;max-width:62ch;line-height:1.5;margin:6px 0 0;}
+.yf-arr-btns{display:flex;flex-direction:column;gap:12px;margin-top:18px;}
+.yf-arr-btns .btn,.yf-arr-quick .btn{display:block;text-align:left;padding:13px 16px;font-weight:600;font-size:16px;}
+.yf-arr-btns .btn small{display:block;font-weight:400;font-size:13px;margin-top:2px;opacity:.85;}
+.yf-arr-later{margin-top:30px;display:grid;grid-template-columns:1fr;gap:14px;}
+.yf-arr-later > div{border-top:1px solid var(--rule);padding-top:12px;}
+.yf-arr-later h3{font-size:15px;font-weight:600;color:var(--ink);margin:0;}
+.yf-arr-later p{font-size:14px;color:var(--ink-2);margin:4px 0 0;line-height:1.5;}
+.yf-arr-big{font:600 30px var(--serif);color:var(--ink);}
+@media (min-width:720px){
+  .yf-arr-verdict{padding:22px 26px;}
+  .yf-arr-quick{display:none;}
+  .yf-arr-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:start;}
+  .yf-arr-table{font-size:16px;}
+  .yf-arr-wide{display:table-cell;}
+  .yf-arr-btns{flex-direction:row;}
+  .yf-arr-btns .btn{text-align:center;}
+  .yf-arr-later{grid-template-columns:repeat(2,1fr);gap:22px;}
+}
+
+/* ---------- the share sheet, both sections (js/share-sheet.js): the seal, the image picker, the links ---------- */
+.sharesheet .shseal{margin:6px 0 0;}
+.sharesheet .shseal[hidden],.sharesheet .shentry[hidden]{display:none;}
+.sharesheet .shimgpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:10px 0 6px;}
+.sharesheet .shwa,.sharesheet .shx{text-decoration:none;}

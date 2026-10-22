@@ -1,0 +1,23 @@
+{
+ "name": "C1-off",
+ "tests": {
+  "failed": [
+   "test_a_refit_that_silences_a_second_pool_holds_it_too",
+   "test_a_silenced_pool_is_held_and_the_rest_refitted",
+   "test_no_emitted_composition_weight_is_arithmetically_impossible",
+   "test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing",
+   "test_the_three_known_things_hold_at_once"
+  ]
+ },
+ "compare": {
+  "mangaung-2016": {
+   "emit_refused": "SystemExit: mangaung 2016: pool 'Indian/Asian' has no member with weight above 1e-4 (registered 2,698, central turnout 0.0001, 2.46% of the projected roll). The spec would declare it in `categories` and omit it from `pools` \u2014 prereg P1. Find why the fitting year gave it no votes (MODEL-LOG \u00a71.269) before emitting."
+  }
+ },
+ "new_test_failures": [
+  "test_a_refit_that_silences_a_second_pool_holds_it_too",
+  "test_a_silenced_pool_is_held_and_the_rest_refitted",
+  "test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing",
+  "test_the_three_known_things_hold_at_once"
+ ]
+}

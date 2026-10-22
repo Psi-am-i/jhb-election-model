@@ -1,0 +1,35 @@
+{
+ "city": "ethekwini",
+ "year": "2011",
+ "draws": 1000,
+ "council": 205,
+ "wards": 103,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 3,
+   "ANC": 123,
+   "APC": 1,
+   "COPE": 5,
+   "DA": 39,
+   "IFP": 18,
+   "MINORITY_FRONT": 13,
+   "NFP": 3
+  },
+  "seat_err": 31.0,
+  "wards_ok": 97,
+  "ward_vote_err_pp": 20.019672061289356,
+  "list_vote_err_pp": 17.539653090238392,
+  "top": "ANC",
+  "top_wards": 80,
+  "top_actual_wards": 78,
+  "excessive": {},
+  "council": 205,
+  "ward_wins": {
+   "ANC": 80,
+   "DA": 17,
+   "IFP": 2,
+   "MINORITY_FRONT": 4
+  }
+ }
+}

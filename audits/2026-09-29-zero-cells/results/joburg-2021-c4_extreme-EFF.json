@@ -1,0 +1,2834 @@
+{
+ "city": "joburg",
+ "year": "2021",
+ "draws": 1000,
+ "seed": 20261104,
+ "control": "c4_extreme",
+ "c4_party": "EFF",
+ "plant_party": null,
+ "plant_wards": [
+  "79800001",
+  "79800002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 34.4,
+ "spec": "data/processed/pools_2021.json",
+ "universe": [
+  "ABAHLALY_BAAHI",
+  "ABANTU_BATHO_CONGRESS",
+  "ACDP",
+  "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
+  "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA",
+  "AFRICAN_COVENANT",
+  "AFRICAN_FREEDOM_REVOLUTION",
+  "AFRICAN_PEOPLE_S_MOVEMENT",
+  "AFRICAN_SECURITY_CONGRESS",
+  "AFRICA_RESTORATION_ALLIANCE",
+  "AGANG",
+  "AGENCY_FOR_NEW_AGENDA",
+  "AHC",
+  "AIC",
+  "ALJAMAAH",
+  "AMALGAMATED_RAINBOW_MOVEMENT",
+  "ANC",
+  "APC",
+  "ASA",
+  "ATM",
+  "AZAPO",
+  "BLACK_AND_WHITE_PARTY",
+  "BLACK_FIRST_LAND_FIRST",
+  "CHANGE",
+  "CIVIC_MOVEMENT_OF_SOUTH_AFRICA",
+  "COMMUNITY_SOLIDARITY_ASSOCIATION",
+  "COPE",
+  "DA",
+  "DEMOCRATIC_ARTISTS_PARTY",
+  "DISRUPT_PARTY",
+  "DOP",
+  "ECONOMIC_EMANCIPATION_FORUM",
+  "EFF",
+  "FORUM_4_SERVICE_DELIVERY",
+  "GOOD",
+  "IFP",
+  "INTERNATIONAL_PARTY",
+  "INTERNATIONAL_REVELATION_CONGRESS",
+  "JUSTICE_AND_EMPLOYMENT_PARTY",
+  "NATIONAL_PEOPLE_S_FRONT",
+  "NFP",
+  "PA",
+  "PAC",
+  "PARTY_OF_ACTION",
+  "PEOPLE_S_FREEDOM_PARTY",
+  "ROYAL_LOYAL_PROGRESS",
+  "SAKHISIZWE_CONVENTION",
+  "SHOSHOLOZA_PROGRESSIVE_PARTY",
+  "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION",
+  "THE_ORGANIC_HUMANITY_MOVEMENT",
+  "UDM",
+  "UIM",
+  "UNITED_CULTURAL_MOVEMENT",
+  "US_THE_PEOPLE",
+  "VFPLUS"
+ ],
+ "n_wards_model": 135,
+ "n_wards_actual": {
+  "PR": 135,
+  "Ward": 135
+ },
+ "unmatched_actual_wards": {
+  "PR": [],
+  "Ward": []
+ },
+ "cells_scanned": {
+  "PR": 5787,
+  "Ward": 3426
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 78,
+   "1e-09": 78,
+   "1e-06": 78,
+   "0.0001": 78,
+   "0.001": 78
+  },
+  "Ward": {
+   "1e-12": 62,
+   "1e-09": 62,
+   "1e-06": 62,
+   "0.0001": 62,
+   "0.001": 62
+  }
+ },
+ "min_vd_share_W": {
+  "ABAHLALY_BAAHI": 5.834401729498482e-07,
+  "ABANTU_BATHO_CONGRESS": 5.834401729498482e-07,
+  "ACDP": 5.00370523405775e-07,
+  "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 5.602373081323812e-07,
+  "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA": 5.738263244433246e-07,
+  "AFRICAN_COVENANT": 5.738263244433246e-07,
+  "AFRICAN_FREEDOM_REVOLUTION": 5.738263244433246e-07,
+  "AFRICAN_PEOPLE_S_MOVEMENT": 5.602373081323812e-07,
+  "AFRICAN_SECURITY_CONGRESS": 5.738263244433246e-07,
+  "AFRICA_RESTORATION_ALLIANCE": 5.899945323886461e-07,
+  "AGANG": 5.899945323886461e-07,
+  "AGENCY_FOR_NEW_AGENDA": 5.738263244433246e-07,
+  "AHC": 5.602373081323812e-07,
+  "AIC": 6.378416942822944e-07,
+  "ALJAMAAH": 5.378885708869549e-07,
+  "AMALGAMATED_RAINBOW_MOVEMENT": 5.602373081323812e-07,
+  "ANC": 0.0013326742231991578,
+  "APC": 5.899945323886461e-07,
+  "ASA": 0.0006272979948879059,
+  "ATM": 4.622411847185135e-07,
+  "AZAPO": 5.738263244433246e-07,
+  "BLACK_AND_WHITE_PARTY": 5.602373081323812e-07,
+  "BLACK_FIRST_LAND_FIRST": 6.132160535994598e-07,
+  "CHANGE": 5.738263244433246e-07,
+  "CIVIC_MOVEMENT_OF_SOUTH_AFRICA": 5.602373081323812e-07,
+  "COMMUNITY_SOLIDARITY_ASSOCIATION": 5.899945323886461e-07,
+  "COPE": 5.572347610677758e-07,
+  "DA": 0.00016018281935387403,
+  "DEMOCRATIC_ARTISTS_PARTY": 5.90778307959005e-07,
+  "DISRUPT_PARTY": 5.899945323886461e-07,
+  "DOP": 5.90778307959005e-07,
+  "ECONOMIC_EMANCIPATION_FORUM": 5.738263244433246e-07,
+  "EFF": 0.00021857108421145682,
+  "FORUM_4_SERVICE_DELIVERY": 5.834401729498482e-07,
+  "GOOD": 4.0661325224824535e-07,
+  "IFP": 7.654651589434265e-08,
+  "INTERNATIONAL_PARTY": 5.738263244433246e-07,
+  "INTERNATIONAL_REVELATION_CONGRESS": 5.602373081323812e-07,
+  "JUSTICE_AND_EMPLOYMENT_PARTY": 5.834401729498482e-07,
+  "NATIONAL_PEOPLE_S_FRONT": 5.69241888497536e-07,
+  "NFP": 5.602373081323812e-07,
+  "PA": 5.899945323886461e-07,
+  "PAC": 5.602373081323812e-07,
+  "PARTY_OF_ACTION": 5.738263244433246e-07,
+  "PEOPLE_S_FREEDOM_PARTY": 5.738263244433246e-07,
+  "ROYAL_LOYAL_PROGRESS": 5.738263244433246e-07,
+  "SAKHISIZWE_CONVENTION": 5.602373081323812e-07,
+  "SHOSHOLOZA_PROGRESSIVE_PARTY": 5.602373081323812e-07,
+  "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 5.602373081323812e-07,
+  "THE_ORGANIC_HUMANITY_MOVEMENT": 5.738263244433246e-07,
+  "UDM": 5.318110457349006e-07,
+  "UIM": 5.738263244433246e-07,
+  "UNITED_CULTURAL_MOVEMENT": 5.738263244433246e-07,
+  "US_THE_PEOPLE": 5.738263244433246e-07,
+  "VFPLUS": 3.782260490670284e-07
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ABAHLALY_BAAHI": 0.030213004200133408,
+   "ABANTU_BATHO_CONGRESS": 0.02133837115224177,
+   "ACDP": 0.053187330056528995,
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.017245192197877457,
+   "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA": 0.026407997137999406,
+   "AFRICAN_COVENANT": 0.022529197653053508,
+   "AFRICAN_FREEDOM_REVOLUTION": 0.027979957618946245,
+   "AFRICAN_PEOPLE_S_MOVEMENT": 0.07294535412963164,
+   "AFRICAN_SECURITY_CONGRESS": 0.03764364851487659,
+   "AFRICA_RESTORATION_ALLIANCE": 0.04937967822190168,
+   "AGANG": 0.024491832460428558,
+   "AGENCY_FOR_NEW_AGENDA": 0.04336757972224794,
+   "AHC": 0.03661471527791432,
+   "AIC": 0.028869057098443902,
+   "ALJAMAAH": 0.007032695447694035,
+   "AMALGAMATED_RAINBOW_MOVEMENT": 0.06993082203717406,
+   "ANC": 0.26394197971550754,
+   "APC": 0.08760947098981957,
+   "ASA": 0.0668566513641303,
+   "ATM": 0.029805420343960547,
+   "AZAPO": 0.060501285682598806,
+   "BLACK_AND_WHITE_PARTY": 0.047497728501256914,
+   "BLACK_FIRST_LAND_FIRST": 0.030027195149326086,
+   "CHANGE": 0.030528113588327997,
+   "CIVIC_MOVEMENT_OF_SOUTH_AFRICA": 0.019415559162312922,
+   "COMMUNITY_SOLIDARITY_ASSOCIATION": 0.020705917212117154,
+   "COPE": 0.04880484620728491,
+   "DA": 0.20441509988362755,
+   "DEMOCRATIC_ARTISTS_PARTY": 0.020697241942009365,
+   "DISRUPT_PARTY": 0.022693270157215485,
+   "DOP": 0.0432011630113066,
+   "ECONOMIC_EMANCIPATION_FORUM": 0.013682771381213946,
+   "EFF": 0.10728800917541442,
+   "FORUM_4_SERVICE_DELIVERY": 0.030288666592751985,
+   "GOOD": 0.02375691000393054,
+   "IFP": 0.06475493959211133,
+   "INTERNATIONAL_PARTY": 0.022120607021892887,
+   "INTERNATIONAL_REVELATION_CONGRESS": 0.05600771913168336,
+   "JUSTICE_AND_EMPLOYMENT_PARTY": 0.03447529496966811,
+   "NATIONAL_PEOPLE_S_FRONT": 0.02297588503345705,
+   "NFP": 0.034466991479883385,
+   "PA": 0.03660751573606175,
+   "PAC": 0.06724048103079118,
+   "PARTY_OF_ACTION": 0.0366429211277132,
+   "PEOPLE_S_FREEDOM_PARTY": 0.024670443341190878,
+   "ROYAL_LOYAL_PROGRESS": 0.051821805484076534,
+   "SAKHISIZWE_CONVENTION": 0.019175444418100686,
+   "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.02792536993866974,
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.019670940036445077,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.06673502529643574,
+   "UDM": 0.06259517120050057,
+   "UIM": 0.029143085136059625,
+   "UNITED_CULTURAL_MOVEMENT": 0.02779436499366162,
+   "US_THE_PEOPLE": 0.031781378424896985,
+   "VFPLUS": 0.019579185591447775
+  },
+  "PR": {
+   "ABAHLALY_BAAHI": 0.04940881101778956,
+   "ABANTU_BATHO_CONGRESS": 0.030466429190355897,
+   "ACDP": 0.051016160907523866,
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.02448179705645944,
+   "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA": 0.037102410490478265,
+   "AFRICAN_COVENANT": 0.036130675781109796,
+   "AFRICAN_FREEDOM_REVOLUTION": 0.04750187910557706,
+   "AFRICAN_PEOPLE_S_MOVEMENT": 0.10213695781125894,
+   "AFRICAN_SECURITY_CONGRESS": 0.05057633313544686,
+   "AFRICA_RESTORATION_ALLIANCE": 0.06909891832245987,
+   "AGANG": 0.03476014390089202,
+   "AGENCY_FOR_NEW_AGENDA": 0.06333995407131031,
+   "AHC": 0.05331650056777197,
+   "AIC": 0.06391088310818131,
+   "ALJAMAAH": 0.008111509584410963,
+   "AMALGAMATED_RAINBOW_MOVEMENT": 0.09907642518878738,
+   "ANC": 0.273083738636257,
+   "APC": 0.04949491911877803,
+   "ASA": 0.08366913518907147,
+   "ATM": 0.043596244440501114,
+   "AZAPO": 0.07984426817700677,
+   "BLACK_AND_WHITE_PARTY": 0.07149729183122792,
+   "BLACK_FIRST_LAND_FIRST": 0.047040623322126204,
+   "CHANGE": 0.04424148104472523,
+   "CIVIC_MOVEMENT_OF_SOUTH_AFRICA": 0.02598603316374098,
+   "COMMUNITY_SOLIDARITY_ASSOCIATION": 0.028065783629760473,
+   "COPE": 0.051603669443089244,
+   "DA": 0.18397656638267823,
+   "DEMOCRATIC_ARTISTS_PARTY": 0.03098921138679011,
+   "DISRUPT_PARTY": 0.03050613757361194,
+   "DOP": 0.06022339528039784,
+   "ECONOMIC_EMANCIPATION_FORUM": 0.020251293445673713,
+   "EFF": 0.11251684313801805,
+   "FORUM_4_SERVICE_DELIVERY": 0.040527624061063715,
+   "GOOD": 0.033129174694776824,
+   "IFP": 0.05664051306641762,
+   "INTERNATIONAL_PARTY": 0.02984628838862958,
+   "INTERNATIONAL_REVELATION_CONGRESS": 0.032227752300276385,
+   "JUSTICE_AND_EMPLOYMENT_PARTY": 0.04918096540775386,
+   "NATIONAL_PEOPLE_S_FRONT": 0.038932333042951975,
+   "NFP": 0.05210165111613379,
+   "PA": 0.02270133483793454,
+   "PAC": 0.06745560078914166,
+   "PARTY_OF_ACTION": 0.05483172582799775,
+   "PEOPLE_S_FREEDOM_PARTY": 0.03337588547603293,
+   "ROYAL_LOYAL_PROGRESS": 0.07896815289843735,
+   "SAKHISIZWE_CONVENTION": 0.032342715515031026,
+   "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.04218708918478588,
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.027939440895755133,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.09684661654726162,
+   "UDM": 0.056450321268341735,
+   "UIM": 0.046243063211669884,
+   "UNITED_CULTURAL_MOVEMENT": 0.03715035039017499,
+   "US_THE_PEOPLE": 0.039919127095467674,
+   "VFPLUS": 0.02058035393234147
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "79800001",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5130,
+   "share": 0.0001949317738791423,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 5130,
+   "share": 0.0001949317738791423,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800003",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5388,
+   "share": 0.0005567928730512249,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800005",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 5741,
+   "share": 0.00034837136387388956,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800006",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 10,
+   "ward_total": 8355,
+   "share": 0.0011968880909634949,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800009",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 8437,
+   "share": 0.00011852554225435582,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800010",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5534,
+   "share": 0.0005421033610408384,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800011",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 7082,
+   "share": 0.0002824060999717594,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800013",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6113,
+   "share": 0.0001635858007524947,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800015",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 10,
+   "ward_total": 5183,
+   "share": 0.0019293845263360988,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800016",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 12,
+   "ward_total": 5680,
+   "share": 0.002112676056338028,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800017",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 9323,
+   "share": 0.0003217848332081948,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800018",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 10253,
+   "share": 9.753242953281966e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800019",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5025,
+   "share": 0.0001990049751243781,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800023",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 10014,
+   "share": 0.00019972039145196724,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800024",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 34,
+   "ward_total": 5613,
+   "share": 0.0060573668270087295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800025",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 6396,
+   "share": 0.0006253908692933083,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800029",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 22,
+   "ward_total": 6990,
+   "share": 0.0031473533619456365,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800030",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 6092,
+   "share": 0.000984898227183191,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800031",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 9,
+   "ward_total": 4869,
+   "share": 0.0018484288354898336,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800033",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6377,
+   "share": 0.00015681354869060687,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800035",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 6380,
+   "share": 0.00031347962382445143,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800037",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4971,
+   "share": 0.0002011667672500503,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800041",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6575,
+   "share": 0.0001520912547528517,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800047",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 6189,
+   "share": 0.0003231539828728389,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800048",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 7552,
+   "share": 0.0005296610169491525,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800049",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 7101,
+   "share": 0.0001408252358822701,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800050",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 5193,
+   "share": 0.0007702676680146351,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800053",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 7199,
+   "share": 0.00013890818169190166,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800056",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6389,
+   "share": 0.00015651901706057285,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800057",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 8052,
+   "share": 0.00037257824143070045,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800058",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5805,
+   "share": 0.0001722652885443583,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800060",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 3837,
+   "share": 0.00026062027625749283,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800062",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 2662,
+   "share": 0.0003756574004507889,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800063",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 3108,
+   "share": 0.00032175032175032174,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800064",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 3175,
+   "share": 0.0015748031496062992,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800065",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5464,
+   "share": 0.00018301610541727673,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800066",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 5343,
+   "share": 0.0003743215422047539,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800067",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 3431,
+   "share": 0.0002914602156805596,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800069",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5978,
+   "share": 0.00016728002676480428,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800071",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 8003,
+   "share": 0.00012495314257153568,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800073",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 7176,
+   "share": 0.0002787068004459309,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800074",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 7,
+   "ward_total": 8279,
+   "share": 0.0008455127430849137,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800075",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4933,
+   "share": 0.000608149199270221,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800082",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 8696,
+   "share": 0.00011499540018399264,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800085",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 8435,
+   "share": 0.00011855364552459988,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800087",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 7856,
+   "share": 0.00038187372708757637,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800088",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 8525,
+   "share": 0.0002346041055718475,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800091",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 6769,
+   "share": 0.0005909292362239622,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800092",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6048,
+   "share": 0.00016534391534391533,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800093",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 10186,
+   "share": 9.817396426467701e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800095",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 5171,
+   "share": 0.00038677238445175013,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800097",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 11766,
+   "share": 8.499065102838688e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800099",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 8445,
+   "share": 0.00023682652457075192,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800100",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 7945,
+   "share": 0.00012586532410320956,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800102",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 9960,
+   "share": 0.00010040160642570282,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800103",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 9876,
+   "share": 0.0001012555690562981,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800105",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 7488,
+   "share": 0.00013354700854700856,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800106",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 10645,
+   "share": 9.394081728511038e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800107",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5881,
+   "share": 0.00017003910899506886,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800110",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4110,
+   "share": 0.00024330900243309004,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800111",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4870,
+   "share": 0.001026694045174538,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800113",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 4809,
+   "share": 0.0008317737575379496,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800115",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 9741,
+   "share": 0.0001026588645929576,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800117",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 7447,
+   "share": 0.000268564522626561,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800118",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 6471,
+   "share": 0.0004636068613815484,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800119",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 36,
+   "ward_total": 7788,
+   "share": 0.004622496147919877,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800120",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 8472,
+   "share": 0.00011803588290840416,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800121",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 8057,
+   "share": 0.00037234702742956435,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800122",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 14,
+   "ward_total": 7594,
+   "share": 0.0018435607058203845,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800123",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 2968,
+   "share": 0.0006738544474393531,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800124",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 5472,
+   "share": 0.0003654970760233918,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800125",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 8623,
+   "share": 0.00046387568131740694,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800129",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 6017,
+   "share": 0.00033239155725444574,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800130",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5838,
+   "share": 0.00017129153819801302,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800131",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5892,
+   "share": 0.0005091649694501018,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800132",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 10242,
+   "share": 9.763718023823472e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79800135",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 7761,
+   "share": 0.00012884937508053087,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800001",
+   "party": "IND",
+   "votes": 298,
+   "ward_total": 5511,
+   "share": 0.05407367084013791,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 5511,
+   "share": 0.00018145527127563056,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800006",
+   "party": "IND",
+   "votes": 799,
+   "ward_total": 8556,
+   "share": 0.09338475923328658,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800008",
+   "party": "IND",
+   "votes": 41,
+   "ward_total": 6382,
+   "share": 0.006424318395487308,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800010",
+   "party": "IND",
+   "votes": 100,
+   "ward_total": 6038,
+   "share": 0.016561775422325273,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800011",
+   "party": "IND",
+   "votes": 270,
+   "ward_total": 6704,
+   "share": 0.0402744630071599,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800013",
+   "party": "IND",
+   "votes": 29,
+   "ward_total": 6091,
+   "share": 0.004761122968313906,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800015",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 11,
+   "ward_total": 5032,
+   "share": 0.0021860095389507153,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800016",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 40,
+   "ward_total": 5807,
+   "share": 0.006888238333046324,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800016",
+   "party": "IND",
+   "votes": 140,
+   "ward_total": 5807,
+   "share": 0.024108834165662132,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800021",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 7477,
+   "share": 0.0005349739200213989,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800021",
+   "party": "IND",
+   "votes": 900,
+   "ward_total": 7477,
+   "share": 0.12036913200481476,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800022",
+   "party": "IND",
+   "votes": 848,
+   "ward_total": 8086,
+   "share": 0.10487261934207272,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800024",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 34,
+   "ward_total": 5578,
+   "share": 0.006095374686267479,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800025",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 6613,
+   "share": 0.0009073037955542114,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800025",
+   "party": "IND",
+   "votes": 928,
+   "ward_total": 6613,
+   "share": 0.1403296537123847,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800026",
+   "party": "IND",
+   "votes": 437,
+   "ward_total": 5935,
+   "share": 0.07363100252737995,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800027",
+   "party": "IND",
+   "votes": 131,
+   "ward_total": 7150,
+   "share": 0.01832167832167832,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800029",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 36,
+   "ward_total": 6931,
+   "share": 0.005194055691819363,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800030",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 12,
+   "ward_total": 6309,
+   "share": 0.0019020446980504042,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800031",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 11,
+   "ward_total": 4900,
+   "share": 0.0022448979591836735,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800033",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 6339,
+   "share": 0.0003155071777882947,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800034",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5885,
+   "share": 0.0005097706032285472,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800035",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 6464,
+   "share": 0.0004641089108910891,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800038",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5749,
+   "share": 0.0005218298834579927,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800039",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5711,
+   "share": 0.0001751006828926633,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800044",
+   "party": "IND",
+   "votes": 132,
+   "ward_total": 6931,
+   "share": 0.019044870870004327,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800045",
+   "party": "IND",
+   "votes": 184,
+   "ward_total": 6527,
+   "share": 0.02819059292170982,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800046",
+   "party": "IND",
+   "votes": 592,
+   "ward_total": 6638,
+   "share": 0.08918348900271166,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800047",
+   "party": "IND",
+   "votes": 315,
+   "ward_total": 6335,
+   "share": 0.049723756906077346,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800048",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 71,
+   "ward_total": 7565,
+   "share": 0.009385327164573694,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800049",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 10,
+   "ward_total": 7123,
+   "share": 0.0014039028499227854,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800050",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5170,
+   "share": 0.0005802707930367504,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800062",
+   "party": "IND",
+   "votes": 25,
+   "ward_total": 2653,
+   "share": 0.009423294383716547,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800064",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 7,
+   "ward_total": 3177,
+   "share": 0.0022033364809568774,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800066",
+   "party": "IND",
+   "votes": 106,
+   "ward_total": 5368,
+   "share": 0.019746646795827123,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800074",
+   "party": "IND",
+   "votes": 1396,
+   "ward_total": 8201,
+   "share": 0.17022314351908305,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800075",
+   "party": "IND",
+   "votes": 236,
+   "ward_total": 5170,
+   "share": 0.045647969052224374,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800077",
+   "party": "IND",
+   "votes": 17,
+   "ward_total": 5044,
+   "share": 0.0033703409992069788,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800080",
+   "party": "IND",
+   "votes": 38,
+   "ward_total": 5637,
+   "share": 0.0067411743835373425,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800081",
+   "party": "IND",
+   "votes": 186,
+   "ward_total": 7157,
+   "share": 0.025988542685482743,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800088",
+   "party": "IND",
+   "votes": 1224,
+   "ward_total": 8632,
+   "share": 0.1417979610750695,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800089",
+   "party": "IND",
+   "votes": 12,
+   "ward_total": 9675,
+   "share": 0.00124031007751938,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800092",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 6320,
+   "share": 0.00031645569620253165,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800095",
+   "party": "IND",
+   "votes": 93,
+   "ward_total": 5237,
+   "share": 0.017758258544968493,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800096",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 10233,
+   "share": 0.0001954461057363432,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800096",
+   "party": "IND",
+   "votes": 705,
+   "ward_total": 10233,
+   "share": 0.06889475227206097,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800098",
+   "party": "IND",
+   "votes": 78,
+   "ward_total": 8412,
+   "share": 0.009272467902995721,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800100",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 7755,
+   "share": 0.00038684719535783365,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800110",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 3957,
+   "share": 0.00025271670457417233,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800113",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 11,
+   "ward_total": 4803,
+   "share": 0.002290235269623152,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800114",
+   "party": "IND",
+   "votes": 907,
+   "ward_total": 6080,
+   "share": 0.14917763157894737,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800115",
+   "party": "IND",
+   "votes": 127,
+   "ward_total": 9768,
+   "share": 0.013001638001638002,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800117",
+   "party": "IND",
+   "votes": 61,
+   "ward_total": 7493,
+   "share": 0.00814093153610036,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800118",
+   "party": "IND",
+   "votes": 372,
+   "ward_total": 5505,
+   "share": 0.06757493188010899,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800119",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 40,
+   "ward_total": 7375,
+   "share": 0.005423728813559322,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800121",
+   "party": "IND",
+   "votes": 89,
+   "ward_total": 8664,
+   "share": 0.010272391505078486,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800125",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 8511,
+   "share": 0.0005874750323111268,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800128",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 6291,
+   "share": 0.0004768717215069146,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800131",
+   "party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5952,
+   "share": 0.00016801075268817206,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800131",
+   "party": "IND",
+   "votes": 1,
+   "ward_total": 5952,
+   "share": 0.00016801075268817206,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79800135",
+   "party": "IND",
+   "votes": 87,
+   "ward_total": 7971,
+   "share": 0.010914565299209636,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  }
+ ]
+}

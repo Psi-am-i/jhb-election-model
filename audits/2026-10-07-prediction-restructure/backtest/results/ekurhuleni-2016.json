@@ -1,0 +1,80 @@
+{
+ "city": "ekurhuleni",
+ "year": "2016",
+ "draws": 1000,
+ "council": 224,
+ "wards": 112,
+ "A": {
+  "seats": {
+   "EKURHULENI_COMMUNITY_MOVEMENT": 1,
+   "DA": 82,
+   "PAC": 1,
+   "ANC": 104,
+   "AGANG": 1,
+   "UNITED_RESIDENTS_FRONT": 1,
+   "ACDP": 2,
+   "APC": 1,
+   "INTERNATIONAL_REVELATION_CONGRESS": 1,
+   "VFPLUS": 2,
+   "EFF": 23,
+   "IFP": 2,
+   "UNITED_FRONT_OF_CIVICS": 1,
+   "PALMRIDGE_COMMUNITY_FORUM": 1,
+   "UDM": 1
+  },
+  "seat_err": 28.0,
+  "wards_ok": 111,
+  "ward_vote_err_pp": 11.119231135213164,
+  "list_vote_err_pp": 9.944785791313176,
+  "top": "ANC",
+  "top_wards": 75,
+  "top_actual_wards": 76,
+  "excessive": {},
+  "council": 224,
+  "ward_wins": {
+   "DA": 35,
+   "ANC": 75,
+   "EFF": 2
+  }
+ },
+ "B": {
+  "draw": 338,
+  "seats": {
+   "ACDP": 3,
+   "ANC": 110,
+   "APC": 1,
+   "DA": 80,
+   "EFF": 24,
+   "IFP": 2,
+   "PAC": 1,
+   "VFPLUS": 3
+  },
+  "seat_err": 16.0,
+  "wards_ok": 111,
+  "ward_vote_err_pp": 7.046667541567805,
+  "list_vote_err_pp": 7.657082693864714
+ },
+ "median_seat_err": 18.0,
+ "median_total": 212.0,
+ "coherent_seat_err": 28.0,
+ "actual": {
+  "seats": {
+   "DA": 77,
+   "PAC": 1,
+   "ANC": 109,
+   "COPE": 1,
+   "AIC": 4,
+   "ACDP": 1,
+   "PA": 1,
+   "VFPLUS": 2,
+   "EFF": 25,
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 1,
+   "IFP": 2
+  },
+  "ward_wins": {
+   "DA": 35,
+   "ANC": 76,
+   "EFF": 1
+  }
+ }
+}

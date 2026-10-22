@@ -1,0 +1,44 @@
+/* The ward maps: the land map (src/render_map.py) and the equal-ward map
+   (src/hex_cartogram.py), on the home page and /forecast, and the published
+   map on /your-forecast/ section 1 (build_play.map_twin). js/maps.js runs the tooltips and the
+   switch between the two. */
+
+/* The Normal / Equal Sized switch. */
+.maptoggle{display:flex;gap:0;margin:4px 0 12px;font-size:13px;}
+.maptoggle button{font:600 12.5px var(--sans,sans-serif);letter-spacing:.02em;padding:6px 14px;
+  border:1px solid var(--rule);background:transparent;color:var(--ink-2);cursor:pointer;}
+.maptoggle button:first-child{border-radius:4px 0 0 4px;}
+.maptoggle button:last-child{border-radius:0 4px 4px 0;border-left:none;}
+.maptoggle button.on{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+
+.mapbox{position:relative;}
+.mapsvg{width:100%;height:auto;display:block;}
+/* district names, the north arrow and the captions drawn inside the maps */
+.maplabel{font:650 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  fill:var(--ink);stroke:var(--paper);stroke-width:3px;paint-order:stroke;pointer-events:none;}
+.mapnorth{font:600 11px ui-monospace,monospace;fill:var(--ink-3);pointer-events:none;}
+.mapcap{font:650 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;
+  fill:var(--ink-3);pointer-events:none;}
+/* ward numbers on the equal-ward map: size and ink are attributes, set per
+   hexagon by the build */
+.hexnum{font-family:var(--mono);font-weight:600;opacity:.85;pointer-events:none;}
+.maptip{position:fixed;pointer-events:none;z-index:9;font:12px/1.4 var(--sans);
+  background:var(--ink);color:var(--paper);padding:6px 10px;border-radius:4px;max-width:280px;}
+.maptip[hidden]{display:none;}
+
+/* the key under both maps (render_map.map_key) */
+.mapcaption{display:flex;flex-direction:column;gap:6px;}
+.mapkey-parties{display:block;margin-bottom:6px;}
+.mapkey-party{display:inline-flex;align-items:center;gap:5px;margin-right:11px;}
+.mapkey-party .pchip{width:10px;height:10px;}
+.mapkey-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.mapkey-item + .mapkey-item{margin-left:13px;}
+.mapkey-note{font-size:12px;color:var(--ink-3);}
+/* the solid-colour line is nowrap: at phone width it pushed the page past the
+   screen (review 2026-10-02). There each item is a line of running text with
+   the swatch at its start; as a wrapping flex row it split into three columns. */
+@media (max-width:560px){
+  .mapkey-item{display:block;white-space:normal;}
+  .mapkey-item + .mapkey-item{margin-left:0;}
+  .mapkey-item svg{display:inline;width:18px;height:12px;vertical-align:-1px;margin-right:6px;}
+}

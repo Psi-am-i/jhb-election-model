@@ -1,0 +1,9 @@
+/* /methodology (build_site.page_type gives its <body> pg-methodology, on top
+   of pg-doc; src/site_assets.py scopes every rule here to it). The
+   explanation's colour, --k-explain, the one the home page's "How this is
+   built" panel wears: the kicker, a heavier rule over each part, and the
+   quotations' edge. */
+  .kicker{color:var(--k-explain);}
+  header{border-top:3px solid var(--k-explain);padding-top:18px;}
+  h2{border-top:2px solid color-mix(in srgb,var(--k-explain) 55%,var(--rule));}
+  blockquote{border-left-color:var(--k-explain);}

@@ -1,0 +1,598 @@
+{
+ "city": "mangaung",
+ "year": "2011",
+ "draws": 2000,
+ "spec": "data/processed/mangaung/pools_2011.json",
+ "seeds_in_spec": [],
+ "variants": {
+  "base": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.4
+  },
+  "seed2": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.4,
+   "vs_base": {
+    "seats_moved": 0.542,
+    "d_mean_seats": {
+     "ACDP": 0.084,
+     "ANC": 0.2835,
+     "APC": -0.0075,
+     "COPE": -0.1075,
+     "DA": -0.3145,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": -0.0135,
+     "ENTRANT": -0.099,
+     "PAC": 0.012,
+     "VFPLUS": 0.1625
+    },
+    "se_paired": {
+     "ACDP": 0.05476286593799553,
+     "ANC": 0.3168497447614211,
+     "APC": 0.03678176619144438,
+     "COPE": 0.2383072954370664,
+     "DA": 0.20052406295732303,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.059698750786115376,
+     "ENTRANT": 0.07433950955811229,
+     "PAC": 0.05562351110361288,
+     "VFPLUS": 0.124480096892078
+    },
+    "max_z": 1.5683903236437722,
+    "max_abs_d": 0.3145,
+    "same_draw_frac": 0.0,
+    "ward_calls_moved": 0.278,
+    "d_pr_pp": {
+     "ACDP": 0.12145274429639505,
+     "ANC": 0.34846529613439053,
+     "APC": -0.012704775512598096,
+     "COPE": -0.11057449340235706,
+     "DA": -0.3374725492555079,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": -0.018655265683707237,
+     "PAC": 0.01471059332311037,
+     "VFPLUS": 0.11225435606553538,
+     "ENTRANT": -0.11747590596526106
+    },
+    "max_abs_d_pr_pp": 0.34846529613439053,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.09744,
+     "ANC": 0.0051,
+     "APC": 0.06349,
+     "COPE": 0.0447,
+     "DA": 0.08962,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+     "PAC": 0.0,
+     "VFPLUS": 0.04048
+    }
+   }
+  },
+  "placebo": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.5,
+   "vs_base": {
+    "seats_moved": 0.0,
+    "d_mean_seats": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+     "ENTRANT": 0.0,
+     "PAC": 0.0,
+     "VFPLUS": 0.0
+    },
+    "se_paired": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+     "ENTRANT": 0.0,
+     "PAC": 0.0,
+     "VFPLUS": 0.0
+    },
+    "max_z": 0.0,
+    "max_abs_d": 0.0,
+    "same_draw_frac": 1.0,
+    "ward_calls_moved": 0.0,
+    "d_pr_pp": {
+     "ACDP": -6.748785149486827e-12,
+     "ANC": 8.79855498181481e-10,
+     "APC": 2.1047957892469587e-12,
+     "COPE": -1.0829225268252363e-10,
+     "DA": -7.046851661224318e-10,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 1.519163702885791e-13,
+     "PAC": -3.7477586646995076e-11,
+     "VFPLUS": -2.57149791206817e-11,
+     "ENTRANT": 8.067581298793842e-13
+    },
+    "max_abs_d_pr_pp": 8.79855498181481e-10,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+     "PAC": 0.0,
+     "VFPLUS": 0.0
+    }
+   }
+  },
+  "c4_eps": {
+   "info": {
+    "zero_cells": 4,
+    "cells": 30,
+    "seed_tv_mean": 4.398823723032771e-11
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.2,
+   "vs_base": {
+    "seats_moved": 0.0315,
+    "d_mean_seats": {
+     "ACDP": 0.0075,
+     "ANC": -0.018,
+     "APC": 0.004,
+     "COPE": -0.0045,
+     "DA": 0.0135,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.001,
+     "ENTRANT": -0.001,
+     "PAC": 0.0055,
+     "VFPLUS": -0.008
+    },
+    "se_paired": {
+     "ACDP": 0.005313755074944484,
+     "ANC": 0.023358313410918635,
+     "APC": 0.0032399457749030546,
+     "COPE": 0.01262218423124079,
+     "DA": 0.0627305861459871,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0042436428044930995,
+     "ENTRANT": 0.0034648957778518658,
+     "PAC": 0.004443506202728521,
+     "VFPLUS": 0.08644191172140413
+    },
+    "max_z": 1.4114312560931042,
+    "max_abs_d": 0.018,
+    "same_draw_frac": 0.105,
+    "ward_calls_moved": 0.1255,
+    "d_pr_pp": {
+     "ACDP": 0.002229216059292142,
+     "ANC": -0.006905842699202264,
+     "APC": -0.0003820075092630904,
+     "COPE": 0.0005898697170865105,
+     "DA": 0.011879480052368316,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0025829141479630034,
+     "PAC": 0.0008860530643350545,
+     "VFPLUS": -0.01073894370898892,
+     "ENTRANT": -0.0001407391235911253
+    },
+    "max_abs_d_pr_pp": 0.011879480052368316,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+     "PAC": 0.0,
+     "VFPLUS": 0.0
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "ANC": 0.0,
+    "APC": 0.0,
+    "COPE": 0.0,
+    "DA": 0.0,
+    "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+    "PAC": 0.0,
+    "VFPLUS": 0.0
+   }
+  },
+  "c4_mild": {
+   "info": {
+    "zero_cells": 4,
+    "cells": 30,
+    "seed_tv_mean": 0.0021754879881937823
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.3,
+   "vs_base": {
+    "seats_moved": 0.023,
+    "d_mean_seats": {
+     "ACDP": 0.0065,
+     "ANC": -0.0115,
+     "APC": 0.0065,
+     "COPE": -0.0025,
+     "DA": 0.0045,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.003,
+     "ENTRANT": 0.0005,
+     "PAC": 0.002,
+     "VFPLUS": -0.009
+    },
+    "se_paired": {
+     "ACDP": 0.005453782804021141,
+     "ANC": 0.023355012380678605,
+     "APC": 0.0031198945288159123,
+     "COPE": 0.012642261996739235,
+     "DA": 0.06213429174059243,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0065204875875343555,
+     "ENTRANT": 0.003428666340785907,
+     "PAC": 0.00458350349101275,
+     "VFPLUS": 0.08638686732034397
+    },
+    "max_z": 2.0834037625197968,
+    "max_abs_d": 0.0115,
+    "same_draw_frac": 0.102,
+    "ward_calls_moved": 0.1235,
+    "d_pr_pp": {
+     "ACDP": 0.0025334132588360403,
+     "ANC": 0.0054665613649521275,
+     "APC": -0.0002805157572893079,
+     "COPE": 0.0059571863682992224,
+     "DA": -0.007689221146596708,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.004668224662792263,
+     "PAC": -0.00204932197183303,
+     "VFPLUS": -0.008870030964095532,
+     "ENTRANT": 0.00026370418493471963
+    },
+    "max_abs_d_pr_pp": 0.008870030964095532,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.00036,
+     "ANC": 2e-05,
+     "APC": 0.00024,
+     "COPE": 0.00018,
+     "DA": 0.00024,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.00648,
+     "PAC": 0.00648,
+     "VFPLUS": 0.0001
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "ANC": 0.0,
+    "APC": 0.0,
+    "COPE": 0.0,
+    "DA": 0.0,
+    "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.01088,
+    "PAC": 0.01088,
+    "VFPLUS": 0.0
+   }
+  },
+  "c4_strong": {
+   "info": {
+    "zero_cells": 4,
+    "cells": 30,
+    "seed_tv_mean": 0.11832144832171301
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 14.9,
+   "vs_base": {
+    "seats_moved": 0.222,
+    "d_mean_seats": {
+     "ACDP": -0.001,
+     "ANC": 0.07,
+     "APC": 0.002,
+     "COPE": -0.056,
+     "DA": 0.1435,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": -0.024,
+     "ENTRANT": 0.0015,
+     "PAC": 0.005,
+     "VFPLUS": -0.141
+    },
+    "se_paired": {
+     "ACDP": 0.011513721504858701,
+     "ANC": 0.15282908219374378,
+     "APC": 0.013567978663843454,
+     "COPE": 0.060072758952657505,
+     "DA": 0.1749464403853412,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.024176522746790174,
+     "ENTRANT": 0.004213995002006822,
+     "PAC": 0.024182222601427113,
+     "VFPLUS": 0.12232759917843716
+    },
+    "max_z": 1.1526425839055805,
+    "max_abs_d": 0.1435,
+    "same_draw_frac": 0.0005,
+    "ward_calls_moved": 1.1385,
+    "d_pr_pp": {
+     "ACDP": -0.0144150282604112,
+     "ANC": 0.010931373218859666,
+     "APC": 0.002117590472267688,
+     "COPE": -0.07398204382499045,
+     "DA": 0.1465959680542576,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": -0.01221280920638668,
+     "PAC": 0.011476876497322945,
+     "VFPLUS": -0.06901020868208367,
+     "ENTRANT": -0.0015017182688358104
+    },
+    "max_abs_d_pr_pp": 0.1465959680542576,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0761,
+     "ANC": 0.09639,
+     "APC": 0.07695,
+     "COPE": 0.08225,
+     "DA": 0.27747,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.09932,
+     "PAC": 0.09932,
+     "VFPLUS": 0.37234
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.06196,
+    "ANC": 0.10244,
+    "APC": 0.01273,
+    "COPE": 0.04413,
+    "DA": 0.34074,
+    "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.10997,
+    "PAC": 0.10997,
+    "VFPLUS": 0.3758
+   }
+  },
+  "c3_target": {
+   "info": {
+    "split_before": {
+     "Black African": 0.7771,
+     "Coloured": 0.0367,
+     "White": 0.1863
+    },
+    "split_after": {
+     "Black African": 0.7661,
+     "Coloured": 0.0438,
+     "White": 0.1901
+    },
+    "dose_L1_of_roll": 0.021913290073869256
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 19.2,
+   "vs_base": {
+    "seats_moved": 0.1285,
+    "d_mean_seats": {
+     "ACDP": 0.002,
+     "ANC": 0.0595,
+     "APC": 0.0035,
+     "COPE": 0.0105,
+     "DA": -0.1265,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0035,
+     "ENTRANT": 0.0035,
+     "PAC": -0.002,
+     "VFPLUS": 0.046
+    },
+    "se_paired": {
+     "ACDP": 0.00914000929348228,
+     "ANC": 0.03769867995348269,
+     "APC": 0.0034277908155162374,
+     "COPE": 0.02081853935295162,
+     "DA": 0.04886146330492107,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.008618643484200623,
+     "ENTRANT": 0.0035707492386140103,
+     "PAC": 0.010609160058108713,
+     "VFPLUS": 0.03128788049281808
+    },
+    "max_z": 2.5889523449302754,
+    "max_abs_d": 0.1265,
+    "same_draw_frac": 0.4315,
+    "ward_calls_moved": 0.181,
+    "d_pr_pp": {
+     "ACDP": 0.0031871788800631605,
+     "ANC": 0.0687206493862276,
+     "APC": 0.00033449818249650827,
+     "COPE": 0.015196641535894341,
+     "DA": -0.10917515788672207,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0017130219159430906,
+     "PAC": -0.013133191913699724,
+     "VFPLUS": 0.03320032339414133,
+     "ENTRANT": -4.39634943440078e-05
+    },
+    "max_abs_d_pr_pp": 0.10917515788672207,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.036,
+     "ANC": 0.00267,
+     "APC": 0.01851,
+     "COPE": 0.01345,
+     "DA": 0.02217,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+     "PAC": 0.0,
+     "VFPLUS": 0.00946
+    }
+   }
+  },
+  "c3_proj": {
+   "info": {
+    "split_before": {
+     "Black African": 0.7771,
+     "Coloured": 0.0367,
+     "White": 0.1863
+    },
+    "split_after": {
+     "Black African": 0.7675,
+     "Coloured": 0.0303,
+     "White": 0.2023
+    },
+    "dose_L1_of_roll": 0.03197860538637074
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.6,
+   "vs_base": {
+    "seats_moved": 0.10750000000000001,
+    "d_mean_seats": {
+     "ACDP": 0.0,
+     "ANC": 0.0665,
+     "APC": 0.0005,
+     "COPE": 0.0065,
+     "DA": -0.1,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": -0.006,
+     "ENTRANT": -0.0015,
+     "PAC": 0.0,
+     "VFPLUS": 0.034
+    },
+    "se_paired": {
+     "ACDP": 0.009749231957538037,
+     "ANC": 0.04763059113223142,
+     "APC": 0.005269132459754567,
+     "COPE": 0.025486342456812295,
+     "DA": 0.06216455755579745,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.009850406857466793,
+     "ENTRANT": 0.003202187065272812,
+     "PAC": 0.01079621596391855,
+     "VFPLUS": 0.03879657958240194
+    },
+    "max_z": 1.6086336641299561,
+    "max_abs_d": 0.1,
+    "same_draw_frac": 0.2265,
+    "ward_calls_moved": 0.251,
+    "d_pr_pp": {
+     "ACDP": 0.005888337562864391,
+     "ANC": 0.08901859123586708,
+     "APC": -0.005054194091252878,
+     "COPE": 0.008143970991197002,
+     "DA": -0.11783828450079026,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": -0.002419611003903745,
+     "PAC": -0.00785076439856015,
+     "VFPLUS": 0.02935398980121014,
+     "ENTRANT": 0.0007579644033681954
+    },
+    "max_abs_d_pr_pp": 0.11783828450079026,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.04386,
+     "ANC": 0.00125,
+     "APC": 0.03322,
+     "COPE": 0.02318,
+     "DA": 0.05089,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+     "PAC": 0.0,
+     "VFPLUS": 0.03194
+    }
+   }
+  }
+ },
+ "structure": {
+  "ipf_parties": [
+   "ACDP",
+   "ANC",
+   "APC",
+   "COPE",
+   "DA",
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "PAC",
+   "VFPLUS"
+  ],
+  "pools": [
+   "Black African",
+   "Coloured",
+   "White"
+  ],
+  "logratio_additive_max_resid": 1.1102230246251565e-15,
+  "zero_pattern_identical_R0": true,
+  "zero_pattern_identical_draws": true,
+  "zero_cells": 4,
+  "cells": 24,
+  "single_pool_parties": [
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "PAC"
+  ],
+  "seed_vs_post_ipf_tv": {
+   "ACDP": 0.11,
+   "ANC": 0.0049,
+   "APC": 0.0742,
+   "COPE": 0.051,
+   "DA": 0.1032,
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+   "PAC": 0.0,
+   "VFPLUS": 0.05
+  },
+  "seed_vs_R0_tv": {
+   "ACDP": 0.1265,
+   "ANC": 0.006,
+   "APC": 0.089,
+   "COPE": 0.0622,
+   "DA": 0.0996,
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0,
+   "PAC": 0.0,
+   "VFPLUS": 0.0484
+  },
+  "pool_vote_share": {
+   "Black African": 0.7801,
+   "Coloured": 0.0213,
+   "White": 0.1987
+  },
+  "mean_seats": {
+   "ACDP": 0.712,
+   "ANC": 55.381,
+   "APC": 0.254,
+   "COPE": 12.459,
+   "DA": 19.408,
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.612,
+   "ENTRANT": 1.264,
+   "PAC": 0.552,
+   "VFPLUS": 6.36
+  }
+ }
+}

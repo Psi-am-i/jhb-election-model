@@ -6,328 +6,1400 @@
 <title>Johannesburg 2026 — How the model works</title>
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="5,000 simulations of the November vote. Nobody wins — and an obscure clause of the seat law hands the shrinking ANC an unbreakable floor. Explore every ward, every coalition, every assumption.">
-<meta property="og:url" content="https://joburg.whysoserious.city/">
-<link rel="canonical" href="https://joburg.whysoserious.city/">
-<meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
+<meta property="og:title" content="Johannesburg 2026 — How the model works">
+<meta property="og:description" content="This page explains how the council is elected, how the simulation runs and what has been tested.">
+<meta property="og:url" content="https://joburg.whysoserious.city/methodology">
+<link rel="canonical" href="https://joburg.whysoserious.city/methodology">
+<meta property="og:image" content="https://joburg.whysoserious.city/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Hillbrow Tower silhouetted against a Johannesburg sunset">
+<meta property="og:image:alt" content="joburg.whysoserious.city, modelling and forecasting: the Hillbrow Tower as the J">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
-<style>
-  :root{
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5; --good:#2f6d4a;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
-    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-      --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-      --accent:#d9954f; --accent-soft:#3a2a1a; --good:#6fb98a;
-    }
-  }
-  *{box-sizing:border-box;margin:0;}
-  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
-    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
-  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
-    justify-content:space-between;font-family:var(--mono);font-size:14px;color:var(--ink-3);
-    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:26px;}
-  .topnav a{color:var(--ink-3);text-decoration:none;}
-  .topnav a:hover{color:var(--accent);}
-  .topnav a.home{color:var(--accent);font-weight:600;}
-  .topnav a.active{color:var(--accent);}
-
-  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--accent);margin-bottom:10px;}
-  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
-    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
-  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
-    color:var(--ink-2);text-wrap:pretty;margin-bottom:6px;}
-  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
-    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
-    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
-  .dateline b{color:var(--ink-2);font-weight:600;}
-
-  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
-    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
-    border-top:1px solid var(--rule);}
-  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
-  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
-  p{margin:10px 0;}
-  ul,ol{margin:10px 0;padding-left:20px;
-    display:flex;flex-direction:column;gap:5px;}
-  strong{font-weight:650;}
-  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
-  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
-
-  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
-    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
-  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
-    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
-  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
-
-  .tablewrap{overflow-x:auto;margin:14px 0;}
-  table{border-collapse:collapse;width:100%;font-size:13.5px;}
-  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--ink-3);text-align:left;
-    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
-  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
-    vertical-align:top;color:var(--ink-2);}
-  td:first-child{color:var(--ink);}
-
-  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
-    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
-  blockquote p{margin:6px 0;}
-  blockquote h3,blockquote h4{margin-top:8px;}
-
-  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
-  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:14px;margin-top:20px;}
-  .sitefooter a{color:var(--ink-3);}
-  .sitefooter a:hover{color:var(--accent);}
-
-  /* index cards */
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:14px;margin:22px 0;}
-  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
-    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
-    transition:border-color .15s;}
-  .card:hover{border-color:var(--accent);}
-  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
-  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
-  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
-  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
-    text-transform:uppercase;color:var(--accent);}
-
-  @media print{
-    body{background:#fff;color:#000;font-size:10pt;}
-    .page{max-width:none;padding:0;}
-    .topnav{display:none;}
-    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
-  }
-</style>
+<meta name="twitter:image" content="https://joburg.whysoserious.city/og.png">
+<link rel="stylesheet" href="css/site.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="js/theme.js"></script>
+<script defer src="js/stat-tip.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c14bef699fb74863b4db775ea910b533"}'></script>
 </head>
-<body>
+<body class="pg-doc pg-methodology">
 <div class="page">
 <nav class="topnav">
-  <a class="home" href="./">joburg.whysoserious.city</a>
-  <a href="./">forecast</a>
-  <a href="interactive">interactive</a>
-  <a class="active" href="methodology">methodology</a>
-  <a href="review">review</a>
-  <a href="sources">sources</a>
-  <a href="plan">plan</a>
-  <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
+  <a class="home" href="./" aria-label="Johannesburg election forecast — joburg.whysoserious.city"><svg class="logo" viewBox="19 87 2826 1296" aria-hidden="true" focusable="false"><use href="logo.svg#logo"></use></svg></a>
+  <div class="navlinks">
+  <span class="navgroup"><a href="forecast">our forecast</a><a href="your-forecast/">your prediction</a><a href="commentary">commentary</a><a href="claims">party claims</a></span>
+  <span class="navgroup"><a class="active" href="methodology">methodology</a><a href="review">review</a><a href="corrections">corrections</a><a href="sources">sources</a><a href="https://github.com/Psi-am-i/jhb-election-model">source code</a></span>
+  </div>
+  <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
 </nav>
+<p class="strapline">Made for the benefit of all the residents, businesses, professional and civic organisations and political parties that make our city so interesting.</p>
 <header>
   <div class="kicker">Methodology</div>
   <h1>How the model works</h1>
-  <p class="standfirst">The machinery in plain language: how the council is actually elected, how the simulation runs, what is validated — and what can only be stated honestly.</p>
+<div class="pgshare" data-pgshare>
+  <button class="btn model pgshare-open" type="button">Share</button>
+  <dialog class="sharesheet" aria-labelledby="pgshare-title">
+    <div class="dh"><h2 id="pgshare-title">Share this page</h2>
+      <button class="x" type="button" aria-label="Close">×</button></div>
+    <div class="db">
+      <div class="urlrow">
+        <input class="shurl" type="text" readonly value="" aria-label="Link to this page">
+        <button class="btn shcopy" type="button">Copy link</button>
+      </div>
+      <div class="preview"><img src="og.png" alt="The image a link to this page shows when it is shared" loading="lazy"></div>
+      <div class="shcta">
+        <button class="btn model shnative" type="button" hidden>Share…</button>
+        <a class="btn shwa" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn shx" target="_blank" rel="noopener">X</a>
+        <button class="btn shdl" type="button">Download image</button>
+      </div>
+      <p class="toast" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+  <script type="module" src="js/page-share.js"></script>
+</div>
+  <p class="standfirst">This page explains how the council is elected, how the simulation runs and what has been tested.</p>
 </header>
-<p>This page explains the machinery behind the forecast in plain language: what
-is actually being predicted, how the simulation runs, how we know the parts of
-it that <em>can</em> be tested actually work — and which parts can never be tested,
-only stated honestly. The full technical version, with every parameter and
-validation table, is
-<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md"><code>METHODOLOGY.md</code> on GitHub</a>.</p>
-<h2>How accurate is it?</h2>
-<p>It calls the official 2011, 2016 and 2021 Johannesburg council results exactly, seat for seat — and, shown only the citywide totals, calls <span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:fold-2 blind validation (MODEL-LOG 1.9)">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" title="Pinned 2026-08-04 · source: external:ward count at the 2021 delimitation">135</span> ward winners in 2021. How it was tested — and where it fell short — is set out in the <a href="review">review</a>; the inputs are listed in <a href="sources">sources</a>.</p>
-<h2>Why the model is built the way it is</h2>
-<p><strong>Seats, not vote shares</strong></p>
-<p>The council follows a statutory formula, not a percentage. The model&rsquo;s allocator reproduces the real 2011, 2016 and 2021 councils exactly — quota, vote totals, every party&rsquo;s seats — so the formula layer is not an assumption.</p>
-<p><strong>Geography is the anchor</strong></p>
-<p>Tested across election cycles: <em>where</em> a party&rsquo;s support sits transfers almost perfectly; <em>how much</em> support it has does not. So the model fits the geography once and treats each party&rsquo;s level as an explicit, bounded scenario — the honest shape of the uncertainty.</p>
-<p><strong>Parties move in blocs</strong></p>
-<p>The DA and ActionSA fight over the same voters, as do the ANC, EFF and MK. Drawing blocs first and splitting within them is why DA+ActionSA&rsquo;s combined range is far tighter than ActionSA&rsquo;s own 10–50: their errors offset. Ignoring that correlation produces impossible scenarios.</p>
-<p><strong>Turnout was tested — and demoted</strong></p>
-<p>The model was built expecting differential turnout to decide the city. Measured directly, a ten-point swing across thirty wards moves about two seats — one, under the stricter marginal-voter test. The gap to a majority is over thirty. Persuasion, not mobilisation, is the only route.</p>
-<p><strong>Why simulations, not a single prediction</strong></p>
-<p>A single forecast number would hide exactly what matters here. Johannesburg&rsquo;s politics runs on thresholds — a coalition either reaches 136 seats or it does not; a party&rsquo;s ward wins either cross its entitlement and trigger the excessive-seats clause or they do not — and near a threshold, small uncertainties have large, lopsided consequences that no error bar can carry. Simulation is the honest way through: draw every uncertain quantity from its historically observed range, run the full statutory arithmetic end to end, repeat 5,000 times, and report how often each outcome happens. It also keeps the model falsifiable: every assumption is a slider you can move, and the alternatives — a poll taken as gospel, a uniform national swing, a pundit&rsquo;s single scenario — are all special cases you can set the sliders to, and test.</p>
-<h2>How Johannesburg&rsquo;s council elections actually work</h2>
+<p>The full technical record, every file and every workaround, is in the
+<a href="https://github.com/Psi-am-i/jhb-election-model">public repository</a>.</p>
+<h2 id="how-johannesburgs-council-elections-work">How Johannesburg&rsquo;s council elections work</h2>
 <p>Johannesburg&rsquo;s council is elected on two ballots at once. On the first, 135
-ward seats are decided race by race, first past the post — if your candidate
-wins your ward, they win that seat, full stop. On the second, you vote for a
-party. It seems intuitive that the two ballots elect two separate halves of
-the council, but that isn&rsquo;t how it works. The two ballots are <strong>added
-together</strong>, and that combined share decides the <em>total</em> number of seats each
-party is entitled to. Ward wins don&rsquo;t add to a party&rsquo;s total — they fill it.
-The other 135 seats are then allocated from the party lists to top every
-party up to its entitlement. (The part almost everyone gets wrong — including
-an early version of this model&rsquo;s own plan — is thinking the party ballot
-alone sets the totals. It&rsquo;s <em>both ballots combined</em>, and for a party whose
-voters split their tickets the difference is worth real seats.)</p>
-<p>The niggle is that a party can win <em>more</em> wards than its combined share
-entitles it to. Say a small party&rsquo;s support is tightly concentrated: it wins
-3 wards outright, but its overall share of both ballots entitles it to only
-2 seats. Nobody unseats a ward winner — the party keeps all 3, and the seat
-law&rsquo;s &ldquo;excessive seats&rdquo; clause (Schedule 1, item 16, completed by a 2021
-amendment) settles the overflow: the winner receives <strong>no list seats at
-all</strong>, and the other parties&rsquo; list seats are recalculated over the seats
-that remain. The council does not grow. We did not take this on trust — we
-found the Electoral Commission&rsquo;s own published calculation applying exactly
-this in Laingsburg in 2021, where the DA won 3 of 4 wards on 23% of the
-vote. The over-winner stays slightly over-represented; the cost falls on
-everyone else.</p>
-<p>Two consequences shape everything on this site. First, the council is always
-close to proportional, so a fragmented vote produces a fragmented council.
-Second, the excessive-seats clause — and our forecast finds it is now the
-ANC&rsquo;s normal condition: a citywide vote in the mid-twenties, but stronghold
-wards that still win, roughly 73 wards against a 65-seat entitlement, in six
-of every seven simulations. Its ward count becomes an unbreakable floor, its
-list seats go to zero, and the squeeze lands on every other party&rsquo;s list
-seats — inside a council fixed at 270, with the majority fixed at 136.</p>
-<h2>What a &ldquo;bloc&rdquo; is — and what it is not</h2>
-<p>A bloc in this model is <strong>not a political alliance</strong>. It is not a coalition,
-not a pact, not a claim that these parties like each other or would govern
-together. Several of the parties grouped together here are each other&rsquo;s
-bitterest rivals, and some have ruled out working with one another entirely.</p>
-<p>A bloc is a statement about <strong>voters, not parties</strong>: a set of parties
-competing for the same people. When someone stops voting ANC, the realistic
-alternatives are usually the EFF, MK, or staying home — not the DA. When a DA
-voter defects, ActionSA is a likelier destination than the ANC. Those pools
-barely leak into each other: in the ANC bloc&rsquo;s record 2021 collapse it shed
-<span class="mstat" data-mode="fixed" data-token="bloc_leak_votes" data-when="2026-08-06" title="Pinned 2026-08-06 · source: external:MODEL-LOG 1.18 — ANC-bloc vote loss 2019 NPE to 2021 LGE">587,000</span> votes and the DA bloc captured none of them.</p>
-<p><strong>Why the model needs the idea at all.</strong> A forecast has to put uncertainty
-somewhere. If each party&rsquo;s support were drawn independently, the simulations
-would contain impossible worlds — every left-of-centre party surging at once,
-with no one losing the votes they gained. Drawing the <em>pool</em> first and then
-splitting it inside the pool keeps the arithmetic honest: one party&rsquo;s good
-night is partly another&rsquo;s bad one. It is why DA + ActionSA&rsquo;s combined range
-is far tighter than ActionSA&rsquo;s own, even though ActionSA alone is the most
-volatile party on the board.</p>
-<p><strong>How membership is decided, and how confident we are.</strong> Two things are
-measurable from the voting-district results: whether parties draw support
-from the same places, and whether their combined total is steadier than its
-parts. Both are computed per city (<code>src/bloc_signature.py</code>) rather than
-carried over from Johannesburg — the same test can give different answers in
-different cities, and does.</p>
-<p>We publish the awkward result too. In Johannesburg the ANC and EFF share
-geography strongly, exactly as the bloc idea predicts. The DA and ActionSA
-barely do — their district-level correlation is close to zero — so their
-grouping rests on the argument about where defectors go rather than on where
-the parties are strong. That is a judgement, it is visible in the
-<a href="interactive">interactive model</a> as a slider you can move, and if you think
-it is wrong you can set the bloc-crossing dial and see what changes.</p>
-<h2>The machinery of prediction</h2>
-<p>The forecast comes from running 5,000 simulations of the same pipeline:</p>
-<ol>
-<li><strong>Start from the most recent full map.</strong> The 2024 provincial ballot,
-   counted in all 865 of Johannesburg&rsquo;s voting districts, is the baseline —
-   the last complete picture of where every party&rsquo;s support sits.</li>
-<li><strong>Draw a scenario for 2026.</strong> Each run picks a citywide outcome: how far
-   the ANC&rsquo;s camp falls, how much the opposition&rsquo;s rises, how the vote splits
-   within each camp. Parties that share voters are drawn <em>together</em> — the DA
-   and ActionSA compete for the same pool, so one&rsquo;s gain is partly the
-   other&rsquo;s loss, and the same holds for the ANC, EFF and MK, who fight over a
-   pool of their own. The draws are centred on the evidence we have (fifteen
-   by-elections, the published polls) and bounded by every national-to-local
-   swing actually observed since 2006. When evidence implies something
-   history has never produced, history wins: our by-elections implied the
-   Patriotic Alliance&rsquo;s citywide vote multiplying roughly sevenfold — but
-   by-elections happened to fall in its strongholds, and strongholds are not
-   the city. The model pulls that claim back to the top of its supportable
-   range, a little more than doubling.</li>
-<li><strong>Paint the scenario onto the map.</strong> The citywide outcome is distributed
-   across the 865 districts using each party&rsquo;s own geography — where its
-   votes really were cast before. This is the model&rsquo;s best-tested idea:
-   <em>where</em> a party&rsquo;s support sits barely moves between elections, even when
-   <em>how much</em> support it has swings wildly. The geography is measured once
-   and reused; the levels are the uncertain part.</li>
-<li><strong>Turn out the voters.</strong> Each district&rsquo;s turnout is projected with its own
-   uncertainty, bounded by how much turnout has actually shifted there
-   before. One finding worth knowing: the citywide turnout <em>level</em> cannot
-   change a single seat, because the seat formula scales with it. Only
-   <em>relative</em> differences between districts matter — and contrary to what
-   you have probably heard, even large turnout shifts between districts,
-   tested directly, move a couple of seats at most.</li>
-<li><strong>Count both ballots.</strong> The ward ballot differs from the party-list
-   ballot — voters split their tickets, and we measured each party&rsquo;s split
-   from 2021. Ward winners are called race by race; list votes are tallied
-   citywide.</li>
-<li><strong>Apply the law.</strong> The statutory seat formula — the same arithmetic the
-   electoral commission uses — allocates all seats, overhang included. Then
-   every possible coalition is checked against that simulation&rsquo;s own majority
-   line: every pair of parties, every tripartite alliance, every combination
-   of the parties that won seats — with no judgement applied about who
-   <em>would</em> work with whom.</li>
-</ol>
-<p>Repeat 5,000 times, each run drawing fresh values within every variable&rsquo;s
-bounds, and the output is not a single prediction but a distribution: how
-often each seat count occurs, how often each coalition clears the bar — the
-probability of each scenario, not a guess at one.</p>
-<h2>How we know it works — and what that does not cover</h2>
-<p>Three checks matter, in increasing order of difficulty:</p>
-<p><strong>The seat law is exact.</strong> Our implementation of the seat formula reproduces
-the real, published 2011, 2016 and 2021 Johannesburg councils to the seat —
-quota, vote totals, every party — from the raw voting-district files. The
-legal arithmetic is not an assumption.</p>
-<p><strong>The geography transfers.</strong> Fitted on one election cycle and tested on the
-next, the map-painting step holds up: shown only the 2021 citywide totals —
-nothing about where the votes sat — the model placed them well enough to call
-129 of 135 ward winners.</p>
-<p><strong>But the citywide ranges cannot be validated.</strong> When the model is tested
-fully blind — told nothing about 2021 at all — its seat error grows fivefold.
-That is the honest boundary: the machinery that turns a citywide outcome into
-seats is validated; the range of citywide outcomes for 2026 is informed
-judgement, bounded by history and tilted by evidence, but judgement all the
-same. It is why the output is a distribution, why the probabilities are only
-as good as the stated assumptions — and why every one of those assumptions is
-a slider on the <a href="interactive">interactive page</a>, so you can test how much any
-conclusion depends on them.</p>
-<h2>Corrections and review</h2>
-<p>After the first version of this forecast was built, a full review found six
-implementation errors — one of which made its primary claim outright false.
-All six were fixed, and the forecast changed materially. The whole episode —
-finding the errors and repairing them — is documented on the
-<a href="review">review page</a>.</p>
-<p>We publish it because it is worth demonstrating how errors lead to
-improvement and better understanding. If you don&rsquo;t look for errors — if you
-don&rsquo;t <em>want</em> to find them — you are not trying to learn; you are actively
-avoiding improvement. A model that admits no error in its construction is
-almost guaranteed to be wrong. Good models are the product of continuous
-error-correction, each fix pushing them closer to behaving like the real
-thing they describe. They do not arrive fully formed — and a model that hides
-its mistakes, or hides from them, is refusing the chance to be better, and
-should not be trusted.</p>
-<h2>The dials you can turn</h2>
-<p>Every scenario assumption sits at a documented default, bounded by observed
-history, and adjustable on the <a href="interactive">interactive page</a>: how far each
-party&rsquo;s national support carries into a local election, how much weight the
-by-elections get, which poll you believe, how the two ballots differ, what
-turnout does, whether a brand-new party appears — and what happens to the
-council when overhang strikes. The page re-runs the full simulation in your
-browser and emits a scenario file that reproduces your settings exactly in
-the published model.</p>
-<h2>Limits worth knowing</h2>
+ward seats are decided race by race, first past the post. On the second, you
+vote for a party. The two ballots do not elect two halves of the council. They
+are <strong>added together</strong>, and the combined share decides the <em>total</em> number of
+seats each party is entitled to. Ward wins do not add to a party&rsquo;s total; they
+fill it. The other 135 seats are allocated from the party lists to top every
+party up to its entitlement. A common mistake, made in an early version of This
+Model&rsquo;s own plan, is to think the party ballot alone sets the totals. For a
+party whose voters split their tickets, the difference is worth seats.</p>
+<p>A party can win <em>more</em> wards than its combined share entitles it to. Say a
+small party with concentrated support wins 3 wards outright, but its share of
+both ballots entitles it to 2 seats. It keeps all 3. The seat law&rsquo;s &ldquo;excessive
+seats&rdquo; clause (Schedule 1, item 16, completed by a 2021 amendment) settles the
+overflow: the party receives <strong>no list seats</strong>, and the other parties&rsquo; list
+seats are recalculated over the seats that remain. The council does not grow.
+The Electoral Commission&rsquo;s own published calculation applies exactly this in
+Laingsburg in 2021, where the DA won <span class="mstat" data-mode="fixed" data-token="hist_laingsburg_da_wards" data-when="2026-08-08" data-prov="3 wards on 8 August.&#10;SOURCE: IEC 2021 results. The wards the DA won in Laingsburg in 2021." tabindex="0">3</span> of <span class="mstat" data-mode="fixed" data-token="hist_laingsburg_wards" data-when="2026-08-08" data-prov="4 wards on 8 August.&#10;SOURCE: IEC 2021 results. The wards in Laingsburg in 2021." tabindex="0">4</span> wards on <span class="mstat" data-mode="fixed" data-token="hist_laingsburg_da_share" data-when="2026-08-08" data-prov="23% on 8 August.&#10;SOURCE: IEC 2021 results. The DA&#x27;s share of the vote in Laingsburg&#x27;s 2021 local election." tabindex="0">23%</span> of the vote. The
+over-winner stays slightly over-represented; the cost falls on everyone else.</p>
+<p>Two consequences shape this site. The council is always close to proportional,
+so a fragmented vote produces a fragmented council. The excessive-seats clause
+catches the ANC in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="90%" data-prov="90% chance since 21 October.&#10;SOURCE: This Model. The % of 5,000 simulations where the excessive-seats clause applied to the ANC: it won as many wards as its votes entitle it to in seats, or more, so it got no list seats." tabindex="0">90%</span> of simulations: a citywide vote in the
+mid-twenties, with stronghold wards that still win. Where it fires, the party&rsquo;s
+ward count is a floor, its list seats go to zero, and the squeeze lands on
+every other party&rsquo;s list seats, inside a council fixed at <span class="mstat" data-mode="free" data-token="council_size" data-when="2026-08-07" data-current="270" data-prov="270 seats since 8 August.&#10;SOURCE: Municipal Structures Act. The number of seats on Johannesburg&#x27;s council, set under the act." tabindex="0">270</span> with
+the majority at <span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-current="136" data-prov="136 seats since 8 August.&#10;SOURCE: Municipal Structures Act. The seats a majority of the council needs: more than half of them." tabindex="0">136</span>.</p>
+<h2 id="the-model-step-by-step">The model, step by step</h2>
+<h3 id="1-count-who-can-vote-and-where">1. Count who can vote, and where</h3>
+<p>The Electoral Commission publishes how many people are registered in each
+ward. The forecast uses its count of registered voters as at 26 September 2026.
+The Commission counts each voting district in a single ward and publishes no
+figure per voting district. So This Model places each of Johannesburg&rsquo;s
+<span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-current="872" data-prov="872 since 26 September.&#10;SOURCE: This Model. The voting districts This Model simulates in Johannesburg." tabindex="0">872</span> voting districts wholly in the ward that best reproduces the
+Commission&rsquo;s totals, and shares each ward&rsquo;s total among its voting districts in proportion
+to their registration when the wards were drawn. That roll is This Model&rsquo;s
+foundation.</p>
+<h3 id="2-sort-those-voters-into-pools">2. Sort those voters into pools</h3>
+<p>A <strong>pool</strong> is a group of voters choosing between the same parties.</p>
+<p><strong>Where the categories come from.</strong> Johannesburg has four pools. They are
+Statistics South Africa&rsquo;s population group categories, in Stats SA&rsquo;s own words
+(<em>Black African, Coloured, Indian/Asian, White</em>), taken per ward from the
+Census 2022 Ward Statistical Product. We use their terms so that anyone can
+check the input against the published source. A fifth category, &ldquo;Other&rdquo;, is not
+carried: it is about half a percent of the population, and no party&rsquo;s rate in
+it could be identified.</p>
+<p>This is not a claim that people vote by race, or that anyone should. South
+African cities are still laid out by apartheid planning, so a voting district&rsquo;s
+population group is one of the few things in the data that distinguishes one
+group of voters from another, and the parties&rsquo; results follow it. Al Jama-ah
+takes about a fifth of one pool and almost nothing elsewhere. The Patriotic
+Alliance takes about two-fifths of another and nothing in the other three.</p>
+<p><strong>These categories are too coarse.</strong> Population group is the only ward-level
+characteristic Stats SA publishes, and it does not describe how voters group:
+the ANC and the IFP draw overwhelmingly from the same population group and
+stand on separate ground, a linguistic and regional division rather than a
+racial one. The better input is
+<strong>home language by ward</strong>, which Stats SA holds but does not publish in the
+ward product; we have requested it. Income, employment and dwelling type would
+also help, and are also request-only, since at ward level they can identify
+households. Until those arrive the forecast uses the four census pools.</p>
+<p><strong>How big is each pool?</strong> Each ward&rsquo;s registered voters, split by that ward&rsquo;s
+census population shares, summed across all 135 wards. The census gives the
+<em>proportions</em> within a ward; the roll gives the <em>number</em>. The voters&rsquo; roll does
+not record population group, so the split assumes every group in a ward
+registers at the same rate.</p>
+<h3 id="3-measure-how-each-party-does-in-each-pool">3. Measure how each party does in each pool</h3>
+<p>This step is This Model&rsquo;s statistics. We know how every ward voted and roughly what
+each ward is made of. From 135 wards at once This Model works back to how each
+party performs in each pool, as you can work out the price of apples and
+oranges from a stack of receipts without seeing inside a bag.</p>
+<p>It does this for every party at once, under two rules: no party can win a
+negative number of votes, and the votes in a pool must add up to that pool&rsquo;s
+voters. Fitting parties one at a time breaks both; an early version had a party
+winning a <em>negative</em> share of one pool.</p>
+<h3 id="4-work-out-what-might-change">4. Work out what might change</h3>
+<p>Steps 1–3 describe the last election. This step is the forecast, and it is
+uncertain, so This Model draws thousands of answers instead of picking one.</p>
+<p>Two things are drawn:</p>
 <ul>
-<li><strong>A party that does not exist yet is invisible.</strong> ActionSA went from
-  nothing to 44 seats in one cycle. The simulations carry a slot for an
-  unknown newcomer, but that is an honest patch, not foresight.</li>
-<li><strong>Overhang&rsquo;s legal fine print is untested in court or precedent.</strong> The
-  electoral commission has never published a worked example of a metro
-  overhang calculation, and with overhang now the <em>likely</em> outcome, we put the
-  question to the Commission on 5 August 2026 and are awaiting its answer —
-  but a 2021 amendment to the law and the Commission&rsquo;s own published handling
-  of Laingsburg 2021 settle the arithmetic, and the forecast applies it.</li>
-<li><strong>Arithmetic is not politics.</strong> The model says which governments are
-  numerically possible. Whether people who dislike each other will sit in
-  the same room is not a modelling question.</li>
+<li><strong>How each party&rsquo;s support moves.</strong> Parties usually do worse locally than
+  nationally. This Model measures the gap for each party from its own
+  national-to-local transitions on record. A party&rsquo;s starting level blends its
+  national result, converted down to local, with its last local result: the
+  less record a party has of that gap, the more its local result counts.
+  ActionSA polled <span class="mstat" data-mode="fixed" data-token="hist_asa_pr_2021" data-when="2026-10-03" data-prov="18.12% on 26 September.&#10;SOURCE: IEC 2021 results. ActionSA&#x27;s share of Johannesburg&#x27;s party-list ballot in the 2021 local election." tabindex="0">18.12%</span> in this city&rsquo;s 2021 local election and
+  <span class="mstat" data-mode="fixed" data-token="hist_asa_npe_2024" data-when="2026-10-03" data-prov="6.22% on 26 September.&#10;SOURCE: IEC 2024 results. ActionSA&#x27;s share of Johannesburg&#x27;s national ballot in the 2024 national election." tabindex="0">6.22%</span> in the city in the 2024 national election. It has no
+  national-to-local gap on record, so its starting level comes from its local
+  result alone. In this forecast its level is set by our judgement instead, at
+  17.6% of the list vote: This Model carries the 2021 result forward at the
+  share a typical party of its size keeps between local elections, and its
+  by-elections lift it part of the way back; we judge that ActionSA keeps more
+  of that vote than This Model does. Every other party&rsquo;s share is scaled down in proportion so
+  the shares still add up, and ActionSA keeps This Model&rsquo;s usual uncertainty
+  for a party of that size. It cannot be changed on <a href="your-forecast/">your
+  forecast</a>.</li>
+<li><strong>Turnout, per pool.</strong> It is the one unknown quantity, and it is drawn from
+  what turnout has done in that city before. Turnout fell in every group in
+  2021, so the range allows falls as well as rises.</li>
+</ul>
+<p>Recent by-elections tilt parties&rsquo; expected shares before the simulations (see <em>The
+judgement calls</em>, below).</p>
+<h3 id="5-handle-parties-that-were-not-there-last-time">5. Handle parties that were not there last time</h3>
+<p>This is the hardest part of forecasting an election. There are two kinds of
+new party, and they behave differently:</p>
+<ul>
+<li>A <strong>split</strong> is a known person leaving a known party and taking some of its
+  vote: Zuma leaving the ANC for MK, Malema for the EFF, Mashaba leaving the DA
+  for ActionSA. A split starts with a leader, a machine and a share of an
+  existing vote. It is sized as a fraction of its parent, from what previous
+  splits took. A split that has stood in a national election since, as MK did
+  in 2024, takes where its voters are from that result by ward, not from its
+  parent.</li>
+<li>An <strong>entrant</strong> is a name on a ballot with none of that. Most new parties are
+  entrants, and most get almost nothing.</li>
+</ul>
+<p>Before This Model told them apart, every party that filed candidates everywhere
+was sized like the EFF&rsquo;s 2016 breakthrough. Filing papers is cheap, and in Cape
+Town that gave parties that did not exist more votes than the entire
+electorate. Separating the two fixed it.</p>
+<p>How much a split takes depends overwhelmingly on <strong>whether the leader&rsquo;s own
+following is in this city</strong>, not on how famous the leader is. Patricia de Lille was at
+least as well known nationally in 2019 as Julius Malema was in 2014; her party
+took about one-eighteenth as much of the DA&rsquo;s vote in Johannesburg as it did in
+Cape Town.</p>
+<h3 id="6-paint-the-result-back-onto-the-map">6. Paint the result back onto the map</h3>
+<p>Each drawn outcome is spread back across all <span class="mstat" data-mode="free" data-token="n_vds" data-when="2026-09-17" data-current="872" data-prov="872 since 26 September.&#10;SOURCE: This Model. The voting districts This Model simulates in Johannesburg." tabindex="0">872</span> voting districts using
+each party&rsquo;s own geography: where its votes were last time. This is the
+best-tested idea in This Model. <em>Where</em> a party&rsquo;s support sits barely moves
+between elections, even when <em>how much</em> it has swings widely.</p>
+<h3 id="7-count-both-ballots-and-apply-the-law">7. Count both ballots and apply the law</h3>
+<p>Voters split their tickets, so the ward ballot and the party ballot are counted
+separately, each party&rsquo;s split measured from its own past behaviour. A party
+gets ward votes only in the wards where it has a candidate. A party with ward
+candidates and no party list is not on the party ballot; a ward it wins is its
+seat, and the list seats are shared among the other parties over the seats that
+remain. Ward winners are called race by race. Then the statutory formula, the arithmetic the
+Electoral Commission uses, allocates every seat, excessive seats included.</p>
+<h3 id="8-do-it-times">8. Do it <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000 since 26 September.&#10;SOURCE: This Model. The number of times This Model simulated the election." tabindex="0">5,000</span> times</h3>
+<p>Each run draws fresh values within every bound. The output is a distribution:
+how often each seat count happens, and how often each coalition clears the
+line. Every combination of parties is checked against that run&rsquo;s own majority
+line, with no judgement about who would work with whom.</p>
+<p>Johannesburg&rsquo;s politics runs on thresholds: a coalition either reaches
+<span class="mstat" data-mode="free" data-token="majority" data-when="2026-08-07" data-current="136" data-prov="136 seats since 8 August.&#10;SOURCE: Municipal Structures Act. The seats a majority of the council needs: more than half of them." tabindex="0">136</span> seats or it does not. Near a threshold, small uncertainties have
+large, lopsided consequences that a single number with an error bar cannot
+show.</p>
+<h2 id="what-a-pool-is-and-what-it-is-not">What a pool is, and what it is not</h2>
+<p>A pool is <strong>not</strong> an alliance, a coalition, or a prediction about who will
+govern with whom. It describes voters, not parties: a set of parties competing
+for the same people. The DA and ActionSA drawing from the same pool means that
+when one rises in a simulation the other tends to fall in the same places. The
+effect is a mild offset (together they vary less than they would independently),
+not a rule that one gains exactly what the other loses.</p>
+<p>It is also not a claim about why anyone votes as they do. Aggregate data can
+show that a pool of voters moved, not why. A sentence on this site that appears
+to explain a voter&rsquo;s reasoning is overreach, and we would like to hear about it.</p>
+<h2 id="how-accurate-is-it">How accurate is it?</h2>
+<p>There are three checks, in increasing order of difficulty.</p>
+<p><strong>The seat law is exact.</strong> The implementation reproduces the published councils
+to the seat (quota, vote totals, every party) for eight municipalities across
+three elections, from the raw voting-district files. One exception is
+documented: the Commission publishes every independent candidate under a single
+name, so where several stand in one ward they cannot be told apart, and we take
+the Commission&rsquo;s own count of independent ward councillors.</p>
+<p><strong>The geography transfers.</strong> <span data-asof="2026-08-04">Given only citywide
+totals for 2021, This Model placed the votes well enough to call
+<span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" data-prov="129 wards on 4 August.&#10;SOURCE: This Model. The 2021 Johannesburg ward winners This Model called correctly when forecasting that election from earlier ones." tabindex="0">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" data-prov="135 wards on 4 August.&#10;SOURCE: IEC 2021 results. The wards in Johannesburg&#x27;s 2021 election." tabindex="0">135</span> ward winners. That test was run on 4
+August 2026 and has not been re-run on the current model.</span></p>
+<p><strong>The whole model beats simple baselines.</strong> It is run on the 2021 election in
+<span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-current="8" data-prov="8 since 26 September.&#10;SOURCE: This Model. The metros where This Model forecast the 2021 election from earlier data and was scored against the result." tabindex="0">8</span> metros and wins in <strong><span class="mstat" data-mode="free" data-token="backtest_wins" data-when="2026-09-18" data-current="7" data-prov="7 since 26 September.&#10;SOURCE: This Model. The metros where This Model&#x27;s error score for the 2021 election beat the best simple forecast&#x27;s." tabindex="0">7</span></strong> of them on the measure that
+scores a forecast&rsquo;s whole range (CRPS), with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_better" data-when="2026-09-18" data-current="34%" data-prov="34% since 27 September.&#10;SOURCE: This Model. How much lower This Model&#x27;s error score was than the best simple forecast&#x27;s, summed over the metros&#x27; 2021 elections." tabindex="0">34%</span></strong> less error in
+total. Each metro against its best baseline by that measure, and the seats each
+gives to the wrong party (lower is better in every column):</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>metro</th>
+<th>model&rsquo;s error (CRPS)</th>
+<th>best baseline&rsquo;s error (CRPS)</th>
+<th>best baseline</th>
+<th>seats given to the wrong party: model</th>
+<th>seats given to the wrong party: best baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Johannesburg</td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_crps" data-when="2026-10-10" data-current="66.8" data-prov="66.8 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for Johannesburg&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">66.8</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_best_crps" data-when="2026-10-10" data-current="114.1" data-prov="114.1 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for Johannesburg&#x27;s 2021 election; lower is better." tabindex="0">114.1</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_best" data-when="2026-10-10" data-current="last result plus noise" data-prov="last result plus noise since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for Johannesburg&#x27;s 2021 election." tabindex="0">last result plus noise</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_wrong" data-when="2026-10-10" data-current="48" data-prov="48 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in Johannesburg&#x27;s 2021 election." tabindex="0">48</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_best_wrong" data-when="2026-10-10" data-current="63" data-prov="63 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in Johannesburg&#x27;s 2021 election." tabindex="0">63</span></td>
+</tr>
+<tr>
+<td>Tshwane</td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_crps" data-when="2026-10-10" data-current="27.7" data-prov="27.7 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for Tshwane&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">27.7</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_best_crps" data-when="2026-10-10" data-current="60.0" data-prov="60.0 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for Tshwane&#x27;s 2021 election; lower is better." tabindex="0">60.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for Tshwane&#x27;s 2021 election." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_wrong" data-when="2026-10-10" data-current="18" data-prov="18 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in Tshwane&#x27;s 2021 election." tabindex="0">18</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_best_wrong" data-when="2026-10-10" data-current="30" data-prov="30 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in Tshwane&#x27;s 2021 election." tabindex="0">30</span></td>
+</tr>
+<tr>
+<td>Ekurhuleni</td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_crps" data-when="2026-10-10" data-current="29.8" data-prov="29.8 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for Ekurhuleni&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">29.8</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_best_crps" data-when="2026-10-10" data-current="48.0" data-prov="48.0 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for Ekurhuleni&#x27;s 2021 election; lower is better." tabindex="0">48.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for Ekurhuleni&#x27;s 2021 election." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_wrong" data-when="2026-10-10" data-current="19" data-prov="19 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in Ekurhuleni&#x27;s 2021 election." tabindex="0">19</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_best_wrong" data-when="2026-10-10" data-current="24" data-prov="24 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in Ekurhuleni&#x27;s 2021 election." tabindex="0">24</span></td>
+</tr>
+<tr>
+<td>eThekwini</td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_crps" data-when="2026-10-10" data-current="31.0" data-prov="31.0 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for eThekwini&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">31.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_best_crps" data-when="2026-10-10" data-current="36.0" data-prov="36.0 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for eThekwini&#x27;s 2021 election; lower is better." tabindex="0">36.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for eThekwini&#x27;s 2021 election." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_wrong" data-when="2026-10-10" data-current="21" data-prov="21 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in eThekwini&#x27;s 2021 election." tabindex="0">21</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_best_wrong" data-when="2026-10-10" data-current="18" data-prov="18 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in eThekwini&#x27;s 2021 election." tabindex="0">18</span></td>
+</tr>
+<tr>
+<td>Cape Town</td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_crps" data-when="2026-10-10" data-current="34.2" data-prov="34.2 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for Cape Town&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">34.2</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_best_crps" data-when="2026-10-10" data-current="38.0" data-prov="38.0 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for Cape Town&#x27;s 2021 election; lower is better." tabindex="0">38.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for Cape Town&#x27;s 2021 election." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_wrong" data-when="2026-10-10" data-current="22" data-prov="22 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in Cape Town&#x27;s 2021 election." tabindex="0">22</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_best_wrong" data-when="2026-10-10" data-current="19" data-prov="19 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in Cape Town&#x27;s 2021 election." tabindex="0">19</span></td>
+</tr>
+<tr>
+<td>Mangaung</td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_crps" data-when="2026-10-10" data-current="9.2" data-prov="9.2 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for Mangaung&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">9.2</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_best_crps" data-when="2026-10-10" data-current="8.0" data-prov="8.0 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for Mangaung&#x27;s 2021 election; lower is better." tabindex="0">8.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for Mangaung&#x27;s 2021 election." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_wrong" data-when="2026-10-10" data-current="4" data-prov="4 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in Mangaung&#x27;s 2021 election." tabindex="0">4</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_best_wrong" data-when="2026-10-10" data-current="4" data-prov="4 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in Mangaung&#x27;s 2021 election." tabindex="0">4</span></td>
+</tr>
+<tr>
+<td>Nelson Mandela Bay</td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_crps" data-when="2026-10-10" data-current="17.1" data-prov="17.1 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for Nelson Mandela Bay&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">17.1</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_best_crps" data-when="2026-10-10" data-current="22.0" data-prov="22.0 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for Nelson Mandela Bay&#x27;s 2021 election; lower is better." tabindex="0">22.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for Nelson Mandela Bay&#x27;s 2021 election." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_wrong" data-when="2026-10-10" data-current="11" data-prov="11 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in Nelson Mandela Bay&#x27;s 2021 election." tabindex="0">11</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_best_wrong" data-when="2026-10-10" data-current="11" data-prov="11 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in Nelson Mandela Bay&#x27;s 2021 election." tabindex="0">11</span></td>
+</tr>
+<tr>
+<td>Buffalo City</td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_crps" data-when="2026-10-10" data-current="8.3" data-prov="8.3 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score for Buffalo City&#x27;s 2021 election, across 400 simulations; lower is better." tabindex="0">8.3</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_best_crps" data-when="2026-10-10" data-current="11.3" data-prov="11.3 since 10 October.&#10;SOURCE: This Model. The best simple forecast&#x27;s error score for Buffalo City&#x27;s 2021 election; lower is better." tabindex="0">11.3</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_best" data-when="2026-10-10" data-current="last result plus noise" data-prov="last result plus noise since 10 October.&#10;SOURCE: This Model. The simple forecast with the lowest error score for Buffalo City&#x27;s 2021 election." tabindex="0">last result plus noise</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_wrong" data-when="2026-10-10" data-current="6" data-prov="6 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party in Buffalo City&#x27;s 2021 election." tabindex="0">6</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_best_wrong" data-when="2026-10-10" data-current="8" data-prov="8 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party in Buffalo City&#x27;s 2021 election." tabindex="0">8</span></td>
+</tr>
+<tr>
+<td>all <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-current="8" data-prov="8 since 26 September.&#10;SOURCE: This Model. The metros where This Model forecast the 2021 election from earlier data and was scored against the result." tabindex="0">8</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_total_crps" data-when="2026-10-10" data-current="224.2" data-prov="224.2 since 10 October.&#10;SOURCE: This Model. This Model&#x27;s error score summed over the metros&#x27; 2021 elections; lower is better." tabindex="0">224.2</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_total_best_crps" data-when="2026-10-10" data-current="337.4" data-prov="337.4 since 10 October.&#10;SOURCE: This Model. The best simple forecasts&#x27; error scores summed over the metros&#x27; 2021 elections; lower is better." tabindex="0">337.4</span></td>
+<td></td>
+<td><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-current="149" data-prov="149 seats since 10 October.&#10;SOURCE: This Model. The seats This Model gave to the wrong party, summed over the metros&#x27; 2021 elections." tabindex="0">149</span></td>
+<td><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-current="177" data-prov="177 seats since 10 October.&#10;SOURCE: This Model. The seats the best simple forecast gave to the wrong party, summed over the metros&#x27; 2021 elections." tabindex="0">177</span></td>
+</tr>
+</tbody>
+</table></div>
+<p>The seat columns judge only the single most likely outcome, so their margins
+are smaller. It calls the winner in <strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-current="719" data-prov="719 wards since 27 September.&#10;SOURCE: This Model. The metro ward winners This Model called correctly in the 2021 elections." tabindex="0">719</span> of <span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-current="742" data-prov="742 wards since 26 September.&#10;SOURCE: This Model. The metro wards scored in the test against the 2021 elections." tabindex="0">742</span></strong>
+wards.</p>
+<!-- __VALIDATION_START__ -->
+<p>Every result in this section comes from the run of This Model described at its end. The forecasts and scores used as examples under <em>The technical measures</em> are made up to explain the measures; they are not results.</p>
+<h3 id="how-it-was-tested">How it was tested</h3>
+<p>Each forecast used what a forecaster had before polling day: the previous local election for its geography, the national election before it for each party&rsquo;s starting level, and the voters&rsquo; roll. It also used the 2022 census, taken after the election; <em>What this does not prove</em> says why that cannot leak a result.</p>
+<p>It was done in <strong>eight metros, not one</strong>. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted on its own wards, registration and history. The narrowest range a population group&rsquo;s turnout is given, and how closely the groups&rsquo; turnouts move together, are measured across the eight metros, Johannesburg included.</p>
+<h4 id="the-three-baselines">The three baselines</h4>
+<p>The same scoring is applied to three baselines that need no model:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>baseline</th>
+<th>what it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>last result repeats</strong></td>
+<td>assume the previous local election happens again, unchanged</td>
+</tr>
+<tr>
+<td><strong>uniform swing</strong></td>
+<td>take the national swing since the last election and apply it equally everywhere</td>
+</tr>
+<tr>
+<td><strong>last result plus noise</strong></td>
+<td>the previous result, with uncertainty added around it</td>
+</tr>
+</tbody>
+</table></div>
+<p>Uniform swing is the usual standard for judging election models, and it is hard to beat. <strong>Best baseline</strong> below means whichever of the three did best in that city.</p>
+<h3 id="the-result-city-by-city">The result, city by city</h3>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>city</th>
+<th>seats</th>
+<th>our error</th>
+<th>best baseline&rsquo;s error</th>
+<th>better by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Johannesburg</td>
+<td>270</td>
+<td><strong>66.8</strong></td>
+<td>114.1 (last result plus noise)</td>
+<td><strong>+41%</strong></td>
+</tr>
+<tr>
+<td>Tshwane</td>
+<td>214</td>
+<td><strong>27.7</strong></td>
+<td>60.0 (uniform swing)</td>
+<td><strong>+54%</strong></td>
+</tr>
+<tr>
+<td>Ekurhuleni</td>
+<td>224</td>
+<td><strong>29.8</strong></td>
+<td>48.0 (uniform swing)</td>
+<td><strong>+38%</strong></td>
+</tr>
+<tr>
+<td>eThekwini</td>
+<td>222</td>
+<td><strong>31.0</strong></td>
+<td>36.0 (uniform swing)</td>
+<td><strong>+14%</strong></td>
+</tr>
+<tr>
+<td>Cape Town</td>
+<td>231</td>
+<td><strong>34.2</strong></td>
+<td>38.0 (uniform swing)</td>
+<td><strong>+10%</strong></td>
+</tr>
+<tr>
+<td>Mangaung</td>
+<td>101</td>
+<td><strong>9.2</strong></td>
+<td>8.0 (uniform swing)</td>
+<td>-15%</td>
+</tr>
+<tr>
+<td>Nelson Mandela Bay</td>
+<td>120</td>
+<td><strong>17.1</strong></td>
+<td>22.0 (uniform swing)</td>
+<td><strong>+22%</strong></td>
+</tr>
+<tr>
+<td>Buffalo City</td>
+<td>100</td>
+<td><strong>8.3</strong></td>
+<td>11.3 (last result plus noise)</td>
+<td><strong>+26%</strong></td>
+</tr>
+<tr>
+<td><strong>all eight</strong></td>
+<td></td>
+<td><strong>224.2</strong></td>
+<td>337.4</td>
+<td><strong>+34%</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="what-it-forecast-for-2021-against-what-happened">What it forecast for 2021, against what happened</h3>
+<p>The largest parties in each city, by seats won in 2021; the note under each table says how many are shown. Our figure is the middle of the range This Model produced, not its best case.</p>
+<h4 id="johannesburg-270-seats">Johannesburg — 270 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>91</td>
+<td>105</td>
+<td>+14</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>71</td>
+<td>89</td>
+<td>+18</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>44</td>
+<td>15</td>
+<td>-29</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>29</td>
+<td>36</td>
+<td>+7</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>8</td>
+<td>0</td>
+<td>-8</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>7</td>
+<td>3</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>4</td>
+<td>2</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>3</td>
+<td>1</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>Al Jama-ah</td>
+<td>3</td>
+<td>1</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>African Heart Congress</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>APC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>COPE</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>GOOD</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UDM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UIM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>96 seats out in total — across every party that stood, not only the 18 shown above.</em></p>
+<h4 id="tshwane-214-seats">Tshwane — 214 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>75</td>
+<td>79</td>
+<td>+4</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>69</td>
+<td>71</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>23</td>
+<td>29</td>
+<td>+6</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>19</td>
+<td>11</td>
+<td>-8</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>17</td>
+<td>10</td>
+<td>-7</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>COPE</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Dop</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>GOOD</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Rct</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>36 seats out in total — across every party that stood, not only the 15 shown above.</em></p>
+<h4 id="ekurhuleni-224-seats">Ekurhuleni — 224 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>86</td>
+<td>98</td>
+<td>+12</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>65</td>
+<td>66</td>
+<td>+1</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>31</td>
+<td>31</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>15</td>
+<td>7</td>
+<td>-8</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>8</td>
+<td>6</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>4</td>
+<td>1</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>3</td>
+<td>1</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>3</td>
+<td>1</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>COPE</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Independent</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Independent</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>NFP</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UDM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>38 seats out in total — across every party that stood, not only the 16 shown above.</em></p>
+<h4 id="ethekwini-222-seats">eThekwini — 222 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>96</td>
+<td>103</td>
+<td>+7</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>59</td>
+<td>63</td>
+<td>+4</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>24</td>
+<td>22</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>IFP</td>
+<td>16</td>
+<td>10</td>
+<td>-6</td>
+</tr>
+<tr>
+<td>ActionSA</td>
+<td>4</td>
+<td>2</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>Abantu Batho</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Active Citiz</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>African Demo</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>African Peop</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Al Jama-ah</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Democratic L</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>Justice And</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Kzn Independ</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Minorities O</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Minority Fro</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>NFP</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>People S Fre</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>People S Rev</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Truly Allian</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UIM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>41 seats out in total — across every party that stood, not only the 24 shown above.</em></p>
+<h4 id="cape-town-231-seats">Cape Town — 231 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DA</td>
+<td>135</td>
+<td>141</td>
+<td>+6</td>
+</tr>
+<tr>
+<td>ANC</td>
+<td>43</td>
+<td>53</td>
+<td>+10</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>10</td>
+<td>11</td>
+<td>+1</td>
+</tr>
+<tr>
+<td>GOOD</td>
+<td>9</td>
+<td>7</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>Cape Coloure</td>
+<td>7</td>
+<td>0</td>
+<td>-7</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>6</td>
+<td>5</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>4</td>
+<td>0</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>4</td>
+<td>2</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>Al Jama-ah</td>
+<td>3</td>
+<td>2</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Africa Resto</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>Cape Indepen</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Cape Muslim</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Democratic I</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UDM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UIM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>44 seats out in total — across every party that stood, not only the 17 shown above.</em></p>
+<h4 id="mangaung-101-seats">Mangaung — 101 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>51</td>
+<td>51</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>26</td>
+<td>25</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>12</td>
+<td>11</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>5</td>
+<td>4</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Afrikan Alli</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>8 seats out in total — across every party that stood, not only the 9 shown above.</em></p>
+<h4 id="nelson-mandela-bay-120-seats">Nelson Mandela Bay — 120 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>48</td>
+<td>46</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>48</td>
+<td>54</td>
+<td>+6</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>8</td>
+<td>9</td>
+<td>+1</td>
+</tr>
+<tr>
+<td>Northern All</td>
+<td>3</td>
+<td>0</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>2</td>
+<td>1</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>Dop</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>PA</td>
+<td>2</td>
+<td>0</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>2</td>
+<td>2</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>Abantu Integ</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>GOOD</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UDM</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>22 seats out in total — across every party that stood, not only the 13 shown above.</em></p>
+<h4 id="buffalo-city-100-seats">Buffalo City — 100 seats</h4>
+<div class="tablewrap"><table class="figures">
+<thead>
+<tr>
+<th>party</th>
+<th>actually won</th>
+<th>our forecast</th>
+<th>out by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ANC</td>
+<td>61</td>
+<td>57</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>20</td>
+<td>22</td>
+<td>+2</td>
+</tr>
+<tr>
+<td>EFF</td>
+<td>13</td>
+<td>10</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>ACDP</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>AIC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>ATM</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>PAC</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>UDM</td>
+<td>1</td>
+<td>1</td>
+<td>+0</td>
+</tr>
+<tr>
+<td>VF+</td>
+<td>1</td>
+<td>0</td>
+<td>-1</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>12 seats out in total — across every party that stood, not only the 9 shown above.</em></p>
+<h3 id="the-technical-measures-in-plain-language">The technical measures, in plain language</h3>
+<p>Three measures appear above, and they measure different things.</p>
+<p><strong>Seats out</strong> adds up how many seats the forecast got wrong for each party. It is easy to read, and it ignores most of what a forecast says: it looks only at the single most likely outcome, not the range around it.</p>
+<p><strong>CRPS</strong> (the continuous ranked probability score) is the number in the comparison table. It scores the <em>whole range</em> a forecast gives, not just its midpoint. Saying &ldquo;between 85 and 95 seats&rdquo; and being right scores better than saying &ldquo;exactly 90&rdquo; and being right, and a confident wrong answer is punished more than a hedged one. Lower is better; zero is perfect. It is in seats: a CRPS of 45 across a 270-seat council is a small error.</p>
+<p><strong>Calling the ward</strong> is the hardest and most direct test: 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.</p>
+<p>Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in This Model&rsquo;s favour.</p>
+<h3 id="what-this-does-not-prove">What this does not prove</h3>
+<p><strong>These are not fully out-of-sample scores, and every run says so.</strong> At least one input could not be confined to the period before the election; the run prints the full list above its results:</p>
+<ul>
+<li><strong>The census.</strong> Ward-level population-group shares come from the 2022 census, taken after the 2021 election; it is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result. It is still information from after the fact, and is declared as such.</li>
+</ul>
+<p><strong>How much a breakaway party takes was a leak until 14 August 2026.</strong> When a well-known figure leaves a party and starts their own, how much of the old party&rsquo;s vote follows depends mostly on whether that figure&rsquo;s support is in <em>this</em> city. Only one such split had happened anywhere before 2021. This Model used to fill that gap with splits from after 2021, including MK&rsquo;s three years later, which flattered these scores. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg&rsquo;s figure is worse for it.</p>
+<p>Read the scores as an estimate of what the machinery is worth, not as a sealed prediction made in 2021.</p>
+<p><strong>In one city the model loses.</strong> Uniform swing beats it in Mangaung, the smallest council in the set.</p>
+<p><strong>The past is not the future.</strong> Scoring well against 2021 does not guarantee 2026. Every party in this table existed in 2021. A party that has never stood before is the hardest thing to forecast, and the model&rsquo;s weakest area.</p>
+<hr />
+<p><em>Tested on 30 September 2026 against an earlier version of This Model, on 400 simulations per city of the 2021 election.</em></p>
+<!-- __VALIDATION_END__ -->
+
+<!-- __JUDGEMENTS_START__ -->
+
+<!-- Written by src/judgement_sheet.py from the Plain fields in JUDGEMENT-CALLS.md. Edit those; this region is regenerated by the site build. -->
+
+<h2 id="the-judgement-calls">The judgement calls</h2>
+<p>These are choices about how This Model works that the data did not make for us. Each is filed, with its evidence, in the <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/JUDGEMENT-CALLS.md">register of judgement calls</a>.</p>
+<p><strong>No poll is used.</strong> There is no designed rule yet for how several polls combine. With polls in, the forecast moves toward the polls the rules admit; what that was worth when measured is under <em>Where polls fit</em>, below. On <a href="your-forecast/">your forecast</a> you can pick one poll at a time and choose how far to believe it.</p>
+<p><strong>The largest parties are pulled down.</strong> Before the simulations are drawn, each party&rsquo;s expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement This Model has had. The smallest parties are now forecast slightly too high. It cannot be changed on <a href="your-forecast/">your forecast</a>.</p>
+<p><strong>How far each party&rsquo;s support can move.</strong> Each party&rsquo;s simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far This Model&rsquo;s expected shares missed in the past elections before this one. Part of each simulation&rsquo;s move is shared by all parties. It cannot be changed on <a href="your-forecast/">your forecast</a>.</p>
+<p><strong>How much recent by-elections count.</strong> Each party&rsquo;s expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Tested on the 2021 election in the eight metros, equal weight gave the smallest error in the party-list vote, with weights a little either side close behind; that is one election&rsquo;s test. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model&rsquo;s usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane&rsquo;s are not yet read. On <a href="your-forecast/">your forecast</a> you can make by-elections count not at all or fully.</p>
+<p><strong>New parties and by-elections.</strong> A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on <a href="your-forecast/">your forecast</a> does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.</p>
+<p><strong>Turnout moves together across population groups.</strong> In each simulation, turnout in the four population groups rises and falls together, to one degree for every pair: the average of how closely each pair&rsquo;s turnout moved between past local elections in the metros. Black African, Coloured and White turnout have moved closely together, and Indian/Asian turnout much less. Separate figures for each pair have not been tried. Removing the link was tested and changed the forecast&rsquo;s spread very little, and why it matters so little is not yet explained. It cannot be changed on <a href="your-forecast/">your forecast</a>.</p>
+<p><strong>The excessive-seats clause.</strong> The clause is applied as amended in 2021, with the arithmetic the Commission used in Laingsburg in 2021 (see <em>How Johannesburg&rsquo;s council elections work</em>). No court has ruled on it. <a href="your-forecast/">Your forecast</a> applies three versions of Germany&rsquo;s seat law instead; two of them enlarge the council and move the majority line.</p>
+<p><strong>Expected turnout starts at 2021.</strong> Each population group&rsquo;s expected turnout is its turnout at the 2021 local election. Its range is as wide as that group&rsquo;s turnout has swung across Johannesburg&rsquo;s local elections since 2000. How turnout differs between voting districts is set about half by each district&rsquo;s own 2021 turnout and half by a projection from how far its turnout fell from the national to the local election in 2016 and 2021, with 2021 counting for 70%. That weight comes from This Model&rsquo;s original plan and has never been tested. On <a href="your-forecast/">your forecast</a> you can move the turnout of any or all four population groups at once. A group you leave alone stays at the forecast&rsquo;s turnout.</p>
+<p><strong>What a merger keeps.</strong> When parties merge, or one stands down for another, and only one of them is on the ballot, it inherits 75% of the other&rsquo;s previous vote. The rest goes to the parties that compete for the same voters, as any absent party&rsquo;s vote does. In 2026 ActionSA inherits from Forum 4 Service Delivery, and Rise Mzansi from GOOD. No merger in the record shows how much carries over, so the share is a judgement; a review in September that was not shown our reasoning recommended 50%. A lower share moves the inheriting party down. It cannot be changed on <a href="your-forecast/">your forecast</a>.</p>
+<!-- __JUDGEMENTS_END__ -->
+
+<h2 id="what-this-does-not-cover">What this does not cover</h2>
+<ul>
+<li><strong>A party that does not exist yet is the hardest case.</strong> Splits and entrants
+  are sized separately from the record, but a new formation with a popular
+  leader remains the largest single source of error.</li>
+<li><strong>Overhang&rsquo;s legal fine print is untested in court.</strong> The Commission has never
+  published a worked metro overhang example. We put the question to it on 5
+  August 2026 and have no answer yet. A 2021 amendment and the Commission&rsquo;s own
+  handling of Laingsburg 2021 settle the arithmetic, and the forecast applies
+  it.</li>
+<li><strong>No poll is used in the forecast.</strong> Polls were an input until 12 September
+  2026 and are not one now. Why they were taken out, what they were worth, and
+  what is planned are under <em>Where polls fit</em>, below.</li>
+<li><strong>Small parties&rsquo; range is wider than the record.</strong> In the simulations, a
+  party that is established but small sometimes reaches a share no such party
+  has reached in the record. In the eight metros&rsquo; consecutive local elections
+  from 2006 to 2021, <span class="mstat" data-mode="fixed" data-token="small_party_record_cases" data-when="2026-10-10" data-prov="337 on 22 October.&#10;SOURCE: IEC local election results. The times, in the eight metros&#x27; local elections from 2006 to 2021, that a party had under 1% of the party-list vote at one election, each counted against the next; a party that did not stand at the next counts at 0." tabindex="0">337</span> times a party had under <span class="mstat" data-mode="free" data-token="small_party_share" data-when="2026-10-10" data-current="1%" data-prov="1% since 10 October.&#10;SOURCE: This Model. The share of the party-list vote under which a party counts as small, in the test of past local elections." tabindex="0">1%</span> of the list vote at
+  one election, and none reached <span class="mstat" data-mode="free" data-token="small_party_surge_share" data-when="2026-10-10" data-current="5%" data-prov="5% since 10 October.&#10;SOURCE: This Model. The share of the party-list vote a small party must pass at the next election to count as having surged." tabindex="0">5%</span> at the next (<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md">model log, §1.296</a>).
+  In this forecast, <span class="mstat" data-mode="free" data-token="small_party_surge" data-when="2026-10-10" data-current="0.7%" data-prov="0.7% chance since 21 October.&#10;SOURCE: This Model. The % of 5,000 simulations where a party that stood in 2021 and averages under 1% of the party-list vote takes more than 5%." tabindex="0">0.7%</span> of the simulations give at least one such
+  party more than <span class="mstat" data-mode="free" data-token="small_party_surge_share" data-when="2026-10-10" data-current="5%" data-prov="5% since 10 October.&#10;SOURCE: This Model. The share of the party-list vote a small party must pass at the next election to count as having surged." tabindex="0">5%</span>. A fix is in progress.</li>
+<li><strong>Arithmetic is not politics.</strong> This Model says which governments are
+  numerically possible, not which will form.</li>
+</ul>
+<h2 id="where-polls-fit">Where polls fit</h2>
+<p>Polls were an input to the forecast until 12 September 2026. Since then, none
+is.</p>
+<p><strong>If the forecast ever differs from a no-polls model, this section is out of
+date and the forecast is what to believe.</strong></p>
+<h3 id="why-they-were-taken-out">Why they were taken out</h3>
+<p>There was no designed answer to how several polls should combine: how much two
+waves from one house count against one wave from another, how a party-internal
+poll is discounted, how a national poll and a metro poll combine. The weighting
+was defensible one poll at a time and improvised across several. The channel is
+off until that is designed. Removing polls is not a judgement that they are
+worthless.</p>
+<h3 id="what-they-were-worth-measured">What they were worth, measured</h3>
+<p>The aim is to score <span class="mstat" data-mode="fixed" data-token="backtest_target" data-when="2026-09-17" data-prov="24 on 26 September.&#10;SOURCE: This Model. The past metro elections This Model aims to be tested on: every metro in 2011, 2016 and 2021." tabindex="0">24</span> past city elections across the country,
+eight metros with three elections each; how many are in the panel on a given
+day depends on which have been prepared. Against the panel as it stood,
+removing polls changed the total seat error from
+<span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_before" data-when="2026-09-12" data-prov="725 seats on 26 September.&#10;SOURCE: This Model. The seats This Model&#x27;s forecasts were off by in its test against past metro elections, counted for every party and added up, with polls in the forecast." tabindex="0">725</span> to <span class="mstat" data-mode="fixed" data-token="polls_off_seat_err_after" data-when="2026-09-12" data-prov="723 seats on 26 September.&#10;SOURCE: This Model. The seats This Model&#x27;s forecasts were off by in its test against past metro elections, counted for every party and added up, with polls taken out." tabindex="0">723</span> and the
+distributional score (CRPS) from <span class="mstat" data-mode="fixed" data-token="polls_off_crps_before" data-when="2026-09-12" data-prov="545.8 on 26 September.&#10;SOURCE: This Model. This Model&#x27;s error score in its test against past metro elections, with polls in the forecast; lower is better." tabindex="0">545.8</span> to
+<span class="mstat" data-mode="fixed" data-token="polls_off_crps_after" data-when="2026-09-12" data-prov="541.4 on 26 September.&#10;SOURCE: This Model. This Model&#x27;s error score in its test against past metro elections, with polls taken out; lower is better." tabindex="0">541.4</span>. Both moved the right way and neither by much: seven
+elections moved at all, one of them by six seats <em>against</em> the change. <strong>The
+poll channel&rsquo;s contribution cannot be distinguished from zero.</strong> That is a
+reason not to let it move a published headline while its design is unsettled.</p>
+<h3 id="what-we-intend">What we intend</h3>
+<p>We intend to use every poll received and to put the weighting in the
+reader&rsquo;s hands.
+<a href="your-forecast/">Your forecast</a> has a first version: you choose how far to trust
+each poll, and the published simulations are re-weighted in your browser. The
+published forecast uses no poll.</p>
+<h3 id="why-polls-are-read-with-caution">Why polls are read with caution</h3>
+<p>The polls that exist disagree with each other by more than the quantity being
+forecast: one house had the DA on <span class="mstat" data-mode="fixed" data-token="poll_srf_q2_da" data-when="2026-10-03" data-prov="42% on 26 September.&#10;SOURCE: Social Research Foundation. The DA&#x27;s share in the Social Research Foundation&#x27;s Johannesburg poll published on 5 August 2026." tabindex="0">42%</span> and the ANC on <span class="mstat" data-mode="fixed" data-token="poll_srf_q2_anc" data-when="2026-10-03" data-prov="18% on 26 September.&#10;SOURCE: Social Research Foundation. The ANC&#x27;s share in the Social Research Foundation&#x27;s Johannesburg poll published on 5 August 2026." tabindex="0">18%</span> in the same year
+another had the ANC on <span class="mstat" data-mode="fixed" data-token="poll_ipsos_w2_anc" data-when="2026-10-03" data-prov="35% on 26 September.&#10;SOURCE: Ipsos. The ANC&#x27;s share in Ipsos&#x27;s Khayabus poll of the metros&#x27; residents, first quarter of 2026." tabindex="0">35%</span> and the DA on <span class="mstat" data-mode="fixed" data-token="poll_ipsos_w2_da" data-when="2026-10-03" data-prov="25% on 26 September.&#10;SOURCE: Ipsos. The DA&#x27;s share in Ipsos&#x27;s Khayabus poll of the metros&#x27; residents, first quarter of 2026." tabindex="0">25%</span>. Metro-level polling has little
+track record here to weight it by; pre-2021 polling missed ActionSA in this
+city by about ten points. Every poll we hold is listed, with its caveats, and
+This Model is read against them as an outside check. They are not, at present,
+an input.</p>
+<h2 id="corrections-and-review">Corrections and review</h2>
+<p>After the first version of this forecast was built, a review found six
+implementation errors, one of which made its main claim false. All six were
+fixed, and the forecast changed materially. The errors and the repairs are on
+the <a href="review">review page</a>. Errors that reached readers since are on the
+<a href="corrections">corrections page</a>.</p>
+<h2 id="going-deeper">Going deeper</h2>
+<p>The code, the data recipes, the log of findings and mistakes, and the known
+defects in the public records This Model depends on are published:</p>
+<ul>
+<li><a href="https://github.com/Psi-am-i/jhb-election-model">the repository</a></li>
+<li><code>MODEL-LOG.md</code>: every finding, obstacle and decision, in order, including the
+  ones that went badly</li>
+<li><code>DATA-QUALITY.md</code>: defects in the official published records, with the ward
+  and the arithmetic for each</li>
+<li><code>SOURCES.md</code>: where every input came from and how to fetch it again</li>
 </ul>
 <div class="colophon">
-  Reader edition, generated from docs-public/methodology.md on 2026-08-08. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, generated from docs-public/methodology.md on 2026-10-22. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
+  <div class="foot-text">
+  <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="https://www.statssa.gov.za/">Stats SA</a>. Ward and voting-district boundaries from the <a href="https://spatialhub-mdb-sa.opendata.arcgis.com/">Municipal Demarcation Board</a>. Raw election results from the <a href="https://results.elections.org.za/">IEC</a>. <a href="https://github.com/Psi-am-i/jhb-election-model">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
+  <hr class="foot-rule">
+  <div class="foot-independence">
+    <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+  </div>
+  </div>
+  <div class="foot-side"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="0 0 1969 1002" aria-hidden="true" focusable="false"><use href="whysoseriouscity.svg#wsc"></use></svg></a>
+    <a class="foot-support" href="support">Support Our Work</a>
+  </div>
 </footer>
 </div>
 </body>

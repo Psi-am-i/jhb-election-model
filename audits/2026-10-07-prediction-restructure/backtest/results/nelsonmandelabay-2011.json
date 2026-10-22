@@ -1,0 +1,63 @@
+{
+ "city": "nelsonmandelabay",
+ "year": "2011",
+ "draws": 1000,
+ "council": 120,
+ "wards": 60,
+ "A": {
+  "seats": {
+   "COPE": 20,
+   "ANC": 54,
+   "PAC": 1,
+   "AZAPO": 1,
+   "UDM": 1,
+   "VFPLUS": 1,
+   "ACDP": 1,
+   "ENTRANT": 1,
+   "DA": 40
+  },
+  "seat_err": 34.0,
+  "wards_ok": 59,
+  "ward_vote_err_pp": 29.638521139894742,
+  "list_vote_err_pp": 29.83697557397129,
+  "top": "ANC",
+  "top_wards": 35,
+  "top_actual_wards": 34,
+  "excessive": {},
+  "council": 120,
+  "ward_wins": {
+   "DA": 25,
+   "ANC": 35
+  }
+ },
+ "B": {
+  "draw": 448,
+  "seats": {
+   "ACDP": 1,
+   "ANC": 57,
+   "COPE": 22,
+   "DA": 40
+  },
+  "seat_err": 32.0,
+  "wards_ok": 59,
+  "ward_vote_err_pp": 26.566209416396468,
+  "list_vote_err_pp": 27.900038643266896
+ },
+ "median_seat_err": 33.0,
+ "median_total": 111.0,
+ "coherent_seat_err": 34.0,
+ "actual": {
+  "seats": {
+   "COPE": 6,
+   "ANC": 63,
+   "PAC": 1,
+   "UDM": 1,
+   "ACDP": 1,
+   "DA": 48
+  },
+  "ward_wins": {
+   "DA": 26,
+   "ANC": 34
+  }
+ }
+}

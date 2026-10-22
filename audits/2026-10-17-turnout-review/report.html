@@ -1,0 +1,194 @@
+<title>Joburg Turnout Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+/* Layout: one reading column; tables break wider in their own scroller. Findings carry a severity stripe. */
+:root {
+  --bg: #f7f8f6; --surface: #ffffff; --fg: #1d221f; --muted: #66706a; --rule: #d9ddd8;
+  --bad: #b3402b; --warn: #b07a12; --ok: #1f7a46; --accent: #2f5d8a;
+  --display: "IBM Plex Serif", Georgia, serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #151816; --surface: #1d211f; --fg: #e7ebe8; --muted: #9aa49e; --rule: #333a36;
+  --bad: #ef7a62; --warn: #e2b04a; --ok: #4cc282; --accent: #7fb0e0; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #151816; --surface: #1d211f; --fg: #e7ebe8; --muted: #9aa49e; --rule: #333a36;
+  --bad: #ef7a62; --warn: #e2b04a; --ok: #4cc282; --accent: #7fb0e0; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px; }
+h1 { font: 600 2rem/1.15 var(--display); margin: 0 0 8px; text-wrap: balance; }
+h2 { font: 600 1.4rem/1.2 var(--display); margin: 48px 0 8px; text-wrap: balance; }
+h3 { font: 600 1.05rem/1.3 var(--body); margin: 0 0 6px; text-wrap: balance; }
+p, li { max-width: 70ch; }
+p { margin: 0 0 12px; }
+.lede { color: var(--muted); }
+.date { font: 500 .85rem var(--mono); color: var(--muted); letter-spacing: .03em; margin-bottom: 16px; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 20px 0; }
+.summary div { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--warn); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+.summary div.bad { border-left-color: var(--bad); }
+.summary div.ok { border-left-color: var(--ok); }
+.summary b { display: block; font: 600 .75rem var(--body); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.finding { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--warn); border-radius: 6px; padding: 16px 18px; margin: 14px 0; }
+.finding.bad { border-left-color: var(--bad); }
+.finding.ok { border-left-color: var(--ok); }
+.finding p:last-child { margin-bottom: 0; }
+.tag { display: inline-block; font: 600 .7rem var(--body); letter-spacing: .07em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; border: 1px solid currentColor; margin-bottom: 8px; }
+.tag.bad { color: var(--bad); } .tag.warn { color: var(--warn); } .tag.ok { color: var(--ok); }
+.scroll { overflow-x: auto; margin: 8px 0 10px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; background: var(--surface); font-size: .93rem; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; vertical-align: top; }
+th { font: 600 .75rem var(--body); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); vertical-align: bottom; }
+td:first-child, th:first-child { text-align: left; }
+td.wrapcell { white-space: normal; text-align: left; min-width: 220px; }
+.note { font-size: .88rem; color: var(--muted); }
+ol.steps { padding-left: 1.3em; display: grid; gap: 8px; }
+ol.steps li::marker { font-family: var(--mono); color: var(--muted); }
+.decide { background: var(--surface); border: 2px solid var(--accent); border-radius: 8px; padding: 18px 20px; margin: 18px 0; }
+.decide ol { padding-left: 1.3em; display: grid; gap: 10px; margin: 8px 0 0; }
+code { font: .88em var(--mono); }
+a { color: var(--accent); }
+</style>
+
+<div class="wrap">
+<h1>Johannesburg turnout review</h1>
+<div class="date">17 October 2026 · model as of 16 October (turnout enters the vote)</div>
+<p class="lede">This review covers how the model forecasts turnout and how it can be improved. Three separate checks were run: a step-by-step audit of the code, a measurement of the turnout forecast against the 24 past metro elections (8 metros, 2011, 2016 and 2021), and a decomposition of real results into the part due to turnout and the rest. A forecasting reviewer then judged the evidence without being told our conclusions. All four agree on every finding below. No model code was changed and nothing was published. The live site still shows the 29 September forecast.</p>
+
+<div class="summary">
+  <div class="bad"><b>The 2026 move</b>The new model's shift toward the ANC is a side effect of how the turnout ranges are shaped, not evidence about turnout.</div>
+  <div class="bad"><b>City-wide turnout</b>The forecast missed by 9.5 points on average, no better than repeating the last local election. The miss does not reach vote shares or seats.</div>
+  <div class="ok"><b>The idea</b>Turnout differences between areas move results in reality. Building that in was right.</div>
+  <div class="bad"><b>Turnout control</b>Fed the real turnout, the model gets worse. Turnout scenarios on the site are not usable.</div>
+</div>
+
+<h2>How turnout is forecast now</h2>
+<ol class="steps">
+  <li><b>Each voting district's turnout.</b> The district's turnout at the 2024 national election, times how much its turnout dropped from each national election to the following local one (2016 and 2021, the later weighted 70%). That figure is averaged half and half with the district's own 2021 turnout pattern.</li>
+  <li><b>Each population group's turnout.</b> Estimated from ward results and census population (Black African, Coloured, Indian/Asian, White). Groups are not counted at the ballot box, so these are estimates with no stated uncertainty.</li>
+  <li><b>A range per group.</b> Centred on the group's 2021 turnout, with a width from how much turnout has moved across all metros' past elections.</li>
+  <li><b>Each simulation</b> draws one turnout per group from its range (the groups move together, partly), adds random noise per district, and casts each district's votes at that turnout.</li>
+  <li><b>The city-wide vote</b> is the sum of the district votes. Before 16 October it was pinned to a fixed total, so turnout moved votes between wards but changed no party's city-wide share.</li>
+</ol>
+
+<h2>What is wrong</h2>
+
+<div class="finding bad">
+  <span class="tag bad">Wrong now</span>
+  <h3>The shift toward the ANC comes from the shape of the turnout range</h3>
+  <p>Each group's range is even on a scale that stretches near 0% and 100%, but turnout is drawn from it as a triangle in plain percentages. On that scale the range is lopsided, so the average draw sits above the 2021 figure for any group under 50% turnout and below it for any group over 50%. The 2021 figure is where the model sets its starting vote, so this pushes the vote in a direction no evidence chose.</p>
+  <div class="scroll"><table>
+    <tr><th>Johannesburg 2026, by group</th><th>2021 turnout (range centre)</th><th>average draw</th><th>difference, points</th></tr>
+    <tr><td>Black African</td><td>36.4%</td><td>37.2%</td><td>+0.8</td></tr>
+    <tr><td>Coloured</td><td>54.3%</td><td>53.4%</td><td>−1.0</td></tr>
+    <tr><td>Indian/Asian</td><td>40.8%</td><td>44.3%</td><td>+3.5</td></tr>
+    <tr><td>White</td><td>52.7%</td><td>52.4%</td><td>−0.3</td></tr>
+  </table></div>
+  <p>The model run again with only this removed (each group's average draw equal to its 2021 figure; 2,000 simulations on the same seed):</p>
+  <div class="scroll"><table>
+    <tr><th>Johannesburg 2026</th><th>model of 16 October</th><th>range shape removed</th></tr>
+    <tr><td>DA average list share</td><td>26.03%</td><td>26.31%</td></tr>
+    <tr><td>ANC average list share</td><td>24.06%</td><td>23.88%</td></tr>
+    <tr><td>DA average seats</td><td>69.7</td><td>70.3</td></tr>
+    <tr><td>ANC largest party on its own</td><td>60.8%</td><td>58.0%</td></tr>
+    <tr><td>DA largest party on its own</td><td>31.5%</td><td>34.1%</td></tr>
+    <tr><td>Net turnout effect on the DA's share</td><td>−0.25 points</td><td>+0.04 points</td></tr>
+  </table></div>
+  <p>The last report gave the ANC's chance of being the largest party as 56% before 16 October and 61% after. Removing the shape takes back about 3 of those 5 points. The rest comes from a separate part of the same change: the spreads were re-fitted, the DA's wider (list-share spread 3.8 to 4.2 points) and the EFF's and ActionSA's narrower (3.1 to 2.3, and 3.0 to 2.2). With the shape removed, turnout has almost no net effect on the average forecast. The push favours the ANC in every metro. In past results, Black African turnout fell relative to White turnout at 18 of the 24 past elections. These group turnouts are estimates from ward results, not counts.</p>
+  <p class="note">The group figures were re-derived for this report. The run with the shape removed was done once by the audit and not repeated.</p>
+</div>
+
+<div class="finding bad">
+  <span class="tag bad">Wrong now</span>
+  <h3>The improvement against past elections came from the same side effect</h3>
+  <p>The 16 October change cut the average list-vote error across the 24 past elections from 3.21 to 3.15 points, better at 15 of 24. A count of 15 of 24 happens by chance about a third of the time. The model had already over-forecast the DA in 2016 and 2021, so any fixed nudge away from the DA scores better there. This is not evidence that the change is right.</p>
+</div>
+
+<div class="finding">
+  <span class="tag warn">Weak, but harmless to shares</span>
+  <h3>The city-wide turnout forecast has no skill</h3>
+  <p>Real turnout minus forecast turnout, city-wide, averaged over the 8 metros:</p>
+  <div class="scroll"><table>
+    <tr><th>Election</th><th>average miss, points</th><th>range across metros</th><th>Johannesburg forecast</th><th>Johannesburg real</th></tr>
+    <tr><td>2011</td><td>+13.1</td><td>+7.3 to +16.5</td><td>38.6%</td><td>55.1%</td></tr>
+    <tr><td>2016</td><td>+6.9</td><td>+3.8 to +11.3</td><td>49.7%</td><td>57.2%</td></tr>
+    <tr><td>2021</td><td>−8.4</td><td>−2.3 to −11.5</td><td>52.0%</td><td>42.7%</td></tr>
+  </table></div>
+  <p>The average size of the miss is 9.45 points. Assuming each city repeats its last local turnout misses by 9.46. Almost all of the error is shared across metros in a given year. Raising or lowering every district's turnout together changes no share, no ward winner and no seat, so this miss reaches only a published turnout figure. What reaches the vote is which districts and groups turn out relative to each other.</p>
+  <p class="note">The Johannesburg 2021 figures (52.0% forecast, 42.7% real) were re-derived from the raw results for this report.</p>
+</div>
+
+<div class="finding">
+  <span class="tag warn">Biased</span>
+  <h3>The district forecast under-predicts turnout where the DA is strong</h3>
+  <p>Turnout forecast error in DA-majority districts minus ANC-majority districts, averaged over the 8 metros: +5.1 points (2011), +4.2 (2016), +1.3 (2021). The part built from the national-to-local drop gives the worst district pattern of the three tested at 22 of the 24 past elections. Repeating each district's last local turnout pattern does better.</p>
+</div>
+
+<div class="finding ok">
+  <span class="tag ok">Supported by the record</span>
+  <h3>Turnout differences between districts move results</h3>
+  <p>Each district's previous vote held fixed, the new election's turnout applied: the change in the DA's city-wide share from turnout alone, averaged over the 8 metros.</p>
+  <div class="scroll"><table>
+    <tr><th>From → to</th><th>DA change from turnout alone, points</th><th>metros where positive</th><th>Johannesburg</th></tr>
+    <tr><td>Local 2011 → local 2016</td><td>+1.3 to +1.5</td><td>7 of 8</td><td>+1.2 to +1.4</td></tr>
+    <tr><td>Local 2016 → local 2021</td><td>+1.5 to +1.6</td><td>7 of 8</td><td>+0.7 to +0.8</td></tr>
+    <tr><td>National 2014 → local 2016</td><td>+2.3</td><td>8 of 8</td><td>+2.8</td></tr>
+    <tr><td>National 2019 → local 2021</td><td>+2.7</td><td>8 of 8</td><td>+3.0</td></tr>
+  </table></div>
+  <p class="note">Ranges show two independent calculations that differ slightly in method. The Johannesburg national 2019 → local 2021 figure was re-derived for this report.</p>
+  <p>Within a district, the change in a party's share barely follows the change in turnout: at most 0.2 share points per turnout point, with mixed signs. As far as district results can show, the people who stay home vote like those who come out. The old model, where turnout changed no party's city-wide share, was wrong about the world.</p>
+</div>
+
+<div class="finding bad">
+  <span class="tag bad">Probably counted twice</span>
+  <h3>Fed real turnout, the model gets worse</h3>
+  <p>Given each past election's real district turnout instead of its own forecast, the average list-vote error rose from 3.15 to 3.63 points, better at only 6 of 24. The DA moved up by 1 to 3 points at the 2016 elections, where it was already forecast too high.</p>
+  <p>The likeliest reason: the model's starting vote comes from national results scaled by how each party's share changed from national to local elections in the past. That scaling already contains the turnout effect in the table above (+1.8 to +2.7 points to the DA each time). Adding real turnout on top applies it a second time. Supporting this, the turnout shift does not line up with the model's errors (correlation −0.07 for the DA over 24 elections). The group turnout estimates add part of the worsening, about 0.2 of the 0.5 points.</p>
+  <p>This is argued, not tested. A party-specific turnout effect inside each group is not ruled out, though district results bound it as small. The test that separates the two is item 2 below.</p>
+</div>
+
+<div class="finding">
+  <span class="tag warn">Too narrow</span>
+  <h3>The turnout ranges are narrower than the record they are built from</h3>
+  <p>The range's edge is set at the 90th percentile of past turnout movement, but a triangle puts 90% of its draws inside about two-thirds of that. Real city-wide turnout fell inside the model's 90% range at 13 of 24 past elections, and the gap between Black African and White turnout at 15 of 24. A well-calibrated range would catch about 21.</p>
+</div>
+
+<div class="finding">
+  <span class="tag warn">Smaller defects</span>
+  <h3>Found by the code audit</h3>
+  <ul>
+    <li>The step that splits each district's vote between groups stops at its round limit before it settles; a group's votes can be off by up to 4.7% in a district. The documentation says the error is 0.06%.</li>
+    <li>Group turnout counts valid list votes; district turnout counts all ballots cast. Two definitions for one quantity.</li>
+    <li>The district turnout pattern is calculated in two places.</li>
+    <li>The 2011 ranges for Coloured turnout, fitted on 2006 census data, are implausible (Buffalo City 3.2%, Tshwane 15.4%, against 53% and 43% real).</li>
+    <li>Several documented effects of the turnout noise were measured under the mechanism that was replaced. Re-measured: the noise moves average shares by at most 0.002 points.</li>
+  </ul>
+</div>
+
+<h2>How it can be improved, in order</h2>
+<p>Each item names the real-election test that would accept or reject it. Each would be written down before it is run.</p>
+<div class="scroll"><table>
+  <tr><th>#</th><th>Change</th><th>Test against past elections</th><th>Cost</th></tr>
+  <tr><td>1</td><td class="wrapcell"><b>Remove the range-shape side effect.</b> Draw so each group's average equals its starting turnout.</td><td class="wrapcell">None needed to justify it. Expected: the list-vote error goes back up by about 0.06 points, recorded as known debt.</td><td>Hours</td></tr>
+  <tr><td>2</td><td class="wrapcell"><b>Stop counting turnout twice.</b> Rebuild the national-to-local scaling on shares with the turnout effect taken out, so real turnout can be added once.</td><td class="wrapcell">Rerun the real-turnout test. If double counting is the cause, real turnout now beats the model's own forecast overall and at 14 or more of 24 past elections. If it still loses, the cause is inside the groups.</td><td>Days</td></tr>
+  <tr><td>3</td><td class="wrapcell"><b>Size the ranges from the record.</b> Fit the spread of turnout movement and how the groups move together. Check the gap between groups against districts that are mostly one group, which are close to counts.</td><td class="wrapcell">Real turnout inside the 90% range at 19 or more of 24 past elections, against 13 and 15 now.</td><td>About a day</td></tr>
+  <tr><td>4</td><td class="wrapcell"><b>District pattern: lean on the last local election.</b> Weight each district's 2021 pattern more than the national-to-local drop.</td><td class="wrapcell">District turnout error falls at held-out elections and the DA-area bias shrinks toward zero.</td><td>Low</td></tr>
+  <tr><td>5</td><td class="wrapcell"><b>A city-wide turnout figure with an honest range,</b> or none. Base it on how local turnout has related to national turnout in past cycles.</td><td class="wrapcell">Real turnout inside the stated 90% range at about 21 of 24.</td><td>Low</td></tr>
+  <tr><td>6</td><td class="wrapcell"><b>Group turnout estimates:</b> one definition, a stated uncertainty, and the unstable ones pulled toward the metro average.</td><td class="wrapcell">Predicts turnout in districts that are mostly one group, at held-out elections.</td><td>Medium</td></tr>
+  <tr><td>7</td><td class="wrapcell"><b>Re-fit the spreads with the forecast's own turnout step.</b> The spreads are fitted on past elections adjusted for turnout by a simpler city-wide calculation than the one the forecast uses, so turnout error may sit in both the spread and the turnout draws.</td><td class="wrapcell">List-share spread and 90% coverage over the 24 past elections, with and without the turnout adjustment.</td><td>Medium</td></tr>
+  <tr><td>8</td><td class="wrapcell"><b>Fix the smaller defects</b> listed above.</td><td class="wrapcell">Each corrected figure re-measured and recorded.</td><td>Low</td></tr>
+</table></div>
+<p class="note">A turnout effect that differs by party inside each group is held back unless item 2 fails. The record bounds it as small, and fitting it risks tuning the model to its own output.</p>
+
+<h2>Options for the forecast</h2>
+<div class="decide">
+  <p>The reviewer recommends option A. The record cannot tell options A and B apart on the average forecast, because once the range-shape effect is removed turnout's net effect is close to zero.</p>
+  <ol>
+    <li><b>A. Keep turnout in the vote, with item 1 applied.</b> The turnout control is withdrawn or marked untested, and nothing that depends on turnout scenarios is published until item 2 has been tested. Johannesburg 2026 moves back toward the DA by about 0.3 points of list share and 0.6 seats.</li>
+    <li><b>B. Return to the model before 16 October</b> (a fixed city-wide total). That model is equally untested on turnout, and wrong in assuming turnout changes no party's share.</li>
+    <li><b>C. Hold publication until items 1 and 2 are done</b> and the real-turnout test passes.</li>
+  </ol>
+</div>
+<p class="note">Evidence, scripts and the reviewer's full report: <code>audits/2026-10-17-turnout-review/</code> in the repository. Findings recorded in the model log, 17 October.</p>
+</div>

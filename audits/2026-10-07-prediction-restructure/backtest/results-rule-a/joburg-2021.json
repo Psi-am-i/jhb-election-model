@@ -1,0 +1,44 @@
+{
+ "city": "joburg",
+ "year": "2021",
+ "draws": 1000,
+ "council": 270,
+ "wards": 135,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "AIC": 2,
+   "ALJAMAAH": 1,
+   "ANC": 104,
+   "APC": 1,
+   "ASA": 16,
+   "ATM": 1,
+   "AZAPO": 1,
+   "BLACK_FIRST_LAND_FIRST": 1,
+   "COPE": 1,
+   "DA": 90,
+   "EFF": 38,
+   "GOOD": 1,
+   "IFP": 5,
+   "PA": 1,
+   "PAC": 1,
+   "UDM": 1,
+   "VFPLUS": 3
+  },
+  "seat_err": 86.0,
+  "wards_ok": 127,
+  "ward_vote_err_pp": 32.08679473822008,
+  "list_vote_err_pp": 35.67605614849231,
+  "top": "ANC",
+  "top_wards": 86,
+  "top_actual_wards": 87,
+  "excessive": {},
+  "council": 270,
+  "ward_wins": {
+   "ANC": 86,
+   "DA": 48,
+   "IFP": 1
+  }
+ }
+}

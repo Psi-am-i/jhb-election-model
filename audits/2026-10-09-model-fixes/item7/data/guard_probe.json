@@ -1,0 +1,661 @@
+{
+ "live_2026": {
+  "population": 293,
+  "with_record": 109,
+  "margins": {
+   "rise": {
+    "Black African": 0.18282277398764912,
+    "Coloured": 0.38323959151395115,
+    "Indian/Asian": 0.8518420574750829,
+    "White": 0.18869024844066778
+   },
+   "proven": {
+    "Black African": 0.12268656385035824,
+    "Coloured": 0.11192919833468894,
+    "Indian/Asian": 0.010269738394087135,
+    "White": 0.04946635301973316
+   }
+  },
+  "fires": {
+   "none": {
+    "pairs_firing": 254,
+    "draws_with_any": 1.0,
+    "top": {
+     "SERVICE_DELIVERY_PARTY|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "LABOUR_PARTY_OF_SOUTH_AFRICA|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "ALL_CITIZENS_PARTY|Black African": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0005
+     },
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "MINORITY_FRONT|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "PEOPLE_OF_JOBURG|Black African": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "INDEPENDENT_CITIZENS_MOVEMENT|Black African": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "EKHETHU_PEOPLES_PARTY|Black African": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     }
+    }
+   },
+   "rise": {
+    "pairs_firing": 14,
+    "draws_with_any": 0.7175,
+    "top": {
+     "PA|Coloured": {
+      "draw_frac": 0.69,
+      "thr": 0.8123,
+      "median": 0.88
+     },
+     "EFF|Black African": {
+      "draw_frac": 0.0125,
+      "thr": 0.3875,
+      "median": 0.1483
+     },
+     "MK|Black African": {
+      "draw_frac": 0.01,
+      "thr": 0.3917,
+      "median": 0.1166
+     },
+     "IFP|Black African": {
+      "draw_frac": 0.01,
+      "thr": 0.2245,
+      "median": 0.0163
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Black African": {
+      "draw_frac": 0.0075,
+      "thr": 0.1828,
+      "median": 0.0081
+     },
+     "MK|White": {
+      "draw_frac": 0.005,
+      "thr": 0.2995,
+      "median": 0.0453
+     },
+     "ASA|Black African": {
+      "draw_frac": 0.005,
+      "thr": 0.4442,
+      "median": 0.1234
+     },
+     "ALL_CITIZENS_PARTY|Black African": {
+      "draw_frac": 0.0025,
+      "thr": 0.1828,
+      "median": 0.0005
+     }
+    }
+   },
+   "proven": {
+    "pairs_firing": 124,
+    "draws_with_any": 0.995,
+    "top": {
+     "PA|Coloured": {
+      "draw_frac": 0.9725,
+      "thr": 0.541,
+      "median": 0.88
+     },
+     "ALJAMAAH|Indian/Asian": {
+      "draw_frac": 0.4325,
+      "thr": 0.1991,
+      "median": 0.1821
+     },
+     "ALL_CITIZENS_PARTY|Indian/Asian": {
+      "draw_frac": 0.225,
+      "thr": 0.0103,
+      "median": 0.0011
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Indian/Asian": {
+      "draw_frac": 0.065,
+      "thr": 0.0103,
+      "median": 0.0
+     },
+     "EFF|Black African": {
+      "draw_frac": 0.0625,
+      "thr": 0.3273,
+      "median": 0.1483
+     },
+     "VFPLUS|White": {
+      "draw_frac": 0.06,
+      "thr": 0.0912,
+      "median": 0.012
+     },
+     "MK|White": {
+      "draw_frac": 0.055,
+      "thr": 0.1603,
+      "median": 0.0453
+     },
+     "ALL_CITIZENS_PARTY|White": {
+      "draw_frac": 0.0475,
+      "thr": 0.0495,
+      "median": 0.0007
+     }
+    }
+   }
+  },
+  "pa_da": {
+   "none": {
+    "PA|Coloured": {
+     "draw_frac": 0.9975,
+     "thr": 0.429,
+     "median": 0.88
+    },
+    "PA|Black African": {
+     "draw_frac": 0.0375,
+     "thr": 0.0411,
+     "median": 0.0
+    },
+    "PA|White": {
+     "draw_frac": 0.015,
+     "thr": 0.0522,
+     "median": 0.0
+    },
+    "PA|Indian/Asian": null,
+    "MK|Black African": {
+     "draw_frac": 0.1575,
+     "thr": 0.2089,
+     "median": 0.1166
+    }
+   },
+   "rise": {
+    "PA|Coloured": {
+     "draw_frac": 0.69,
+     "thr": 0.8123,
+     "median": 0.88
+    },
+    "PA|Black African": {
+     "draw_frac": 0.0025,
+     "thr": 0.2239,
+     "median": 0.0
+    },
+    "PA|White": null,
+    "PA|Indian/Asian": null,
+    "MK|Black African": {
+     "draw_frac": 0.01,
+     "thr": 0.3917,
+     "median": 0.1166
+    }
+   },
+   "proven": {
+    "PA|Coloured": {
+     "draw_frac": 0.9725,
+     "thr": 0.541,
+     "median": 0.88
+    },
+    "PA|Black African": {
+     "draw_frac": 0.005,
+     "thr": 0.1637,
+     "median": 0.0
+    },
+    "PA|White": {
+     "draw_frac": 0.005,
+     "thr": 0.1017,
+     "median": 0.0
+    },
+    "PA|Indian/Asian": null,
+    "MK|Black African": {
+     "draw_frac": 0.0225,
+     "thr": 0.3316,
+     "median": 0.1166
+    }
+   }
+  }
+ },
+ "x12_2026": {
+  "population": 293,
+  "with_record": 109,
+  "margins": {
+   "rise": {
+    "Black African": 0.18282277398764912,
+    "Coloured": 0.38323959151395115,
+    "Indian/Asian": 0.8518420574750829,
+    "White": 0.18869024844066778
+   },
+   "proven": {
+    "Black African": 0.12268656385035824,
+    "Coloured": 0.11192919833468894,
+    "Indian/Asian": 0.010269738394087135,
+    "White": 0.04946635301973316
+   }
+  },
+  "fires": {
+   "none": {
+    "pairs_firing": 251,
+    "draws_with_any": 1.0,
+    "top": {
+     "SERVICE_DELIVERY_PARTY|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "ALL_CITIZENS_PARTY|Black African": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "AFRICAN_RENAISSANCE_UNITY|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Black African": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.001
+     },
+     "ALL_CITIZENS_PARTY|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0001
+     },
+     "PEOPLE_OF_JOBURG|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     }
+    }
+   },
+   "rise": {
+    "pairs_firing": 9,
+    "draws_with_any": 1.0,
+    "top": {
+     "PA|Coloured": {
+      "draw_frac": 1.0,
+      "thr": 0.8123,
+      "median": 0.9998
+     },
+     "PA|Black African": {
+      "draw_frac": 0.95,
+      "thr": 0.2239,
+      "median": 0.4122
+     },
+     "PA|White": {
+      "draw_frac": 0.8725,
+      "thr": 0.2409,
+      "median": 0.3707
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Black African": {
+      "draw_frac": 0.005,
+      "thr": 0.1828,
+      "median": 0.001
+     },
+     "BOSA|Black African": {
+      "draw_frac": 0.005,
+      "thr": 0.2003,
+      "median": 0.0001
+     },
+     "BOSA|White": {
+      "draw_frac": 0.0025,
+      "thr": 0.2213,
+      "median": 0.0002
+     },
+     "ATM|Black African": {
+      "draw_frac": 0.0025,
+      "thr": 0.1887,
+      "median": 0.0
+     },
+     "IFP|Black African": {
+      "draw_frac": 0.0025,
+      "thr": 0.2245,
+      "median": 0.0058
+     }
+    }
+   },
+   "proven": {
+    "pairs_firing": 98,
+    "draws_with_any": 1.0,
+    "top": {
+     "PA|Coloured": {
+      "draw_frac": 1.0,
+      "thr": 0.541,
+      "median": 0.9998
+     },
+     "PA|Black African": {
+      "draw_frac": 0.9975,
+      "thr": 0.1637,
+      "median": 0.4122
+     },
+     "PA|White": {
+      "draw_frac": 0.9975,
+      "thr": 0.1017,
+      "median": 0.3707
+     },
+     "PA|Indian/Asian": {
+      "draw_frac": 0.9425,
+      "thr": 0.2297,
+      "median": 0.4247
+     },
+     "ALL_CITIZENS_PARTY|Indian/Asian": {
+      "draw_frac": 0.1425,
+      "thr": 0.0103,
+      "median": 0.0001
+     },
+     "ALJAMAAH|Indian/Asian": {
+      "draw_frac": 0.115,
+      "thr": 0.1991,
+      "median": 0.1029
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Indian/Asian": {
+      "draw_frac": 0.03,
+      "thr": 0.0103,
+      "median": 0.0
+     },
+     "ALL_CITIZENS_PARTY|White": {
+      "draw_frac": 0.0225,
+      "thr": 0.0495,
+      "median": 0.0001
+     }
+    }
+   }
+  },
+  "pa_da": {
+   "none": {
+    "PA|Coloured": {
+     "draw_frac": 1.0,
+     "thr": 0.429,
+     "median": 0.9998
+    },
+    "PA|Black African": {
+     "draw_frac": 1.0,
+     "thr": 0.0411,
+     "median": 0.4122
+    },
+    "PA|White": {
+     "draw_frac": 1.0,
+     "thr": 0.0522,
+     "median": 0.3707
+    },
+    "PA|Indian/Asian": {
+     "draw_frac": 0.9575,
+     "thr": 0.2195,
+     "median": 0.4247
+    },
+    "MK|Black African": {
+     "draw_frac": 0.0275,
+     "thr": 0.2089,
+     "median": 0.0553
+    }
+   },
+   "rise": {
+    "PA|Coloured": {
+     "draw_frac": 1.0,
+     "thr": 0.8123,
+     "median": 0.9998
+    },
+    "PA|Black African": {
+     "draw_frac": 0.95,
+     "thr": 0.2239,
+     "median": 0.4122
+    },
+    "PA|White": {
+     "draw_frac": 0.8725,
+     "thr": 0.2409,
+     "median": 0.3707
+    },
+    "PA|Indian/Asian": null,
+    "MK|Black African": null
+   },
+   "proven": {
+    "PA|Coloured": {
+     "draw_frac": 1.0,
+     "thr": 0.541,
+     "median": 0.9998
+    },
+    "PA|Black African": {
+     "draw_frac": 0.9975,
+     "thr": 0.1637,
+     "median": 0.4122
+    },
+    "PA|White": {
+     "draw_frac": 0.9975,
+     "thr": 0.1017,
+     "median": 0.3707
+    },
+    "PA|Indian/Asian": {
+     "draw_frac": 0.9425,
+     "thr": 0.2297,
+     "median": 0.4247
+    },
+    "MK|Black African": null
+   }
+  }
+ },
+ "reverted_PA_at_record": {
+  "population": 293,
+  "with_record": 109,
+  "margins": {
+   "rise": {
+    "Black African": 0.18282277398764912,
+    "Coloured": 0.38323959151395115,
+    "Indian/Asian": 0.8518420574750829,
+    "White": 0.18869024844066778
+   },
+   "proven": {
+    "Black African": 0.12268656385035824,
+    "Coloured": 0.11192919833468894,
+    "Indian/Asian": 0.010269738394087135,
+    "White": 0.04946635301973316
+   }
+  },
+  "fires": {
+   "none": {
+    "pairs_firing": 259,
+    "draws_with_any": 1.0,
+    "top": {
+     "SERVICE_DELIVERY_PARTY|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "UMPHAKATHI_WARONA|Coloured": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "AFRIKA_MAYIBUYE_MOVEMENT|Coloured": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "LABOUR_PARTY_OF_SOUTH_AFRICA|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "ALL_CITIZENS_PARTY|Black African": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0006
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Coloured": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "MOVE_SA|Coloured": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     },
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS|White": {
+      "draw_frac": 1.0,
+      "thr": 0.0,
+      "median": 0.0
+     }
+    }
+   },
+   "rise": {
+    "pairs_firing": 8,
+    "draws_with_any": 0.0525,
+    "top": {
+     "EFF|Black African": {
+      "draw_frac": 0.0225,
+      "thr": 0.3875,
+      "median": 0.1517
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Black African": {
+      "draw_frac": 0.01,
+      "thr": 0.1828,
+      "median": 0.0074
+     },
+     "MK|Black African": {
+      "draw_frac": 0.005,
+      "thr": 0.3917,
+      "median": 0.1086
+     },
+     "ASA|Black African": {
+      "draw_frac": 0.005,
+      "thr": 0.4442,
+      "median": 0.1292
+     },
+     "DUDULA|Black African": {
+      "draw_frac": 0.0025,
+      "thr": 0.1847,
+      "median": 0.0
+     },
+     "PA|Coloured": {
+      "draw_frac": 0.0025,
+      "thr": 0.8123,
+      "median": 0.4141
+     },
+     "UNITED_AFRICANS_TRANSFORMATION|Black African": {
+      "draw_frac": 0.0025,
+      "thr": 0.1854,
+      "median": 0.0
+     },
+     "UDM|Black African": {
+      "draw_frac": 0.0025,
+      "thr": 0.1871,
+      "median": 0.0
+     }
+    }
+   },
+   "proven": {
+    "pairs_firing": 126,
+    "draws_with_any": 0.925,
+    "top": {
+     "ALJAMAAH|Indian/Asian": {
+      "draw_frac": 0.5625,
+      "thr": 0.1991,
+      "median": 0.212
+     },
+     "ALL_CITIZENS_PARTY|Indian/Asian": {
+      "draw_frac": 0.21,
+      "thr": 0.0103,
+      "median": 0.0006
+     },
+     "PA|Coloured": {
+      "draw_frac": 0.165,
+      "thr": 0.541,
+      "median": 0.4141
+     },
+     "EFF|Black African": {
+      "draw_frac": 0.0525,
+      "thr": 0.3273,
+      "median": 0.1517
+     },
+     "ALL_CITIZENS_PARTY|White": {
+      "draw_frac": 0.05,
+      "thr": 0.0495,
+      "median": 0.0006
+     },
+     "VFPLUS|White": {
+      "draw_frac": 0.0475,
+      "thr": 0.0912,
+      "median": 0.0087
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Black African": {
+      "draw_frac": 0.0425,
+      "thr": 0.1227,
+      "median": 0.0074
+     },
+     "SOUTH_AFRICAN_COMMUNIST_PARTY|Indian/Asian": {
+      "draw_frac": 0.0425,
+      "thr": 0.0103,
+      "median": 0.0
+     }
+    }
+   }
+  },
+  "pa_da": {
+   "none": {
+    "PA|Coloured": {
+     "draw_frac": 0.455,
+     "thr": 0.429,
+     "median": 0.4141
+    },
+    "PA|Black African": null,
+    "PA|White": null,
+    "PA|Indian/Asian": null,
+    "MK|Black African": {
+     "draw_frac": 0.1375,
+     "thr": 0.2089,
+     "median": 0.1086
+    }
+   },
+   "rise": {
+    "PA|Coloured": {
+     "draw_frac": 0.0025,
+     "thr": 0.8123,
+     "median": 0.4141
+    },
+    "PA|Black African": null,
+    "PA|White": null,
+    "PA|Indian/Asian": null,
+    "MK|Black African": {
+     "draw_frac": 0.005,
+     "thr": 0.3917,
+     "median": 0.1086
+    }
+   },
+   "proven": {
+    "PA|Coloured": {
+     "draw_frac": 0.165,
+     "thr": 0.541,
+     "median": 0.4141
+    },
+    "PA|Black African": null,
+    "PA|White": null,
+    "PA|Indian/Asian": null,
+    "MK|Black African": {
+     "draw_frac": 0.02,
+     "thr": 0.3316,
+     "median": 0.1086
+    }
+   }
+  }
+ }
+}

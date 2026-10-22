@@ -1,0 +1,71 @@
+{
+ "city": "tshwane",
+ "year": "2016",
+ "draws": 1000,
+ "council": 214,
+ "wards": 107,
+ "A": {
+  "seats": {
+   "APC": 1,
+   "PAC": 1,
+   "AGANG": 1,
+   "EFF": 22,
+   "DA": 89,
+   "ACDP": 2,
+   "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 1,
+   "UNITED_FRONT_OF_CIVICS": 1,
+   "FORUM_4_SERVICE_DELIVERY": 1,
+   "UDM": 1,
+   "ANC": 88,
+   "AFRICAN_MANDATE_CONGRESS": 1,
+   "VFPLUS": 5
+  },
+  "seat_err": 18.0,
+  "wards_ok": 104,
+  "ward_vote_err_pp": 7.086542736805105,
+  "list_vote_err_pp": 7.39016335833121,
+  "top": "ANC",
+  "top_wards": 67,
+  "top_actual_wards": 68,
+  "excessive": {},
+  "council": 214,
+  "ward_wins": {
+   "DA": 40,
+   "ANC": 67
+  }
+ },
+ "B": {
+  "draw": 448,
+  "seats": {
+   "ACDP": 1,
+   "AGANG": 1,
+   "ANC": 93,
+   "DA": 91,
+   "EFF": 22,
+   "FORUM_4_SERVICE_DELIVERY": 1,
+   "VFPLUS": 5
+  },
+  "seat_err": 14.0,
+  "wards_ok": 103,
+  "ward_vote_err_pp": 5.678260496489072,
+  "list_vote_err_pp": 7.086261063507275
+ },
+ "median_seat_err": 15.0,
+ "median_total": 209.0,
+ "coherent_seat_err": 16.0,
+ "actual": {
+  "seats": {
+   "EFF": 25,
+   "DA": 93,
+   "COPE": 1,
+   "PAC": 1,
+   "ACDP": 1,
+   "ANC": 89,
+   "VFPLUS": 4
+  },
+  "ward_wins": {
+   "DA": 39,
+   "ANC": 68
+  }
+ }
+}

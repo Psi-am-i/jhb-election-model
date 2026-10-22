@@ -1,0 +1,51 @@
+/* THE ONE SHARE SHEET (src/js/share-dialog.js), on every page that has one:
+   each site page's (the share button by its title, build_site.share_button,
+   js/page-share.js) and the two on "Your forecast" (interactive/js/
+   share-sheet.js), which add the name, the seal and the image picker in
+   interactive/css/your-forecast.css. Every rule is under the dialog's class,
+   `sharesheet`: `sheet` is the forecast pages' column (page-sheet.css). */
+
+/* the button by the page title */
+.pgshare{margin:12px 0 4px;}
+.pgshare .pgshare-open{min-height:38px;padding:8px 16px;}
+.pgshare-more-row{margin:14px 0 2px;}
+.pgshare-more{min-height:38px;padding:8px 16px;}
+
+/* the dialog */
+/* sized by its border box whatever the page's own rule (the forecast
+   sheet's pages are content-box), so the phone's bottom sheet fits the screen */
+dialog.sharesheet,dialog.sharesheet *,dialog.sharesheet *::before,dialog.sharesheet *::after{box-sizing:border-box;}
+dialog.sharesheet{margin:auto;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);padding:0;
+  border-radius:6px;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);
+  font-family:var(--sans);font-size:15px;line-height:1.6;}
+dialog.sharesheet::backdrop{background:rgba(0,0,0,.55);}
+dialog.sharesheet .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);}
+dialog.sharesheet .dh h2{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.2;
+  color:var(--ink);margin:0;padding:0;border:0;}
+dialog.sharesheet .db{padding:16px;overflow:auto;}
+dialog.sharesheet .x{background:none;border:0;color:var(--ink-3);cursor:pointer;width:40px;height:40px;
+  font-size:22px;line-height:1;border-radius:4px;}
+dialog.sharesheet .x:hover{color:var(--ink);}
+@media (max-width:559px){
+  dialog.sharesheet{margin:auto 0 0;width:100vw;max-width:100vw;border-radius:12px 12px 0 0;
+    border-bottom:0;max-height:92dvh;}
+}
+@media (prefers-reduced-motion: no-preference){
+  dialog.sharesheet[open]{animation:rise .18s ease-out;}
+  @keyframes rise{from{transform:translateY(12px);opacity:0;}to{transform:none;opacity:1;}}
+}
+
+/* the image, the link, the ways to share (the site's `cta` is its large
+   button, components.css: a different thing, so a different name) */
+.sharesheet .preview{border:1px solid var(--rule-soft);background:var(--paper-2);display:flex;justify-content:center;
+  padding:8px;margin:0 0 12px;}
+.sharesheet .preview img{max-width:100%;max-height:44dvh;height:auto;display:block;}
+.sharesheet .urlrow{display:flex;gap:6px;margin:10px 0;}
+/* the field itself is the site's (components.css); here only its place and face */
+.sharesheet .urlrow input{flex:1;min-width:0;font-family:var(--mono);font-size:12.5px;}
+.sharesheet .shcta{display:flex;flex-direction:column;gap:8px;}
+@media (min-width:560px){.sharesheet .shcta{flex-direction:row;flex-wrap:wrap;}}
+.sharesheet a.btn,.sharesheet a.btn:hover{color:var(--ink);text-decoration:none;}
+.sharesheet .toast{font-size:13px;color:var(--good);min-height:1.4em;margin:0;}
+.pgshare .sharesheet .toast{margin-top:8px;}

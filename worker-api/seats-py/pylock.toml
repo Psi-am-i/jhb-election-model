@@ -1,0 +1,13 @@
+lock-version = "1.0"
+created-by = "uv"
+requires-python = ">=3.13.2"
+
+[[packages]]
+name = "numpy"
+version = "2.2.5"
+wheels = [{ url = "https://cdn.jsdelivr.net/pyodide/v0.28.3/full/numpy-2.2.5-cp313-cp313-pyodide_2025_0_wasm32.whl", hashes = { sha256 = "3db3c4f3e0448f4d62a85c262692f1260ccd8a91335442bd2442f21ffeddb558" } }]
+
+[[packages]]
+name = "workers-runtime-sdk"
+version = "1.9.2"
+wheels = [{ url = "https://files.pythonhosted.org/packages/60/71/5a3f9e9832a92672ef2794161ad0fa3de5c58b482d6b4da853736ce9e762/workers_runtime_sdk-1.9.2-py3-none-any.whl", upload-time = 2026-09-30T13:34:06Z, size = 38653, hashes = { sha256 = "f928e20afddaaf01f216b3ced8884ca1e7675681bb44692add753317fc9ce89d" } }]

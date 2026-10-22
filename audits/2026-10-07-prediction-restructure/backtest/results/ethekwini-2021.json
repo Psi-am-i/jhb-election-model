@@ -1,0 +1,99 @@
+{
+ "city": "ethekwini",
+ "year": "2021",
+ "draws": 1000,
+ "council": 222,
+ "wards": 111,
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "VFPLUS": 1,
+   "IFP": 12,
+   "GOOD": 1,
+   "ASA": 3,
+   "AIC": 2,
+   "DA": 64,
+   "ATM": 1,
+   "ALJAMAAH": 1,
+   "DEMOCRATIC_LIBERAL_CONGRESS": 1,
+   "ANC": 102,
+   "EFF": 24,
+   "MINORITY_FRONT": 2,
+   "JUSTICE_AND_EMPLOYMENT_PARTY": 1,
+   "PAC": 1,
+   "NFP": 1,
+   "APC": 1,
+   "AFRICAN_MANTUNGWA_COMMUNITY": 1,
+   "BLACK_FIRST_LAND_FIRST": 1
+  },
+  "seat_err": 34.0,
+  "wards_ok": 110,
+  "ward_vote_err_pp": 19.851424201213497,
+  "list_vote_err_pp": 15.37824952550978,
+  "top": "ANC",
+  "top_wards": 76,
+  "top_actual_wards": 75,
+  "excessive": {},
+  "council": 222,
+  "ward_wins": {
+   "ANC": 76,
+   "DA": 33,
+   "IFP": 2
+  }
+ },
+ "B": {
+  "draw": 534,
+  "seats": {
+   "ACDP": 1,
+   "ANC": 107,
+   "ASA": 1,
+   "ATM": 1,
+   "DA": 67,
+   "EFF": 23,
+   "IFP": 18,
+   "JUSTICE_AND_EMPLOYMENT_PARTY": 1,
+   "MINORITY_FRONT": 2,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 1
+  },
+  "seat_err": 46.0,
+  "wards_ok": 107,
+  "ward_vote_err_pp": 26.89943569602022,
+  "list_vote_err_pp": 21.723248723077653
+ },
+ "median_seat_err": 40.0,
+ "median_total": 202.0,
+ "coherent_seat_err": 34.0,
+ "actual": {
+  "seats": {
+   "ACDP": 2,
+   "TRULY_ALLIANCE": 1,
+   "VFPLUS": 1,
+   "IFP": 16,
+   "MINORITIES_OF_SOUTH_AFRICA": 1,
+   "PEOPLE_S_REVOLUTIONARY_MOVEMENT": 1,
+   "ASA": 4,
+   "DA": 59,
+   "AIC": 2,
+   "ATM": 1,
+   "KZN_INDEPENDENCE": 1,
+   "ALJAMAAH": 1,
+   "AFRICAN_PEOPLE_FIRST": 1,
+   "DEMOCRATIC_LIBERAL_CONGRESS": 1,
+   "AFRICAN_DEMOCRATIC_CHANGE": 1,
+   "ABANTU_BATHO_CONGRESS": 2,
+   "ANC": 96,
+   "ACTIVE_CITIZENS_COALITION": 2,
+   "PEOPLE_S_FREEDOM_PARTY": 1,
+   "EFF": 24,
+   "MINORITY_FRONT": 1,
+   "UIM": 1,
+   "JUSTICE_AND_EMPLOYMENT_PARTY": 1,
+   "NFP": 1
+  },
+  "ward_wins": {
+   "ANC": 75,
+   "DA": 34,
+   "IFP": 2
+  }
+ }
+}

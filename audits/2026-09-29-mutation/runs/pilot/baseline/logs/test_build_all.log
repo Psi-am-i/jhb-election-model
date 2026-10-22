@@ -1,0 +1,123 @@
+building Johannesburg (JHB) — council 270, majority 136, 135 wards
+
+• poll register
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python -c import sys; sys.path.insert(0, 'src'); import polling; polling.validate_or_die(); print('  polls.json: no malformed records')
+
+• ward map
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_map.py --city joburg
+building Johannesburg (JHB) — council 270, majority 136, 135 wards
+
+• poll register
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python -c import sys; sys.path.insert(0, 'src'); import polling; polling.validate_or_die(); print('  polls.json: no malformed records')
+
+• ward map
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_map.py --city joburg
+building Johannesburg (JHB) — council 270, majority 136, 135 wards
+
+• poll register
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python -c import sys; sys.path.insert(0, 'src'); import polling; polling.validate_or_die(); print('  polls.json: no malformed records')
+
+• ward map
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_map.py --city joburg
+
+• ward cartogram → forecast-sheet.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into forecast-sheet.html
+
+• ward cartogram → home.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into home.html
+
+• ward cartogram → drafts/forecast-draft.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into drafts/forecast-draft.html
+
+• sheet figures, claims, regimes
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_sheet.py --city joburg
+
+• home page
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_home.py --city joburg
+
+• site
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_site.py
+
+• portal
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_portal.py
+
+• interactive data pack
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/export_interactive.py --city joburg
+  !! interactive data pack declined (exit 1). It is optional — the build continues without it.
+
+• interactive page
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_interactive.py --city joburg
+  !! interactive page declined (exit 1). It is optional — the build continues without it.
+
+skipped optional step(s): interactive data pack, interactive page
+
+not deployed. To publish:
+  env -u CLOUDFLARE_API_TOKEN npx wrangler deploy
+building Johannesburg (JHB) — council 270, majority 136, 135 wards
+
+• poll register
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python -c import sys; sys.path.insert(0, 'src'); import polling; polling.validate_or_die(); print('  polls.json: no malformed records')
+
+• ward map
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_map.py --city joburg
+
+• ward cartogram → forecast-sheet.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into forecast-sheet.html
+
+• ward cartogram → home.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into home.html
+
+• ward cartogram → drafts/forecast-draft.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into drafts/forecast-draft.html
+
+• sheet figures, claims, regimes
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_sheet.py --city joburg
+
+• home page
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_home.py --city joburg
+
+• site
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_site.py
+
+• portal
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_portal.py
+
+not deployed. To publish:
+  env -u CLOUDFLARE_API_TOKEN npx wrangler deploy
+building Johannesburg (JHB) — council 270, majority 136, 135 wards
+
+• poll register
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python -c import sys; sys.path.insert(0, 'src'); import polling; polling.validate_or_die(); print('  polls.json: no malformed records')
+
+• ward map
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_map.py --city joburg
+
+• ward cartogram → forecast-sheet.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into forecast-sheet.html
+
+• ward cartogram → home.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into home.html
+
+• ward cartogram → drafts/forecast-draft.html
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/hex_cartogram.py --into drafts/forecast-draft.html
+
+• sheet figures, claims, regimes
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_sheet.py --city joburg
+
+• home page
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/render_home.py --city joburg
+
+• site
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_site.py
+
+• portal
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_portal.py
+
+• interactive data pack
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/export_interactive.py --city joburg
+
+• interactive page
+  $ /Users/simondavis/projects/jhb-election-model/.venv/bin/python src/build_interactive.py --city joburg
+
+not deployed. To publish:
+  env -u CLOUDFLARE_API_TOKEN npx wrangler deploy

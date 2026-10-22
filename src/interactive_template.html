@@ -24,8 +24,13 @@
     }
   }
   *{box-sizing:border-box;margin:0;}
-  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+  /* Same three text levels as the written pages (src/build_site.py STYLE):
+     headings full contrast, prose one step down, figure apparatus below that. */
+  body{background:var(--paper);color:var(--ink-2);font-family:var(--sans);
     font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4,.standfirst,strong,b{color:var(--ink);}
+  figcaption,.small,.scale,.derived,.colophon{color:var(--ink-3);}
+  figcaption b,figcaption strong,.small b,.scale b{color:inherit;}
   /* base link colour on the ELEMENT selector so no future link can ever fall
      back to browser default blue; container rules may still override it */
   a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
@@ -37,7 +42,7 @@
 
   .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
   h1{font-family:var(--serif);font-weight:600;font-size:clamp(27px,4.4vw,38px);line-height:1.1;letter-spacing:-.012em;text-wrap:balance;}
-  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;color:var(--ink-2);}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;}
   .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:11.5px;
     color:var(--ink-3);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:9px 0;}
   .dateline b{color:var(--ink-2);font-weight:600;}
@@ -51,7 +56,7 @@
   @media (max-width:840px){.controls{position:static;}}
   .cgroup{border:1px solid var(--rule-soft);background:var(--paper-2);padding:13px 15px;
     display:flex;flex-direction:column;gap:11px;}
-  .cgroup h3{font-size:11px;font-weight:650;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);}
+  .cgroup h3{font-size:11px;font-weight:650;letter-spacing:.13em;text-transform:uppercase;}
   .cgroup .why{font-size:11.5px;color:var(--ink-3);line-height:1.45;margin-top:-6px;}
   .ctl{display:flex;flex-direction:column;gap:1px;margin-bottom:13px;}
   .ctl:last-child{margin-bottom:0;}
@@ -160,7 +165,7 @@
 
   .cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
   .note{border-left:2px solid var(--rule);padding-left:13px;display:flex;flex-direction:column;gap:5px;}
-  .note h3{font-size:11.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);}
+  .note h3{font-size:11.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;}
   .note p,.note li{font-size:13px;color:var(--ink-2);}
   ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;color:var(--ink-2);}
 
@@ -304,8 +309,6 @@
       more ward votes; under 1.0 the push backfires — spread thin, it wins fewer.</p></dialog>
     <div class="ctl"><div class="lab"><span>MK's ward performance</span><span class="v" id="v-mkRatio"></span></div>
       <input type="range" id="mkRatio" min="0.50" max="1.20" step="0.05" value="0.80"></div>
-    <div class="ctl"><div class="lab"><span>PA's wider slate</span><span class="v" id="v-paUplift"></span></div>
-      <input type="range" id="paUplift" min="0.70" max="2.00" step="0.05" value="1.25"></div>
   </details>
 
   <details class="cgroup">
@@ -610,7 +613,7 @@ DATA.wards.forEach((w,wi)=>{
 
 /* ---------- controls ---------- */
 const ctlIds=["thetaANC","thetaDA","thetaEFF","thetaMK","thetaASA","thetaPA","wBye","pollWeight","blocLeak",
-  "alphaANC","alphaDA","mkRatio","paUplift","turnoutANC","turnoutDA","turnoutBlend","turnoutNoise",
+  "alphaANC","alphaDA","mkRatio","turnoutANC","turnoutDA","turnoutBlend","turnoutNoise",
   "entrantProb","entrantMode"];
 const DEFAULT_CFG=/*__DEFAULT_CFG__*/null;
 
@@ -637,8 +640,8 @@ const PRESETS={
   mkhold:{thetaMK:1.00},
   asafall:{thetaASA:0.95,wBye:0.15},
   asaup:{thetaASA:2.50,wBye:0.60},
-  paup:{thetaPA:2.00,paUplift:1.75},
-  pafall:{thetaPA:1.00,paUplift:0.85},
+  paup:{thetaPA:2.00},
+  pafall:{thetaPA:1.00},
   davote:{turnoutDA:1},
   ancmachine:{turnoutANC:1},
 };
@@ -656,8 +659,7 @@ function showVals(){
     thetaMK:share("MK"),thetaASA:share("ASA"),thetaPA:share("PA"),
     mkRatio:v=>v.toFixed(2)+(v<0.75?" — collapses":v>1.0?" — excels":""),
     turnoutANC:tiltFmt(TO_BLOC.anc),turnoutDA:tiltFmt(TO_BLOC.da),
-    paUplift:v=>"×"+v.toFixed(2)+(v<1.0?" — backfires":v>1.0?" — expands":" — 2021 footprint"),
-    turnoutBlend:v=>v<=0?"model projection":v>=1?"repeat of 2021":(v*100).toFixed(0)+"% toward 2021",
+      turnoutBlend:v=>v<=0?"model projection":v>=1?"repeat of 2021":(v*100).toFixed(0)+"% toward 2021",
     blocLeak:v=>v===0?"0 — history":v>0?(v*100).toFixed(0)+"% ANC→DA":(-v*100).toFixed(0)+"% DA→ANC",
     alphaANC:v=>alphaWord(v,10,150),alphaDA:v=>alphaWord(v,4,60),
     turnoutNoise:v=>"σ "+v.toFixed(2),entrantProb:v=>(v*100).toFixed(0)+"%",
@@ -745,7 +747,6 @@ function run(cfg,nDraws,seed){
   const ratio=Float64Array.from(ratioBase);
   ratio[idx.MK]=cfg.mkRatio;
   ratio[I_ENTRANT]=0.8;
-  ratio[idx.PA]=Math.min(ratioBase[idx.PA]*cfg.paUplift,1.5);
 
   const individual=[];
   for(let i=0;i<CODES.length;i++){
@@ -1163,12 +1164,13 @@ function render(a,cfg){
   const scen={
     theta_mode:{ANC:cfg.thetaANC,EFF:cfg.thetaEFF,MK:cfg.thetaMK,DA:cfg.thetaDA,ASA:cfg.thetaASA,BOSA:THETA_BOSA},
     individual_theta:{PA:[1.0,cfg.thetaPA,2.2]},
-    w_bye:cfg.wBye,bloc_leak:cfg.blocLeak,poll_id:cfg.pollPick||null,poll_weight:cfg.pollPick?cfg.pollWeight:0,
-    alpha_anc:cfg.alphaANC,alpha_da:cfg.alphaDA,
-    ward_pr_ratio_overrides:{MK:cfg.mkRatio,ENTRANT:0.8},
-    pa_contestation_uplift:cfg.paUplift,
+    w_bye:cfg.wBye,poll_id:cfg.pollPick||null,poll_weight:cfg.pollPick?cfg.pollWeight:0,
     turnout_pattern_blend:cfg.turnoutBlend,turnout_noise_sd:cfg.turnoutNoise,
-    turnout_tilt_anc:cfg.turnoutANC,turnout_tilt_da:cfg.turnoutDA,
+    /* Removed 2026-08-17: bloc_leak, alpha_anc, alpha_da, ward_pr_ratio_overrides,
+       turnout_tilt_anc, turnout_tilt_da. None is a DEFAULTS key any more, and
+       `montecarlo.read_scenario_file` hard-exits on an unknown key — so this
+       block, which exists to be pasted into `--config`, produced a scenario the
+       model refuses to load. Latent only because the page is withheld. */
     entrant_prob:cfg.entrantProb,entrant_share:[0.01,cfg.entrantMode,0.12],
     overhang_rule:"deduct",
   };

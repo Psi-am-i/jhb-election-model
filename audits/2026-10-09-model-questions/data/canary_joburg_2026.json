@@ -1,0 +1,1661 @@
+{
+"rows": [
+{
+"party": "ACDP",
+"centre": 0.008106675862445126,
+"base": 0.007748236018842173,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.2798789709698252,
+"pool_sd_shock": 0.2798789709698252,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT",
+"centre": 0.0008550779829780811,
+"base": 0.0006342508546039764,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006342508546039764,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRICAN_CONGRESS_FOR_TRANSFORMATION",
+"centre": 0.0004780642199002637,
+"base": 0.0003821841435260408,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.5546759607647247,
+"pool_sd_shock": 0.5546759607647247,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRICAN_ECONOMIC_FREEDOM",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRICAN_LABOUR_CONVENTION",
+"centre": 0.0005082096117019354,
+"base": 0.00037612954179789485,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.00037612954179789485,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRICAN_RENAISSANCE_UNITY",
+"centre": 0.0008970346409902054,
+"base": 0.0006655495041692417,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006655495041692417,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRICAN_ROYAL_RAINBOW_CONGRESS",
+"centre": 0.00042045185031055175,
+"base": 0.0003110046113151921,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003110046113151921,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRICAN_UNEMPLOYED_CONGRESS",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRICA_RESTORATION_ALLIANCE",
+"centre": 0.00041086678836551753,
+"base": 0.00040620311003229843,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.547044308110948,
+"pool_sd_shock": 0.547044308110948,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRIKA_MAYIBUYE_MOVEMENT",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AFRIKA_UNITE_CONGRESS",
+"centre": 0.00038843320315414687,
+"base": 0.000287261738679965,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.000287261738679965,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AHC",
+"centre": 0.004192380983096997,
+"base": 0.001005970832497379,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.44514451351223056,
+"pool_sd_shock": 0.44514451351223056,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AIC",
+"centre": 0.0034260478428406373,
+"base": 0.00102080607651595,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.4436657109200977,
+"pool_sd_shock": 0.4436657109200977,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ALJAMAAH",
+"centre": 0.009850705904579522,
+"base": 0.008345177980541811,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.2751969819639929,
+"pool_sd_shock": 0.2751969819639929,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ALLIED_INDEPENDENTS_UMBRELLA",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ALL_CITIZENS_PARTY",
+"centre": 0.010717155915670339,
+"base": 0.0003637611382588472,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003637611382588472,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ALL_NATIVES_OF_SOUTH_AFRICA",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ANC",
+"centre": 0.25824368957271876,
+"base": 0.31956599140403574,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.15,
+"pool_sd_shock": 0.15,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "APC",
+"centre": 0.0013012113246089042,
+"base": 0.000590583999977394,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.5024317079618414,
+"pool_sd_shock": 0.5024317079618414,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ASA",
+"centre": 0.1458999232506182,
+"base": 0.062313676399528665,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.17425073090756796,
+"pool_sd_shock": 0.17425073090756796,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ATM",
+"centre": 0.005288261579825672,
+"base": 0.0034523732151788564,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.3363356831000878,
+"pool_sd_shock": 0.3363356831000878,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AZANIAN_GROUND_FORCES",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AZANIA_PEACEFUL_REVOLUTION",
+"centre": 0.00021155800325568558,
+"base": 0.00016883920573516404,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.66786130852805,
+"pool_sd_shock": 0.66786130852805,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "AZAPO",
+"centre": 0.0010695057988321201,
+"base": 0.0008752793970956831,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.4594506978492209,
+"pool_sd_shock": 0.4594506978492209,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+"centre": 0.0003963932867314472,
+"base": 0.00018438088994509547,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.6546265678354183,
+"pool_sd_shock": 0.6546265678354183,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "BOSA",
+"centre": 0.011914300665692447,
+"base": 0.010174151635974195,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.26307609326887527,
+"pool_sd_shock": 0.26307609326887527,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "CHRIST_KINGDOM_PARTY",
+"centre": 0.00038843320315414687,
+"base": 0.000287261738679965,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.000287261738679965,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "COMBAT",
+"centre": 0.0004217079066951092,
+"base": 0.0003119362157985836,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003119362157985836,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "COMMUNITY_FIRST_MOVEMENT",
+"centre": 0.0004217079066951092,
+"base": 0.0003119362157985836,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003119362157985836,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "COPE",
+"centre": 0.00065727324815303,
+"base": 0.0012080127272264876,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.42700562463846375,
+"pool_sd_shock": 0.42700562463846375,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "DA",
+"centre": 0.30104655588535184,
+"base": 0.24978100354067823,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.15,
+"pool_sd_shock": 0.15,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "DUDULA",
+"centre": 0.0013306463742428476,
+"base": 0.0010695504497198259,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.4389864909551338,
+"pool_sd_shock": 0.4389864909551338,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA",
+"centre": 0.0005810704507156908,
+"base": 0.00046483764591522155,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.5305326138319315,
+"pool_sd_shock": 0.5305326138319315,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ECONOMIC_REDRESS_MOVEMENT",
+"centre": 0.00043163023592190865,
+"base": 0.00031929603274543023,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.00031929603274543023,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "EFF",
+"centre": 0.11664611157643057,
+"base": 0.12460898535408195,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.15,
+"pool_sd_shock": 0.15,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "EKHETHU_PEOPLES_PARTY",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "GAP_FIXERS_OF_SOUTH_AFRICA",
+"centre": 0.0004287333128290345,
+"base": 0.0003171471644817578,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003171471644817578,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "GAZA_DEMOCRATIC_FRONT",
+"centre": 0.00042045185031055175,
+"base": 0.0003110046113151921,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003110046113151921,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "IFP",
+"centre": 0.018779092969474488,
+"base": 0.014056746927691608,
+"in_pool": false,
+"pools": [
+"Black African"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.24443933411114388,
+"pool_sd_shock": 0.24443933411114388,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "ILIZWE_NATHI",
+"centre": 0.00042045185031055175,
+"base": 0.0003110046113151921,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003110046113151921,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "IMSTAYING",
+"centre": 0.00042045185031055175,
+"base": 0.0003110046113151921,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003110046113151921,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "INDEPENDENT_CITIZENS_MOVEMENT",
+"centre": 0.0008645256801944715,
+"base": 0.0006412971666465957,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006412971666465957,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "KINGDOM_COVENANT_DEMOCRATIC_PARTY",
+"centre": 0.0004287333128290345,
+"base": 0.0003171471644817578,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003171471644817578,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "KNOW_YOUR_POWER",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "LABOUR_PARTY_OF_SOUTH_AFRICA",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "LAND_PARTY",
+"centre": 0.00043163023592190865,
+"base": 0.00031929603274543023,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.00031929603274543023,
+"theta_sd": 1.2,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "LEKWE_BEPE_KINGDOM_PARTY",
+"centre": 0.00038843320315414687,
+"base": 0.000287261738679965,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.000287261738679965,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "MAWUSA_MOVEMENT_PARTY",
+"centre": 0.00042045185031055175,
+"base": 0.0003110046113151921,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003110046113151921,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "MINORITY_FRONT",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": 1.2,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "MK",
+"centre": 0.11100239743904591,
+"base": 0.12218448261733265,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.15,
+"pool_sd_shock": 0.15,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "MOVEMENT_OF_RESIDENTS_PARTY",
+"centre": 0.00042045185031055175,
+"base": 0.0003110046113151921,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0003110046113151921,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "MOVE_SA",
+"centre": 0.000863898579461616,
+"base": 0.0006408294343962209,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006408294343962209,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "NATIONAL_DEMOCRATIC_CONVENTION",
+"centre": 0.0008131095163367786,
+"base": 0.0006029599263733455,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006029599263733455,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "NCC",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "NFP",
+"centre": 0.0006914190588597466,
+"base": 0.0003242560478344782,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.5757915264169318,
+"pool_sd_shock": 0.5757915264169318,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "PA",
+"centre": 0.07572912041974927,
+"base": 0.02908555555869529,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.20720036623678587,
+"pool_sd_shock": 0.20720036623678587,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "PAC",
+"centre": 0.003735449070012006,
+"base": 0.0023022885836439314,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.36878114814311647,
+"pool_sd_shock": 0.36878114814311647,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "PEOPLE_OF_JOBURG",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "PEOPLE_S_CONSENT_PARTY",
+"centre": 0.00033187222237668666,
+"base": 0.0002453436293081483,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0002453436293081483,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "PEOPLE_S_MOVEMENT_FOR_CHANGE",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "PRO_SOUTH_AFRICA",
+"centre": 0.0006072144934455433,
+"base": 0.00044968823788763495,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.00044968823788763495,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "RESIDENT_DEVELOPMENT",
+"centre": 0.00033187222237668666,
+"base": 0.0002453436293081483,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0002453436293081483,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "RISE",
+"centre": 0.01949037602600987,
+"base": 0.01725727421465044,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.2333035083586197,
+"pool_sd_shock": 0.2333035083586197,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "SERVICE_DELIVERY_PARTY",
+"centre": 0.0008611632277508543,
+"base": 0.0006387892754886761,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006387892754886761,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "SOUTH_AFRICAN_COMMUNIST_PARTY",
+"centre": 0.016224695671636584,
+"base": 0.0131,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0131,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION",
+"centre": 0.0008514576800999706,
+"base": 0.0006315509706486461,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006315509706486461,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA",
+"centre": 0.00033187222237668666,
+"base": 0.0002453436293081483,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0002453436293081483,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "TRUTH_AND_SOLIDARITY_MOVEMENT",
+"centre": 0.0011097685136305328,
+"base": 0.0006408294343962209,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006408294343962209,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "UDM",
+"centre": 0.0017175578052389486,
+"base": 0.0020352541913096554,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.3792615033465162,
+"pool_sd_shock": 0.3792615033465162,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "UMPHAKATHI_WARONA",
+"centre": 0.0008514576800999706,
+"base": 0.0006315509706486461,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.0006315509706486461,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "UNITED_AFRICANS_TRANSFORMATION",
+"centre": 0.0018588433071732454,
+"base": 0.0014990660860670214,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.40655949747373704,
+"pool_sd_shock": 0.40655949747373704,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "VFPLUS",
+"centre": 0.009774905417641807,
+"base": 0.00808379510973842,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": false,
+"seed": 0,
+"theta_sd": 0.2771947898330807,
+"pool_sd_shock": 0.2771947898330807,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+},
+{
+"party": "VUKA_SA",
+"centre": 0.000870904680893144,
+"base": 0.000646055247289466,
+"in_pool": false,
+"pools": [
+"Black African",
+"Coloured",
+"Indian/Asian",
+"White"
+],
+"seeded": true,
+"seed": 0.000646055247289466,
+"theta_sd": null,
+"pool_sd_shock": 0.0,
+"in_ipf": true,
+"individual": false,
+"indiv_spec": "None"
+}
+],
+"keys": [
+"base_city",
+"base_city_d",
+"centres",
+"entrant_index",
+"group_alpha",
+"group_idx",
+"group_w",
+"individual",
+"ipf",
+"ipf_stats",
+"mean_floor",
+"n",
+"pool_sd_shock",
+"pools",
+"rho_t",
+"rng",
+"ties",
+"turnout_pools",
+"turnout_record"
+],
+"sd_default": 0.45,
+"seed_bands": {
+"ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": [
+0.15403396693417615,
+1.0,
+4.795379406239298
+],
+"AFRICAN_ECONOMIC_FREEDOM": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"AFRICAN_LABOUR_CONVENTION": [
+0.22601016796760787,
+1.0,
+3.1512518224289376
+],
+"AFRICAN_RENAISSANCE_UNITY": [
+0.18280448866764257,
+1.0,
+4.4702821919952545
+],
+"AFRICAN_ROYAL_RAINBOW_CONGRESS": [
+0.19109061751121334,
+1.0,
+2.1616951954496892
+],
+"AFRICAN_UNEMPLOYED_CONGRESS": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"AFRIKA_MAYIBUYE_MOVEMENT": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"AFRIKA_UNITE_CONGRESS": [
+0.1893046576509868,
+1.0,
+2.145553990846651
+],
+"ALLIED_INDEPENDENTS_UMBRELLA": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"ALL_CITIZENS_PARTY": [
+0.24222232590919254,
+1.0,
+2.9886915701785184
+],
+"ALL_NATIVES_OF_SOUTH_AFRICA": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"AZANIAN_GROUND_FORCES": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"CHRIST_KINGDOM_PARTY": [
+0.1893046576509868,
+1.0,
+2.145553990846651
+],
+"CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"COMBAT": [
+0.18951641323105278,
+1.0,
+2.171312529743122
+],
+"COMMUNITY_FIRST_MOVEMENT": [
+0.18951641323105278,
+1.0,
+2.171312529743122
+],
+"ECONOMIC_REDRESS_MOVEMENT": [
+0.17238906192023087,
+1.0,
+2.307197615610402
+],
+"EKHETHU_PEOPLES_PARTY": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"GAP_FIXERS_OF_SOUTH_AFRICA": [
+0.1762713524039945,
+1.0,
+2.2861792724311876
+],
+"GAZA_DEMOCRATIC_FRONT": [
+0.19109061751121334,
+1.0,
+2.1616951954496892
+],
+"ILIZWE_NATHI": [
+0.19109061751121334,
+1.0,
+2.1616951954496892
+],
+"IMSTAYING": [
+0.19109061751121334,
+1.0,
+2.1616951954496892
+],
+"INDEPENDENT_CITIZENS_MOVEMENT": [
+0.1523415044493406,
+1.0,
+4.639337659850593
+],
+"KINGDOM_COVENANT_DEMOCRATIC_PARTY": [
+0.1762713524039945,
+1.0,
+2.2861792724311876
+],
+"KNOW_YOUR_POWER": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"LABOUR_PARTY_OF_SOUTH_AFRICA": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"LAND_PARTY": [
+0.17238906192023087,
+1.0,
+2.307197615610402
+],
+"LEKWE_BEPE_KINGDOM_PARTY": [
+0.1893046576509868,
+1.0,
+2.145553990846651
+],
+"MAWUSA_MOVEMENT_PARTY": [
+0.19109061751121334,
+1.0,
+2.1616951954496892
+],
+"MINORITY_FRONT": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"MOVEMENT_OF_RESIDENTS_PARTY": [
+0.19109061751121334,
+1.0,
+2.1616951954496892
+],
+"MOVE_SA": [
+0.15245269633734854,
+1.0,
+4.704780349745965
+],
+"NATIONAL_DEMOCRATIC_CONVENTION": [
+0.16240123339348211,
+1.0,
+4.462949043229468
+],
+"NCC": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"PEOPLE_OF_JOBURG": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"PEOPLE_S_CONSENT_PARTY": [
+0.21992106133709083,
+1.0,
+2.4710671965098214
+],
+"PEOPLE_S_MOVEMENT_FOR_CHANGE": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"PRO_SOUTH_AFRICA": [
+0.17415631808218815,
+1.0,
+3.939183540451839
+],
+"RESIDENT_DEVELOPMENT": [
+0.21992106133709083,
+1.0,
+2.4710671965098214
+],
+"SERVICE_DELIVERY_PARTY": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"SOUTH_AFRICAN_COMMUNIST_PARTY": [
+0.1529395982600114,
+1.0,
+4.783343251166666
+],
+"SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": [
+0.15469246301007375,
+1.0,
+4.794890276887205
+],
+"TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": [
+0.21992106133709083,
+1.0,
+2.4710671965098214
+],
+"TRUTH_AND_SOLIDARITY_MOVEMENT": [
+0.15245269633734854,
+1.0,
+4.704780349745965
+],
+"UMPHAKATHI_WARONA": [
+0.15469246301007375,
+1.0,
+4.794890276887205
+],
+"VUKA_SA": [
+0.15121953668192864,
+1.0,
+4.625687953085787
+]
+}
+}

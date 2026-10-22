@@ -1,0 +1,86 @@
+/* The rendered documents (methodology, sources, review, corrections, about,
+   privacy, support) and the portal: build_site.shell gives their <body> the
+   class pg-doc, and src/site_assets.py scopes every rule here to it.
+
+   Three text levels, applied the same way on every page: headings and
+   subheadings at full contrast, running prose one step down, and the apparatus
+   around a figure (keys, captions, footers) one step down again. */
+  *{box-sizing:border-box;margin:0;}
+  body{background:var(--paper);color:var(--ink-2);font-family:var(--sans);
+    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4,.standfirst,strong,b{color:var(--ink);}
+  figcaption,.small,.colophon{color:var(--ink-3);}
+  figcaption b,figcaption strong,.small b{color:inherit;}
+  /* .page's width and padding: src/css/chrome.css, THE COLUMN */
+
+  /* the nav and the footer: src/css/chrome.css */
+
+  /* .kicker's type: src/css/components.css; a document's is in the accent */
+  .kicker{color:var(--accent);margin-bottom:10px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
+    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
+  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
+    text-wrap:pretty;margin-bottom:6px;}
+  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
+    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
+    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
+    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
+    border-top:1px solid var(--rule);}
+  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
+  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0;padding-left:20px;
+    display:flex;flex-direction:column;gap:5px;}
+  strong{font-weight:650;}
+  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+
+  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
+  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
+    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
+  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
+
+  .tablewrap{overflow-x:auto;margin:14px 0;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
+  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;color:var(--ink-2);}
+  td:first-child{color:var(--ink);}
+  /* A table of figures (build_site.figure_tables): the figures right-aligned
+     in tabular digits, the columns equal and fixed so one table lines up with
+     the next. */
+  table.figures{table-layout:fixed;}
+  table.figures td:not(:first-child),table.figures th:not(:first-child){
+    text-align:right;font-variant-numeric:tabular-nums;padding-right:0;padding-left:12px;}
+
+  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
+    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
+  blockquote p{margin:6px 0;}
+  blockquote h3,blockquote h4{margin-top:8px;}
+
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
+
+  /* index cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:14px;margin:22px 0;}
+  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
+    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
+    transition:border-color .15s;}
+  .card:hover{border-color:var(--accent);}
+  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
+  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
+  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10pt;}
+    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
+  }

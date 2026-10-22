@@ -1,0 +1,1 @@
+SystemExit: mangaung 2016: pool 'Indian/Asian' has no member with weight above 1e-4 (registered 2,698, central turnout 0.0001, 2.46% of the projected roll). The spec would declare it in `categories` and omit it from `pools` — prereg P1. Find why the fitting year gave it no votes (MODEL-LOG §1.269) before emitting.

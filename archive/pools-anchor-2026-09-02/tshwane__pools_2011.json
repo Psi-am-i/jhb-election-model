@@ -1,0 +1,233 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "tshwane",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "eaff455dbf98d017",
+    "schema": 1,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/tshwane-2011.toml",
+  "no_measured_vector": {
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BLACK_CONSCIOUSNESS_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "CHRISTIAN_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "MOVEMENT_DEMOCRATIC_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "NFP": "splinter of IFP, 35% its vector and 65% the city average"
+  },
+  "pool_shares_at_target": [
+    0.6770361448299421,
+    0.021606540543661703,
+    0.0029790008066836455,
+    0.2983783138197125
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on tshwane 2006; size from the 2011 roll split by each ward's own composition; turnout from tshwane's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE",
+        "ANC",
+        "AZAPO",
+        "DA",
+        "IFP",
+        "PAC",
+        "UDM",
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY"
+      ],
+      "members": {
+        "ACDP": 0.3601708112934854,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.9085833035163094,
+        "ANC": 0.9824299826961221,
+        "APC": 0.6449246185504782,
+        "AZAPO": 0.9853275216914473,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.6449246185504782,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.4288681904600221,
+        "CHRISTIAN_FRONT": 0.6449246185504782,
+        "COPE": 0.7630514960014536,
+        "DA": 0.07583760273361881,
+        "IFP": 0.9526339280408244,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.6449246185504782,
+        "MOVEMENT_DEMOCRATIC_PARTY": 0.6449246185504782,
+        "NFP": 0.7526228768720994,
+        "PAC": 0.9992609179667716,
+        "UDM": 0.9438271316250912,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.9908511183238514,
+        "VFPLUS": 0.027548794219006786
+      },
+      "registered": 858023.9689047365,
+      "turnout": [
+        0.2449044198806656,
+        0.37150051474457996,
+        0.5185930245643051
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on tshwane 2006; size from the 2011 roll split by each ward's own composition; turnout from tshwane's local elections before 2011",
+      "identified": [
+        "IFP"
+      ],
+      "members": {
+        "ACDP": 0.020873259461214013,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.003098428648854669,
+        "ANC": 0.003224253205823519,
+        "APC": 0.008929379203181381,
+        "AZAPO": 0.008053856038443634,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.008929379203181381,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.03529893446937675,
+        "CHRISTIAN_FRONT": 0.008929379203181381,
+        "COPE": 0.00693258510410613,
+        "DA": 0.014515858692690382,
+        "IFP": 0.013392277300657387,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.008929379203181381,
+        "MOVEMENT_DEMOCRATIC_PARTY": 0.008929379203181381,
+        "NFP": 0.010491393537297982,
+        "PAC": 0.000739082033228479,
+        "UDM": 0.008298160962929126,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.001944074207569934,
+        "VFPLUS": 0.0007589724987950713
+      },
+      "registered": 31401.376100184963,
+      "turnout": [
+        0.09096120844427731,
+        0.15423511259086037,
+        0.2494454835398226
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on tshwane 2006; size from the 2011 roll split by each ward's own composition; turnout from tshwane's local elections before 2011",
+      "identified": [],
+      "members": {
+        "ACDP": 0.0027412343113917942,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.011072508040495858,
+        "APC": 0.0026729284957178294,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.0026729284957178294,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.01652609585609334,
+        "CHRISTIAN_FRONT": 0.0026729284957178294,
+        "COPE": 0.0017690286275696403,
+        "DA": 0.004538807480691044,
+        "IFP": 0.016160431100828647,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.0026729284957178294,
+        "MOVEMENT_DEMOCRATIC_PARTY": 0.0026729284957178294,
+        "NFP": 0.007393554407506615,
+        "UDM": 0.015135217146744788,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.006249914042985728,
+        "VFPLUS": 0.00017476091628705585
+      },
+      "registered": 6786.090044801096,
+      "turnout": [
+        0.11854487841629842,
+        0.19685132264156854,
+        0.30876492250067966
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on tshwane 2006; size from the 2011 roll split by each ward's own composition; turnout from tshwane's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "CHRISTIAN_DEMOCRATIC_PARTY",
+        "DA",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.6162146949339087,
+        "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.07724575979434012,
+        "ANC": 0.01425540665418839,
+        "APC": 0.3434730737506226,
+        "AZAPO": 0.006576934578456465,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.3434730737506226,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.5193067792145079,
+        "CHRISTIAN_FRONT": 0.3434730737506226,
+        "COPE": 0.22824689026687064,
+        "DA": 0.9051077310929997,
+        "IFP": 0.01781336355768962,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.3434730737506226,
+        "MOVEMENT_DEMOCRATIC_PARTY": 0.3434730737506226,
+        "NFP": 0.22949217518309606,
+        "UDM": 0.032739490265234865,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.0009548934255928118,
+        "VFPLUS": 0.971517472365911
+      },
+      "registered": 358762.56495027756,
+      "turnout": [
+        0.3652571940459086,
+        0.511891064031875,
+        0.6565065421802836
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.6992030090625646,
+      0.02286409103560368,
+      0.005466568286147248,
+      0.27246633161568445
+    ],
+    "2009": [
+      0.6836168900644722,
+      0.021968896528819247,
+      0.003544874787390804,
+      0.29086933861931763
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "target": "2011",
+  "turnout_limits": {
+    "city": {
+      "high": 0.445778969984616,
+      "low": 0.3647282481692313,
+      "observed_high": 0.40525360907692365,
+      "observed_low": 0.40525360907692365,
+      "previous": 0.40525360907692365
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.408650566219038,
+        "low": 0.33435046327012197,
+        "observed_high": 0.37150051474457996,
+        "observed_low": 0.37150051474457996,
+        "previous": 0.37150051474457996
+      },
+      {
+        "high": 0.16965862384994643,
+        "low": 0.13881160133177434,
+        "observed_high": 0.15423511259086037,
+        "observed_low": 0.15423511259086037,
+        "previous": 0.15423511259086037
+      },
+      {
+        "high": 0.21653645490572543,
+        "low": 0.1771661903774117,
+        "observed_high": 0.19685132264156854,
+        "observed_low": 0.19685132264156854,
+        "previous": 0.19685132264156854
+      },
+      {
+        "high": 0.5630801704350625,
+        "low": 0.46070195762868754,
+        "observed_high": 0.511891064031875,
+        "observed_low": 0.511891064031875,
+        "previous": 0.511891064031875
+      }
+    ]
+  }
+}

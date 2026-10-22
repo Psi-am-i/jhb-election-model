@@ -1,0 +1,614 @@
+[
+ {
+  "layout": "article",
+  "headline": "Nobody will win Johannesburg",
+  "ranges": {
+   "rows": [
+    {
+     "name": "ANC",
+     "colour": "#1B7A3D",
+     "m": "66",
+     "p5": "28",
+     "p95": "92"
+    },
+    {
+     "name": "DA",
+     "colour": "#1B5EA8",
+     "m": "66",
+     "p5": "45",
+     "p95": "90"
+    },
+    {
+     "name": "ActionSA",
+     "colour": "#2FA79B",
+     "m": "27",
+     "p5": "11",
+     "p95": "52"
+    },
+    {
+     "name": "EFF",
+     "colour": "#B3202B",
+     "m": "25",
+     "p5": "8",
+     "p95": "57"
+    },
+    {
+     "name": "PA",
+     "colour": "#E0A419",
+     "m": "23",
+     "p5": "14",
+     "p95": "36"
+    },
+    {
+     "name": "MK Party",
+     "colour": "#5B6E22",
+     "m": "22",
+     "p5": "7",
+     "p95": "50"
+    }
+   ],
+   "majority": "136",
+   "scale": 125,
+   "majority_label": "136 for a majority",
+   "note": "Seats: middle, and the range in 90% of simulations",
+   "lead": "Chance of one party majority: 0.1%"
+  },
+  "figures": {
+   "seats.ANC.median": {
+    "token": "seats.ANC.median",
+    "display": "66"
+   },
+   "seats.ANC.p5": {
+    "token": "seats.ANC.p5",
+    "display": "28"
+   },
+   "seats.ANC.p95": {
+    "token": "seats.ANC.p95",
+    "display": "92"
+   },
+   "seats.DA.median": {
+    "token": "seats.DA.median",
+    "display": "66"
+   },
+   "seats.DA.p5": {
+    "token": "seats.DA.p5",
+    "display": "45"
+   },
+   "seats.DA.p95": {
+    "token": "seats.DA.p95",
+    "display": "90"
+   },
+   "seats.ASA.median": {
+    "token": "seats.ASA.median",
+    "display": "27"
+   },
+   "seats.ASA.p5": {
+    "token": "seats.ASA.p5",
+    "display": "11"
+   },
+   "seats.ASA.p95": {
+    "token": "seats.ASA.p95",
+    "display": "52"
+   },
+   "seats.EFF.median": {
+    "token": "seats.EFF.median",
+    "display": "25"
+   },
+   "seats.EFF.p5": {
+    "token": "seats.EFF.p5",
+    "display": "8"
+   },
+   "seats.EFF.p95": {
+    "token": "seats.EFF.p95",
+    "display": "57"
+   },
+   "seats.PA.median": {
+    "token": "seats.PA.median",
+    "display": "23"
+   },
+   "seats.PA.p5": {
+    "token": "seats.PA.p5",
+    "display": "14"
+   },
+   "seats.PA.p95": {
+    "token": "seats.PA.p95",
+    "display": "36"
+   },
+   "seats.MK.median": {
+    "token": "seats.MK.median",
+    "display": "22"
+   },
+   "seats.MK.p5": {
+    "token": "seats.MK.p5",
+    "display": "7"
+   },
+   "seats.MK.p95": {
+    "token": "seats.MK.p95",
+    "display": "50"
+   },
+   "majority": {
+    "token": "majority",
+    "display": "136"
+   },
+   "p_alone": {
+    "token": "p_alone",
+    "display": "0.1%"
+   },
+   "seats.band": {
+    "token": "seats.band",
+    "display": "90%"
+   },
+   "generated_date": {
+    "token": "generated_date",
+    "display": "29 September 2026"
+   }
+  },
+  "date_line": "Published 8 August 2026. Figures as of 29 September 2026.",
+  "alt": "Nobody will win Johannesburg. Seats, middle and range: ANC 66 (28 to 92), DA 66 (45 to 90), ActionSA 27 (11 to 52), EFF 25 (8 to 57), PA 23 (14 to 36), MK Party 22 (7 to 50). 136 for a majority. One party majority: 0.1%.",
+  "slug": "article-nobody-will-win",
+  "page": "nobody-will-win.html",
+  "kind_colour": "#7aa6d6"
+ },
+ {
+  "layout": "article",
+  "mock": "bars",
+  "slug": "article-nobody-catches-the-votes",
+  "page": "nobody-catches-the-votes.html",
+  "headline": "When the ANC falls, nobody catches the votes",
+  "figures": {
+   "bloc_leak_votes": {
+    "token": "bloc_leak_votes",
+    "display": "587,000"
+   },
+   "hist_da_bloc_change_votes": {
+    "token": "hist_da_bloc_change_votes",
+    "display": "52,000"
+   }
+  },
+  "lead": "Votes lost, ANC bloc and DA bloc",
+  "chart": {
+   "scale": 587000.0,
+   "pitch": 80,
+   "rows": [
+    {
+     "label": "ANC bloc",
+     "value": "587,000",
+     "v": 587000.0,
+     "colour": "#1B7A3D"
+    },
+    {
+     "label": "DA bloc",
+     "value": "52,000",
+     "v": 52000.0,
+     "colour": "#1B5EA8"
+    }
+   ],
+   "note": "Votes lost between the 2019 national and 2021 local elections"
+  },
+  "date_line": "Published 8 August 2026.",
+  "alt": "When the ANC falls, nobody catches the votes. Votes lost between the 2019 national and 2021 local elections: ANC bloc 587,000, DA bloc 52,000.",
+  "kind_colour": "#7aa6d6"
+ },
+ {
+  "layout": "article",
+  "mock": "bars",
+  "slug": "article-minority-administrations",
+  "page": "minority-administrations.html",
+  "headline": "Minority administrations, and why nobody has to win",
+  "figures": {
+   "minority.ANC_minority_only_DA_opposes": {
+    "token": "minority.ANC_minority_only_DA_opposes",
+    "display": "48%"
+   },
+   "minority.ANC_minority_DA_ASA_oppose": {
+    "token": "minority.ANC_minority_DA_ASA_oppose",
+    "display": "13%"
+   },
+   "minority.DA_minority_ANC_EFF_MK_oppose": {
+    "token": "minority.DA_minority_ANC_EFF_MK_oppose",
+    "display": "4.0%"
+   },
+   "minority.DA_minority_only_ANC_opposes_2021_pattern": {
+    "token": "minority.DA_minority_only_ANC_opposes_2021_pattern",
+    "display": "50%"
+   },
+   "generated_date": {
+    "token": "generated_date",
+    "display": "29 September 2026"
+   }
+  },
+  "lead": "Chance a minority mayor is elected",
+  "chart": {
+   "scale": 1.0,
+   "rows": [
+    {
+     "label": "ANC minority, only DA opposes",
+     "value": "48%",
+     "v": 0.4814,
+     "colour": "#1B7A3D"
+    },
+    {
+     "label": "ANC minority, DA+ASA oppose",
+     "value": "13%",
+     "v": 0.128,
+     "colour": "#1B7A3D"
+    },
+    {
+     "label": "DA minority, ANC+EFF+MK oppose",
+     "value": "4.0%",
+     "v": 0.0404,
+     "colour": "#1B5EA8"
+    },
+    {
+     "label": "DA minority, only ANC opposes (2021 pattern)",
+     "value": "50%",
+     "v": 0.504,
+     "colour": "#1B5EA8"
+    }
+   ],
+   "note": "Candidate, and who votes against; everyone else abstains"
+  },
+  "date_line": "Published 8 August 2026. Figures as of 29 September 2026.",
+  "alt": "Minority administrations, and why nobody has to win. ANC minority, only DA opposes: 48%; ANC minority, DA+ASA oppose: 13%; DA minority, ANC+EFF+MK oppose: 4.0%; DA minority, only ANC opposes (2021 pattern): 50%.",
+  "kind_colour": "#7aa6d6"
+ },
+ {
+  "layout": "article",
+  "mock": "councils",
+  "slug": "article-if-the-law-were-german",
+  "page": "if-the-law-were-german.html",
+  "headline": "If the law were German instead",
+  "figures": {},
+  "lead": "One set of votes, four councils",
+  "chart": {
+   "scale": 287,
+   "rows": [
+    {
+     "label": "South African law",
+     "council": 270,
+     "council_text": "270",
+     "majority": 136,
+     "parts": [
+      {
+       "v": 66,
+       "colour": "#1B7A3D"
+      },
+      {
+       "v": 66,
+       "colour": "#1B5EA8"
+      }
+     ]
+    },
+    {
+     "label": "Germany 2000 law",
+     "council": 274,
+     "council_text": "274",
+     "majority": 138,
+     "parts": [
+      {
+       "v": 66,
+       "colour": "#1B7A3D"
+      },
+      {
+       "v": 68,
+       "colour": "#1B5EA8"
+      }
+     ]
+    },
+    {
+     "label": "Germany 2015 law",
+     "council": 287,
+     "council_text": "287",
+     "majority": 144,
+     "parts": [
+      {
+       "v": 66,
+       "colour": "#1B7A3D"
+      },
+      {
+       "v": 74,
+       "colour": "#1B5EA8"
+      }
+     ]
+    },
+    {
+     "label": "Germany 2023 law",
+     "council": 270,
+     "council_text": "270",
+     "majority": 136,
+     "parts": [
+      {
+       "v": 58,
+       "colour": "#1B7A3D"
+      },
+      {
+       "v": 68,
+       "colour": "#1B5EA8"
+      }
+     ]
+    }
+   ],
+   "key": [
+    {
+     "label": "ANC",
+     "colour": "#1B7A3D"
+    },
+    {
+     "label": "DA",
+     "colour": "#1B5EA8"
+    },
+    {
+     "label": "Other parties",
+     "colour": "#333833"
+    }
+   ],
+   "note": "Median seats; the tick is each council's majority line"
+  },
+  "date_line": "Published 8 August 2026.",
+  "alt": "If the law were German instead. South African law: council 270, ANC 66, DA 66; Germany 2000 law: council 274, ANC 66, DA 68; Germany 2015 law: council 287, ANC 66, DA 74; Germany 2023 law: council 270, ANC 58, DA 68.",
+  "kind_colour": "#7aa6d6"
+ },
+ {
+  "layout": "article",
+  "mock": "meter",
+  "slug": "article-laingsburg-2021",
+  "page": "laingsburg-2021.html",
+  "headline": "Laingsburg, 2021: the whole mechanism in seven seats",
+  "figures": {
+   "p_excessive_anc": {
+    "token": "p_excessive_anc",
+    "display": "62%"
+   },
+   "anc_ward_median": {
+    "token": "anc_ward_median",
+    "display": "60"
+   },
+   "anc_entitlement": {
+    "token": "anc_entitlement",
+    "display": "58"
+   },
+   "generated_date": {
+    "token": "generated_date",
+    "display": "29 September 2026"
+   }
+  },
+  "lead": "",
+  "chart": {
+   "value": "62%",
+   "v": 0.6228,
+   "label": "Chance the clause fires for the ANC in Johannesburg",
+   "colour": "#1B7A3D",
+   "rows": [
+    {
+     "label": "ANC wards won, middle",
+     "value": "60"
+    },
+    {
+     "label": "ANC seat entitlement, middle",
+     "value": "58"
+    }
+   ]
+  },
+  "date_line": "Published 8 August 2026. Figures as of 29 September 2026.",
+  "alt": "Laingsburg, 2021: the whole mechanism in seven seats. Chance the clause fires for the ANC in Johannesburg: 62%. ANC wards won, middle: 60; seat entitlement: 58.",
+  "kind_colour": "#7aa6d6"
+ },
+ {
+  "layout": "claims",
+  "headline": "The parties' claims, tested",
+  "date_line": "One claim per party, each tested against the forecast. Latest tested 7 October 2026.",
+  "items": [
+   {
+    "verdict": "FALSE",
+    "badge": "src/stamps/verdict-false.svg",
+    "code": "DA",
+    "party": "DA",
+    "colour": "#1B5EA8",
+    "logo": "DA.png",
+    "speaker": "Helen Zille"
+   },
+   {
+    "verdict": "NEAR IMPOSSIBLE",
+    "badge": "src/stamps/verdict-near-impossible.svg",
+    "code": "ANC",
+    "party": "ANC",
+    "colour": "#1B7A3D",
+    "logo": "ANC.png",
+    "speaker": "Dickson Masemola"
+   },
+   {
+    "verdict": "EXTREMELY UNLIKELY",
+    "badge": "src/stamps/verdict-extremely-unlikely.svg",
+    "code": "MK",
+    "party": "MK Party",
+    "colour": "#5B6E22",
+    "logo": "MK.png",
+    "speaker": "Bongani Baloyi"
+   },
+   {
+    "verdict": "VERY LIKELY",
+    "badge": "src/stamps/verdict-very-likely.svg",
+    "code": "ASA",
+    "party": "ActionSA",
+    "colour": "#2FA79B",
+    "logo": "ASA.png",
+    "speaker": "Herman Mashaba"
+   }
+  ],
+  "figures": {},
+  "alt": "The parties' claims, tested. DA: FALSE (Helen Zille); ANC: NEAR IMPOSSIBLE (Dickson Masemola); MK Party: EXTREMELY UNLIKELY (Bongani Baloyi); ActionSA: VERY LIKELY (Herman Mashaba).",
+  "slug": "claims-page",
+  "page": "claims.html",
+  "kind_colour": "#d9954f"
+ },
+ {
+  "layout": "claims",
+  "mock": "claim",
+  "slug": "claim-da-turnout-majority",
+  "page": "claims.html",
+  "quote": "We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority",
+  "quote_cut": false,
+  "speaker": "Helen Zille",
+  "party": "DA",
+  "outlet": "Business Day, March 2026",
+  "code": "DA",
+  "colour": "#1B5EA8",
+  "logo": "DA.png",
+  "badge": "src/stamps/verdict-false.svg",
+  "verdict": "FALSE",
+  "figure": {
+   "value": "644,000",
+   "label": "half the votes cast if her voters turn out; she names 490,000",
+   "token": "claim_half_surged"
+  },
+  "figures": {
+   "claim_zille_votes": {
+    "token": "claim_zille_votes",
+    "display": "490,000"
+   },
+   "claim_half_surged": {
+    "token": "claim_half_surged",
+    "display": "644,000"
+   }
+  },
+  "date_line": "Tested 7 August 2026. Figures from that test.",
+  "alt": "Helen Zille, DA: “We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority” Verdict: FALSE. 644,000: half the votes cast if her voters turn out; she names 490,000.",
+  "kind_colour": "#d9954f"
+ },
+ {
+  "layout": "claims",
+  "mock": "claim",
+  "slug": "claim-anc-absolute-authority",
+  "page": "claims.html",
+  "quote": "We can only be able to do so if the people of greater Johannesburg give their organisation, the ANC, absolute authority",
+  "quote_cut": true,
+  "speaker": "Dickson Masemola",
+  "party": "ANC",
+  "outlet": "Joburg ETC, 13 August 2026",
+  "code": "ANC",
+  "colour": "#1B7A3D",
+  "logo": "ANC.png",
+  "badge": "src/stamps/verdict-near-impossible.svg",
+  "verdict": "NEAR IMPOSSIBLE",
+  "figure": {
+   "value": "under 0.1%",
+   "label": "chance the ANC wins a council majority alone",
+   "token": "claim.anc_alone.share"
+  },
+  "figures": {
+   "generated_date": {
+    "token": "generated_date",
+    "display": "29 September 2026"
+   },
+   "claim.anc_alone.share": {
+    "token": "claim.anc_alone.share",
+    "display": "under 0.1%"
+   }
+  },
+  "date_line": "Tested 26 September 2026. Figures as of 29 September 2026.",
+  "alt": "Dickson Masemola, ANC: “We can only be able to do so if the people of greater Johannesburg give their organisation, the ANC, absolute authority” Verdict: NEAR IMPOSSIBLE. under 0.1%: chance the ANC wins a council majority alone.",
+  "kind_colour": "#d9954f"
+ },
+ {
+  "layout": "claims",
+  "mock": "claim",
+  "slug": "claim-mk-biggest-party",
+  "page": "claims.html",
+  "quote": "According to us, we are going to be the biggest party in the city",
+  "quote_cut": true,
+  "speaker": "Bongani Baloyi",
+  "party": "MK Party",
+  "outlet": "TimesLive, 9 September 2026",
+  "code": "MK",
+  "colour": "#5B6E22",
+  "logo": "MK.png",
+  "badge": "src/stamps/verdict-extremely-unlikely.svg",
+  "verdict": "EXTREMELY UNLIKELY",
+  "figure": {
+   "value": "1.4%",
+   "label": "chance MK wins the most seats",
+   "token": "claim.mk_largest.share"
+  },
+  "figures": {
+   "generated_date": {
+    "token": "generated_date",
+    "display": "29 September 2026"
+   },
+   "claim.mk_largest.share": {
+    "token": "claim.mk_largest.share",
+    "display": "1.4%"
+   }
+  },
+  "date_line": "Tested 26 September 2026. Figures as of 29 September 2026.",
+  "alt": "Bongani Baloyi, MK Party: “According to us, we are going to be the biggest party in the city” Verdict: EXTREMELY UNLIKELY. 1.4%: chance MK wins the most seats.",
+  "kind_colour": "#d9954f"
+ },
+ {
+  "layout": "claims",
+  "mock": "claim",
+  "slug": "claim-da-coalition-red-lines",
+  "page": "claims.html",
+  "quote": "We won't go into a coalition with MK, and we will not go into coalition with the EFF",
+  "quote_cut": true,
+  "speaker": "Helen Zille",
+  "party": "DA",
+  "outlet": "Daily Maverick, 13 September 2026",
+  "code": "DA",
+  "colour": "#1B5EA8",
+  "logo": "DA.png",
+  "badge": "src/stamps/verdict-very-likely.svg",
+  "verdict": "VERY LIKELY",
+  "figure": {
+   "value": "87%",
+   "label": "chance of a council majority without the ANC, the EFF and MK",
+   "token": "claim.red_lines.no_red_share"
+  },
+  "figures": {
+   "generated_date": {
+    "token": "generated_date",
+    "display": "29 September 2026"
+   },
+   "claim.red_lines.no_red_share": {
+    "token": "claim.red_lines.no_red_share",
+    "display": "87%"
+   }
+  },
+  "date_line": "Tested 26 September 2026. Figures as of 29 September 2026.",
+  "alt": "Helen Zille, DA: “We won't go into a coalition with MK, and we will not go into coalition with the EFF” Verdict: VERY LIKELY. 87%: chance of a council majority without the ANC, the EFF and MK.",
+  "kind_colour": "#d9954f"
+ },
+ {
+  "layout": "claims",
+  "mock": "claim",
+  "slug": "claim-asa-soweto",
+  "page": "claims.html",
+  "quote": "If she thinks she will win Joburg without the support of Soweto, she must be living in another world",
+  "quote_cut": false,
+  "speaker": "Herman Mashaba",
+  "party": "ActionSA",
+  "outlet": "Inside Metros, 9 September 2026",
+  "code": "ASA",
+  "colour": "#2FA79B",
+  "logo": "ASA.png",
+  "badge": "src/stamps/verdict-very-likely.svg",
+  "verdict": "VERY LIKELY",
+  "figure": {
+   "value": "23%",
+   "label": "chance the DA governs with ActionSA and the PA, or the ANC, if it wins no Soweto ward",
+   "token": "claim.soweto.realistic_given_none"
+  },
+  "figures": {
+   "generated_date": {
+    "token": "generated_date",
+    "display": "29 September 2026"
+   },
+   "claim.soweto.realistic_given_none": {
+    "token": "claim.soweto.realistic_given_none",
+    "display": "23%"
+   }
+  },
+  "date_line": "Tested 7 October 2026. Figures as of 29 September 2026.",
+  "alt": "Herman Mashaba, ActionSA: “If she thinks she will win Joburg without the support of Soweto, she must be living in another world” Verdict: VERY LIKELY. 23%: chance the DA governs with ActionSA and the PA, or the ANC, if it wins no Soweto ward.",
+  "kind_colour": "#d9954f"
+ }
+]
