@@ -89,7 +89,7 @@ Wednesday 28 October.
 **Recommendation.** 1 yes, the second spot from 21:00 on 4 November and
 nothing between 07:00 and 21:00; 2 today before 14:00.
 
-**Asked 2026-10-23:** "Need to see some creative and copy proposed for billboard." Copy and frames to follow in chat.
+**Asked 2026-10-23:** "Need to see some creative and copy proposed for billboard." Copy and frames sent 23 October. Owner chose the opening: "Who will govern Joburg?" / "Think you know?" (replacing "Nobody wins Joburg.", which stated a forecast result); the spot is re-rendered and verified (newsdesk 424ae93). Still open: decisions 1 and 2 and the go-live date.
 
 **Gates.** The go-live date.
 
