@@ -140,8 +140,6 @@ SAYS: tuple[Say, ...] = (
         "The date of This Model's current simulations of the election."),
     Say(r"home\.n_draws|n_draws", "", M,
         "The number of times This Model simulated the election."),
-    Say(r"home\.ward_safe", "", M,
-        "The share of " + _SIMS + " a ward's likeliest winner must win it in for the map to show it as safe."),
     Say(rf"home\.wards\.{_p}", "wards", M,
         "The wards where {party} is the likeliest winner across " + _SIMS + "."),
     Say(rf"home\.wards_close\.{_p}", "wards", M,
@@ -268,6 +266,8 @@ SAYS: tuple[Say, ...] = (
         "The share of the party-list vote under which a party counts as small, in the test of past local elections."),
     Say(r"small_party_surge_share", "", M,
         "The share of the party-list vote a small party must pass at the next election to count as having surged."),
+    Say(r"small_party_record_cases", "", "IEC local election results",
+        "The times, in the eight metros' local elections from 2006 to 2021, that a party had under {small} of the party-list vote at one election, each counted against the next; a party that did not stand at the next counts at 0."),
     Say(r"small_party_surge", "chance", M,
         "The % of " + _SIMS + " where a party that stood in 2021 and averages under {small} of the party-list vote takes more than {surge}."),
     # --- earlier editions, as published --------------------------------------
@@ -355,6 +355,28 @@ SAYS: tuple[Say, ...] = (
 )
 
 _COMPILED = [(s, re.compile(s.pattern)) for s in SAYS]
+
+#: Words, not figures, that carry a tooltip of their own: a page writes
+#: ``<span class="mstat" data-say="NAME" data-prov="">word</span>`` and
+#: ``build_site.word_tooltips`` fills it with :func:`word_says`, in the same
+#: pass as every figure's. One line, the owner's structure for a word
+#: (2026-10-22, OWNER-DECISIONS 24): "SOURCE: This Model. A ward where the
+#: leader wins in fewer than {safe} of {n} simulations.", filled from the run.
+WORDS: dict[str, Say] = {
+    # the home page's ward sentence (render_home.not_safe_word)
+    "not_safe": Say("not_safe", "", M,
+                    "A ward where the leader wins in fewer than {safe} of " + _SIMS + "."),
+}
+
+
+def word_says(name: str, facts: Facts) -> str:
+    """The tooltip of the word ``name`` (:data:`WORDS`): "SOURCE: <who>.
+    <sentence>". Refuses a name with no sentence."""
+    if name not in WORDS:
+        raise SystemExit(f"tooltip for the word {name!r}: no sentence in "
+                         f"tooltip_says.WORDS ({sorted(WORDS)})")
+    say = WORDS[name]
+    return f"SOURCE: {say.who}. {_fill(say, re.fullmatch(re.escape(name), name), facts)}"
 
 
 def _known(code: str) -> bool:

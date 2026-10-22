@@ -1350,6 +1350,24 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
     return f"{line}\nSOURCE: {who}. {said}"
 
 
+#: A word's tooltip slot (tooltip_says.WORDS): `data-say` names its sentence.
+WORD_TIP = re.compile(r'(<span class="mstat"[^>]*\bdata-say="([^"]+)"[^>]*?\bdata-prov=")(")')
+
+
+def word_tooltips(text: str, facts) -> str:
+    """``text`` with every word tooltip (``data-say``, e.g. the home page's
+    "not safe") written into its empty `data-prov`, from
+    ``tooltip_says.word_says``. Part of the one tooltip pass; a word with no
+    sentence there stops the build."""
+    import html as _h
+    import tooltip_says
+
+    def one(m):
+        note = _h.escape(tooltip_says.word_says(m.group(2), facts), quote=True)
+        return m.group(1) + note.replace("\n", "&#10;") + m.group(3)
+    return WORD_TIP.sub(one, text)
+
+
 def audit_configs(registry: dict, ctx: dict) -> tuple[dict, dict]:
     """The settings EVERY page is audited and scanned with, in one place.
 
@@ -2252,6 +2270,7 @@ def main(argv: list[str] | None = None) -> int:
                         if glyphs and m.group(2) in arrows else span)
             text = _re.sub(r'(<span class="mstat"[^>]*data-token="([^"]+)"[^>]*>[^<]*</span>)',
                            _prov, text)
+            text = word_tooltips(text, facts)
             if 'data-prov=""' in text:
                 raise SystemExit(f"TOOLTIPS: {page} carries a figure the tooltip writer did not "
                                  "reach (an empty data-prov): every figure's tooltip is "

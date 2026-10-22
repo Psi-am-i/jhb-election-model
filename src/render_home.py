@@ -79,12 +79,19 @@ LEDE_PLACEHOLDERS = {
     "lede_overhang_seats": "figure: that party's share of the council, median where the clause applies to it",
     "lede_overhang_votes": "figure: its share of the party-list vote, median in the same simulations",
     "lede_first_cap": "phrase: lede_first at the start of a sentence",
-    "lede_wards_but": "phrase: \"but \" when lede_first has more close wards than lede_second in number and share, else nothing",
+    "lede_second_cap": "phrase: lede_second at the start of a sentence",
+    # The ward sentence's joins (ward_phrases): its contrast ("While", "only")
+    # is said only when ward_contrast holds, so each join is chosen by it.
+    "lede_wards_open": "phrase: \"While \" + lede_first when ward_contrast holds, else lede_first_cap",
+    "lede_wards_in": "phrase: \"in \" when ward_contrast holds, else nothing",
+    "lede_wards_lead": "phrase: \"the lead is \" when ward_contrast holds, else nothing",
+    "lede_wards_only": "phrase: \" with only\" when ward_contrast holds, else \",\"",
+    "lede_wards_that": "phrase: \"that are \" when ward_contrast holds, else \"of them \"",
+    "lede_not_safe": "phrase: \"not safe\", with its tooltip (tooltip_says.WORDS): won in under render_map.SAFE of simulations",
     "lede_wards_first": "figure: wards in which lede_first is the likeliest winner",
-    "lede_close_first": "figure: of those, wards the map draws as contested (under lede_safe)",
+    "lede_close_first": "figure: of those, wards the map draws as contested (not safe)",
     "lede_wards_second": "figure: wards in which lede_second is the likeliest winner",
     "lede_close_second": "figure: of those, wards the map draws as contested",
-    "lede_safe": "figure: the share of simulations a ward's winner needs for the map to draw it safe",
 }
 
 
@@ -106,13 +113,39 @@ def ward_races(processed: Path) -> dict:
     return {p: (a, b) for p, (a, b) in out.items()}
 
 
-def wards_but(first: str, second: str, races: dict) -> str:
-    """"but " before the first-named party's close wards when it has more
-    close wards than the second, both in number and as a share of the wards it
-    leads, so the contrast is said only when it is true; else nothing. The
-    same test whichever party is named first."""
+def ward_contrast(first: str, second: str, races: dict) -> bool:
+    """Whether the first-named party has more not-safe wards than the second,
+    both in number and as a share of the wards it leads: the one test for the
+    ward sentence's contrast ("While", "only"), so the contrast is said only
+    when it is true. The same test whichever party is named first."""
     (w1, c1), (w2, c2) = races.get(first, (0, 0)), races.get(second, (0, 0))
-    return "but " if (c1 > c2 and w1 and w2 and c1 / w1 > c2 / w2) else ""
+    return bool(c1 > c2 and w1 and w2 and c1 / w1 > c2 / w2)
+
+
+def ward_phrases(first_name: str, contrast: bool) -> dict:
+    """The ward sentence's joins, by :func:`ward_contrast` (owner, 2026-10-22,
+    OWNER-DECISIONS 24). With the contrast: "While the ANC is ahead in N
+    wards, in M of them the lead is not safe. The DA is ahead in K wards with
+    only J that are not safe." Without: "The ANC is ahead in N wards, M of
+    them not safe. The DA is ahead in K wards, J of them not safe."
+    ``first_name`` is the first party as the page names it ("the ANC")."""
+    cap = first_name[:1].upper() + first_name[1:]
+    if contrast:
+        return {"lede_wards_open": f"While {first_name}", "lede_wards_in": "in ",
+                "lede_wards_lead": "the lead is ", "lede_wards_only": " with only",
+                "lede_wards_that": "that are "}
+    return {"lede_wards_open": cap, "lede_wards_in": "", "lede_wards_lead": "",
+            "lede_wards_only": ",", "lede_wards_that": "of them "}
+
+
+def not_safe_word() -> str:
+    """"not safe", carrying its own tooltip: `data-say` names its sentence in
+    ``tooltip_says.WORDS``, and ``build_site`` writes it into `data-prov` in
+    the same pass as every figure's (the one tooltip writer). Class `mstat`
+    so src/css/stat.css draws it like a figure's; no `data-token`, because it
+    is not a figure."""
+    return ('<span class="mstat" data-word="lede_not_safe" data-say="not_safe" '
+            'data-prov="" tabindex="0">not safe</span>')
 
 
 def load_lede(city_dir: Path) -> dict:
@@ -267,7 +300,7 @@ def phrases(alone: float, anc: float, da: float) -> tuple[str, str, str, str]:
     else:
         first, second = ("ANC", "DA") if anc > da else ("DA", "ANC")
         race = ("too close to call" if abs(anc - da) < 0.05
-                else f"leaning to the {first}")
+                else f"leaning toward the {first}")
     return coalition, race, first, second
 
 
@@ -327,19 +360,21 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
         "lede_overhang_votes": tok("home.overhang_list_share", f"{o_votes:.6f}", "pct0",
                                    f"site/draws list_vote, median {o_src}"),
     }
-    import render_map as _rm
     races = ward_races(Path(processed))
     w_src = "ward_winner_probs.csv, the likeliest winner of each ward"
     c_src = ("ward_winner_probs.csv, wards the map draws as contested: the winner "
              "wins in under render_map.SAFE of simulations (render_map.ward_call)")
+    cap = lambda s: s[:1].upper() + s[1:]  # noqa: E731
     values.update({
-        "lede_first_cap": _word("lede_first_cap", party(first)[:1].upper() + party(first)[1:]),
-        "lede_wards_but": _word("lede_wards_but", wards_but(first, second, races)),
+        "lede_first_cap": _word("lede_first_cap", cap(party(first))),
+        "lede_second_cap": _word("lede_second_cap", cap(party(second))),
+        **{k: _word(k, v) for k, v in
+           ward_phrases(party(first), ward_contrast(first, second, races)).items()},
+        "lede_not_safe": not_safe_word(),
         "lede_wards_first": tok(f"home.wards.{first.lower()}", races.get(first, (0, 0))[0], "int", w_src),
         "lede_close_first": tok(f"home.wards_close.{first.lower()}", races.get(first, (0, 0))[1], "int", c_src),
         "lede_wards_second": tok(f"home.wards.{second.lower()}", races.get(second, (0, 0))[0], "int", w_src),
         "lede_close_second": tok(f"home.wards_close.{second.lower()}", races.get(second, (0, 0))[1], "int", c_src),
-        "lede_safe": tok("home.ward_safe", f"{_rm.SAFE:.6f}", "pct0", "render_map.SAFE, the map's safe-ward share"),
     })
     assert set(values) == set(LEDE_PLACEHOLDERS), "LEDE_PLACEHOLDERS is the list"
     lede = load_lede(city_dir)

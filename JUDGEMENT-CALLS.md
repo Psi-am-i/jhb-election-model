@@ -561,7 +561,7 @@ drawn, each party's expected share is cut by an amount that grows with its size,
 and the vote freed is returned to all parties in proportion to their share.
 Without the cut, forecasts of past elections gave the largest parties too much
 and the middle-sized parties too little; adding it was the largest single
-improvement the model has had. The smallest parties are now forecast slightly
+improvement This Model has had. The smallest parties are now forecast slightly
 too high. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
@@ -1056,7 +1056,7 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 **Plain — How far each party's support can move.** Each party's simulated
 support is drawn from a bell curve on a log scale, so its share is multiplied
 up or down. The curve is wider for a smaller party and for a party new to the
-city. Its width is measured from how far the model's expected shares missed in
+city. Its width is measured from how far This Model's expected shares missed in
 the past elections before this one. Part of each simulation's move is shared
 by all parties. It cannot be changed on [your forecast](your-forecast/).
 
@@ -1129,10 +1129,12 @@ picked it, did not.
 ### §A59 · `w_bye` — 0.5 for every party — 🔴 declared (owner, 2026-10-17); measured off the panel on one cycle, 2026-10-21
 
 **Plain — How much recent by-elections count.** Each party's expected share is
-set halfway between what the model expects from earlier elections and what the
-by-elections since 2021 imply for it. Nobody knows the right weight, so the two
-count equally. A party that had a vote in the 2024 national election cannot be
-moved by its by-elections further than the model's usual range for it allows,
+set halfway between what This Model expects from earlier elections and what the
+by-elections since 2021 imply for it. Tested on the 2021 election in the eight
+metros, equal weight gave the smallest error in the party-list vote, with
+weights a little either side close behind; that is one election's test. A party
+that had a vote in the 2024 national election cannot be moved by its
+by-elections further than This Model's usual range for it allows,
 so a party whose by-elections imply a very large swing moves less than halfway.
 A party whose only earlier vote is the 2021 local election has no such range
 and moves halfway. A party with no earlier vote at all is covered under new
@@ -1985,7 +1987,7 @@ cannot be re-checked from the repository.
 **Plain — Expected turnout leans on 2021.** Each voting district's turnout is
 projected from how far turnout fell from the national election to the local
 election two years later, in 2016 and in 2021, with 2021 counting for 70%. The
-weight comes from the model's original plan and has never been tested. Turnout
+weight comes from This Model's original plan and has never been tested. Turnout
 fell less in 2016, so weighting the two equally would raise projected turnout.
 On [your forecast](your-forecast/) you can move the turnout of any or all four
 population groups at once. A group you leave alone stays at the forecast's

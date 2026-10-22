@@ -228,7 +228,7 @@ def methodology_section(calls: list[dict]) -> str:
            "site build. -->", ""]
     if calls:
         out += [f"## {SECTION_HEADING}", "",
-                "These are choices about how the model works that the data "
+                "These are choices about how This Model works that the data "
                 "did not make for us. Each is filed, with its evidence, in the "
                 f"[register of judgement calls]({REGISTER_URL}).", ""]
         for call in calls:

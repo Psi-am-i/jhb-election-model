@@ -286,12 +286,12 @@ The parties' claims, tested
 
 <!-- /block 97522cee-2 -->
 
-<!-- block 2df7dd93 -->
+<!-- block 682e12f7 -->
 *p*
 
-Each claim below is a public, checkable statement about November, tested against the same {{n_draws}} simulations as the forecast.
+Each claim below is a public statement about November's result by a named party figure, tested against the same {{n_draws}} simulations as the forecast. We choose statements the simulations can check, such as a seat count, a majority, the largest party or a coalition's arithmetic, and look for them from every party. Know of one? Send it to <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a>.
 
-<!-- /block 2df7dd93 -->
+<!-- /block 682e12f7 -->
 
 <!-- block 22dfb181 -->
 *div*
@@ -716,12 +716,12 @@ Sources: Electoral Commission of South Africa — voting-district results for th
 
 ## docs-public/about-the-model.md
 
-<!-- block 0bd3ff96 -->
+<!-- block db93c168 -->
 *md*
 
-Every result in this section comes from the model run described at its end. The forecasts and scores used as examples under *The technical measures* are made up to explain the measures; they are not results.
+Every result in this section comes from the run of This Model described at its end. The forecasts and scores used as examples under *The technical measures* are made up to explain the measures; they are not results.
 
-<!-- /block 0bd3ff96 -->
+<!-- /block db93c168 -->
 
 <!-- block 2cd07f6d -->
 *md*
@@ -737,12 +737,12 @@ Each forecast used what a forecaster had before polling day: the previous local 
 
 <!-- /block 9efbd894 -->
 
-<!-- block 48f410b0 -->
+<!-- block b21f2aa8 -->
 *md*
 
-It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg.
+It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted on its own wards, registration and history. The narrowest range a population group's turnout is given, and how closely the groups' turnouts move together, are measured across the eight metros, Johannesburg included.
 
-<!-- /block 48f410b0 -->
+<!-- /block b21f2aa8 -->
 
 <!-- block 24f3f51f -->
 *md*
@@ -807,12 +807,12 @@ Uniform swing is the usual standard for judging election models, and it is hard 
 
 <!-- /block 15a038b1 -->
 
-<!-- block d9a7b9fb -->
+<!-- block 6873b2ff -->
 *md*
 
-The largest parties in each city, by seats won in 2021; the note under each table says how many are shown. Our figure is the middle of the range the model produced, not its best case.
+The largest parties in each city, by seats won in 2021; the note under each table says how many are shown. Our figure is the middle of the range This Model produced, not its best case.
 
-<!-- /block d9a7b9fb -->
+<!-- /block 6873b2ff -->
 
 <!-- block 8218d495 -->
 *md*
@@ -1146,12 +1146,12 @@ Three measures appear above, and they measure different things.
 
 <!-- /block 93126937 -->
 
-<!-- block 30ffb0bc -->
+<!-- block 586380a6 -->
 *md*
 
-Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model's favour.
+Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in This Model's favour.
 
-<!-- /block 30ffb0bc -->
+<!-- /block 586380a6 -->
 
 <!-- block 833ab1ab -->
 *md*
@@ -1174,12 +1174,12 @@ Two of the three baselines produce a single number rather than a range, so CRPS 
 
 <!-- /block b38cf992 -->
 
-<!-- block 58397dfe -->
+<!-- block e7af9d1e -->
 *md*
 
-**How much a breakaway party takes was a leak until 14 August 2026.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows depends mostly on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021. The model used to fill that gap with splits from after 2021, including MK's three years later, which flattered these scores. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg's figure is worse for it.
+**How much a breakaway party takes was a leak until 14 August 2026.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows depends mostly on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021. This Model used to fill that gap with splits from after 2021, including MK's three years later, which flattered these scores. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg's figure is worse for it.
 
-<!-- /block 58397dfe -->
+<!-- /block e7af9d1e -->
 
 <!-- block 3b4ee887 -->
 *md*
@@ -1209,12 +1209,12 @@ Read the scores as an estimate of what the machinery is worth, not as a sealed p
 
 <!-- /block cb3f91d5 -->
 
-<!-- block 306d9fa4 -->
+<!-- block a1cec469 -->
 *md*
 
-*Generated 2026-09-30 by `src/build_validation.py` from a 400-draw run per city against the 2021 result. The underlying figures are in `data/processed/validation_2021.json`; the code that produced them is public.*
+*Tested on 30 September 2026 against an earlier version of This Model, on 400 simulations per city of the 2021 election.*
 
-<!-- /block 306d9fa4 -->
+<!-- /block a1cec469 -->
 
 
 ## docs-public/corrections.md
@@ -1491,7 +1491,7 @@ The full technical record, every file and every workaround, is in the
 
 <!-- /block a4a3d8af -->
 
-<!-- block 56e6a308 -->
+<!-- block 9cb28b51 -->
 *md*
 
 Johannesburg's council is elected on two ballots at once. On the first, 135
@@ -1500,11 +1500,11 @@ vote for a party. The two ballots do not elect two halves of the council. They
 are **added together**, and the combined share decides the *total* number of
 seats each party is entitled to. Ward wins do not add to a party's total; they
 fill it. The other 135 seats are allocated from the party lists to top every
-party up to its entitlement. A common mistake, made in an early version of this
-model's own plan, is to think the party ballot alone sets the totals. For a
+party up to its entitlement. A common mistake, made in an early version of This
+Model's own plan, is to think the party ballot alone sets the totals. For a
 party whose voters split their tickets, the difference is worth seats.
 
-<!-- /block 56e6a308 -->
+<!-- /block 9cb28b51 -->
 
 <!-- block 95c6eeda -->
 *md*
@@ -1548,19 +1548,19 @@ the majority at {{majority}}.
 
 <!-- /block 670b482d -->
 
-<!-- block 75b9ea86 -->
+<!-- block 1fdecf85 -->
 *md*
 
 The Electoral Commission publishes how many people are registered in each
 ward. The forecast uses its count of registered voters as at 26 September 2026.
 The Commission counts each voting district in a single ward and publishes no
-figure per voting district. So the model places each of Johannesburg's
+figure per voting district. So This Model places each of Johannesburg's
 {{n_vds}} voting districts wholly in the ward that best reproduces the
 Commission's totals, and shares each ward's total among its voting districts in proportion
-to their registration when the wards were drawn. That roll is the model's
+to their registration when the wards were drawn. That roll is This Model's
 foundation.
 
-<!-- /block 75b9ea86 -->
+<!-- /block 1fdecf85 -->
 
 <!-- block 20741ce5 -->
 *md*
@@ -1634,15 +1634,15 @@ registers at the same rate.
 
 <!-- /block 83eca765 -->
 
-<!-- block f312f095 -->
+<!-- block 597312c0 -->
 *md*
 
-This is the model's statistics. We know how every ward voted and roughly what
-each ward is made of. From 135 wards at once the model works back to how each
+This step is This Model's statistics. We know how every ward voted and roughly what
+each ward is made of. From 135 wards at once This Model works back to how each
 party performs in each pool, as you can work out the price of apples and
 oranges from a stack of receipts without seeing inside a bag.
 
-<!-- /block f312f095 -->
+<!-- /block 597312c0 -->
 
 <!-- block d388a627 -->
 *md*
@@ -1661,13 +1661,13 @@ winning a *negative* share of one pool.
 
 <!-- /block 62cace52 -->
 
-<!-- block df697721 -->
+<!-- block c08800ed -->
 *md*
 
 Steps 1–3 describe the last election. This step is the forecast, and it is
-uncertain, so the model draws thousands of answers instead of picking one.
+uncertain, so This Model draws thousands of answers instead of picking one.
 
-<!-- /block df697721 -->
+<!-- /block c08800ed -->
 
 <!-- block a0f70ced -->
 *md*
@@ -1676,11 +1676,11 @@ Two things are drawn:
 
 <!-- /block a0f70ced -->
 
-<!-- block 07007d5a -->
+<!-- block ebace0ba -->
 *md*
 
 - **How each party's support moves.** Parties usually do worse locally than
-  nationally. The model measures the gap for each party from its own
+  nationally. This Model measures the gap for each party from its own
   national-to-local transitions on record. A party's starting level blends its
   national result, converted down to local, with its last local result: the
   less record a party has of that gap, the more its local result counts.
@@ -1688,26 +1688,26 @@ Two things are drawn:
   {{hist_asa_npe_2024}} in the city in the 2024 national election. It has no
   national-to-local gap on record, so its starting level comes from its local
   result alone. In this forecast its level is set by our judgement instead, at
-  17.6% of the list vote: the model carries the 2021 result forward at the
+  17.6% of the list vote: This Model carries the 2021 result forward at the
   share a typical party of its size keeps between local elections, and its
   by-elections lift it part of the way back; we judge that ActionSA keeps more
-  of that vote than the model does. Every other party's share is scaled down in proportion so
-  the shares still add up, and ActionSA keeps the model's usual uncertainty
+  of that vote than This Model does. Every other party's share is scaled down in proportion so
+  the shares still add up, and ActionSA keeps This Model's usual uncertainty
   for a party of that size. It cannot be changed on [your
   forecast](your-forecast/).
 - **Turnout, per pool.** It is the one unknown quantity, and it is drawn from
-  what turnout has done in that city before. In 2021 every pool's turnout was
-  the lowest on record, so the range allows falls as well as rises.
+  what turnout has done in that city before. Turnout fell in every group in
+  2021, so the range allows falls as well as rises.
 
-<!-- /block 07007d5a -->
+<!-- /block ebace0ba -->
 
-<!-- block 9756ea63 -->
+<!-- block e2aab09f -->
 *md*
 
-Recent by-elections tilt parties' expected shares before the draws (see *The
+Recent by-elections tilt parties' expected shares before the simulations (see *The
 judgement calls*, below).
 
-<!-- /block 9756ea63 -->
+<!-- /block e2aab09f -->
 
 <!-- block 0dac9743 -->
 *md*
@@ -1739,15 +1739,15 @@ new party, and they behave differently:
 
 <!-- /block f29aec92 -->
 
-<!-- block 6b99ccfc -->
+<!-- block 065af737 -->
 *md*
 
-Before the model told them apart, every party that filed candidates everywhere
+Before This Model told them apart, every party that filed candidates everywhere
 was sized like the EFF's 2016 breakthrough. Filing papers is cheap, and in Cape
 Town that gave parties that did not exist more votes than the entire
 electorate. Separating the two fixed it.
 
-<!-- /block 6b99ccfc -->
+<!-- /block 065af737 -->
 
 <!-- block 61412124 -->
 *md*
@@ -1767,15 +1767,15 @@ Cape Town.
 
 <!-- /block 8823cbc0 -->
 
-<!-- block 913df201 -->
+<!-- block 60beb29e -->
 *md*
 
 Each drawn outcome is spread back across all {{n_vds}} voting districts using
 each party's own geography: where its votes were last time. This is the
-best-tested idea in the model. *Where* a party's support sits barely moves
+best-tested idea in This Model. *Where* a party's support sits barely moves
 between elections, even when *how much* it has swings widely.
 
-<!-- /block 913df201 -->
+<!-- /block 60beb29e -->
 
 <!-- block 99d0f52e -->
 *md*
@@ -1878,15 +1878,15 @@ the Commission's own count of independent ward councillors.
 
 <!-- /block 117e64f5 -->
 
-<!-- block 0c7026f0 -->
+<!-- block 3f5e61c8 -->
 *md*
 
 **The geography transfers.** <span data-asof="2026-08-04">Given only citywide
-totals for 2021, the model placed the votes well enough to call
+totals for 2021, This Model placed the votes well enough to call
 {{blind_test_called}} of {{blind_test_of}} ward winners. That test was run on 4
 August 2026 and has not been re-run on the current model.</span>
 
-<!-- /block 0c7026f0 -->
+<!-- /block 3f5e61c8 -->
 
 <!-- block e4b095e0 -->
 *md*
@@ -1932,7 +1932,7 @@ wards.
 
 <!-- /block 961baec6 -->
 
-<!-- block ac73a69f -->
+<!-- block 89dab190 -->
 *md*
 
 - **A party that does not exist yet is the hardest case.** Splits and entrants
@@ -1949,14 +1949,14 @@ wards.
 - **Small parties' range is wider than the record.** In the simulations, a
   party that is established but small sometimes reaches a share no such party
   has reached in the record. In the eight metros' consecutive local elections
-  from 2006 to 2021, 337 times a party had under {{small_party_share}} of the list vote at
+  from 2006 to 2021, {{small_party_record_cases}} times a party had under {{small_party_share}} of the list vote at
   one election, and none reached {{small_party_surge_share}} at the next ([model log, §1.296](https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md)).
   In this forecast, {{small_party_surge}} of the simulations give at least one such
   party more than {{small_party_surge_share}}. A fix is in progress.
-- **Arithmetic is not politics.** The model says which governments are
+- **Arithmetic is not politics.** This Model says which governments are
   numerically possible, not which will form.
 
-<!-- /block ac73a69f -->
+<!-- /block 89dab190 -->
 
 <!-- block ff0d9166 -->
 *md*
@@ -2048,7 +2048,7 @@ published forecast uses no poll.
 
 <!-- /block 91a3fee7 -->
 
-<!-- block cb4bcf94 -->
+<!-- block ae8cdb75 -->
 *md*
 
 The polls that exist disagree with each other by more than the quantity being
@@ -2056,10 +2056,10 @@ forecast: one house had the DA on {{poll_srf_q2_da}} and the ANC on {{poll_srf_q
 another had the ANC on {{poll_ipsos_w2_anc}} and the DA on {{poll_ipsos_w2_da}}. Metro-level polling has little
 track record here to weight it by; pre-2021 polling missed ActionSA in this
 city by about ten points. Every poll we hold is listed, with its caveats, and
-the model is read against them as an outside check. They are not, at present,
+This Model is read against them as an outside check. They are not, at present,
 an input.
 
-<!-- /block cb4bcf94 -->
+<!-- /block ae8cdb75 -->
 
 <!-- block 6cbd50ee -->
 *md*
@@ -2086,13 +2086,13 @@ the [review page](review). Errors that reached readers since are on the
 
 <!-- /block d4383da3 -->
 
-<!-- block f10d10b3 -->
+<!-- block 8f2e8962 -->
 *md*
 
 The code, the data recipes, the log of findings and mistakes, and the known
-defects in the public records the model depends on are published:
+defects in the public records This Model depends on are published:
 
-<!-- /block f10d10b3 -->
+<!-- /block 8f2e8962 -->
 
 <!-- block b4dcc240 -->
 *md*
@@ -2187,16 +2187,18 @@ described below are the only count the site keeps.
 
 <!-- /block caede00f -->
 
-<!-- block 9a374788 -->
+<!-- block 39a9ab70 -->
 *md*
 
 Links in this site's advertising and social posts use short addresses, one per
-channel: `/go` on the billboard, `/x`, `/li`, `/fb` and `/ig` for social posts,
-and `/g` for Google Ads. Each forwards to the home page and writes one log line
-naming the channel and the site's own address, and nothing about the visitor.
+channel: `/go` on the billboard, `/x`, `/ig`, `/r` (Reddit), `/yt` (YouTube),
+`/li` and `/fb` for social posts, `/e` in email, `/fm` on radio, and `/g` for
+Google Ads. Each forwards to the home page, and the same address ending in `p`
+(`/xp`, `/ep` and so on) to Your Forecast; each writes one log line naming the
+channel and the site's own address, and nothing about the visitor.
 The site counts those lines by channel.
 
-<!-- /block 9a374788 -->
+<!-- /block 39a9ab70 -->
 
 <!-- block 217468d3 -->
 *md*
@@ -3135,12 +3137,12 @@ P(DA reaches 136 alone) under a full DA-camp turnout surge
 
 <!-- /block d991355a -->
 
-<!-- block 2bf252e2 -->
+<!-- block ddb62774 -->
 *claim[0].since*
 
-The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In the current forecast, the DA wins a majority on its own in none of the [[n_draws]] simulations. The verdict stands.
+The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In the current forecast, the DA wins a majority on its own in none of the [[n_draws]] simulations. The verdict stands. <span data-asof="2026-10-08">On 8 October Zille repeated the claim, saying "136 seats out of 270" (News24, 9 October 2026).</span>
 
-<!-- /block 2bf252e2 -->
+<!-- /block ddb62774 -->
 
 <!-- block 50b805aa -->
 *claim[0].steps[0]*
@@ -3453,21 +3455,22 @@ Since then the forecast reads the IEC's September roll, which adds a ward to Sow
 
 ## content/joburg/home.toml
 
-<!-- block 44e649a4 -->
+<!-- block 556d1b3e -->
 *lede[0].head*
 
 <em>{{lede_coalition}}.</em> The largest party is {{lede_race}}.
-{{lede_p_first}} chance it's {{lede_first}} and {{lede_p_second}} chance it's
-{{lede_second}}.
 
-<!-- /block 44e649a4 -->
+<!-- /block 556d1b3e -->
 
-<!-- block 09e12dd4 -->
+<!-- block b822a02e -->
 *lede[0].sub*
 
-Chance of one party winning outright: {{lede_p_alone}}. Proportional
-representation is meant to give parties seats that match their support. Our
-system mixes directly elected ward councillors with party seats topped up
+{{lede_wards_open}} is ahead in {{lede_wards_first}} wards,
+{{lede_wards_in}}{{lede_close_first}} of them {{lede_wards_lead}}{{lede_not_safe}}.
+{{lede_second_cap}} is ahead in {{lede_wards_second}} wards{{lede_wards_only}}
+{{lede_close_second}} {{lede_wards_that}}{{lede_not_safe}}. Chance of one party
+winning outright: {{lede_p_alone}}. Proportional representation is meant to give parties seats that match their
+support. Our system mixes directly elected ward councillors with party seats topped up
 according to each party's share of the vote, and it has a quirk. A ward you win
 cannot be taken away, so a party that wins many wards can end up with more
 council seats than its share of the vote should allow. That is surprisingly
@@ -3476,5 +3479,5 @@ likely this year: there is a {{lede_p_overhang}} chance it happens to
 about {{lede_overhang_seats}} of the seats on about {{lede_overhang_votes}} of
 the party-list vote.
 
-<!-- /block 09e12dd4 -->
+<!-- /block b822a02e -->
 

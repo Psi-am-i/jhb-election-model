@@ -131,6 +131,18 @@ format = "pct0"
 inserted = "2026-10-10"
 used_in = "methodology — the small-party note: the record test's 'reached' line"
 
+# The record behind the small-party note on /methodology: how many times, in
+# the eight metros' consecutive local elections, a party was under the line at
+# one election. A measurement of the past, so fixed (2026-10-22; it was typed
+# into the prose, cleared by an [[audit.fixed]] entry, from 2026-10-10).
+[small_party_record_cases]
+mode = "fixed"
+value = 337
+format = "int"
+source = "external:MODEL-LOG §1.296, 'The real record': levels._citywide for the eight metros, consecutive LGE pairs 2006→2011, 2011→2016 and 2016→2021, a party under 1% of the list vote at the earlier election, one absent at the later counted at 0 (read 2026-10-10)"
+captured = "2026-10-10"
+used_in = "methodology — the small-party note: the record's count of parties under the line"
+
 [small_party_surge]
 mode = "free"
 source = "published:small_party_surge"
@@ -1588,16 +1600,9 @@ source = "JUDGEMENT-CALLS.md §O1 (the blind review of 2026-09-29 recommended a 
 reviewed = "2026-10-02"
 page = "methodology.html"
 
-# The small-party note on /methodology (2026-10-10): the record's count, and
-# the reference to where it was measured.
-[[audit.fixed]]
-value = "337"
-context = "337 times a party had under"
-kind = "history"
-source = "MODEL-LOG §1.296, 'The real record': levels._citywide for the eight metros, consecutive local elections 2006 to 2021, read 2026-10-10"
-reviewed = "2026-10-10"
-page = "methodology.html"
-
+# The small-party note on /methodology (2026-10-10): the reference to where
+# the record's count was measured. The count itself is the fixed token
+# `small_party_record_cases` (2026-10-22).
 [[audit.fixed]]
 value = "1.296"
 context = "model log, §1.296"

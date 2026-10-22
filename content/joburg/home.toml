@@ -12,15 +12,13 @@
 # paragraph under it.
 
 [[lede]]
-head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}.
-{{lede_p_first}} chance it's {{lede_first}} and {{lede_p_second}} chance it's
-{{lede_second}}. {{lede_first_cap}} leads in {{lede_wards_first}} wards,
-{{lede_wards_but}}{{lede_close_first}} of them are close (won in under {{lede_safe}}
-of simulations); {{lede_second}} leads in {{lede_wards_second}},
-{{lede_close_second}} of them close."""
-sub = """Chance of one party winning outright: {{lede_p_alone}}. Proportional
-representation is meant to give parties seats that match their support. Our
-system mixes directly elected ward councillors with party seats topped up
+head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}."""
+sub = """{{lede_wards_open}} is ahead in {{lede_wards_first}} wards,
+{{lede_wards_in}}{{lede_close_first}} of them {{lede_wards_lead}}{{lede_not_safe}}.
+{{lede_second_cap}} is ahead in {{lede_wards_second}} wards{{lede_wards_only}}
+{{lede_close_second}} {{lede_wards_that}}{{lede_not_safe}}. Chance of one party
+winning outright: {{lede_p_alone}}. Proportional representation is meant to give parties seats that match their
+support. Our system mixes directly elected ward councillors with party seats topped up
 according to each party's share of the vote, and it has a quirk. A ward you win
 cannot be taken away, so a party that wins many wards can end up with more
 council seats than its share of the vote should allow. That is surprisingly

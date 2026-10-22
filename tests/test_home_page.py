@@ -384,8 +384,80 @@ def test_a_lead_is_never_claimed_between_two_identical_printed_figures():
 
     # and a real lead names the leader
     clear = _lede_over(0, 0.60, 0.30)
-    assert "leaning to the ANC" in clear and "too close" not in clear, clear
-    assert "leaning to the DA" in _lede_over(0, 0.30, 0.60)
+    assert "leaning toward the ANC" in clear and "too close" not in clear, clear
+    assert "leaning toward the DA" in _lede_over(0, 0.30, 0.60)
+
+
+def _ward_sentence(first: str, second: str, races: dict) -> str:
+    """The ward sentence as the reader reads it, for constructed `races`:
+    the shipped home.toml `sub` filled through `render_home.fill_lede`, its
+    joins from `ward_phrases` by `ward_contrast`, each figure a bare number
+    and the tooltip word as its text. Only the sentence (up to the outright
+    chance) is returned."""
+    import re
+    lede = RH.load_lede(ROOT / "content" / "joburg")
+    name = {"ANC": "the ANC", "DA": "the DA"}
+    cap = lambda s: s[:1].upper() + s[1:]  # noqa: E731
+    values = {k: f"[{k}]" for k in RH.LEDE_PLACEHOLDERS}
+    values.update(RH.ward_phrases(name[first], RH.ward_contrast(first, second, races)))
+    values.update({"lede_second_cap": cap(name[second]),
+                   "lede_not_safe": re.sub(r"<[^>]+>", "", RH.not_safe_word()),
+                   "lede_wards_first": str(races[first][0]),
+                   "lede_close_first": str(races[first][1]),
+                   "lede_wards_second": str(races[second][0]),
+                   "lede_close_second": str(races[second][1])})
+    sub = RH.fill_lede(lede["sub"], values, "test")
+    return sub[:sub.index(" Chance of one party")]
+
+
+def test_the_ward_sentence_says_its_contrast_only_when_it_is_true():
+    """OWNER-DECISIONS 24, the owner's words: the contrast ("While", "only")
+    when the first party has more not-safe wards in number and as a share,
+    the plain form otherwise, and the right names whichever party is first.
+    Every `races` here is constructed."""
+    # the contrast holds: more not-safe wards, and a larger share of them
+    assert _ward_sentence("ANC", "DA", {"ANC": (77, 32), "DA": (45, 8)}) == (
+        "While the ANC is ahead in 77 wards, in 32 of them the lead is not safe. "
+        "The DA is ahead in 45 wards with only 8 that are not safe.")
+    # more in number but NOT as a share: the plain form, no "While", no "only"
+    plain = _ward_sentence("ANC", "DA", {"ANC": (100, 20), "DA": (30, 10)})
+    assert plain == ("The ANC is ahead in 100 wards, 20 of them not safe. "
+                     "The DA is ahead in 30 wards, 10 of them not safe."), plain
+    assert "While" not in plain and "only" not in plain
+    # fewer in number: plain as well
+    assert "While" not in _ward_sentence("ANC", "DA", {"ANC": (77, 8), "DA": (45, 32)})
+    # the DA named first, with and without the contrast
+    assert _ward_sentence("DA", "ANC", {"DA": (77, 32), "ANC": (45, 8)}) == (
+        "While the DA is ahead in 77 wards, in 32 of them the lead is not safe. "
+        "The ANC is ahead in 45 wards with only 8 that are not safe.")
+    assert _ward_sentence("DA", "ANC", {"DA": (77, 8), "ANC": (45, 32)}) == (
+        "The DA is ahead in 77 wards, 8 of them not safe. "
+        "The ANC is ahead in 45 wards, 32 of them not safe.")
+
+
+def test_not_safe_carries_its_tooltip_from_the_one_writer():
+    """"not safe" is a word with a tooltip, not a figure: its span names its
+    sentence (`data-say`) and leaves `data-prov` empty for the build's one
+    tooltip pass, which fills it with the owner's structure. A name with no
+    sentence refuses."""
+    import build_site as B
+    import tooltip_says as T
+    span = RH.not_safe_word()
+    assert 'data-token' not in span and 'data-prov=""' in span, span
+    facts = T.Facts(n=5000)
+    out = B.word_tooltips(f"<p>{span}</p>", facts)
+    safe = statlib._fmt(RM.SAFE, "pct0")
+    assert (f'data-prov="SOURCE: This Model. A ward where the leader wins in fewer '
+            f'than {safe} of 5,000 simulations."') in out, out
+    assert 'data-prov=""' not in out
+    # it can see: an unknown word stops the build; a page without one is untouched
+    try:
+        B.word_tooltips(span.replace("not_safe", "probe_word"), facts)
+    except SystemExit as e:
+        assert "probe_word" in str(e)
+    else:
+        raise AssertionError("an unknown word's tooltip was not refused")
+    assert B.word_tooltips("<p>no words</p>", facts) == "<p>no words</p>"
 
 
 # --------------------------------------------------------------------------

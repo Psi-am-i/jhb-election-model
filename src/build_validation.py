@@ -181,8 +181,8 @@ def markdown(target: str, results: dict) -> str:
     add("")
     # No title: the section sits under /methodology's "How accurate is it?",
     # so its headings start one level down (build_site.validation_html).
-    add("Every result in this section comes from the model run described at "
-        "its end. The forecasts and scores used as examples under "
+    add("Every result in this section comes from the run of This Model "
+        "described at its end. The forecasts and scores used as examples under "
         "*The technical measures* are made up to explain the measures; they "
         "are not results.")
     add("")
@@ -196,8 +196,10 @@ def markdown(target: str, results: dict) -> str:
     add("")
     add("It was done in **eight metros, not one**. A model tuned on a single "
         "city can look excellent there and have learned only that city. Each "
-        "city is fitted only on its own wards, registration and history; "
-        "nothing is carried across from Johannesburg.")
+        "city is fitted on its own wards, registration and history. The "
+        "narrowest range a population group's turnout is given, and how "
+        "closely the groups' turnouts move together, are measured across the "
+        "eight metros, Johannesburg included.")
     add("")
     add("#### The three baselines")
     add("")
@@ -251,7 +253,7 @@ def markdown(target: str, results: dict) -> str:
     # once parties with no seat actual or forecast are dropped.
     add(f"The largest parties in each city, by seats won in {target}; the "
         f"note under each table says how many are shown. Our figure is the "
-        f"middle of the range the model produced, not its best case.")
+        f"middle of the range This Model produced, not its best case.")
     add("")
     for slug, r in results.items():
         m = r["model"]
@@ -297,7 +299,7 @@ def markdown(target: str, results: dict) -> str:
     add("Two of the three baselines produce a single number rather "
         "than a range, so CRPS favours a model that gives ranges. The seats-out "
         "figure is the like-for-like comparison; its margin is smaller, and "
-        "still in the model's favour.")
+        "still in This Model's favour.")
     add("")
     add("### What this does not prove")
     add("")
@@ -335,7 +337,7 @@ def markdown(target: str, results: dict) -> str:
             # says "No number on this page was typed by a person". The sentence
             # is not a number, which is exactly the hole.
             "support is in *this* city. Only one such split had happened "
-            "anywhere before 2021. The model used to fill that gap with splits "
+            "anywhere before 2021. This Model used to fill that gap with splits "
             "from after 2021, including MK's three years later, which "
             "flattered these scores. Since 14 August 2026 the record is cut at "
             "the election being forecast, as every other record here is. "
@@ -370,6 +372,25 @@ def _git_head() -> str:
     except Exception:
         return "unknown"
 
+
+
+def _long_date(iso: str) -> str:
+    """"30 September 2026", the site's long date."""
+    d = date.fromisoformat(str(iso)[:10])
+    return f"{d.day} {d:%B %Y}"
+
+
+def _which_model(record: dict) -> str:
+    """"an earlier version of This Model" when the validation record was
+    generated before the forecast now published (forecast_summary.json's
+    `_generated`), else "This Model"."""
+    summary = Path("data/processed") / "forecast_summary.json"
+    try:
+        now = str(json.loads(summary.read_text())["_generated"])[:10]
+    except (OSError, KeyError, ValueError):
+        return "an earlier version of This Model"
+    return ("an earlier version of This Model" if str(record["generated"])[:10] < now
+            else "This Model")
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -419,11 +440,13 @@ def main(argv: list[str] | None = None) -> int:
     # described is the one on disk, and `args.draws` would be whatever the
     # default happens to be — a footer stating the wrong draw count under
     # figures it did not produce.
-    body += (f"\n---\n\n*Generated {record['generated']} by "
-             f"`src/build_validation.py` from a {record.get('draws', args.draws)}-draw "
-             f"run per city against the {args.target} result. The underlying "
-             f"figures are in `{out_json}`; the code that produced them is "
-             f"public.*\n")
+    # ⛔ NO FILE NAMES AND NO "draws" IN READER TEXT (owner, 2026-10-22,
+    # audits/2026-10-22-headline-method/BRIEF.md B6). The artefact and the
+    # code stay named in this module's docstring, for us. "An earlier
+    # version" while the record predates the forecast it sits beside.
+    body += (f"\n---\n\n*Tested on {_long_date(record['generated'])} against "
+             f"{_which_model(record)}, on {record.get('draws', args.draws):,} "
+             f"simulations per city of the {args.target} election.*\n")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(body)
     print(f"wrote {args.out}"
