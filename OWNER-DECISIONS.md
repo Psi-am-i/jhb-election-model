@@ -174,3 +174,25 @@ Wednesday 28 October.
 nothing between 07:00 and 21:00; 2 today before 14:00.
 
 **Gates.** The go-live date.
+
+### 24. The home-page headline's ward sentence (22 October)
+
+**What it is.** The UAT headline ends: "The ANC leads in 77 wards, but 32 of
+them are close (won in under 90% of simulations); the DA leads in 45, 8 of
+them close." You called it meaningless. The sentence came from your point that
+the ANC's wards are far tighter than the DA's; the bracket explains "close" in
+model terms, and "won in under 90% of simulations" is a second percentage
+beside the two at the start of the headline.
+
+**Options.**
+1. Plain words, same point: "The ANC is ahead in 77 wards, but in 32 of them
+   the lead is not safe. The DA is ahead in 45, and in only 8 is it not safe."
+   "Not safe" carries a tooltip: "SOURCE: This Model. A ward where the leader
+   wins in fewer than 90% of 5,000 simulations."
+2. Drop the ward sentence. The headline ends at the two chances.
+3. Replace it with seats: how many of the council's seats each of the two
+   typically wins, and how many are needed to govern alone.
+
+**Recommendation.** 1. It keeps your point and removes the model's terms.
+
+**Gates.** The live release of UAT 88005769 (the headline is in it).
