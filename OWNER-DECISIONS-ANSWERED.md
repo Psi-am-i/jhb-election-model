@@ -5,6 +5,147 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 26. The site text sweep: how to fix what it found — answered 2026-10-23
+
+**Context.** On 23 October seven read-only reviewers checked every reader-facing
+page; the combined list is `audits/2026-10-23-site-sweep/FINDINGS.md`, with each
+reviewer's report beside it. You found the first error: the review of 6 August
+says overhang is "the council growing beyond 270". The council never grows;
+This Model keeps it at 270 under Schedule 1 item 16. No other page says it
+grows. The sweep found:
+
+- about 20 statements wrong today on live pages, outside the dated pieces. The
+  worst: the ward map on the home and forecast pages is from the 29 September
+  run and disagrees with the headline beside it; Your prediction says its
+  turnout control was checked against a full re-run, which the record says is
+  untrue of the live model; the privacy page omits jsDelivr; the methodology
+  page says Stats SA holds home language by ward;
+- about 11 errors in the review and the 8 August articles, live since 8 August,
+  including the review's council growth, and the minority-administrations claim
+  that abstention installed the DA in 2021 (Phalatse won 144 to 121);
+- errors in the claim cards dated 7 August to 7 October (the 190,000 figure, the
+  red-lines label, the Soweto ward), and wording there that singles out one
+  speaker ("Helen", "turnout fantasy");
+- about 60 uses of "the model" for "This Model", "forecast" used for a reader's
+  prediction, and a page named both "Your prediction" and "Your Forecast".
+
+**Decisions.**
+1. Order: (a) one brief now for every factual fix, the map redrawn, and a
+   correction entry for each error that was live; then a second brief for the
+   tone sweep, STYLE.md brought up to date, and a test that scans body text. Or
+   (b) everything in one brief.
+2. The claim cards are dated. Are they frozen like the articles (corrected only
+   by a dated note or a correction entry), or live text fixed in place?
+3. The page's name: "Your prediction" (menu and title now) or "Your Forecast".
+4. The public GitHub repository is at 27 August (main) and 24 September
+   (remediation). The emails say the code is public. Push the current
+   remediation branch, after a scan for secrets?
+
+**Recommendation.** 1 (a): the factual errors are live and the Stats SA and
+university notes link these pages. 2 frozen, with correction entries, so the
+rule is the same for every dated piece. 3 "Your prediction", which the page
+already uses. 4 yes.
+
+**Gates.** The first fix round (decision 1); the push (decision 4).
+
+**Answered 2026-10-23:** "26. a brief to fix map and errors and post corrections (in the simple format agreed) taht shoud go up asap. another brief for tone sweep and automatic tests. 2. claim cards. you can add dated ammendements to them. They are dated claims and we are adding dated additions if teh paerty keeps claiming teh same thing adn we ae also giving dated evaluations. 3. Your Prediction if it's a single scenario. Forecast if it is a range of possibilities. 4. Yes fully update github with the latest everything. Scan for secrets and personal information, addresses, phone numbers etc." Then: "26 is highest priority."
+**Recorded:** Brief 1 (map, factual errors, correction entries) and brief 2 (tone sweep, automatic tests) under `audits/2026-10-23-site-sweep/`; claim cards are corrected by dated amendments; naming rule to STYLE.md in brief 2; GitHub push after a secrets and personal-data scan.
+
+### 22. New claims from other parties — answered 2026-10-23
+
+**Context.** Your "We need to look for other comments": a search of news,
+party sites, X and YouTube since August for testable claims about the
+Johannesburg result by named figures of parties other than the DA, each
+checked for exact wording at the source
+(`audits/2026-10-22-site-round/CLAIM-CANDIDATES.md`).
+
+1. **MK, Bongani Baloyi** (Daily Maverick, 6 October): voters "must not
+   waste their vote on a party that will take 2% or 3%; they must be
+   strategic". Testable: how many seats a party wins at 2 to 3% of the vote,
+   and how often such parties decide who has a majority. Applies to every
+   small party alike.
+2. **MK, Baloyi** (same article): the ANC's losses are "a direct consequence
+   or attributed to uMkhonto Wesizwe's growth". Testable only if the model's
+   record of where votes move supports it; to be checked before a card.
+3. **ANC, Dada Morero** (eNCA, 24 August): "Allow us to lead on our own, for
+   the next five years". The same question as the ANC card already on the
+   site: a dated second line on it, not a new card.
+4. **IFP, Velenkosini Hlabisa** (News24, 7 October): "most of the
+   municipalities are going to be led by a coalition of partners in the
+   GNU". In Johannesburg the GNU parties include the ANC and the DA, so the
+   answer is near certain and of little interest.
+5. Not usable: MK's "can win Joburg outright" (reporter's paraphrase only;
+   the newsdesk's draft card rests on it); the EFF's "50-plus-one" (a
+   paraphrase); ActionSA and the PA made pledges, not claims about the
+   result.
+
+**Recommendation.** 1 as a new card; 3 as a line on the ANC card; 2 only if
+the check supports it; not 4.
+
+**Gates.** Nothing.
+
+**Answered 2026-10-23:** "party claims: Recommendation. 1 as a new card; 3 as a line on the ANC card; 2 only if the check supports it; not 4. AGREE"
+**Recorded:** TODO: Baloyi 2-3% card; Morero line on the ANC card; check Baloyi's MK-growth claim before any card.
+
+### 20. Two Tshwane briefs — answered 2026-10-23
+
+**Context.** For a Tshwane forecast and page, two pieces of new code, each
+to be briefed first (your 16.3): (1) assigning the 2026 roll to Tshwane's
+wards: the voting-district-to-ward assignment exists only for Johannesburg
+and its path is fixed in the code; (2) the Tshwane headline page (ward map
+and seats, its own address, e.g. tshwane.whysoserious.city), since every
+page builder writes Johannesburg's site today. The by-election adjustment
+for Tshwane is optional and moves its forecast, so it needs a
+pre-registration first.
+
+**Recommendation.** Yes to both briefs being written now, by-elections
+included; each comes back to you before code.
+
+**Gates.** The Tshwane forecast and page.
+
+**Answered 2026-10-23:** "Recommendation. Yes to both briefs being written now, by-elections included; each comes back to you before code. AGREE - we also need a map of wards and other UI stuff."
+**Recorded:** TODO: the two Tshwane briefs, the Tshwane page brief to include the ward map and the rest of the page UI; by-election pre-registration.
+
+### 19. Running each city separately — answered 2026-10-23
+
+**Context.** Your questions (16.2): why the cities are joined, and which
+judgements are Johannesburg's. Answered in
+`audits/2026-10-22-tshwane/JUDGEMENT-REVIEW.md`, and its two decisive facts
+re-checked:
+
+* **Tshwane's ten settings are the same values as Johannesburg's, and both
+  are the model's general defaults**, which the backtest has scored on
+  Tshwane 2011, 2016 and 2021. Only one block was ever Johannesburg's: a
+  set of per-party ranges, removed from Tshwane in August, and inert
+  without by-election data. So nothing needs changing for Tshwane, and my
+  earlier claim that the copied values made a Tshwane forecast unpublishable
+  was wrong; it was made without reading them.
+* **What joins the cities is one fingerprint.** Every model input file
+  records a hash of every city's settings file, byte for byte, so editing
+  anything in `cities/tshwane.toml`, a comment included, marks Johannesburg's
+  live inputs out of date. The reason it is there is real but narrow: the
+  turnout band is measured across all the cities' past results, so it needs
+  each city's code, layout and election dates, not the whole file.
+
+Tshwane's forecast does not need `cities/tshwane.toml` edited (its roster
+is in its own per-year file, which affects only Tshwane), so nothing is
+blocked today.
+
+**Options.** (a) Narrow the fingerprint now to the fields actually read, in
+one re-emit window (about an hour including checks; Johannesburg's forecast
+must come out identical, which is the test of the change, and the live site
+is not republished). After it, a Tshwane edit never touches Johannesburg.
+(b) Do it after 4 November.
+
+**Recommendation.** (a), before more cities are added, with the check that
+Johannesburg's numbers reproduce exactly.
+
+**Gates.** Nothing for Tshwane's first forecast; any future edit to a
+city's settings file.
+
+**Answered 2026-10-23:** "Recommendation. (a), before more cities are added, with the check that Johannesburg's numbers reproduce exactly. AGREE"
+**Recorded:** TODO: narrow the cities fingerprint in one re-emit window; Johannesburg must reproduce exactly.
+
 ### 25. Methodology page corrections — answered 2026-10-22
 
 **What it is.** A check of the methodology page against the code found the

@@ -225,6 +225,14 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
 
 # 3 · Everything else
 
+**From OWNER-DECISIONS answered 2026-10-23** (in order of the owner's priority):
+* **Site sweep, brief 1 (first):** redraw the ward map; fix the factual errors on live pages; a correction entry for each error that was live; dated amendments on the claim cards. `audits/2026-10-23-site-sweep/FINDINGS.md`.
+* **Site sweep, brief 2:** the tone sweep ("This Model"; Your Prediction for one scenario, Forecast for a range); STYLE.md brought up to date with the rules now only in memory; a test that scans body text.
+* **GitHub:** push everything, after a scan of the full history for secrets and personal data (addresses, phone numbers).
+* **Cities fingerprint (item 19):** narrow it in one re-emit window; Johannesburg must reproduce exactly.
+* **Tshwane (item 20):** two briefs (roll-to-ward assignment; the Tshwane page with its ward map and UI), and a by-election pre-registration.
+* **Claims (item 22):** a Baloyi 2-3% card; a dated Morero line on the ANC card; check Baloyi's MK-growth claim before any card.
+
 **Other metros (owner, 2026-09-29): only after the Johannesburg interactive is
 finished.** Not a full site per metro: a ward and seat predictor with headline
 numbers only. **Tshwane is the second**, and the only one planned. Its gaps for
