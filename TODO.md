@@ -174,6 +174,11 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
 
 ## Open
 
+* **Methodology says Stats SA "holds" home language by ward (found 2026-10-22).**
+  `docs-public/methodology.md` and `content/joburg/model-claims.toml` say it is held
+  and "we have requested it". Stats SA (Magakwe Kgope, 24 August 2026, the owner's
+  Gmail): language data "is not available at Ward level". Correct the sentence under
+  a QC.md §4b brief; the Stats SA outreach note links this page.
 * **The input route is not settled.** See `INPUT-ROUTE.md`. The question is not
   only size but whether each route still lets a lever act at the right point in
   the model.
