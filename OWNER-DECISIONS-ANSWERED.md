@@ -5,6 +5,88 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 25. Methodology page corrections — answered 2026-10-22
+
+**What it is.** A check of the methodology page against the code found the
+turnout paragraph true sentence by sentence but describing the wrong turnout,
+and five other statements false or out of date.
+
+- **Turnout (the paragraph you asked about).** Each district's turnout is projected
+  from its 2024 national turnout and its fall from national to local in 2016 and 2021,
+  with 2021 at 70% (`src/turnout.py`). Still true: the weight has never been tested,
+  2016 fell less (in 712 of 766 districts), and equal weights would give higher turnout.
+  - What it leaves out: the population groups on Your Forecast do not use that blend.
+    Each group starts at its own 2021 turnout, with a range measured across the eight metros.
+  - Also left out: the district projection was scored on 17 October and did no better than
+    repeating the last local election.
+  - Consequence: the 70% weight decides how a group's voters are spread across districts.
+    It does not set the group's turnout.
+- **"In 2021 every group's turnout was the lowest on record":** false. Each group has a
+  lower turnout on record, back to 2000.
+- **"Drawn from what turnout has done in that city before":** out of date. The range's
+  width has been measured across the eight metros since an earlier round; only its centre
+  is Johannesburg's.
+- **By-elections, "Nobody knows the right weight, so the two count equally":** out of
+  date. A test on 2021 (21 October) found equal weights gave the smallest error, by a
+  small margin.
+- **"Nothing is carried across from Johannesburg"** (the other-cities section): false.
+  The turnout range and the turnout correlation are measured across the metros,
+  Johannesburg included.
+- **The validation block** is dated 30 September and names a code file, a data file
+  and "a 400-draw run". The model has changed since.
+- **Other page faults:**
+  - One typed measurement, "337 times … eight metros", should be filled in by the build.
+  - "before the draws" names a model internal.
+  - The page says "the model", not "This Model".
+
+**Options.** 1. Correct all of it in one change, with the headline (item 24),
+under one brief, before the live release. 2. Release the current UAT version
+first and correct the page next.
+
+**Recommendation.** 1. The page states things that are false today.
+
+**Gates.** The live release.
+
+**Answered 2026-10-22:** "the page is live, so best we fix it immediately" (option 1).
+**Recorded:** brief `audits/2026-10-22-headline-method/BRIEF.md`; commits 0bda701, 28aec63
+(JUDGEMENT-CALLS §H2 and the by-election Plain fields, `docs-public/methodology.md`,
+`src/build_validation.py`, stats token `small_party_record_cases`); UAT c18aeaa.
+The turnout paragraph was rewritten from the code: each group starts at its 2021
+turnout, its range is Johannesburg's own swing since 2000 (wider than the
+eight-metro floor in all four groups), and the district pattern is half each
+district's 2021 turnout and half the 70% projection.
+
+### 24. The home-page headline's ward sentence — answered 2026-10-22
+
+**What it is.** The UAT headline ends: "The ANC leads in 77 wards, but 32 of
+them are close (won in under 90% of simulations); the DA leads in 45, 8 of
+them close." You called it meaningless. The sentence came from your point that
+the ANC's wards are far tighter than the DA's; the bracket explains "close" in
+model terms, and "won in under 90% of simulations" is a second percentage
+beside the two at the start of the headline.
+
+**Options.**
+1. Plain words, same point: "The ANC is ahead in 77 wards, but in 32 of them
+   the lead is not safe. The DA is ahead in 45, and in only 8 is it not safe."
+   "Not safe" carries a tooltip: "SOURCE: This Model. A ward where the leader
+   wins in fewer than 90% of 5,000 simulations."
+2. Drop the ward sentence. The headline ends at the two chances.
+3. Replace it with seats: how many of the council's seats each of the two
+   typically wins, and how many are needed to govern alone.
+
+**Recommendation.** 1. It keeps your point and removes the model's terms.
+
+**Gates.** The live release of UAT 88005769 (the headline is in it).
+
+**Answered 2026-10-22:** "headline: A coalition is all but inevitable. The largest
+party is leaning toward the ANC. sub-line: While the ANC is ahead in 77 wards, in
+32 of them the lead is not safe. The DA's is ahead in 45 wards with only 8 that
+are not safe." ("The DA's" written "The DA".)
+**Recorded:** same brief and commit 0bda701 (`content/joburg/home.toml`,
+`src/render_home.py`, the "not safe" tooltip in `src/tooltip_says.py`). The two
+chances leave the headline; `home.p_anc_largest` and `home.p_da_largest` are retired
+at the live publish.
+
 ### 18. The marketing decisions — answered 2026-10-22
 
 **Context.** Item 17 settled that new drafts are needed (nothing was sent).
