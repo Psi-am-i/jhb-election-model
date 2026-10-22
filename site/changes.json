@@ -3154,40 +3154,6 @@
       "value": 0.0004
     },
     {
-      "display": "58%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "none",
-      "pages": [
-        "index.html"
-      ],
-      "previous": "58%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 0.5806,
-      "since": "2026-10-21T16:46:09Z",
-      "source": "seat_draws.csv, 5,000 simulations, the party alone with the most seats",
-      "token": "home.p_anc_largest",
-      "value": 0.5806
-    },
-    {
-      "display": "34%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "none",
-      "pages": [
-        "index.html"
-      ],
-      "previous": "34%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 0.3384,
-      "since": "2026-10-21T16:46:09Z",
-      "source": "seat_draws.csv, 5,000 simulations, the party alone with the most seats",
-      "token": "home.p_da_largest",
-      "value": 0.3384
-    },
-    {
       "display": "90%",
       "fmt": "chance",
       "mode": "generated",
@@ -3815,23 +3781,6 @@
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.vfplus_lo",
       "value": 1.0
-    },
-    {
-      "display": "90%",
-      "fmt": "pct0",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "index.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
-      "source": "render_map.SAFE, the map's safe-ward share",
-      "token": "home.ward_safe",
-      "value": 0.9
     },
     {
       "display": "77",
@@ -5842,6 +5791,23 @@
       "value": 0.9
     },
     {
+      "display": "337",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:MODEL-LOG \u00a71.296, 'The real record': levels._citywide for the eight metros, consecutive LGE pairs 2006\u21922011, 2011\u21922016 and 2016\u21922021, a party under 1% of the list vote at the earlier election, one absent at the later counted at 0 (read 2026-10-10)",
+      "token": "small_party_record_cases",
+      "value": 337
+    },
+    {
       "display": "1%",
       "fmt": "pct0",
       "mode": "free",
@@ -6801,9 +6767,9 @@
     "draws": 5000,
     "forecast_content_sha256": "f74c0c2c74e92e32ac5ed21b875d6472f650790a584a5088d16e87cd1ca2a898",
     "forecast_summary_sha256": "a0f5c20167d2fb3090a3ed671c39f0aefe9ba1272471a149eee69de5186d2eea",
-    "git_commit": "3e87d712dbb16911f93561083850d7c0432b2a95",
+    "git_commit": "28aec636fad86d9c1588afb9892bf9e9b5610b84",
     "git_dirty": true,
-    "model_run_id": "r-f74c0c2c74e9-3e87d712-dirty",
+    "model_run_id": "r-f74c0c2c74e9-28aec636-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
@@ -6889,7 +6855,6 @@
         "home.seats.vfplus",
         "home.seats.vfplus_hi",
         "home.seats.vfplus_lo",
-        "home.ward_safe",
         "home.wards.anc",
         "home.wards.da",
         "home.wards_close.anc",
@@ -6905,7 +6870,8 @@
         "seats.BOSA.p95",
         "seats.VFPLUS.median",
         "seats.VFPLUS.p5",
-        "seats.VFPLUS.p95"
+        "seats.VFPLUS.p95",
+        "small_party_record_cases"
       ],
       "nominal": [
         "generated_date"
@@ -7089,8 +7055,6 @@
         "home.overhang_list_share",
         "home.overhang_seat_share",
         "home.p_alone",
-        "home.p_anc_largest",
-        "home.p_da_largest",
         "home.p_excessive.anc",
         "home.seats.aljamaah",
         "home.seats.aljamaah_hi",
@@ -7270,7 +7234,7 @@
         "val_tshwane_wrong"
       ]
     },
-    "n": 390,
+    "n": 388,
     "n_rounding": 0,
     "n_visible": 10,
     "nominal": [
