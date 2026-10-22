@@ -7,7 +7,7 @@ When an item is answered, it moves to `OWNER-DECISIONS-ANSWERED.md` with the
 date and the answer, and the record it changed (JUDGEMENT-CALLS, MODEL-LOG)
 is named.
 
-Last updated: 2026-10-21.
+Last updated: 2026-10-23.
 
 ---
 
@@ -174,3 +174,46 @@ Wednesday 28 October.
 nothing between 07:00 and 21:00; 2 today before 14:00.
 
 **Gates.** The go-live date.
+
+### 26. The site text sweep: how to fix what it found
+
+**Context.** On 23 October seven read-only reviewers checked every reader-facing
+page; the combined list is `audits/2026-10-23-site-sweep/FINDINGS.md`, with each
+reviewer's report beside it. You found the first error: the review of 6 August
+says overhang is "the council growing beyond 270". The council never grows;
+This Model keeps it at 270 under Schedule 1 item 16. No other page says it
+grows. The sweep found:
+
+- about 20 statements wrong today on live pages, outside the dated pieces. The
+  worst: the ward map on the home and forecast pages is from the 29 September
+  run and disagrees with the headline beside it; Your prediction says its
+  turnout control was checked against a full re-run, which the record says is
+  untrue of the live model; the privacy page omits jsDelivr; the methodology
+  page says Stats SA holds home language by ward;
+- about 11 errors in the review and the 8 August articles, live since 8 August,
+  including the review's council growth, and the minority-administrations claim
+  that abstention installed the DA in 2021 (Phalatse won 144 to 121);
+- errors in the claim cards dated 7 August to 7 October (the 190,000 figure, the
+  red-lines label, the Soweto ward), and wording there that singles out one
+  speaker ("Helen", "turnout fantasy");
+- about 60 uses of "the model" for "This Model", "forecast" used for a reader's
+  prediction, and a page named both "Your prediction" and "Your Forecast".
+
+**Decisions.**
+1. Order: (a) one brief now for every factual fix, the map redrawn, and a
+   correction entry for each error that was live; then a second brief for the
+   tone sweep, STYLE.md brought up to date, and a test that scans body text. Or
+   (b) everything in one brief.
+2. The claim cards are dated. Are they frozen like the articles (corrected only
+   by a dated note or a correction entry), or live text fixed in place?
+3. The page's name: "Your prediction" (menu and title now) or "Your Forecast".
+4. The public GitHub repository is at 27 August (main) and 24 September
+   (remediation). The emails say the code is public. Push the current
+   remediation branch, after a scan for secrets?
+
+**Recommendation.** 1 (a): the factual errors are live and the Stats SA and
+university notes link these pages. 2 frozen, with correction entries, so the
+rule is the same for every dated piece. 3 "Your prediction", which the page
+already uses. 4 yes.
+
+**Gates.** The first fix round (decision 1); the push (decision 4).
