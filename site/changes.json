@@ -976,46 +976,6 @@
       "value": 41.0
     },
     {
-      "display": "620,000",
-      "fmt": "comma",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "claims.html",
-        "claims/da-outright-majority.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "prior": null,
-      "prior_since": null,
-      "since": null,
-      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, ward winners held",
-      "token": "claim.zille_both.needed",
-      "value": 620000.0
-    },
-    {
-      "display": "508,000",
-      "fmt": "comma",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "claims.html",
-        "claims/da-outright-majority.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "prior": null,
-      "prior_since": null,
-      "since": null,
-      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, no ward held, so no excessive seats",
-      "token": "claim.zille_both.needed_open",
-      "value": 508000.0
-    },
-    {
       "display": "0",
       "fmt": "int",
       "mode": "generated",
@@ -1031,49 +991,9 @@
       "prior": null,
       "prior_since": null,
       "since": null,
-      "source": "site/draws ward_vote and list_vote: the DA at 490,000 or more on both ballots",
+      "source": "site/draws, 5,000 simulations, ward_vote and list_vote: the DA at 490,000 or more on both ballots",
       "token": "claim.zille_both.reach",
       "value": 0.0
-    },
-    {
-      "display": "112",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "claims.html",
-        "claims/da-outright-majority.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "prior": null,
-      "prior_since": null,
-      "since": null,
-      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, ward winners held",
-      "token": "claim.zille_both.seats",
-      "value": 112.0
-    },
-    {
-      "display": "131",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "claims.html",
-        "claims/da-outright-majority.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "prior": null,
-      "prior_since": null,
-      "since": null,
-      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, no ward held, so no excessive seats",
-      "token": "claim.zille_both.seats_open",
-      "value": 131.0
     },
     {
       "display": "48%",
@@ -1091,7 +1011,7 @@
       "prior": null,
       "prior_since": null,
       "since": null,
-      "source": "490,000 on each ballot over the two median totals",
+      "source": "490,000 over the median total on each ballot",
       "token": "claim.zille_both.share",
       "value": 0.483238
     },
@@ -1111,28 +1031,8 @@
       "prior": null,
       "prior_since": null,
       "since": null,
-      "source": "site/draws list_vote, median total per simulation",
-      "token": "claim.zille_both.total_list",
-      "value": 1013993.0
-    },
-    {
-      "display": "1,013,993",
-      "fmt": "comma",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "claims.html",
-        "claims/da-outright-majority.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "prior": null,
-      "prior_since": null,
-      "since": null,
-      "source": "site/draws ward_vote, median total per simulation",
-      "token": "claim.zille_both.total_ward",
+      "source": "site/draws, 5,000 simulations: median total votes per simulation, the same on the ward and the list ballot",
+      "token": "claim.zille_both.total",
       "value": 1013993.0
     },
     {
@@ -7910,9 +7810,9 @@
     "draws": 5000,
     "forecast_content_sha256": "f74c0c2c74e92e32ac5ed21b875d6472f650790a584a5088d16e87cd1ca2a898",
     "forecast_summary_sha256": "a0f5c20167d2fb3090a3ed671c39f0aefe9ba1272471a149eee69de5186d2eea",
-    "git_commit": "43a044ae850a0c9908651ab0b9ce8033a809a1b5",
+    "git_commit": "f8f4abc3c87245f88d9f53d19808ba901b183ba0",
     "git_dirty": true,
-    "model_run_id": "r-f74c0c2c74e9-43a044ae-dirty",
+    "model_run_id": "r-f74c0c2c74e9-f8f4abc3-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
@@ -7990,14 +7890,9 @@
         "anc_list_share_median",
         "byelection_wards",
         "claim.soweto.some_count",
-        "claim.zille_both.needed",
-        "claim.zille_both.needed_open",
         "claim.zille_both.reach",
-        "claim.zille_both.seats",
-        "claim.zille_both.seats_open",
         "claim.zille_both.share",
-        "claim.zille_both.total_list",
-        "claim.zille_both.total_ward",
+        "claim.zille_both.total",
         "claim.zille_both.votes",
         "govern.da_with_small_without",
         "hist_mayor_2021_against",
@@ -8393,7 +8288,7 @@
         "val_tshwane_wrong"
       ]
     },
-    "n": 406,
+    "n": 401,
     "n_rounding": 0,
     "n_visible": 4,
     "nominal": []

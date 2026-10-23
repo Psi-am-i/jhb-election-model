@@ -448,84 +448,38 @@ def _soweto(args, rows, seats, thr, winners, since_vals, tok, chance):
 
 #: Helen Zille's figure (News24, 20 October 2026): DA votes on EACH ballot.
 ZILLE_BOTH_VOTES = 490_000
-#: The precision of the votes-needed search, in votes.
-ZILLE_BOTH_STEP = 1_000
 
 
-def zille_both(processed, majority: int, council: int) -> dict:
+def zille_both() -> dict:
     """This Model's test of "490 000 people need to vote DA on both ballots.
     That would give us 136 of the council's 270 seats" (Helen Zille, News24,
-    20 October 2026), THROUGH THE SEAT LAW, from the published simulations
-    (``site/draws``: each simulation's whole votes on each ballot and its ward
-    winners, the integers the run's seat law read).
+    20 October 2026), from the published simulations (``site/draws``: each
+    simulation's whole votes on each ballot):
 
-    * ``total_ward``, ``total_list``: the median total votes on each ballot;
-    * ``share``: the DA's share of the two ballots together at those totals
-      with the stated votes on each;
-    * ``seats``: the DA's seats under the law (``prediction.seats_of``, the one
-      composition of it) in the typical simulation (``scenarios.
-      typical_simulation``) with each ballot rescaled to its median total, the
-      DA given the stated votes and every other party scaled in proportion to
-      fill the rest, and THE WARD WINNERS HELD AS THEY ARE IN THAT SIMULATION,
-      which is the test's limit: a DA on these votes would win more wards
-      than the typical simulation gives it, and the ANC fewer;
-    * ``needed``: the votes on each ballot the DA needs for ``majority`` seats
-      under the same test, to ``ZILLE_BOTH_STEP``;
-    * ``seats_open``, ``needed_open``: the same two with NO ward held, so no
-      party has excessive seats and the law reduces to the quota on the
-      combined vote: the other end of the bracket, since a DA on these votes
-      would win some of the ANC's wards but not, in this test, a known number;
+    * ``total``: the median total votes on each ballot. The card states one
+      figure for both ballots, so the build stops if the two medians differ;
+    * ``share``: the stated votes on each ballot as a share of the two
+      ballots together at those totals;
     * ``reach``: the simulations in which the DA has at least the stated
-      votes on both ballots.
+      votes on both ballots;
+    * ``draws``: how many simulations that count is over.
+
+    No seat figure: a DA on this vote would win some of the ANC's wards, and
+    the simulations cannot say which (OWNER-DECISIONS-ANSWERED item 27).
     """
-    import json as _json
-    import prediction as _pred
     import scenarios as _sc
     blocks, cols = _sc.published_draw_blocks()
-    man = _json.loads((Path(__file__).resolve().parent.parent / "site" / "draws"
-                       / "manifest.json").read_text(encoding="utf-8"))
-    ward_parties = man["ward_parties"]
-    lot = _sc.summary_lot(Path(processed))
-    t = _sc.typical_simulation(Path(processed))
-    totals = {bal: float(np.median(blocks[bal].sum(axis=1))) for bal in ("ward_vote", "list_vote")}
-
-    def council_with(v: int, held: bool = True) -> dict:
-        votes = {}
-        for bal, key in (("ward_vote", "ward_votes"), ("list_vote", "list_votes")):
-            row = dict(zip(cols[bal], (int(x) for x in blocks[bal][t])))
-            rest = sum(x for p, x in row.items() if p != "DA")
-            left = int(round(totals[bal])) - v
-            raw = {p: x * left / rest for p, x in row.items() if p != "DA"}
-            whole = {p: int(np.floor(x)) for p, x in raw.items()}
-            for p in sorted(raw, key=lambda q: -(raw[q] - whole[q]))[:left - sum(whole.values())]:
-                whole[p] += 1
-            whole["DA"] = v
-            votes[key] = whole
-        calls = [ward_parties[k] for k in blocks["ward_winner"][t]] if held else []
-        return _pred.seats_of({"ward_calls": calls, **votes}, council, lot=lot)
-
-    def da(v: int, held: bool) -> int:
-        return council_with(v, held)["seats"].get("DA", {}).get("total", 0)
-
-    def needed(held: bool) -> int:
-        lo, hi = 0, int(min(totals.values()))
-        if da(hi, held) < majority:
-            raise SystemExit("zille_both: the DA cannot reach a majority on any vote in this test")
-        while hi - lo > ZILLE_BOTH_STEP:
-            mid = (lo + hi) // 2
-            if da(mid, held) >= majority:
-                hi = mid
-            else:
-                lo = mid
-        return int(round(hi / ZILLE_BOTH_STEP) * ZILLE_BOTH_STEP)
+    totals = {bal: int(round(float(np.median(blocks[bal].sum(axis=1)))))
+              for bal in ("ward_vote", "list_vote")}
+    if totals["ward_vote"] != totals["list_vote"]:
+        raise SystemExit(f"zille_both: the median totals differ by ballot ({totals}); "
+                         f"the card states one figure for each ballot")
     da_w = blocks["ward_vote"][:, cols["ward_vote"].index("DA")]
     da_l = blocks["list_vote"][:, cols["list_vote"].index("DA")]
-    return {"total_ward": totals["ward_vote"], "total_list": totals["list_vote"],
-            "share": 2 * ZILLE_BOTH_VOTES / (totals["ward_vote"] + totals["list_vote"]),
-            "seats": da(ZILLE_BOTH_VOTES, True), "needed": needed(True),
-            "seats_open": da(ZILLE_BOTH_VOTES, False), "needed_open": needed(False),
+    return {"total": totals["ward_vote"],
+            "share": ZILLE_BOTH_VOTES / totals["ward_vote"],
             "reach": int(((da_w >= ZILLE_BOTH_VOTES) & (da_l >= ZILLE_BOTH_VOTES)).sum()),
-            "typical": t, "draws": int(blocks["ward_vote"].shape[0])}
+            "draws": int(blocks["ward_vote"].shape[0])}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -933,27 +887,17 @@ def main(argv: list[str] | None = None) -> int:
         }
         _soweto(args, rows, _A, thr, _winners, since_vals, tok, chance)
         # Zille's 490,000 on both ballots (News24, 20 October 2026; brief 1 E5)
-        _z = zille_both(args.processed, int(np.median(thr)), int(np.median(council)))
-        _zsrc = (f"site/draws, {_z['draws']:,} simulations; seat law (prediction.seats_of) on "
-                 f"simulation {_z['typical']} rescaled to the median totals, ward winners held")
+        _z = zille_both()
+        _zsrc = f"site/draws, {_z['draws']:,} simulations"
         since_vals.update({
-            "zille_both_total_ward": tok("claim.zille_both.total_ward", int(round(_z["total_ward"])),
-                                         "comma", "site/draws ward_vote, median total per simulation"),
-            "zille_both_total_list": tok("claim.zille_both.total_list", int(round(_z["total_list"])),
-                                         "comma", "site/draws list_vote, median total per simulation"),
+            "zille_both_total": tok("claim.zille_both.total", _z["total"], "comma",
+                                    f"{_zsrc}: median total votes per simulation, the same "
+                                    f"on the ward and the list ballot"),
             "zille_both_share": tok("claim.zille_both.share", f"{_z['share']:.6f}", "pct0",
-                                    "490,000 on each ballot over the two median totals"),
-            "zille_both_seats": tok("claim.zille_both.seats", _z["seats"], "int", _zsrc),
-            "zille_both_needed": tok("claim.zille_both.needed", _z["needed"], "comma", _zsrc),
-            "zille_both_seats_open": tok(
-                "claim.zille_both.seats_open", _z["seats_open"], "int",
-                _zsrc.replace("ward winners held", "no ward held, so no excessive seats")),
-            "zille_both_needed_open": tok(
-                "claim.zille_both.needed_open", _z["needed_open"], "comma",
-                _zsrc.replace("ward winners held", "no ward held, so no excessive seats")),
+                                    "490,000 over the median total on each ballot"),
             "zille_both_reach": tok("claim.zille_both.reach", _z["reach"], "int",
-                                    "site/draws ward_vote and list_vote: the DA at 490,000 or "
-                                    "more on both ballots"),
+                                    f"{_zsrc}, ward_vote and list_vote: the DA at 490,000 or "
+                                    f"more on both ballots"),
             "zille_both_votes": tok("claim.zille_both.votes", ZILLE_BOTH_VOTES, "comma",
                                     "Helen Zille, News24, 20 October 2026: the claim's figure"),
         })
