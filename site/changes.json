@@ -79,6 +79,158 @@
       "value": 44
     },
     {
+      "display": "8",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "8",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 8,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "validation:cities",
+      "token": "backtest_cities",
+      "value": 8
+    },
+    {
+      "display": "34%",
+      "fmt": "pct0",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "34%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-27T18:44:27Z",
+      "previous_value": 0.3354970656233327,
+      "prior": "37%",
+      "prior_since": "2026-09-26T13:58:54Z",
+      "since": "2026-09-27T18:44:27Z",
+      "source": "validation:total.crps_better",
+      "token": "backtest_crps_better",
+      "value": 0.3354970656233327
+    },
+    {
+      "display": "177",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "177",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 177,
+      "prior": "353",
+      "prior_since": "2026-09-26T13:58:54Z",
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:total.best.wrong_party_seats",
+      "token": "backtest_seat_err_baseline",
+      "value": 177
+    },
+    {
+      "display": "149",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "149",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 149,
+      "prior": "297",
+      "prior_since": "2026-09-30T04:21:21Z",
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:total.model.wrong_party_seats",
+      "token": "backtest_seat_err_model",
+      "value": 149
+    },
+    {
+      "display": "24",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "24",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 24,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "external:the panel we aim to score \u2014 8 metros x 3 elections (2011, 2016, 2021)",
+      "token": "backtest_target",
+      "value": 24
+    },
+    {
+      "display": "742",
+      "fmt": "comma",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "742",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 742,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "validation:wards",
+      "token": "backtest_wards",
+      "value": 742
+    },
+    {
+      "display": "719",
+      "fmt": "comma",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "719",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-27T18:44:27Z",
+      "previous_value": 719,
+      "prior": "721",
+      "prior_since": "2026-09-26T13:58:54Z",
+      "since": "2026-09-27T18:44:27Z",
+      "source": "validation:wards_called",
+      "token": "backtest_wards_called",
+      "value": 719
+    },
+    {
+      "display": "7",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "7",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 7,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "validation:total.wins",
+      "token": "backtest_wins",
+      "value": 7
+    },
+    {
       "display": "90%",
       "fmt": "chance",
       "mode": "generated",
@@ -153,6 +305,44 @@
       "source": "seat_detail_draws.csv",
       "token": "ballots.typical.draw",
       "value": 633.0
+    },
+    {
+      "display": "129",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "129",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-08-08T17:29:45+00:00",
+      "previous_value": 129,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-08-08T17:29:45+00:00",
+      "source": "external:fold-2 blind validation (MODEL-LOG 1.9)",
+      "token": "blind_test_called",
+      "value": 129
+    },
+    {
+      "display": "135",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "135",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-08-08T17:29:45+00:00",
+      "previous_value": 135,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-08-08T17:29:45+00:00",
+      "source": "external:ward count at the 2021 delimitation",
+      "token": "blind_test_of",
+      "value": 135
     },
     {
       "display": "587,000",
@@ -3203,6 +3393,120 @@
       "value": 52000
     },
     {
+      "display": "130",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "index.html"
+      ],
+      "previous": "130",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 130,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "history:joburg:2011:wards.n_wards",
+      "token": "hist_jhb_wards_2011",
+      "value": 130
+    },
+    {
+      "display": "135",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "index.html"
+      ],
+      "previous": "135",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 135,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "history:joburg:2016:wards.n_wards",
+      "token": "hist_jhb_wards_2016",
+      "value": 135
+    },
+    {
+      "display": "135",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "index.html"
+      ],
+      "previous": "135",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 135,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "history:joburg:2021:wards.n_wards",
+      "token": "hist_jhb_wards_2021",
+      "value": 135
+    },
+    {
+      "display": "126",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "index.html"
+      ],
+      "previous": "126",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 126,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "history:joburg:2011:wards.called",
+      "token": "hist_jhb_wards_called_2011",
+      "value": 126
+    },
+    {
+      "display": "134",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "index.html"
+      ],
+      "previous": "134",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 134,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "history:joburg:2016:wards.called",
+      "token": "hist_jhb_wards_called_2016",
+      "value": 134
+    },
+    {
+      "display": "127",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "index.html"
+      ],
+      "previous": "127",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 127,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "history:joburg:2021:wards.called",
+      "token": "hist_jhb_wards_called_2021",
+      "value": 127
+    },
+    {
       "display": "24%",
       "fmt": "pct0",
       "mode": "fixed",
@@ -5368,6 +5672,82 @@
       "value": 0.42
     },
     {
+      "display": "541.4",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "541.4",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 541.4,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "compare_history:crps, poll_paths=off",
+      "token": "polls_off_crps_after",
+      "value": 541.4
+    },
+    {
+      "display": "545.8",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "545.8",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 545.8,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "compare_history:crps, poll_paths=all",
+      "token": "polls_off_crps_before",
+      "value": 545.8
+    },
+    {
+      "display": "723",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "723",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 723,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "compare_history:seat_abs_err_coherent, poll_paths=off",
+      "token": "polls_off_seat_err_after",
+      "value": 723
+    },
+    {
+      "display": "725",
+      "fmt": null,
+      "mode": "fixed",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "725",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-09-26T13:58:54Z",
+      "previous_value": 725,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-09-26T13:58:54Z",
+      "source": "compare_history:seat_abs_err_coherent, poll_paths=all",
+      "token": "polls_off_seat_err_before",
+      "value": 725
+    },
+    {
       "display": "190,000",
       "fmt": "comma",
       "mode": "fixed",
@@ -6623,6 +7003,804 @@
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "tile.p_tied_largest",
       "value": 0.0358
+    },
+    {
+      "display": "last result plus noise",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "last result plus noise",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "last result plus noise",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.buffalocity.best.name",
+      "token": "val_buffalocity_best",
+      "value": "last result plus noise"
+    },
+    {
+      "display": "11.3",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "11.3",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 11.31,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.buffalocity.best.crps",
+      "token": "val_buffalocity_best_crps",
+      "value": 11.31
+    },
+    {
+      "display": "8",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "8",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 8,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.buffalocity.best.wrong_party_seats",
+      "token": "val_buffalocity_best_wrong",
+      "value": 8
+    },
+    {
+      "display": "8.3",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "8.3",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 8.33,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.buffalocity.model.crps",
+      "token": "val_buffalocity_crps",
+      "value": 8.33
+    },
+    {
+      "display": "6",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "6",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 6,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.buffalocity.model.wrong_party_seats",
+      "token": "val_buffalocity_wrong",
+      "value": 6
+    },
+    {
+      "display": "uniform swing",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "uniform swing",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "uniform swing",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.capetown.best.name",
+      "token": "val_capetown_best",
+      "value": "uniform swing"
+    },
+    {
+      "display": "38.0",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "38.0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 38.0,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.capetown.best.crps",
+      "token": "val_capetown_best_crps",
+      "value": 38.0
+    },
+    {
+      "display": "19",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "19",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 19,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.capetown.best.wrong_party_seats",
+      "token": "val_capetown_best_wrong",
+      "value": 19
+    },
+    {
+      "display": "34.2",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "34.2",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 34.25,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.capetown.model.crps",
+      "token": "val_capetown_crps",
+      "value": 34.25
+    },
+    {
+      "display": "22",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "22",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 22,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.capetown.model.wrong_party_seats",
+      "token": "val_capetown_wrong",
+      "value": 22
+    },
+    {
+      "display": "uniform swing",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "uniform swing",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "uniform swing",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ekurhuleni.best.name",
+      "token": "val_ekurhuleni_best",
+      "value": "uniform swing"
+    },
+    {
+      "display": "48.0",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "48.0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 48.0,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ekurhuleni.best.crps",
+      "token": "val_ekurhuleni_best_crps",
+      "value": 48.0
+    },
+    {
+      "display": "24",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "24",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 24,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ekurhuleni.best.wrong_party_seats",
+      "token": "val_ekurhuleni_best_wrong",
+      "value": 24
+    },
+    {
+      "display": "29.8",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "29.8",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 29.78,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ekurhuleni.model.crps",
+      "token": "val_ekurhuleni_crps",
+      "value": 29.78
+    },
+    {
+      "display": "19",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "19",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 19,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ekurhuleni.model.wrong_party_seats",
+      "token": "val_ekurhuleni_wrong",
+      "value": 19
+    },
+    {
+      "display": "uniform swing",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "uniform swing",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "uniform swing",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ethekwini.best.name",
+      "token": "val_ethekwini_best",
+      "value": "uniform swing"
+    },
+    {
+      "display": "36.0",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "36.0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 36.0,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ethekwini.best.crps",
+      "token": "val_ethekwini_best_crps",
+      "value": 36.0
+    },
+    {
+      "display": "18",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "18",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 18,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ethekwini.best.wrong_party_seats",
+      "token": "val_ethekwini_best_wrong",
+      "value": 18
+    },
+    {
+      "display": "31.0",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "31.0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 30.99,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ethekwini.model.crps",
+      "token": "val_ethekwini_crps",
+      "value": 30.99
+    },
+    {
+      "display": "21",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "21",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 21,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.ethekwini.model.wrong_party_seats",
+      "token": "val_ethekwini_wrong",
+      "value": 21
+    },
+    {
+      "display": "last result plus noise",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "last result plus noise",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "last result plus noise",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.joburg.best.name",
+      "token": "val_joburg_best",
+      "value": "last result plus noise"
+    },
+    {
+      "display": "114.1",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "114.1",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 114.07,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.joburg.best.crps",
+      "token": "val_joburg_best_crps",
+      "value": 114.07
+    },
+    {
+      "display": "63",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "63",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 63,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.joburg.best.wrong_party_seats",
+      "token": "val_joburg_best_wrong",
+      "value": 63
+    },
+    {
+      "display": "66.8",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "66.8",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 66.85,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.joburg.model.crps",
+      "token": "val_joburg_crps",
+      "value": 66.85
+    },
+    {
+      "display": "48",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "48",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 48,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.joburg.model.wrong_party_seats",
+      "token": "val_joburg_wrong",
+      "value": 48
+    },
+    {
+      "display": "uniform swing",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "uniform swing",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "uniform swing",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.mangaung.best.name",
+      "token": "val_mangaung_best",
+      "value": "uniform swing"
+    },
+    {
+      "display": "8.0",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "8.0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 8.0,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.mangaung.best.crps",
+      "token": "val_mangaung_best_crps",
+      "value": 8.0
+    },
+    {
+      "display": "4",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "4",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 4,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.mangaung.best.wrong_party_seats",
+      "token": "val_mangaung_best_wrong",
+      "value": 4
+    },
+    {
+      "display": "9.2",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "9.2",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 9.22,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.mangaung.model.crps",
+      "token": "val_mangaung_crps",
+      "value": 9.22
+    },
+    {
+      "display": "4",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "4",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 4,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.mangaung.model.wrong_party_seats",
+      "token": "val_mangaung_wrong",
+      "value": 4
+    },
+    {
+      "display": "uniform swing",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "uniform swing",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "uniform swing",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.nelsonmandelabay.best.name",
+      "token": "val_nelsonmandelabay_best",
+      "value": "uniform swing"
+    },
+    {
+      "display": "22.0",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "22.0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 22.0,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.nelsonmandelabay.best.crps",
+      "token": "val_nelsonmandelabay_best_crps",
+      "value": 22.0
+    },
+    {
+      "display": "11",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "11",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 11,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.nelsonmandelabay.best.wrong_party_seats",
+      "token": "val_nelsonmandelabay_best_wrong",
+      "value": 11
+    },
+    {
+      "display": "17.1",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "17.1",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 17.09,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.nelsonmandelabay.model.crps",
+      "token": "val_nelsonmandelabay_crps",
+      "value": 17.09
+    },
+    {
+      "display": "11",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "11",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 11,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.nelsonmandelabay.model.wrong_party_seats",
+      "token": "val_nelsonmandelabay_wrong",
+      "value": 11
+    },
+    {
+      "display": "337.4",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "337.4",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 337.38,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:total.best.crps",
+      "token": "val_total_best_crps",
+      "value": 337.38
+    },
+    {
+      "display": "224.2",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "224.2",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 224.19,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:total.model.crps",
+      "token": "val_total_crps",
+      "value": 224.19
+    },
+    {
+      "display": "uniform swing",
+      "fmt": "raw",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "uniform swing",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": "uniform swing",
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.tshwane.best.name",
+      "token": "val_tshwane_best",
+      "value": "uniform swing"
+    },
+    {
+      "display": "60.0",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "60.0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 60.0,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.tshwane.best.crps",
+      "token": "val_tshwane_best_crps",
+      "value": 60.0
+    },
+    {
+      "display": "30",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "30",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 30,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.tshwane.best.wrong_party_seats",
+      "token": "val_tshwane_best_wrong",
+      "value": 30
+    },
+    {
+      "display": "27.7",
+      "fmt": "one_dp",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "27.7",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 27.68,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.tshwane.model.crps",
+      "token": "val_tshwane_crps",
+      "value": 27.68
+    },
+    {
+      "display": "18",
+      "fmt": "int",
+      "mode": "free",
+      "movement": "none",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": "18",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-10T20:02:20Z",
+      "previous_value": 18,
+      "prior": null,
+      "prior_since": null,
+      "since": "2026-10-10T20:02:20Z",
+      "source": "validation:cities.tshwane.model.wrong_party_seats",
+      "token": "val_tshwane_wrong",
+      "value": 18
     }
   ],
   "city": "joburg",
@@ -6632,9 +7810,9 @@
     "draws": 5000,
     "forecast_content_sha256": "f74c0c2c74e92e32ac5ed21b875d6472f650790a584a5088d16e87cd1ca2a898",
     "forecast_summary_sha256": "a0f5c20167d2fb3090a3ed671c39f0aefe9ba1272471a149eee69de5186d2eea",
-    "git_commit": "0b6bf6a364480e5228b86ac119edca70ddcbaeae",
+    "git_commit": "6728120e27501b8883155acf49cfe57e98597bae",
     "git_dirty": true,
-    "model_run_id": "r-f74c0c2c74e9-0b6bf6a3-dirty",
+    "model_run_id": "r-f74c0c2c74e9-6728120e-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
@@ -6728,10 +7906,20 @@
         "anc_entitlement",
         "anc_ward_median",
         "asa_2021_seats",
+        "backtest_cities",
+        "backtest_crps_better",
+        "backtest_seat_err_baseline",
+        "backtest_seat_err_model",
+        "backtest_target",
+        "backtest_wards",
+        "backtest_wards_called",
+        "backtest_wins",
         "ballots.p_anc_excessive",
         "ballots.typical.anc_list",
         "ballots.typical.anc_wards",
         "ballots.typical.draw",
+        "blind_test_called",
+        "blind_test_of",
         "bloc_leak_votes",
         "byelection_count",
         "claim.anc.median",
@@ -6880,6 +8068,12 @@
         "hist_asa_pr_2021",
         "hist_asa_pr_2021_rounded",
         "hist_da_bloc_change_votes",
+        "hist_jhb_wards_2011",
+        "hist_jhb_wards_2016",
+        "hist_jhb_wards_2021",
+        "hist_jhb_wards_called_2011",
+        "hist_jhb_wards_called_2016",
+        "hist_jhb_wards_called_2021",
         "hist_laingsburg_da_wards",
         "hist_laingsburg_wards",
         "home.band",
@@ -6986,6 +8180,10 @@
         "poll_ipsos_w2_da",
         "poll_srf_q2_anc",
         "poll_srf_q2_da",
+        "polls_off_crps_after",
+        "polls_off_crps_before",
+        "polls_off_seat_err_after",
+        "polls_off_seat_err_before",
         "pub0808_n_draws",
         "pub0831_anc_entitlement",
         "pub0831_anc_ward_median",
@@ -7045,10 +8243,52 @@
         "tile.p_excessive.mk",
         "tile.p_excessive_any",
         "tile.p_excessive_rest",
-        "tile.p_tied_largest"
+        "tile.p_tied_largest",
+        "val_buffalocity_best",
+        "val_buffalocity_best_crps",
+        "val_buffalocity_best_wrong",
+        "val_buffalocity_crps",
+        "val_buffalocity_wrong",
+        "val_capetown_best",
+        "val_capetown_best_crps",
+        "val_capetown_best_wrong",
+        "val_capetown_crps",
+        "val_capetown_wrong",
+        "val_ekurhuleni_best",
+        "val_ekurhuleni_best_crps",
+        "val_ekurhuleni_best_wrong",
+        "val_ekurhuleni_crps",
+        "val_ekurhuleni_wrong",
+        "val_ethekwini_best",
+        "val_ethekwini_best_crps",
+        "val_ethekwini_best_wrong",
+        "val_ethekwini_crps",
+        "val_ethekwini_wrong",
+        "val_joburg_best",
+        "val_joburg_best_crps",
+        "val_joburg_best_wrong",
+        "val_joburg_crps",
+        "val_joburg_wrong",
+        "val_mangaung_best",
+        "val_mangaung_best_crps",
+        "val_mangaung_best_wrong",
+        "val_mangaung_crps",
+        "val_mangaung_wrong",
+        "val_nelsonmandelabay_best",
+        "val_nelsonmandelabay_best_crps",
+        "val_nelsonmandelabay_best_wrong",
+        "val_nelsonmandelabay_crps",
+        "val_nelsonmandelabay_wrong",
+        "val_total_best_crps",
+        "val_total_crps",
+        "val_tshwane_best",
+        "val_tshwane_best_crps",
+        "val_tshwane_best_wrong",
+        "val_tshwane_crps",
+        "val_tshwane_wrong"
       ]
     },
-    "n": 339,
+    "n": 401,
     "n_rounding": 0,
     "n_visible": 4,
     "nominal": []

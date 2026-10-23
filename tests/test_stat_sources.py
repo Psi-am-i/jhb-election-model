@@ -89,19 +89,36 @@ def test_a_history_source_refuses_two_records_and_a_malformed_name():
             raise AssertionError(f"{bad} was resolved")
 
 
-def test_a_history_figure_renders_with_an_empty_tooltip_for_the_one_writer():
-    """A history: figure renders with ``data-prov`` empty: since 2026-10-22 the
-    tooltip has one writer (build_site.tooltip_text, tooltip_says), and the
-    render leaves it to that writer. The tooltip sentences for the home page's
-    six ward counts went with the tokens on 2026-10-23
-    (audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-scores.md); the
-    resolver stays for a re-scored figure that carries its label."""
+def test_a_history_figure_names_the_backtest_count_not_the_forecast():
+    """A history: figure's sentence counts the past-elections test's
+    simulations, not the forecast's. It used to be checked on `stats.render`'s
+    own tip ("the model's test against past elections (src/compare_history.py)
+    ... code version a2bc44c"); since 2026-10-22 the tooltip has one writer
+    (build_site.tooltip_text, tooltip_says) and, by the owner's rule, names no
+    file or code version, so the check moved to the sentence and the render
+    leaves the tooltip empty for that writer."""
     with tempfile.TemporaryDirectory() as t:
         ctx = _hist(Path(t), J11)
         reg = {"w": {"mode": "free", "source": "history:joburg:2011:wards.called", "format": "int"}}
         out, _d, unresolved = stats.render("{{w}}", reg, ctx)
         assert not unresolved
         assert re.search(r'data-prov="([^"]*)"', out).group(1) == ""
+    import tooltip_says
+    said = tooltip_says.says("hist_jhb_wards_called_2011",
+                             tooltip_says.Facts(n=5000, n_hist=1000))[2]
+    assert "1,000 simulations" in said and "5,000" not in said and "2011" in said, said
+    assert "compare_history" not in said and "a2bc44c" not in said, said
+
+
+def test_the_home_page_ward_tokens_name_history_sources_for_joburg():
+    """The six registered tokens: each a free `history:joburg:<year>:wards.…`
+    source, one called and one count per election."""
+    reg = tomllib.loads((ROOT / "content/joburg/stats.toml").read_text(encoding="utf-8"))
+    got = {k: v["source"] for k, v in reg.items() if k.startswith("hist_jhb_wards")}
+    assert got == {f"hist_jhb_wards{'_called' if c else ''}_{y}":
+                   f"history:joburg:{y}:wards.{'called' if c else 'n_wards'}"
+                   for y in ("2011", "2016", "2021") for c in (True, False)}
+    assert all(reg[k]["mode"] == "free" for k in got)
 
 
 def _processed(tmp: Path, detail: dict[int, dict[str, int]], threshold: int) -> Path:
@@ -182,6 +199,27 @@ def test_the_validation_source_reads_each_metro_and_sums_its_own_figures():
             continue
         raise AssertionError(f"{bad} was resolved")
     assert stats.wrong_party_seats(41) == 21 and stats.wrong_party_seats(40) == 20 and stats.wrong_party_seats(0) == 0
+
+
+def test_the_live_validation_totals_are_the_artefacts_own():
+    """On the real artefact, the totals the methodology prints (sums of its
+    per-metro tokens) equal the headline build_validation wrote, so a total
+    and its rows cannot disagree; and the metro tokens are one per metro."""
+    from pathlib import Path as _P
+    ctx = stats.load_context(ROOT / "data" / "processed")
+    if not ctx.get("validation"):
+        return
+    head = ctx["validation"]["headline"]
+    r = lambda p: stats.resolve("validation:" + p, ctx)
+    assert abs(r("total.model.crps") - head["crps_model"]) < 0.01
+    assert abs(r("total.best.crps") - head["crps_baseline"]) < 0.01
+    assert r("total.wins") == head["wins"]
+    for side in ("model", "best"):
+        assert r(f"total.{side}.wrong_party_seats") == sum(
+            r(f"cities.{c}.{side}.wrong_party_seats") for c in ctx["validation"]["cities"])
+    reg = tomllib.loads((ROOT / "content/joburg/stats.toml").read_text(encoding="utf-8"))
+    metros = {k.split("_")[1] for k in reg if k.startswith("val_") and not k.startswith("val_total")}
+    assert metros == set(ctx["validation"]["cities"]), metros ^ set(ctx["validation"]["cities"])
 
 
 def test_the_small_party_surge_counts_established_small_parties_only():

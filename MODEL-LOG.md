@@ -1,7 +1,5 @@
 # Johannesburg Election Model
 
-> ⛔ **Every backtest figure dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy** (§1.333).
-
 A voting-district model of the City of Johannesburg — 5,000 simulations over 865 voting districts, both ballots, the statutory seat formula, and the coalition arithmetic it permits. The forecast, the machinery, and the full warts-and-all record of how it was built, reviewed, broken and corrected.
 
 # Log — findings, obstacles, decisions, mitigations
@@ -31160,16 +31158,3 @@ The fall is in the large parties' term. Mild's ANC and DA closeness went from 0.
 The bands are unchanged (owner's (a)). `tests/test_reweight.py` BRIEF_TABLE re-recorded on 336d666d. Not measured: whether readers' shared predictions sit closer to or further from ours than the brief's examples, which would say whether the bands now read harsh in use.
 
 Correction to OWNER-DECISIONS item 13 as asked: its "16 October forecast" column is model 7ea27c28's (the 8 October draws, the table's own record), not the 16 October draws (de1911fd, aa95c51). On those draws mild scores 0.888 and moderate 0.760, but against the forecast.json committed beside them, whose start was still the 8 October prediction (ANC 70, PA 24 seats; those draws' medians 74 and 14), so that column measures a mismatched pair and is not quoted as the 16 October forecast's.
-
-## 1.333 The in-sample backtest scores are withdrawn: every backtest figure dated before 2026-10-23 is in-sample (2026-10-23)
-
-Owner, 2026-10-23 (`OWNER-DECISIONS-ANSWERED.md` item 29): delete any contaminated scores or results. Every backtest score on disk was produced with settings chosen on the election scored or a later one (`rounds/2026-10-23-out-of-sample/POLLSTER-ON-RECORD.md`). **Every backtest figure in this log, in `JUDGEMENT-CALLS.md` and in any other committed document dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy.** Earlier entries are not edited; this entry and the one-line pointer at the top of this file say so once. Brief: `audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-scores.md`; plan: `rounds/2026-10-23-out-of-sample/PLAN.md` step 0.
-
-What was done, on branch `site-sweep-1`:
-
-- **The published scores.** 62 tokens retired from `content/joburg/stats.toml`, every page and the ledger (`publication.retire`, one stamp): the 55 with a `validation:` or `history:` source, the four `compare_history:` poll-removal scores, the fold-2 blind test's pair (`blind_test_called`, `blind_test_of`) and `backtest_target`. The methodology's scoring section is a withdrawal notice; `src/build_validation.py` writes only that notice while `WITHDRAWN` is set. A corrections entry records the error.
-- **The files.** Copied, checksums verified, to the quarantine folder outside the repository whose `README.md` lists each file with its size and sha256: `history.json`/`.md`, `validation_2021.json`, `sweep.json`, `width_budget.json`, the past targets' seat draws, ward winners and coalition tables, the arm and plausibility outputs for past targets, and the seven `reports/model-changes/*/backtest.json`. `regime_*_summary.json` and `width_record.json` stay: the live 2026 forecast reads them. The nine tracked originals (`history.json`, `history.md`, the seven `backtest.json`) are removed from the tree; the untracked originals were still in place when this entry was written, because the session's permission system refused their removal, and their removal is the owner's to run.
-- **The guard.** `tests/test_quarantine.py`: nothing under `src/`, `tests/`, `content/`, `docs-public/` or `site/` names the quarantine folder, and no token with a backtest source is held or printed without `label = "in-sample"` or `"forward-chained"`. It does not forbid `compare_history` writing a new `history.json`.
-- **The ranges.** The forecast page and the methodology now say the ranges are fitted on errors from past tests whose settings had seen those elections, so they are likely too narrow (`width_record.json`, PLAN step 0.7).
-
-Committed text that quotes in-sample figures, not edited: 112 tracked `.md` files outside `site/`, by `git grep -lE '[0-9][^|]{0,40}(coherent|city-years|beats uniform swing|CRPS|seat error)|(coherent|city-years|beats uniform swing|CRPS|seat error)[^|]{0,40}[0-9]' -- '*.md' ':!site' | wc -l`. An upper bound: the pattern also matches a digit beside the term that is not a score.
