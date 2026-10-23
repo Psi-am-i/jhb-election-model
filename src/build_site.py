@@ -1272,7 +1272,10 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
             "previous_value": None if prev is None else prev.value,
             "previous_published_at": None if prev is None else prev.published_at,
             "previous_since": None if prev is None else since.get(name),
-            "since": (since.get(name) if prev is not None
+            # a revived token's run restarts with this publication, whatever
+            # it shows (`publication._runs`)
+            "revived": prev is not None and bool(prev.revived_at),
+            "since": (since.get(name) if prev is not None and not prev.revived_at
                       and movement in ("none", "rounding") else None),
             "prior": priors[name][0] if name in priors else None,
             "prior_since": priors[name][1] if name in priors else None,
@@ -1327,7 +1330,8 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
     Line 1 is the figure as displayed, its unit word, and its history:
 
     * a LIVE figure, from the ledger: moved (``since`` this edition),
-      unchanged (since its run's first date), new (since this edition). One
+      unchanged (since its run's first date), new or revived after a
+      retirement (`publication.revive`; since this edition). One
       that has ever shown another value then says ``Was`` the last such value
       (``prior``) on the date that value first appeared (``prior_since``), in
       the edition that moved it and in every later one (owner, 2026-10-23:
@@ -1390,6 +1394,9 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         on_site = (registry.get(x["token"]) or {}).get("on_site")
         if x["previous"] is None:
             return f"since {when(on_site)}" if on_site else this
+        if x.get("revived"):
+            # retired, then revived: current again from this edition
+            return this
         if x["movement"] in ("none", "rounding"):
             run = x["since"]
         elif x["display"] == x["previous"]:
@@ -2011,6 +2018,23 @@ def main(argv: list[str] | None = None) -> int:
         print("  Each was published, is no longer in the stats registry, and "
               "carries no supersession stamp — so nothing can tell a reader "
               "when it stopped being true. Close each one out:")
+        print(f"    P.retire({city!r}, '<token>', reason='<why>', "
+              f"change_class='mechanism', root=Path({str(ledger_root)!r}))")
+
+    # A REVIVED TOKEN THIS BUILD DOES NOT PRINT IS FATAL. `publication.revive`
+    # records that a retired figure is current again; only the live row a
+    # --publish appends after it makes that true. A revived token missing from
+    # every page would never get that row, and the record would hold a return
+    # that never happened. (One that also left the registry is caught above as
+    # well; this one is the token the build can produce and did not print.)
+    dangling = publication.unpublished_revivals(ledger, on_page)
+    if dangling:
+        refuse = True
+        print("\nREVIVED TOKENS THIS BUILD DOES NOT PUBLISH — refusing to leave "
+              "a revival with no live row after it:")
+        for row in dangling:
+            print(f"  ✗ {row.token} = {row.display}  (revived {row.revived_at})")
+        print("  Print each on a page this build writes, or retire it again:")
         print(f"    P.retire({city!r}, '<token>', reason='<why>', "
               f"change_class='mechanism', root=Path({str(ledger_root)!r}))")
 
