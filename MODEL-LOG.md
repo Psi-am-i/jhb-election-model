@@ -31309,7 +31309,9 @@ amendment 88495e8 before any run). Code db1402f, reviewed.
   - the three site draw manifests (`~`, until `export_draws.py` is re-run for the new forecast);
   - `history.json` (`~`, withdrawn in-sample, failing before this round);
   - `fold5_parameters.csv` (`✗`, dead);
-  - three undeclared files that were already undeclared.
+  - `validation_2021.json` (in-sample flag, withdrawn);
+  - `forecast_frozen.json` (names the 21 October commit; the freeze is re-made
+    when this forecast is frozen).
 - **K5:** every city's fold files have placeholder rows, so the fix reaches
   Tshwane's forecast and every past target. No Tshwane forecast is published.
 - **K6:** `judgements_applied` is empty. ActionSA's centre before the shrink is
