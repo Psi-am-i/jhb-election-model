@@ -87,7 +87,7 @@ whole suite once for the UAT version.
 
 ## Owner's answers, 2026-10-24
 
-- **1 and 2:** not answered, so the defaults stand. The interactive is "Your
+- **1 and 2:** "other defaults are fine". The interactive is "Your
   prediction" everywhere and the URL is unchanged. The home lede's "That is
   surprisingly likely this year" stays.
 - **3:** "remove those sorts of phrasing." The dated claim cards (7 Aug, 26 Sep,
