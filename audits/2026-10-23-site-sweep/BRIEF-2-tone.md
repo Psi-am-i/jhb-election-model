@@ -84,3 +84,19 @@ can see, and scanned the right set).
 Branch `site-sweep-1`; no forecast number changes; tokens stay tokens. No
 corrections entry: nothing published was wrong. Targeted site tests, then the
 whole suite once for the UAT version.
+
+## Owner's answers, 2026-10-24
+
+- **1 and 2:** not answered, so the defaults stand. The interactive is "Your
+  prediction" everywhere and the URL is unchanged. The home lede's "That is
+  surprisingly likely this year" stays.
+- **3:** "remove those sorts of phrasing." The dated claim cards (7 Aug, 26 Sep,
+  7 Oct) are swept for lilt and loaded words: "turnout fantasy", "special
+  universe", "Not close.", "At first glance it looks plausible, until you
+  realise", "a two-horse race", "Helen" (use the surname, as elsewhere). The
+  facts, figures, dates and verdicts are unchanged, and there is no corrections
+  entry. Each removal is listed in the writer's report with before and after.
+- **4:** "if it is their one realistic option leave it. claim card only." The
+  wording stays on the Mashaba claim card, where it is the owner's definition,
+  and comes off the forecast page's coalition box. The box keeps its figures
+  without naming one party's options.
