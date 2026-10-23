@@ -99,14 +99,13 @@ def render(cards: list[dict]) -> str:
             # top-level structure, which is its 2021 council (cities/*.toml)
             detail = (f'<div class="pc-num pc-soon">{c["council"]}'
                       f'<span> seats in 2021</span></div>'
-                      # "Not modelled yet" was flatly contradicted by
-                      # /about, which publishes a 2021 backtest for all eight
-                      # metros. What is missing is a 2026 FORECAST, and the
-                      # card has to say which of the two it means.
+                      # What is missing is a 2026 FORECAST. The card pointed
+                      # at the city's 2021 backtest on the scoring page until
+                      # 2026-10-23, when the in-sample scores were withdrawn
+                      # (audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-
+                      # scores.md).
                       f'<div class="pc-sub">{c["wards"]} wards in 2021. No 2026 '
-                      f'forecast yet — its 2021 backtest is on the '
-                      f'<a href="https://joburg.whysoserious.city/about">'
-                      f'scoring page</a>.</div>')
+                      f'forecast yet.</div>')
             cta = "In preparation"
         klass = "pcard" + ("" if c["live"] else " pcard-soon")
         href = f' href="{c["url"]}"' if c["live"] else ""

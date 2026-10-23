@@ -195,41 +195,12 @@ to explain a voter's reasoning is overreach, and we would like to hear about it.
 
 ## How accurate is it?
 
-There are three checks, in increasing order of difficulty.
-
 **The seat law is exact.** The implementation reproduces the published councils
 to the seat (quota, vote totals, every party) for eight municipalities across
 three elections, from the raw voting-district files. One exception is
 documented: the Commission publishes every independent candidate under a single
 name, so where several stand in one ward they cannot be told apart, and we take
 the Commission's own count of independent ward councillors.
-
-**The geography transfers.** <span data-asof="2026-08-04">Given only citywide
-totals for 2021, This Model placed the votes well enough to call
-{{blind_test_called}} of {{blind_test_of}} ward winners. That test was run on 4
-August 2026 and has not been re-run on the current model.</span>
-
-**The whole model beats simple baselines.** It is run on the 2021 election in
-{{backtest_cities}} metros and wins in **{{backtest_wins}}** of them on the measure that
-scores a forecast's whole range (CRPS), with **{{backtest_crps_better}}** less error in
-total. Each metro against its best baseline by that measure, and the seats each
-gives to the wrong party (lower is better in every column):
-
-| metro | model's error (CRPS) | best baseline's error (CRPS) | best baseline | seats given to the wrong party: model | seats given to the wrong party: best baseline |
-|---|---|---|---|---|---|
-| Johannesburg | {{val_joburg_crps}} | {{val_joburg_best_crps}} | {{val_joburg_best}} | {{val_joburg_wrong}} | {{val_joburg_best_wrong}} |
-| Tshwane | {{val_tshwane_crps}} | {{val_tshwane_best_crps}} | {{val_tshwane_best}} | {{val_tshwane_wrong}} | {{val_tshwane_best_wrong}} |
-| Ekurhuleni | {{val_ekurhuleni_crps}} | {{val_ekurhuleni_best_crps}} | {{val_ekurhuleni_best}} | {{val_ekurhuleni_wrong}} | {{val_ekurhuleni_best_wrong}} |
-| eThekwini | {{val_ethekwini_crps}} | {{val_ethekwini_best_crps}} | {{val_ethekwini_best}} | {{val_ethekwini_wrong}} | {{val_ethekwini_best_wrong}} |
-| Cape Town | {{val_capetown_crps}} | {{val_capetown_best_crps}} | {{val_capetown_best}} | {{val_capetown_wrong}} | {{val_capetown_best_wrong}} |
-| Mangaung | {{val_mangaung_crps}} | {{val_mangaung_best_crps}} | {{val_mangaung_best}} | {{val_mangaung_wrong}} | {{val_mangaung_best_wrong}} |
-| Nelson Mandela Bay | {{val_nelsonmandelabay_crps}} | {{val_nelsonmandelabay_best_crps}} | {{val_nelsonmandelabay_best}} | {{val_nelsonmandelabay_wrong}} | {{val_nelsonmandelabay_best_wrong}} |
-| Buffalo City | {{val_buffalocity_crps}} | {{val_buffalocity_best_crps}} | {{val_buffalocity_best}} | {{val_buffalocity_wrong}} | {{val_buffalocity_best_wrong}} |
-| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{backtest_seat_err_model}} | {{backtest_seat_err_baseline}} |
-
-The seat columns judge each party's middle forecast, not its range, so their
-margins are smaller. It calls the winner in **{{backtest_wards_called}} of {{backtest_wards}}**
-wards.
 
 <!-- __VALIDATION__ -->
 
@@ -272,8 +243,8 @@ These are choices about how This Model works that the data did not make for us. 
   handling of Laingsburg 2021 settle the arithmetic, and the forecast applies
   it.
 - **No poll is used in the forecast.** Polls were an input until 12 September
-  2026 and are not one now. Why they were taken out, what they were worth, and
-  what is planned are under *Where polls fit*, below.
+  2026 and are not one now. Why they were taken out and what is planned are
+  under *Where polls fit*, below.
 - **Small parties' range is wider than the record.** In the simulations, a
   party that is established but small sometimes reaches a share no such party
   has reached in the record. In the eight metros' consecutive local elections
@@ -281,6 +252,8 @@ These are choices about how This Model works that the data did not make for us. 
   one election, and none reached {{small_party_surge_share}} at the next ([model log, §1.296](https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md)).
   In this forecast, {{small_party_surge}} of the simulations give at least one such
   party more than {{small_party_surge_share}}. A fix is in progress.
+- **The ranges are likely too narrow.** They are fitted on This Model's errors
+  in past tests whose settings had seen those elections.
 - **Arithmetic is not politics.** This Model says which governments are
   numerically possible, not which will form.
 
@@ -303,16 +276,9 @@ worthless.
 
 ### What they were worth, measured
 
-The aim is to score {{backtest_target}} past city elections across the country,
-eight metros with three elections each; how many are in the panel on a given
-day depends on which have been prepared. Against the panel as it stood,
-removing polls changed the total seat error from
-{{polls_off_seat_err_before}} to {{polls_off_seat_err_after}} and the
-distributional score (CRPS) from {{polls_off_crps_before}} to
-{{polls_off_crps_after}}. Both moved the right way and neither by much: seven
-elections moved at all, one of them by six seats *against* the change. **The
-poll channel's contribution cannot be distinguished from zero.** That is a
-reason not to let it move a published headline while its design is unsettled.
+Their worth was measured against past elections, with settings chosen on
+those elections. The measurement is withdrawn with This Model's other past
+scores (*How accurate is it?*, above).
 
 ### What we intend
 
