@@ -1,0 +1,955 @@
+{
+ "R": {
+  "R1": {
+   "abs_gap": {
+    "2016": 0.01015803411444316,
+    "2021": 0.08184230146707105
+   },
+   "pass": true
+  },
+  "R2": {
+   "P_below_0.9": 8,
+   "S_below_0.9": 8,
+   "eff_metros": 8,
+   "pass": true
+  },
+  "R3": {
+   "P_target_2021_for_comparison": 0.5630096780690834,
+   "P_target_2026": 0.8536695312441972,
+   "P_target_2026_without_AIC_per_metro": 0.8844203049426039,
+   "P_target_2026_without_PA": 0.8497760709268329,
+   "pairs": 76,
+   "party_medians": {
+    "ACADEMIC_CONGRESS_UNION": 1.1118222733172858,
+    "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.1936401951089133,
+    "AFRICAN_MANDATE_CONGRESS": 2.078615965683659,
+    "AFRICAN_MANTUNGWA_COMMUNITY": 0.4759748196895158,
+    "AGANG": 2.639221085804082,
+    "AGENCY_FOR_NEW_AGENDA": 0.08694415098774755,
+    "AIC": 0.42266524200442657,
+    "ALJAMAAH": 1.358355267032704,
+    "ALLIED_MOVEMENT_FOR_CHANGE": 0.4161095656650992,
+    "APC": 0.4445916703488851,
+    "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 6.79523862105997,
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT": 1.1470945895618956,
+    "CAPE_MUSLIM_CONGRESS": 1.1064797811573681,
+    "CAPE_PARTY_KAAPSE_PARTY": 1.0712900877193956,
+    "CHRISTIAN_FRONT": 0.15829942281795467,
+    "COPE": 0.23278660445838356,
+    "DEMOCRATIC_INDEPENDENT_PARTY": 0.6501263971733695,
+    "DEMOCRATIC_LIBERAL_CONGRESS": 1.0212519510270996,
+    "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.448925798009895,
+    "EFF": 1.2794200623934733,
+    "FORUM_4_SERVICE_DELIVERY": 0.8536695312441972,
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 3.9906644149259116,
+    "INDEPENDENT_PEOPLE_S_PARTY": 1.814026020499056,
+    "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.9247638921469036,
+    "INTERNATIONAL_REVELATION_CONGRESS": 3.0348382784571357,
+    "MINORITIES_OF_SOUTH_AFRICA": 1.0515704024546468,
+    "MOVEMENT_DEMOCRATIC_PARTY": 0.2649284652625281,
+    "NATIONAL_PARTY_SOUTH_AFRICA": 0.3404755001378476,
+    "NATIONAL_PEOPLE_S_PARTY": 0.5686355646833762,
+    "OKM": 0.5573837914547907,
+    "PA": 6.714652671887141,
+    "PAN_AFRICANIST_MOVEMENT": 0.8458826106094686,
+    "PEOPLE_S_DEMOCRATIC_MOVEMENT": 1.7532154476420363,
+    "PEOPLE_S_REVOLUTIONARY_MOVEMENT": 1.7080414067587377,
+    "SIZWE_UMMAH_NATION": 2.181005005666204,
+    "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.4415061336134303,
+    "THE_GREENS": 2.125576124541596,
+    "TRULY_ALLIANCE": 0.8844203049426039,
+    "UDM": 0.7232061374927892,
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.27718305256792625,
+    "UNITED_INDEPENDENT_FRONT": 0.1470758710607545,
+    "UNITED_RESIDENTS_FRONT": 0.6524925109972953,
+    "UNIVERSAL_PARTY": 0.41801759305193514
+   },
+   "pass": true
+  },
+  "R3_unlisted_parties": [
+   "ACADEMIC_CONGRESS_UNION",
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE",
+   "AFRICAN_MANDATE_CONGRESS",
+   "AFRICAN_MANTUNGWA_COMMUNITY",
+   "AGANG",
+   "AGENCY_FOR_NEW_AGENDA",
+   "ALLIED_MOVEMENT_FOR_CHANGE",
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "BOTSHABELO_UNEMPLOYED_MOVEMENT",
+   "CAPE_MUSLIM_CONGRESS",
+   "CAPE_PARTY_KAAPSE_PARTY",
+   "CHRISTIAN_FRONT",
+   "DEMOCRATIC_INDEPENDENT_PARTY",
+   "DEMOCRATIC_LIBERAL_CONGRESS",
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "FORUM_4_SERVICE_DELIVERY",
+   "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA",
+   "INDEPENDENT_PEOPLE_S_PARTY",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "INTERNATIONAL_REVELATION_CONGRESS",
+   "MINORITIES_OF_SOUTH_AFRICA",
+   "MOVEMENT_DEMOCRATIC_PARTY",
+   "NATIONAL_PARTY_SOUTH_AFRICA",
+   "NATIONAL_PEOPLE_S_PARTY",
+   "OKM",
+   "PAN_AFRICANIST_MOVEMENT",
+   "PEOPLE_S_DEMOCRATIC_MOVEMENT",
+   "PEOPLE_S_REVOLUTIONARY_MOVEMENT",
+   "SIZWE_UMMAH_NATION",
+   "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION",
+   "THE_GREENS",
+   "TRULY_ALLIANCE",
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+   "UNITED_INDEPENDENT_FRONT",
+   "UNITED_RESIDENTS_FRONT",
+   "UNIVERSAL_PARTY"
+  ]
+ },
+ "checks": {
+  "jhb_eff_2016_2021_pct": [
+   10.929077533983598,
+   10.112544439681116
+  ],
+  "size_fit_2026": {
+   "a": -0.38084315158742416,
+   "b": -0.030790994259079787,
+   "parties": 59,
+   "ratios": 292
+  },
+  "size_line_2026_at_0.1812": 0.7201848274601802
+ },
+ "targets": {
+  "2016": {
+   "P": {
+    "pairs": 10,
+    "party_medians": {
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.1936401951089133,
+     "CHRISTIAN_FRONT": 0.15829942281795467,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.448925798009895,
+     "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.9247638921469036,
+     "OKM": 0.5573837914547907,
+     "TRULY_ALLIANCE": 0.8844203049426039,
+     "UDM": 0.7232061374927892,
+     "UNITED_INDEPENDENT_FRONT": 0.1470758710607545,
+     "UNIVERSAL_PARTY": 0.41801759305193514
+    },
+    "value": 0.448925798009895
+   },
+   "S": {
+    "a": 0.0668264199086615,
+    "b": 0.17472186519085664,
+    "parties": 24,
+    "ratios": 83
+   },
+   "score_P": {
+    "pairs": [
+     {
+      "abs_log_error": 0.8479323957512583,
+      "metro": "JHB",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.19227472674546714,
+      "s1_pct": 1.1098737391342637,
+      "s2_pct": 0.2134006699140104
+     },
+     {
+      "abs_log_error": 0.5803945270859383,
+      "metro": "TSH",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.2512536750779573,
+      "s1_pct": 0.8891125186268519,
+      "s2_pct": 0.22339278786281536
+     },
+     {
+      "abs_log_error": 0.7393895633650855,
+      "metro": "CPT",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.2143195338388098,
+      "s1_pct": 1.1278178658312195,
+      "s2_pct": 0.2417133992600283
+     },
+     {
+      "abs_log_error": 0.23299131974126386,
+      "metro": "ETH",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.3556212620119616,
+      "s1_pct": 0.39867396233855856,
+      "s2_pct": 0.14177693761814747
+     },
+     {
+      "abs_log_error": 0.5613803190690194,
+      "metro": "EKU",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.2560767731044132,
+      "s1_pct": 1.0879545085626168,
+      "s2_pct": 0.27859987983711254
+     },
+     {
+      "abs_log_error": 0.9661516847739335,
+      "metro": "MAN",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.17083632403785404,
+      "s1_pct": 3.298504506288997,
+      "s2_pct": 0.5635043846767088
+     },
+     {
+      "abs_log_error": 1.143573413979059,
+      "metro": "NMA",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.14306287222569744,
+      "s1_pct": 4.882991079150913,
+      "s2_pct": 0.6985747288357876
+     },
+     {
+      "abs_log_error": 0.5165145868420036,
+      "metro": "BUF",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.448925798009895,
+      "ratio": 0.26782747592971956,
+      "s1_pct": 3.7014209090053636,
+      "s2_pct": 0.9913422194123948
+     },
+     {
+      "abs_log_error": 0.3642853136606774,
+      "metro": "JHB",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.448925798009895,
+      "ratio": 0.31186559192159735,
+      "s1_pct": 0.5271877327716847,
+      "s2_pct": 0.16441171433464635
+     },
+     {
+      "abs_log_error": 0.16178277735564783,
+      "metro": "TSH",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.448925798009895,
+      "ratio": 0.527759343450729,
+      "s1_pct": 0.4610059467693643,
+      "s2_pct": 0.2433001957938814
+     },
+     {
+      "abs_log_error": 0.17757950194916738,
+      "metro": "CPT",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.448925798009895,
+      "ratio": 0.5361624081618095,
+      "s1_pct": 0.13547065981284814,
+      "s2_pct": 0.07263427520052593
+     },
+     {
+      "abs_log_error": 0.3683367860663519,
+      "metro": "ETH",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.448925798009895,
+      "ratio": 0.6488453506244359,
+      "s1_pct": 0.40771139373623844,
+      "s2_pct": 0.2645416422223671
+     },
+     {
+      "abs_log_error": 0.14125479419941422,
+      "metro": "EKU",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.448925798009895,
+      "ratio": 0.3897879289600321,
+      "s1_pct": 0.6816360279198117,
+      "s2_pct": 0.2656934956274061
+     },
+     {
+      "abs_log_error": 0.009701347331309562,
+      "metro": "MAN",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.448925798009895,
+      "ratio": 0.4445916703488851,
+      "s1_pct": 0.5511538080618005,
+      "s2_pct": 0.2450383921453447
+     },
+     {
+      "abs_log_error": 0.22304273146185216,
+      "metro": "NMA",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.448925798009895,
+      "ratio": 0.3591768487393854,
+      "s1_pct": 0.4324511330219685,
+      "s2_pct": 0.15532643519260741
+     },
+     {
+      "abs_log_error": 0.9369078365805401,
+      "metro": "JHB",
+      "pair": "2011->2016",
+      "party": "ALJAMAAH",
+      "predicted": 0.448925798009895,
+      "ratio": 1.1456935465297067,
+      "s1_pct": 0.2717122088863285,
+      "s2_pct": 0.3112989242343982
+     },
+     {
+      "abs_log_error": 1.2526208378680077,
+      "metro": "CPT",
+      "pair": "2011->2016",
+      "party": "ALJAMAAH",
+      "predicted": 0.448925798009895,
+      "ratio": 1.571016987535701,
+      "s1_pct": 0.3517043963944927,
+      "s2_pct": 0.552533581326738
+     },
+     {
+      "abs_log_error": 0.8839934956828828,
+      "metro": "BUF",
+      "pair": "2011->2016",
+      "party": "AIC",
+      "predicted": 0.448925798009895,
+      "ratio": 1.0866459370877584,
+      "s1_pct": 3.583325491672156,
+      "s2_pct": 3.8938060867885427
+     }
+    ],
+    "per_party": {
+     "AIC": 0.8839934956828828,
+     "ALJAMAAH": 1.094764337224274,
+     "APC": 0.20656903600348867,
+     "COPE": 0.6985409763259453
+    },
+    "score": 0.7209669613091476
+   },
+   "score_S": {
+    "pairs": [
+     {
+      "abs_log_error": 0.9292466577401486,
+      "metro": "JHB",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.48695507750762745,
+      "ratio": 0.19227472674546714,
+      "s1_pct": 1.1098737391342637,
+      "s2_pct": 0.2134006699140104
+     },
+     {
+      "abs_log_error": 0.6229593679556809,
+      "metro": "TSH",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.46844675927445745,
+      "ratio": 0.2512536750779573,
+      "s1_pct": 0.8891125186268519,
+      "s2_pct": 0.22339278786281536
+     },
+     {
+      "abs_log_error": 0.8235060868317825,
+      "metro": "CPT",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.4883215666985437,
+      "ratio": 0.2143195338388098,
+      "s1_pct": 1.1278178658312195,
+      "s2_pct": 0.2417133992600283
+     },
+     {
+      "abs_log_error": 0.13541527331213965,
+      "metro": "ETH",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.40719067598526754,
+      "ratio": 0.3556212620119616,
+      "s1_pct": 0.39867396233855856,
+      "s2_pct": 0.14177693761814747
+     },
+     {
+      "abs_log_error": 0.6392094171607713,
+      "metro": "EKU",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.4852609131869609,
+      "ratio": 0.2560767731044132,
+      "s1_pct": 1.0879545085626168,
+      "s2_pct": 0.27859987983711254
+     },
+     {
+      "abs_log_error": 1.2377770079176664,
+      "metro": "MAN",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.5890334284775568,
+      "ratio": 0.17083632403785404,
+      "s1_pct": 3.298504506288997,
+      "s2_pct": 0.5635043846767088
+     },
+     {
+      "abs_log_error": 1.4837401631151272,
+      "metro": "NMA",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.6308223985762081,
+      "ratio": 0.14306287222569744,
+      "s1_pct": 4.882991079150913,
+      "s2_pct": 0.6985747288357876
+     },
+     {
+      "abs_log_error": 0.8082761837902588,
+      "metro": "BUF",
+      "pair": "2011->2016",
+      "party": "COPE",
+      "predicted": 0.6010145900177806,
+      "ratio": 0.26782747592971956,
+      "s1_pct": 3.7014209090053636,
+      "s2_pct": 0.9913422194123948
+     },
+     {
+      "abs_log_error": 0.31552878728799205,
+      "metro": "JHB",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.4275627610844055,
+      "ratio": 0.31186559192159735,
+      "s1_pct": 0.5271877327716847,
+      "s2_pct": 0.16441171433464635
+     },
+     {
+      "abs_log_error": 0.23397750315761867,
+      "metro": "TSH",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.41765798826927214,
+      "ratio": 0.527759343450729,
+      "s1_pct": 0.4610059467693643,
+      "s2_pct": 0.2433001957938814
+     },
+     {
+      "abs_log_error": 0.4637483835657664,
+      "metro": "CPT",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.33720421697669856,
+      "ratio": 0.5361624081618095,
+      "s1_pct": 0.13547065981284814,
+      "s2_pct": 0.07263427520052593
+     },
+     {
+      "abs_log_error": 0.4619963353152229,
+      "metro": "ETH",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.40878856413932074,
+      "ratio": 0.6488453506244359,
+      "s1_pct": 0.40771139373623844,
+      "s2_pct": 0.2645416422223671
+     },
+     {
+      "abs_log_error": 0.13739114971292854,
+      "metro": "EKU",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.4471946547401531,
+      "ratio": 0.3897879289600321,
+      "s1_pct": 0.6816360279198117,
+      "s2_pct": 0.2656934956274061
+     },
+     {
+      "abs_log_error": 0.03128753423888575,
+      "metro": "MAN",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.4308968489846938,
+      "ratio": 0.4445916703488851,
+      "s1_pct": 0.5511538080618005,
+      "s2_pct": 0.2450383921453447
+     },
+     {
+      "abs_log_error": 0.1396760083193691,
+      "metro": "NMA",
+      "pair": "2011->2016",
+      "party": "APC",
+      "predicted": 0.4130178822235177,
+      "ratio": 0.3591768487393854,
+      "s1_pct": 0.4324511330219685,
+      "s2_pct": 0.15532643519260741
+     },
+     {
+      "abs_log_error": 1.1014723326566336,
+      "metro": "JHB",
+      "pair": "2011->2016",
+      "party": "ALJAMAAH",
+      "predicted": 0.3808071646422869,
+      "ratio": 1.1456935465297067,
+      "s1_pct": 0.2717122088863285,
+      "s2_pct": 0.3112989242343982
+     },
+     {
+      "abs_log_error": 1.3720987778480074,
+      "metro": "CPT",
+      "pair": "2011->2016",
+      "party": "ALJAMAAH",
+      "predicted": 0.3983693832750571,
+      "ratio": 1.571016987535701,
+      "s1_pct": 0.3517043963944927,
+      "s2_pct": 0.552533581326738
+     },
+     {
+      "abs_log_error": 0.5978973422001264,
+      "metro": "BUF",
+      "pair": "2011->2016",
+      "party": "AIC",
+      "predicted": 0.5976192031042727,
+      "ratio": 1.0866459370877584,
+      "s1_pct": 3.583325491672156,
+      "s2_pct": 3.8938060867885427
+     }
+    ],
+    "per_party": {
+     "AIC": 0.5978973422001264,
+     "ALJAMAAH": 1.2367855552523204,
+     "APC": 0.254800814513969,
+     "COPE": 0.8350162697279468
+    },
+    "score": 0.7311249954235908
+   },
+   "unlisted_parties_scorable_by_rule": [
+    "CAPE_MUSLIM_CONGRESS",
+    "CAPE_PARTY_KAAPSE_PARTY",
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA",
+    "MOVEMENT_DEMOCRATIC_PARTY",
+    "NATIONAL_PARTY_SOUTH_AFRICA",
+    "NATIONAL_PEOPLE_S_PARTY",
+    "PAN_AFRICANIST_MOVEMENT",
+    "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION",
+    "UNITED_RESIDENTS_FRONT"
+   ],
+   "variants": {
+    "P_first_from_live_files_only": 0.3059854983950545,
+    "P_named_parties_only": 0.7232061374927892,
+    "pairs_added_by_live_only_first": 7,
+    "rule_found_all": {
+     "P": 0.6849992974134018,
+     "S": 0.8320821238577557,
+     "parties": [
+      "AIC",
+      "ALJAMAAH",
+      "APC",
+      "CAPE_MUSLIM_CONGRESS",
+      "CAPE_PARTY_KAAPSE_PARTY",
+      "COPE",
+      "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA",
+      "MOVEMENT_DEMOCRATIC_PARTY",
+      "NATIONAL_PARTY_SOUTH_AFRICA",
+      "NATIONAL_PEOPLE_S_PARTY",
+      "PAN_AFRICANIST_MOVEMENT",
+      "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION",
+      "UNITED_RESIDENTS_FRONT"
+     ]
+    }
+   }
+  },
+  "2021": {
+   "P": {
+    "pairs": 37,
+    "party_medians": {
+     "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 0.1936401951089133,
+     "AIC": 1.0866459370877584,
+     "ALJAMAAH": 1.358355267032704,
+     "APC": 0.4445916703488851,
+     "CAPE_MUSLIM_CONGRESS": 1.1064797811573681,
+     "CAPE_PARTY_KAAPSE_PARTY": 1.0712900877193956,
+     "CHRISTIAN_FRONT": 0.15829942281795467,
+     "COPE": 0.23278660445838356,
+     "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.448925798009895,
+     "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 3.9906644149259116,
+     "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.9247638921469036,
+     "MOVEMENT_DEMOCRATIC_PARTY": 0.2649284652625281,
+     "NATIONAL_PARTY_SOUTH_AFRICA": 0.3404755001378476,
+     "NATIONAL_PEOPLE_S_PARTY": 0.5686355646833762,
+     "OKM": 0.5573837914547907,
+     "PAN_AFRICANIST_MOVEMENT": 0.8458826106094686,
+     "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.4415061336134303,
+     "TRULY_ALLIANCE": 0.8844203049426039,
+     "UDM": 0.7232061374927892,
+     "UNITED_INDEPENDENT_FRONT": 0.1470758710607545,
+     "UNITED_RESIDENTS_FRONT": 0.6524925109972953,
+     "UNIVERSAL_PARTY": 0.41801759305193514
+    },
+    "value": 0.5630096780690834
+   },
+   "S": {
+    "a": -0.1912395883364381,
+    "b": 0.07317305227917732,
+    "parties": 38,
+    "ratios": 174
+   },
+   "score_P": {
+    "pairs": [
+     {
+      "abs_log_error": 0.4968082367147705,
+      "metro": "JHB",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.9252880133969679,
+      "s1_pct": 10.929077533983598,
+      "s2_pct": 10.112544439681116
+     },
+     {
+      "abs_log_error": 0.46506829217876294,
+      "metro": "TSH",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.8963806096613424,
+      "s1_pct": 11.63848147197184,
+      "s2_pct": 10.432509117378356
+     },
+     {
+      "abs_log_error": 0.8610545508418154,
+      "metro": "CPT",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 1.3318861427217876,
+      "s1_pct": 3.1162990191166036,
+      "s2_pct": 4.1505554801389035
+     },
+     {
+      "abs_log_error": 1.6653061743007833,
+      "metro": "ETH",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 2.9767964737928763,
+      "s1_pct": 3.629254213472974,
+      "s2_pct": 10.803551145164288
+     },
+     {
+      "abs_log_error": 0.7532687366265105,
+      "metro": "EKU",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 1.1957938516279136,
+      "s1_pct": 11.100603039676004,
+      "s2_pct": 13.274032864206694
+     },
+     {
+      "abs_log_error": 0.8261697411239328,
+      "metro": "MAN",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 1.2862246252950087,
+      "s1_pct": 8.841522259052574,
+      "s2_pct": 11.372183654687376
+     },
+     {
+      "abs_log_error": 0.8155326919467666,
+      "metro": "NMA",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 1.2726154994919379,
+      "s1_pct": 5.028266257368807,
+      "s2_pct": 6.399049574699861
+     },
+     {
+      "abs_log_error": 0.9848579972590739,
+      "metro": "BUF",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.5630096780690834,
+      "ratio": 1.50741993401599,
+      "s1_pct": 8.206891101627942,
+      "s2_pct": 12.371231242892408
+     },
+     {
+      "abs_log_error": 0.28671634249653966,
+      "metro": "JHB",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.42266524200442657,
+      "s1_pct": 1.6241232769230156,
+      "s2_pct": 0.6864604578856888
+     },
+     {
+      "abs_log_error": 0.4128887409398522,
+      "metro": "CPT",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.3725637176286112,
+      "s1_pct": 0.7628202301688788,
+      "s2_pct": 0.2841991408340303
+     },
+     {
+      "abs_log_error": 0.17061750663579767,
+      "metro": "ETH",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.6677503157213963,
+      "s1_pct": 1.5094807668629453,
+      "s2_pct": 1.0079562586481072
+     },
+     {
+      "abs_log_error": 0.3827096848128051,
+      "metro": "EKU",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.8255142314294402,
+      "s1_pct": 1.6477892253944235,
+      "s2_pct": 1.3602734559591902
+     },
+     {
+      "abs_log_error": 0.6037232575798609,
+      "metro": "MAN",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.307837966141926,
+      "s1_pct": 2.738639701254563,
+      "s2_pct": 0.8430572756297365
+     },
+     {
+      "abs_log_error": 0.28679068086478954,
+      "metro": "NMA",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.5630096780690834,
+      "ratio": 0.4226338229278559,
+      "s1_pct": 1.6147641587536037,
+      "s2_pct": 0.6824539495409188
+     }
+    ],
+    "per_party": {
+     "AIC": 0.3572410355549409,
+     "EFF": 0.8585083026240521
+    },
+    "score": 0.6078746690894965
+   },
+   "score_S": {
+    "pairs": [
+     {
+      "abs_log_error": 0.27557571736182007,
+      "metro": "JHB",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.7024184699912984,
+      "ratio": 0.9252880133969679,
+      "s1_pct": 10.929077533983598,
+      "s2_pct": 10.112544439681116
+     },
+     {
+      "abs_log_error": 0.23923391407600658,
+      "metro": "TSH",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.7056583495899894,
+      "ratio": 0.8963806096613424,
+      "s1_pct": 11.63848147197184,
+      "s2_pct": 10.432509117378356
+     },
+     {
+      "abs_log_error": 0.7316381736718442,
+      "metro": "CPT",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.6407973083789229,
+      "ratio": 1.3318861427217876,
+      "s1_pct": 3.1162990191166036,
+      "s2_pct": 4.1505554801389035
+     },
+     {
+      "abs_log_error": 1.5247396076335946,
+      "metro": "ETH",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.6479823023785602,
+      "ratio": 2.9767964737928763,
+      "s1_pct": 3.629254213472974,
+      "s2_pct": 10.803551145164288
+     },
+     {
+      "abs_log_error": 0.5308967274482829,
+      "metro": "EKU",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.7032193248872881,
+      "ratio": 1.1957938516279136,
+      "s1_pct": 11.100603039676004,
+      "s2_pct": 13.274032864206694
+     },
+     {
+      "abs_log_error": 0.6204475554572748,
+      "metro": "MAN",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.6916077805613706,
+      "ratio": 1.2862246252950087,
+      "s1_pct": 8.841522259052574,
+      "s2_pct": 11.372183654687376
+     },
+     {
+      "abs_log_error": 0.651108192960351,
+      "metro": "NMA",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.6636277117435371,
+      "ratio": 1.2726154994919379,
+      "s1_pct": 5.028266257368807,
+      "s2_pct": 6.399049574699861
+     },
+     {
+      "abs_log_error": 0.7845860978651221,
+      "metro": "BUF",
+      "pair": "2016->2021",
+      "party": "EFF",
+      "predicted": 0.6878485738510377,
+      "ratio": 1.50741993401599,
+      "s1_pct": 8.206891101627942,
+      "s2_pct": 12.371231242892408
+     },
+     {
+      "abs_log_error": 0.3684474558693332,
+      "metro": "JHB",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.6109578255731563,
+      "ratio": 0.42266524200442657,
+      "s1_pct": 1.6241232769230156,
+      "s2_pct": 0.6864604578856888
+     },
+     {
+      "abs_log_error": 0.4393229031199336,
+      "metro": "CPT",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.5780908176825904,
+      "ratio": 0.3725637176286112,
+      "s1_pct": 0.7628202301688788,
+      "s2_pct": 0.2841991408340303
+     },
+     {
+      "abs_log_error": 0.09424283773980685,
+      "metro": "ETH",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.6076940129220653,
+      "ratio": 0.6677503157213963,
+      "s1_pct": 1.5094807668629453,
+      "s2_pct": 1.0079562586481072
+     },
+     {
+      "abs_log_error": 0.2999200224208338,
+      "metro": "EKU",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.6116048967980592,
+      "ratio": 0.8255142314294402,
+      "s1_pct": 1.6477892253944235,
+      "s2_pct": 1.3602734559591902
+     },
+     {
+      "abs_log_error": 0.7236867924185642,
+      "metro": "MAN",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.6347684920741263,
+      "ratio": 0.307837966141926,
+      "s1_pct": 2.738639701254563,
+      "s2_pct": 0.8430572756297365
+     },
+     {
+      "abs_log_error": 0.3680989100449115,
+      "metro": "NMA",
+      "pair": "2016->2021",
+      "party": "AIC",
+      "predicted": 0.6106995157877444,
+      "ratio": 0.4226338229278559,
+      "s1_pct": 1.6147641587536037,
+      "s2_pct": 0.6824539495409188
+     }
+    ],
+    "per_party": {
+     "AIC": 0.38228648693556383,
+     "EFF": 0.669778248309287
+    },
+    "score": 0.5260323676224254
+   },
+   "unlisted_parties_scorable_by_rule": [
+    "ACADEMIC_CONGRESS_UNION",
+    "AFRICAN_MANDATE_CONGRESS",
+    "AFRICAN_MANTUNGWA_COMMUNITY",
+    "AGANG",
+    "AGENCY_FOR_NEW_AGENDA",
+    "ALLIED_MOVEMENT_FOR_CHANGE",
+    "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT",
+    "DEMOCRATIC_INDEPENDENT_PARTY",
+    "DEMOCRATIC_LIBERAL_CONGRESS",
+    "FORUM_4_SERVICE_DELIVERY",
+    "INDEPENDENT_PEOPLE_S_PARTY",
+    "INTERNATIONAL_REVELATION_CONGRESS",
+    "MINORITIES_OF_SOUTH_AFRICA",
+    "PEOPLE_S_DEMOCRATIC_MOVEMENT",
+    "PEOPLE_S_REVOLUTIONARY_MOVEMENT",
+    "SIZWE_UMMAH_NATION",
+    "THE_GREENS",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE"
+   ],
+   "variants": {
+    "EFF_only": {
+     "P": 0.8585083026240521,
+     "S": 0.669778248309287
+    },
+    "P_first_from_live_files_only": 0.4445916703488851,
+    "P_named_parties_only": 0.7232061374927892,
+    "pairs_added_by_live_only_first": 7,
+    "rule_found_all": {
+     "P": 1.0527725381082456,
+     "S": 1.149998000984762,
+     "parties": [
+      "ACADEMIC_CONGRESS_UNION",
+      "AFRICAN_MANDATE_CONGRESS",
+      "AFRICAN_MANTUNGWA_COMMUNITY",
+      "AGANG",
+      "AGENCY_FOR_NEW_AGENDA",
+      "AIC",
+      "ALLIED_MOVEMENT_FOR_CHANGE",
+      "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+      "BOTSHABELO_UNEMPLOYED_MOVEMENT",
+      "DEMOCRATIC_INDEPENDENT_PARTY",
+      "DEMOCRATIC_LIBERAL_CONGRESS",
+      "EFF",
+      "FORUM_4_SERVICE_DELIVERY",
+      "INDEPENDENT_PEOPLE_S_PARTY",
+      "INTERNATIONAL_REVELATION_CONGRESS",
+      "MINORITIES_OF_SOUTH_AFRICA",
+      "PA",
+      "PEOPLE_S_DEMOCRATIC_MOVEMENT",
+      "PEOPLE_S_REVOLUTIONARY_MOVEMENT",
+      "SIZWE_UMMAH_NATION",
+      "THE_GREENS",
+      "UNITED_FRONT_OF_THE_EASTERN_CAPE"
+     ]
+    }
+   }
+  }
+ }
+}
