@@ -82,6 +82,20 @@ the page.
 
 ## Open, in the order I would take them
 
+**The out-of-sample round (`rounds/2026-10-23-out-of-sample/PLAN.md`).** Owner
+items 28 and 29 (2026-10-23). Step 0 is built and held unpublished on branch
+`step0-withdraw` (cb08153; reverted off `site-sweep-1` in b6469c3, whose 62
+ledger retirements must never be merged): the owner said on 2026-10-23
+"Nothing gets published except tooltips about what the pages used to say and
+the zille card". Which quarantined files may be deleted is OWNER-DECISIONS 32;
+`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/remove-originals.sh`
+is held until then.
+Next: step 4 (stop gap), step 5.1 (freeze by 31 October), then steps 1-3.
+Left by step 0: `reports/model-changes/build_report.py` reads the quarantined
+`history.json`, so it cannot run until a forward-chained one exists; the
+in-sample banner in `reports/model-changes/template.html` comes out then.
+
+
 **Independents cannot win anything, and the model is charged for it.**
 `IND` is on the certified ballot and on our roster, and has no pool membership,
 so no simulation can seat an independent. Independents took 11,904 votes in

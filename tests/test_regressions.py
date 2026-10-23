@@ -628,7 +628,6 @@ def test_no_top_level_function_is_defined_and_never_used():
 #
 #   pools.constrain_pool_turnout — a `:func:` docstring reference and a `# NOTE:`
 #                               comment, both inside pools.py itself.
-#   stats.dated_spans         — one docstring in tests/test_published_page.py.
 #
 # They are NOT in `ALLOWED` above, because ALLOWED excuses a function from the
 # text-regex guard and these are not excused — they are recorded, with the
@@ -636,7 +635,6 @@ def test_no_top_level_function_is_defined_and_never_used():
 # this worker's to change.
 PROSE_ONLY_REFERENCES = {
     "constrain_pool_turnout": "pools.py — its own docstring and a # NOTE",
-    "dated_spans": "stats.py — one docstring in tests/test_published_page.py",
 }
 
 
@@ -655,11 +653,11 @@ def test_no_public_function_is_kept_alive_only_by_prose():
     That is the failure CLAUDE.md calls the worst-record class: the scan was
     healthy, the detector worked, and it found nothing **in the wrong set**.
 
-    The four are recorded in `PROSE_ONLY_REFERENCES` rather than fixed, because
+    They are recorded in `PROSE_ONLY_REFERENCES` rather than fixed, because
     `src/` is not this test's to edit — and the record is checked BOTH ways, so
-    the list cannot rot in either direction: a fifth is a failure, and a fourth
-    that acquires a caller is also a failure, which is what makes the entry
-    disappear when the defect does.
+    the list cannot rot in either direction: a new prose-only function is a
+    failure, and a recorded one that acquires a caller is also a failure, which
+    is what makes the entry disappear when the defect does.
     """
     import collections
     refs: collections.Counter = collections.Counter()
@@ -866,11 +864,10 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         "independent_wards", "no_pr_list_wards",      # per-call council facts
         # Site sweep, 2026-10-23. `render_sheet.ZILLE_BOTH_VOTES` is the figure
         # a quoted claim states (Helen Zille, News24, 20 October 2026), not a
-        # belief of the model; `ZILLE_BOTH_STEP` is the precision of the search
-        # for the votes that claim's test needs. `build_validation.CODE_WIDTH`
+        # belief of the model. `build_validation.CODE_WIDTH`
         # is the width the backtest report cuts a party code to, read back to
         # name the party: structure, not belief.
-        "ZILLE_BOTH_VOTES", "ZILLE_BOTH_STEP", "CODE_WIDTH",
+        "ZILLE_BOTH_VOTES", "CODE_WIDTH",
     }
     RUN_CONTROL = {"draws", "seed", "jobs", "n_jobs", "verbose", "tolerance",
                    "report", "bins", "replicates", "boot", "max_draws",

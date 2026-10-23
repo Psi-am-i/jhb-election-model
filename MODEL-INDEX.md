@@ -51,12 +51,10 @@ arithmetic test can see.
 | `render_sheet` | `chance` | `anc_alone_share`, `anc_largest_share`, `anc_left_share`, `anc_side_share`, `da_alone_share`, `da_largest_share`, `grand_share`, `largest_tied_share`, `mk_largest_share`, `no_red_share`, `three_share` |
 | `render_sheet` | `chance` | `anc_given_none`, `asa_pa_given_none`, `holds_given_none`, `realistic_given_none` |
 | `render_sheet` | `chance` | `da_small_share`, `soweto_none_share`, `soweto_some_share` |
-| `render_sheet` | `da` | `seats`, `seats_open` |
-| `render_sheet` | `needed` | `needed`, `needed_open` |
 | `render_sheet` | `seats` | `hi`, `lo`, `seats` |
 | `render_sheet` | `tok` | `anc_alone_count`, `anc_best`, `anc_left_median`, `anc_median`, `da_alone_count`, `da_median`, `mk_median`, `mk_p95`, `no_red_median`, `three_median`, `three_median_when_wins`, `wall_count`, `wall_flips` |
 | `render_sheet` | `tok` | `soweto_roll_share`, `soweto_wards_n` |
-| `render_sheet` | `tok` | `zille_both_needed`, `zille_both_needed_open`, `zille_both_reach`, `zille_both_seats`, `zille_both_seats_open`, `zille_both_share`, `zille_both_total_list`, `zille_both_total_ward`, `zille_both_votes` |
+| `render_sheet` | `tok` | `zille_both_reach`, `zille_both_share`, `zille_both_total`, `zille_both_votes` |
 | `score` | `coverage` | `coverage`, `coverage_all` |
 | `theta_residual` | `anderson_darling` | `ad_candidate`, `ad_incumbent` |
 | `width_record` | `oneway` | `hi`, `lo` |
@@ -149,7 +147,7 @@ arithmetic test can see.
 | 0.75 | `plausibility.PIT90_MIN_FRACTION`, `pools.MERGER_RETENTION` |
 | 0.9 | `arms.CLUSTER_LEVEL`, `pools.MAX_POOL_CAPTURE`, `pools.SPLIT_SD_FLOOR`, `render_map.SAFE` |
 | 0.98 | `arms.R2_MIN_MEDIAN`, `montecarlo.POOL_CAPACITY_MARGIN` |
-| 1000 | `arms.BACKTEST_DRAWS`, `fetch_boundaries.PAGE_SIZE`, `render_sheet.ZILLE_BOTH_STEP` |
+| 1000 | `arms.BACKTEST_DRAWS`, `fetch_boundaries.PAGE_SIZE` |
 | 12 | `build_validation.CODE_WIDTH`, `montecarlo.DELIVERY_MAX_VALUES`, `pools.ALPHA_FALLBACK`, `stats.DECLARATION_MIN_CHARS` |
 | 1e-09 | `pools.SOLVE_TOL`, `reweight.CLOSENESS_TOLERANCE` |
 | 2.0 | `benchmarks.MAX_SIGMA`, `build_make.MIN_RECORD_EVENTS`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `reweight.ANALYSIS_SEAT_BAND`, `reweight.ANALYSIS_SHARE_BAND_POINTS`, `reweight.CLOSENESS_LARGE_WEIGHT`, `reweight.MIN_SHOWN_SEATS`, `width_record.FIXED_POINT_ITERS` |
@@ -178,8 +176,6 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 | `montecarlo.group_share_tripwire` | `sorted(pairs.items())), '': population, '': scanned, '': int(draws), '': fire_at, '': bool(record.get(''))}` | Count, per (party, pool), the draws in which the party's share of the |
 | `pools.panel_turnout_spread` | `sorted((split_bloc or {}).items(` | How far EACH pool's turnout moves between local elections, panel-wide. |
 | `rank_entries.rank_entries` | `sorted({r[''] for r in rows} - set(forecasts` | The leaderboard artefact for ``rows`` against ``result``. |
-| `render_sheet.zille_both` | `sorted(raw, key=lambda q: -(raw[q] - whole[q]))[:left - sum(whole.values())]` | This Model's test of "490 000 people need to vote DA on both ballots. |
-| `render_sheet.council_with` | `sorted(raw, key=lambda q: -(raw[q] - whole[q]))[:left - sum(whole.values())]` | -- |
 | `render_sheet.round_to_total` | `sorted(vals, key=lambda q: floors[q] - vals[q])[:max(rem, 0)]` | -- |
 | `reweight.large_parties` | `sorted(ours_seats, key=lambda c: (-int(ours_seats[c]), str(c` | The :data:`CLOSENESS_LARGE_PARTIES` parties with the most seats in the |
 | `scenarios.main` | `sorted(detail[d].items(), key=lambda kv: -kv[1]['']` | -- |
@@ -874,7 +870,6 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `render_sheet.REALISTIC_PARTNERS` | tuple[2] | NO | NO | yes | -- |
 | `render_sheet.DA_CORE_PARTNERS` | tuple[2] | NO | NO | yes | -- |
 | `render_sheet.ZILLE_BOTH_VOTES` | int 490000 | NO | NO | NO | -- |
-| `render_sheet.ZILLE_BOTH_STEP` | int 1000 | NO | NO | NO | -- |
 | `reweight.MIN_EFFECTIVE_DRAWS` | int 200 | NO | NO | yes | -- |
 | `reweight.MAX_FIGURE_SE_SEATS` | float 2.5 | NO | NO | yes | `build_play` |
 | `reweight.ANALYSIS_SEAT_BAND` | int 2 | NO | NO | yes | -- |
@@ -1348,10 +1343,10 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `pools.emit_pools` | model+measurement | Build the ``scenario["pools"]`` structure from measurement. | `tests/test_chain`, `tests/test_pool_bounds`, `tests/test_pool_shares_one_roll` |
 | `pools.gate` | model+measurement | Fit on one city, predict another, and see whether a tilt helped. | `build_site`, `edit_mode`, `model_index`, `montecarlo`, `tests/test_levers_are_live` |
 | `prediction.top_party` | model+measurement | The party with the largest score; a tie drawn by the seeded lot. | `benchmarks`, `diagnose`, `montecarlo`, `scenarios`, `score`, `tests/test_prediction_rule`, `tests/test_served_draws` |
-| `prediction.ward_calls` | model+measurement | ``{ward: party}``: each ward's party with the most (weighted) wins. | `build_make`, `og_pages`, `reader_seats`, `render_sheet`, `score_forecasts`, `tests/test_chain`, `tests/test_entries`, `tests/test_prediction_rule`, `tests/test_rank_entries`, `tests/test_score_forecasts`, `tests/test_your_forecast_page` |
+| `prediction.ward_calls` | model+measurement | ``{ward: party}``: each ward's party with the most (weighted) wins. | `build_make`, `og_pages`, `reader_seats`, `score_forecasts`, `tests/test_chain`, `tests/test_entries`, `tests/test_prediction_rule`, `tests/test_rank_entries`, `tests/test_score_forecasts`, `tests/test_your_forecast_page` |
 | `prediction.mean_votes` | model+measurement | ``{party: whole votes}``: each column's mean over the draws (module docstring). | `tests/test_prediction_rule` |
 | `prediction.rule_a` | model+measurement | The prediction object: rule A on the draws (module docstring). | `score_forecasts`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_your_forecast_page` |
-| `prediction.seats_of` | model+measurement | The council the seat law gives a prediction: the one composition of | `build_make`, `build_validation`, `reader_seats`, `render_sheet`, `tests/test_chain`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_score_forecasts`, `tests/test_your_forecast_page` |
+| `prediction.seats_of` | model+measurement | The council the seat law gives a prediction: the one composition of | `build_make`, `build_validation`, `reader_seats`, `tests/test_chain`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_score_forecasts`, `tests/test_your_forecast_page` |
 | `score.seat_matrix` | model+measurement | ``(parties, samples[n_draws, n_parties], actual[n_parties])``. | `compare_history`, `montecarlo`, `tests/test_calibration_report`, `tests/test_chain` |
 | `score.relevant_parties` | model+measurement | A candidate party universe covering several forecasters. | `benchmarks` |
 | `score.hold_universe` | model+measurement | The column set several forecasters are to be COMPARED on. | `compare_history`, `tests/test_panel_wiring`, `tests/test_scored_universe` |
@@ -1492,9 +1487,9 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `plausibility` | neither | NO | `src/arms`, `tests/test_arms`, `tests/test_plausibility` | Are the simulated elections ones the world could produce? Whole-election plausibility. |
 | `polling` | model+measurement | NO | `src/build_play`, `src/contested_area`, `src/freeze`, `src/montecarlo`, `src/reweight`, `tests/test_delivery_proof`, `tests/test_levers_are_live`, `tests/test_polling_register`, `tests/test_polling_sd`, `tests/test_polling_synthetic`, `tests/test_reweight`, `tests/test_served_draws` | Polls, filtered by date and converted from national numbers to metro ones. |
 | `pools` | model+measurement | NO | `src/arms`, `src/benchmarks`, `src/byelections`, `src/citywide_table`, `src/compare_history`, `src/contested_area`, `src/declares`, `src/group_share_record`, `src/inputs_preflight`, `src/levels`, `src/montecarlo`, `src/plausibility`, `src/polling`, `src/score_forecasts`, `src/stats`, `src/theta_residual`, `tests/run_all`, `tests/test_artefact_key_discriminates`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_covariate_fail_open`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_delivery_proof`, `tests/test_intermediates_are_current`, `tests/test_model_claims`, `tests/test_national_record_fit`, `tests/test_panel_wiring`, `tests/test_pool_bounds`, `tests/test_pool_shares_one_roll`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_gates`, `tests/test_regressions`, `tests/test_roll_2026`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_splinter_parent_weight`, `tests/test_stage_inputs`, `tests/test_temporal`, `tests/test_universal_draw`, `tests/test_unopposed`, `tests/test_ward_contest_rule`, `tests/test_ward_parts` | Voter pools: what a party talks to, measured rather than asserted. |
-| `prediction` | model+measurement | NO | `src/benchmarks`, `src/build_make`, `src/diagnose`, `src/montecarlo`, `src/reader_seats`, `src/render_sheet`, `src/scenarios`, `src/score`, `src/score_forecasts`, `tests/test_chain`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_score_forecasts`, `tests/test_served_draws`, `tests/test_your_forecast_page` | Our prediction: the forecast reduced to one complete result, by rule A. |
+| `prediction` | model+measurement | NO | `src/benchmarks`, `src/build_make`, `src/diagnose`, `src/montecarlo`, `src/reader_seats`, `src/scenarios`, `src/score`, `src/score_forecasts`, `tests/test_chain`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_score_forecasts`, `tests/test_served_draws`, `tests/test_your_forecast_page` | Our prediction: the forecast reduced to one complete result, by rule A. |
 | `prep_logos` | neither | yes | -- | Normalise party logos into consistent square badges. |
-| `publication` | neither | NO | `src/build_site`, `src/export_draws`, `src/render_map`, `tests/test_export_draws`, `tests/test_map_run`, `tests/test_provenance_dates`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_served_draws` | The publication ledger: what this page said, when, and which model said it. |
+| `publication` | neither | NO | `src/build_site`, `src/export_draws`, `src/render_map`, `tests/test_export_draws`, `tests/test_map_run`, `tests/test_provenance_dates`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_served_draws`, `tests/test_tooltip_says` | The publication ledger: what this page said, when, and which model said it. |
 | `rank_entries` | neither | NO | `tests/test_rank_entries` | Results night: rank every sealed forecast against the result (owner, 2026-10-03). |
 | `reader_seats` | neither | NO | `src/score_forecasts`, `tests/test_reader_seats` | A reader's prediction, turned into council seats by the statute alone. |
 | `render_home` | neither | NO | `src/build_site`, `tests/test_home_page` | Fill the home page's generated regions from the run that produced them. |
@@ -1512,7 +1507,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `stats` | neither | NO | `src/build_interactive`, `src/build_site`, `src/build_validation`, `src/edit_mode`, `src/og_pages`, `src/render_home`, `src/render_sheet`, `src/scenarios`, `src/site_text`, `src/tooltip_says`, `tests/test_home_page`, `tests/test_judgement_sheet`, `tests/test_number_scan`, `tests/test_og_pages`, `tests/test_provenance_dates`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_rank_entries`, `tests/test_reweight`, `tests/test_site_structure`, `tests/test_stat_freshness`, `tests/test_stat_sources`, `tests/test_your_forecast_page` | The stat registry: no model result is ever typed into prose by hand. |
 | `sweep` | neither | yes | -- | Run the model over every metro-year we can score, and hunt for anomalies. |
 | `theta_residual` | model+measurement | NO | `src/width_record`, `tests/test_levels_dispersion` | The CONDITIONAL dispersion of log θ — the quantity `SD_FLOOR` claims to be. |
-| `tooltip_says` | neither | NO | `src/build_site`, `src/render_sheet`, `tests/test_home_page`, `tests/test_stat_sources`, `tests/test_tooltip_says` | What every published figure is, in the reader's words: the second line of |
+| `tooltip_says` | neither | NO | `src/build_site`, `src/render_sheet`, `tests/test_home_page`, `tests/test_published_page`, `tests/test_stat_sources`, `tests/test_tooltip_says` | What every published figure is, in the reader's words: the second line of |
 | `turnout` | model+measurement | NO | `src/fold` | VD-level turnout series and the λ drop-off factors (plan §3.3). |
 | `validate_seats` | neither | yes | -- | Check :mod:`seats` against the IEC's published seat calculation. |
 | `width_budget` | neither | yes | -- | Attribute the forecast's realised width to the layers that produce it. |

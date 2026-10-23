@@ -15,65 +15,50 @@ Last updated: 2026-10-23.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
-### 27. Zille's 490,000 on both ballots: publish the test as a range?
+### 32. Which quarantined score files may be deleted?
 
-**Context.** On 20 October Helen Zille said: "490 000 people need to vote DA
-on both ballots. That would give us 136 of the council's 270 seats." (News24,
-interviewed by Ann Bernstein of CDE). Brief 1 item E5 adds a dated note to
-the claim card that tests it through the seat law, with every figure computed
-by the build from the published simulations.
-
-Run through the seat law, the figure depends on who wins the wards. The test
-can only hold the wards fixed, so it gives two ends:
-
-| Figure | Typical simulation's ward winners held (ANC wins 72 wards) | No party wins more wards than its vote entitles it to |
-|---|---|---|
-| DA seats from 490,000 on each ballot | 112 | 131 |
-| DA votes needed on each ballot for 136 | 620,000 | 508,000 |
-
-Common to both ends: This Model expects a median of 1,013,993 votes on each
-ballot, so 490,000 is 48%. The DA reaches 490,000 on both ballots in 0 of
-5,000 simulations. Your proportional check on 23 October (about 130 seats,
-about 511,000 needed) is the second column. A DA on 48% would take some of
-the ANC's wards; the test cannot say how many, and the card says so.
+**Context.** 5,515 backtest score files were copied to
+`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/`; 5,506 originals
+are still in the project. You said the scores may be useful for 2026. The
+evaluation and its review (`rounds/2026-10-23-out-of-sample/SCORES-FOR-2026-*.md`)
+agree: the 2026 forecast needs none of them, but these are the only record of
+what was tried and of the in-sample baseline the clean re-run is compared with:
+`history.json`/`.md`, the arm and sweep outputs, `width_budget.json`, and the
+seven reports' `backtest.json`. The past-target seat draws, ward-winner and
+coalition tables and `validation_2021.json` are not needed.
 
 **Options.**
-1. Publish the range as above.
-2. Publish only the no-surplus end (131 seats, 508,000 needed), and say that
-   the ANC's ward wins could lower it.
-3. Publish only the two figures that need no ward assumption: 48% of the
-   vote, and 0 of 5,000 simulations.
+1. Keep those named files (copy in quarantine, original removed from the
+   project); delete the rest from both.
+2. Keep everything in quarantine; remove all originals from the project.
+3. Keep everything where it is until the clean re-run exists.
 
-**Recommendation.** 1. Each end is a computed result under a stated
-assumption, and the card names the limit.
+**Recommendation.** Option 2: nothing is lost, and the project holds no in-sample
+score a reader or the build could pick up. The removal script would be cut to
+match.
 
-**Blocks.** The E5 note in the brief 1 release. Everything else in brief 1
-can go without it.
+**Blocks.** Nothing before the freeze.
 
-### 28. ActionSA's level: measure it instead of judging it?
+### 31. Before the freeze: test two inputs the backtest never checks?
 
-**Context.** ActionSA's expected Johannesburg share is your judgement call
-(JUDGEMENT-CALLS §SJ2), 17.6%. This Model already gives the national route
-no weight for ActionSA. The parts that are judgement are retaining 0.72 of
-its 2021 share and the blend with by-elections. The record holds two things
-that could be measured instead:
-
-* how much of its first local result a new party keeps at its second local
-  election, across the eight metros;
-* ActionSA's own by-election swings against its 2021 result in the same
-  wards. This Model already reads these: four contests imply 18.9%, capped
-  at 16.3%.
+**Context.** The data audit (`rounds/2026-10-23-out-of-sample/DATA-USE-AUDIT.md`)
+found two inputs of the 2026 forecast that no backtest scores:
+- **By-elections.** Their pull on each party's share, the turnout tilt and the
+  ward-level term act only in Johannesburg 2026.
+- **γ (how much of each party's ward pattern carries over).** The forecast reads
+  the 2014→2016 fit, kept so the 2019→2021 fit stays a validation set; every
+  backtest reads the most recent fit.
 
 **Options.**
-1. Commission the measurement as a pre-registered round. If it holds up,
-   it replaces the judgement at the next forecast run.
-2. Keep the judgement as it is.
+1. Before 31 October, run the forecast with by-elections off, and with γ from
+   2019→2021 and from both pooled, and send you an old-vs-new report for each;
+   you choose what is frozen.
+2. Freeze on the current inputs and state on the page that these two are not
+   tested.
 
-**Recommendation.** 1. It would turn a hand-set number into a measured one.
-It changes the forecast, so it goes through the normal round: pre-register,
-measure against the record, report old against new.
+**Recommendation.** Option 1, with option 2's statement whichever is frozen.
 
-**Blocks.** Nothing in brief 1.
+**Blocks.** The freeze, by 31 October (`rounds/2026-10-23-out-of-sample/DATA-PLAN.md` §7).
 
 ### 21. Outreach: the drafts, the X posts and the X ads
 

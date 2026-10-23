@@ -55,11 +55,7 @@ PAGE = ROOT / "interactive" / "pyboot" / "page.py"
 #: baselines' ward calls in ``benchmarks.council_from_shares``).
 DECLARED_IMPORTERS = {"score_forecasts", "build_make", "reader_seats", "page",
                       "scenarios", "diagnose", "score", "montecarlo",
-                      "benchmarks",
-                      # `prediction.seats_of`, the seat law's one composition,
-                      # for the Zille 490,000 test (render_sheet.zille_both,
-                      # site sweep 2026-10-23); no ward call is made there
-                      "render_sheet"}
+                      "benchmarks"}
 
 
 def _population() -> list[Path]:
@@ -139,8 +135,7 @@ EXEMPT = {
     ("render_sheet.py", "zille_both"): (
         "the median TOTAL votes on each ballot over the simulations, the "
         "expected total a quoted claim (Helen Zille, News24, 20 October 2026) "
-        "is set against: a forecast statistic, not a ward call. Its ward "
-        "winners are one simulation's own, read as they are."),
+        "is set against: a forecast statistic, not a ward call."),
     ("stats.py", "published_list_share_median"): (
         "a party's median list-vote SHARE over the published simulations for "
         "the methodology (`published:list_share_median:`): a forecast "
