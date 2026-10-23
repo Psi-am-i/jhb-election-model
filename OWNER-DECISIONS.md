@@ -15,6 +15,66 @@ Last updated: 2026-10-23.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
+### 27. Zille's 490,000 on both ballots: publish the test as a range?
+
+**Context.** On 20 October Helen Zille said: "490 000 people need to vote DA
+on both ballots. That would give us 136 of the council's 270 seats." (News24,
+interviewed by Ann Bernstein of CDE). Brief 1 item E5 adds a dated note to
+the claim card that tests it through the seat law, with every figure computed
+by the build from the published simulations.
+
+Run through the seat law, the figure depends on who wins the wards. The test
+can only hold the wards fixed, so it gives two ends:
+
+| Figure | Typical simulation's ward winners held (ANC wins 72 wards) | No party wins more wards than its vote entitles it to |
+|---|---|---|
+| DA seats from 490,000 on each ballot | 112 | 131 |
+| DA votes needed on each ballot for 136 | 620,000 | 508,000 |
+
+Common to both ends: This Model expects a median of 1,013,993 votes on each
+ballot, so 490,000 is 48%. The DA reaches 490,000 on both ballots in 0 of
+5,000 simulations. Your proportional check on 23 October (about 130 seats,
+about 511,000 needed) is the second column. A DA on 48% would take some of
+the ANC's wards; the test cannot say how many, and the card says so.
+
+**Options.**
+1. Publish the range as above.
+2. Publish only the no-surplus end (131 seats, 508,000 needed), and say that
+   the ANC's ward wins could lower it.
+3. Publish only the two figures that need no ward assumption: 48% of the
+   vote, and 0 of 5,000 simulations.
+
+**Recommendation.** 1. Each end is a computed result under a stated
+assumption, and the card names the limit.
+
+**Blocks.** The E5 note in the brief 1 release. Everything else in brief 1
+can go without it.
+
+### 28. ActionSA's level: measure it instead of judging it?
+
+**Context.** ActionSA's expected Johannesburg share is your judgement call
+(JUDGEMENT-CALLS §SJ2), 17.6%. This Model already gives the national route
+no weight for ActionSA. The parts that are judgement are retaining 0.72 of
+its 2021 share and the blend with by-elections. The record holds two things
+that could be measured instead:
+
+* how much of its first local result a new party keeps at its second local
+  election, across the eight metros;
+* ActionSA's own by-election swings against its 2021 result in the same
+  wards. This Model already reads these: four contests imply 18.9%, capped
+  at 16.3%.
+
+**Options.**
+1. Commission the measurement as a pre-registered round. If it holds up,
+   it replaces the judgement at the next forecast run.
+2. Keep the judgement as it is.
+
+**Recommendation.** 1. It would turn a hand-set number into a measured one.
+It changes the forecast, so it goes through the normal round: pre-register,
+measure against the record, report old against new.
+
+**Blocks.** Nothing in brief 1.
+
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
