@@ -1344,8 +1344,11 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
       value now shown ``since`` that value first appeared, as a live figure
       is dated, then ``Was`` the value it replaced ``on`` the date that value
       was first published: the earliest-of rule above when the replaced value
-      is the token's first run, else ``prior_since`` (owner, 2026-10-23:
-      audits/2026-10-23-site-sweep/BRIEF-tooltip-was-frozen.md). Then, for
+      is the token's first run AND the figure has ``on_site`` (the only
+      evidence it was on the site before it was ledgered), else
+      ``prior_since`` (owner, 2026-10-23:
+      audits/2026-10-23-site-sweep/BRIEF-tooltip-was-frozen.md, and its
+      review). Then, for
       one that ``tracks`` a live figure that has moved, the live figure and
       its date.
     * a DATE (format ``date_long``): the date alone.
@@ -1372,6 +1375,11 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
             return bare(display)
         word = unit[:-1] if unit in ("seats", "wards") and str(display) == "1" else unit
         return f"{display} {word}"
+
+    def was(display):
+        """The replaced value as a "Was" clause names it: with its unit word
+        ("Was 54 seats"), except "chance", which line 1 has already said."""
+        return bare(display) if unit == "chance" else shown(display)
 
     def when(d):
         return tooltip_date(d, edition)
@@ -1407,10 +1415,15 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         if c.get("prior") is not None:
             # corrected: the value now shown, since it first appeared, then the
             # value it replaced on the date that one was first published
+            # only `on_site` shows the first ledgered value was on the site
+            # before it was ledgered; without it the first ledger row is the
+            # earliest record of that value, and a dated passage's date may
+            # belong to the value the correction restored (pub0831_*)
             first_run = str(c["prior_since"]) == str(first.get(c["token"]))
-            prior_on = published_on if first_run and published_on else c["prior_since"]
+            prior_on = (published_on if first_run and entry.get("on_site") and published_on
+                        else c["prior_since"])
             line = (f"{shown(c['display'])} {since_part(c)}. "
-                    f"Was {bare(c['prior'])} on {when(prior_on)}.")
+                    f"Was {was(c['prior'])} on {when(prior_on)}.")
         elif published_on:
             line = f"{shown(c['display'])} on {when(published_on)}."
         else:
@@ -1421,7 +1434,7 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
     else:
         line = f"{shown(c['display'])} {since_part(c)}."
         if c.get("prior") is not None:
-            line += f" Was {bare(c['prior'])} on {when(c['prior_since'])}."
+            line += f" Was {was(c['prior'])} on {when(c['prior_since'])}."
     return f"{line}\nSOURCE: {who}. {said}"
 
 

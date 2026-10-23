@@ -324,12 +324,14 @@ def test_prior_values_dates_the_run_as_run_starts_did_while_it_was_current():
 def _frozen_editions():
     """Line 1 of two FIXED tooltips in two editions built over one constructed
     ledger, the build's ``first_ledgered`` and ``dated_on`` passed as `main`
-    computes them: ``rev0806_da_largest_fixed`` is first ledgered at 63% on 8
-    August in a passage dated 6 August, corrected to 61% in edition N and
-    republished unchanged in N+1; ``rev0806_da_minority_viable`` stays 63%."""
+    computes them: ``rev0806_da_largest_fixed``, typed on the site on 8 August
+    (``on_site``), is first ledgered at 63% that day in a passage dated 6
+    August, corrected to 61% in edition N and republished unchanged in N+1;
+    ``rev0806_da_minority_viable`` stays 63%."""
     import build_site as B
     import publication as P
     fixed, still = "rev0806_da_largest_fixed", "rev0806_da_minority_viable"
+    registry = {t: {"mode": "fixed", "on_site": "2026-08-08"} for t in (fixed, still)}
     ledger = [_row(fixed, "63%", "2026-08-08T00:00:00Z", "new"),
               _row(fixed, "63%", "2026-10-06T00:00:00Z"),
               _row(still, "63%", "2026-08-08T00:00:00Z", "new")]
@@ -349,7 +351,7 @@ def _frozen_editions():
             if r.token not in first or str(r.published_at) < first[r.token]:
                 first[r.token] = str(r.published_at)
         by = {c["token"]: c for c in changes}
-        out.append({t: B.tooltip_text(c, by_token=by, registry={}, edition=now[:10],
+        out.append({t: B.tooltip_text(c, by_token=by, registry=registry, edition=now[:10],
                                       publishing=True, facts=FACTS, first_ledgered=first,
                                       dated_on=dated_on).split("\n")[0]
                     for t, c in by.items()})
@@ -385,6 +387,43 @@ def test_a_frozen_figure_corrected_twice_dates_the_middle_value_by_its_run():
                           first_ledgered={c["token"]: "2026-08-08T00:00:00Z"},
                           dated_on={c["token"]: "2026-08-06"}).split("\n")[0]
     assert line == "59% chance since 25 October. Was 61% on 23 October.", line
+
+
+def test_a_first_ledgered_value_with_no_on_site_is_dated_by_its_ledger_row():
+    """Reviewer, 2026-10-23: only ``on_site`` shows a first ledgered value was
+    on the site before the ledger. Without it the first ledger row is the
+    earliest record of that value, and the dated passage's date can belong to
+    the value the correction restored: ``pub0831_anc_entitlement`` was ledgered
+    as 54 on 26 September and corrected to the 8 August page's 65 the next
+    day; 54 was never on the site on 8 August. The "Was" names its unit."""
+    import build_site as B
+    t = "pub0831_anc_entitlement"
+    c = {"token": t, "display": "65", "movement": "none", "previous": "65",
+         "previous_since": "2026-09-27T18:44:27Z", "previous_published_at": "2026-10-22T00:00:00Z",
+         "since": "2026-09-27T18:44:27Z", "prior": "54", "prior_since": "2026-09-26T13:58:54Z",
+         "mode": "fixed"}
+
+    def line(entry):
+        return B.tooltip_text(c, by_token={t: c}, registry={t: entry}, edition="2026-10-23",
+                              publishing=True, facts=FACTS,
+                              first_ledgered={t: "2026-09-26T13:58:54Z"},
+                              dated_on={t: "2026-08-08"}).split("\n")[0]
+    assert line({"mode": "fixed"}) == "65 seats since 27 September. Was 54 seats on 26 September.", \
+        line({"mode": "fixed"})
+    # the same ledger with on_site: the earliest-of rule, as for the review's figures
+    assert line({"mode": "fixed", "on_site": "2026-08-08"}) == (
+        "65 seats since 27 September. Was 54 seats on 8 August.")
+
+
+def test_a_was_clause_names_its_unit_word():
+    """"Was 54" said nothing about what 54 counts; seats and wards carry their
+    word (one is singular), a share its "%", a chance only its "%"."""
+    seats = _c("seats.ANC.median", "60", "material", "54")
+    assert _tip(seats).split("\n")[0] == "60 seats since 21 October. Was 54 seats on 6 October.", \
+        _tip(seats)
+    one = _c("seats.ANC.median", "2", "material", "1")
+    assert _tip(one).split("\n")[0].endswith(" Was 1 seat on 6 October."), _tip(one)
+    assert _tip(_c()).split("\n")[0].endswith(" Was 45% on 6 October.")
 
 
 # --- end to end: the build ------------------------------------------------------

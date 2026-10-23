@@ -951,15 +951,19 @@ def _was_population(pages: dict[str, str], registry: dict) -> tuple[set, dict, s
     current: ``mode="fixed"``, ``tracks`` or ``historical``. A ``date_long``
     figure prints the date alone and owes no "Was". A live figure's "Was" is
     dated to the run the prior value began (``prior_since``); a frozen one's
-    too, unless that run is the token's first, when it is the figure's first
-    publication: the earliest of its dated passage (the ``data-asof`` region
-    around it on any page), ``on_site`` and its first ledger row.
+    too, unless that run is the token's first and the figure has ``on_site``,
+    when it is the figure's first publication: the earliest of its dated
+    passage (the ``data-asof`` region around it on any page), ``on_site`` and
+    its first ledger row. The value is written as the tooltip names it: with
+    its unit word for seats and wards ("54 seats", "1 ward"), a "%" for a
+    share whose format leaves it to the prose, and bare otherwise.
 
     The ledger rows are those the build classifies against (the newest
     publication's predecessors when site/ is that publication), and the current
     value is the figure as rendered on the page, not the build's record of it."""
     import cityconfig
     import publication
+    import tooltip_says
     rows = publication.history(cityconfig.active().slug, root=ROOT / publication.LEDGER_ROOT)
     edition = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if _served_by_newest_publication():
@@ -995,11 +999,15 @@ def _was_population(pages: dict[str, str], registry: dict) -> tuple[set, dict, s
 
     def was_on(page, token):
         value, since = prior[token]
-        if (page, token) in frozen and str(since) == first.get(token):
-            known = [str(d)[:10] for d in (dated_on.get(token),
-                                           (registry.get(token) or {}).get("on_site"),
-                                           first.get(token)) if d]
+        on_site = (registry.get(token) or {}).get("on_site")
+        if (page, token) in frozen and on_site and str(since) == first.get(token):
+            known = [str(d)[:10] for d in (dated_on.get(token), on_site, first.get(token)) if d]
             since = min(known)
+        unit = tooltip_says.matches(token)[0][0].unit
+        if unit == "%":
+            value = f"{value}%"
+        elif unit in ("seats", "wards"):
+            value = f"{value} {unit[:-1] if str(value) == '1' else unit}"
         return value, build_site.tooltip_date(since, edition)
     expected = {(page, token): was_on(page, token)
                 for page, token in rendered - dated if token in prior}
@@ -1026,7 +1034,7 @@ def was_faults(pages: dict[str, str], rendered: set, expected: dict) -> tuple[se
 
     def owed(key, got):
         value, date = expected[key]
-        return got is not None and got[1] == date and got[0] in (value, value + "%")
+        return got is not None and got == (value, date)
     missing = {k for k in expected if not owed(k, said.get(k))}
     spurious = {k for k, got in said.items() if got is not None and k not in expected}
     return missing, spurious

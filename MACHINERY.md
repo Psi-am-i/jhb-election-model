@@ -1921,8 +1921,9 @@ A pinned figure (`mode = "fixed"`, `tracks` or `historical`) is `<v> on
 <date>.`, the date being the earliest of its dated passage's `data-asof`,
 `on_site` and its first ledger row; a corrected one is `<v> since <run
 start>. Was <prior> on <date>.`, that date being the earliest-of rule when the
-replaced value is the token's first run and the replaced run's start
-otherwise. Either is followed by the live counterpart when one it `tracks` has
+replaced value is the token's first run and the figure has `on_site`, and the
+replaced run's start otherwise. A "Was" value carries its unit word ("Was 54
+seats"), except "chance". Either is followed by the live counterpart when one it `tracks` has
 moved. A date figure is the date
 alone. Outside a publication "since <this edition>" reads "in this build".
 Line 2 is `SOURCE: <who>. <sentence>.` from `src/tooltip_says.py`: one table
