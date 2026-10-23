@@ -15,35 +15,6 @@ Last updated: 2026-10-23.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
-### 32. Which quarantined score files may be deleted?
-
-**Context.** 5,515 backtest score files were copied to
-`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/`; 5,506 originals
-are still in the project. You said the scores may be useful for 2026. The
-evaluation and its review (`rounds/2026-10-23-out-of-sample/SCORES-FOR-2026-*.md`)
-agree: the 2026 forecast needs none of them, but these are the only record of
-what was tried and of the in-sample baseline the clean re-run is compared with:
-`history.json`/`.md`, the arm and sweep outputs, `width_budget.json`, and the
-seven reports' `backtest.json`. The past-target seat draws, ward-winner and
-coalition tables and `validation_2021.json` are not needed.
-
-**Options.**
-1. Keep those named files (copy in quarantine, original removed from the
-   project); delete the rest from both.
-2. Keep everything in quarantine; remove all originals from the project.
-3. Keep everything where it is until the clean re-run exists.
-
-**Recommendation.** Option 2: nothing is lost, and the project holds no in-sample
-score a reader or the build could pick up. The removal script would be cut to
-match.
-
-**Blocks.** Nothing before the freeze.
-
-**Partly answered 2026-10-23:** "dont delete anything yet". Nothing is deleted
-and `remove-originals.sh` is not run; the 5,506 originals stay in the project
-and the 5,515 copies stay in quarantine. Which option applies, and when, stays
-open.
-
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in

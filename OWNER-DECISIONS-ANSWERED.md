@@ -5,6 +5,44 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 32. Which quarantined score files may be deleted? — answered 2026-10-23
+
+**Context.** 5,515 backtest score files were copied to
+`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/`; 5,506 originals
+are still in the project. You said the scores may be useful for 2026. The
+evaluation and its review (`rounds/2026-10-23-out-of-sample/SCORES-FOR-2026-*.md`)
+agree: the 2026 forecast needs none of them, but these are the only record of
+what was tried and of the in-sample baseline the clean re-run is compared with:
+`history.json`/`.md`, the arm and sweep outputs, `width_budget.json`, and the
+seven reports' `backtest.json`. The past-target seat draws, ward-winner and
+coalition tables and `validation_2021.json` are not needed.
+
+**Options.**
+1. Keep those named files (copy in quarantine, original removed from the
+   project); delete the rest from both.
+2. Keep everything in quarantine; remove all originals from the project.
+3. Keep everything where it is until the clean re-run exists.
+
+**Recommendation.** Option 2: nothing is lost, and the project holds no in-sample
+score a reader or the build could pick up. The removal script would be cut to
+match.
+
+**Blocks.** Nothing before the freeze.
+
+**Partly answered 2026-10-23:** "dont delete anything yet". Nothing is deleted
+and `remove-originals.sh` is not run; the 5,506 originals stay in the project
+and the 5,515 copies stay in quarantine. Which option applies, and when, stays
+open.
+
+**Your answer.** "ifthe files in quarrantine are copies - they can be deleted for now. We can revist legacy files and legacy or stael fiels and instructions throught the project folder as the next plan."
+
+**Recorded.** Every one of the 5,515 quarantine files was byte-compared with its
+original in the project: all identical, none missing, nothing else in the
+folder. The quarantine folder was moved to the Trash (recoverable until the
+Trash is emptied); the originals stay in the project and `remove-originals.sh`
+was not run. The review of legacy and stale files and instructions across the
+project folder is the next plan, in `TODO.md`.
+
 ### 31. Before the freeze: test two inputs the backtest never checks? — answered 2026-10-23
 
 **Context.** The data audit (`rounds/2026-10-23-out-of-sample/DATA-USE-AUDIT.md`)

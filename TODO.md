@@ -87,10 +87,17 @@ items 28 and 29 (2026-10-23). Step 0 is built and held unpublished on branch
 `step0-withdraw` (cb08153; reverted off `site-sweep-1` in b6469c3, whose 62
 ledger retirements must never be merged): the owner said on 2026-10-23
 "Nothing gets published except tooltips about what the pages used to say and
-the zille card". Which quarantined files may be deleted is OWNER-DECISIONS 32;
-`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/remove-originals.sh`
-is held until then.
+the zille card". The quarantine copies were moved to the Trash on 2026-10-23
+(owner: copies "can be deleted for now"); the in-sample originals are still in
+the project and are handled by the legacy-files plan below.
 Next: step 4 (stop gap), step 5.1 (freeze by 31 October), then steps 1-3.
+
+**Next plan: legacy and stale files and instructions across the project folder**
+(owner, 2026-10-23: "We can revist legacy files and legacy or stael fiels and
+instructions throught the project folder as the next plan"). Inventory every
+file and instruction that is legacy, stale or contradicted, including the
+in-sample score originals (`OWNER-DECISIONS-ANSWERED` 32 lists them), and
+propose for each: keep, relabel, move or delete. Owner decides the deletions.
 
 **Pre-freeze arms (OWNER-DECISIONS-ANSWERED 31, 2026-10-23).** Johannesburg
 2026, paired with the current forecast: by-election terms off; γ from the
