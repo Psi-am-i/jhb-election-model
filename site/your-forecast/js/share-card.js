@@ -115,7 +115,7 @@ export function verdictLine(phrase, whose = "this") {
 export const RANK_ORDER = "seats per party first, then wards called right, then vote per party";
 export const RANKING_SENTENCE = "All predictions are judged by " + RANK_ORDER + ".";
 // The analysis's paragraph under the verdict (owner, 2026-10-13).
-export const SEALED_LINE = "When you share it, your prediction is sealed and will be ranked against the result on election day. " + RANKING_SENTENCE;
+export const SEALED_LINE = "When you share it, your prediction is sealed and will be ranked against the result after the count. " + RANKING_SENTENCE;
 
 // The owner's badge for a badge's words (reweight.CLOSENESS_BANDS): the file
 // src/stamps/reader-<words>.svg, which the build serves at /stamps/. One file

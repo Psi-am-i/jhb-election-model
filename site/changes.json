@@ -10,13 +10,30 @@
         "laingsburg-2021.html"
       ],
       "previous": "59",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 59.0,
       "since": "2026-10-21T16:46:09Z",
       "source": "regime:cap:parties.ANC.median",
       "token": "anc_entitlement",
       "value": 59.0
+    },
+    {
+      "display": "21%",
+      "fmt": "pct0",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "published:list_share_median:ANC",
+      "token": "anc_list_share_median",
+      "value": 0.2126083972515016
     },
     {
       "display": "68",
@@ -28,7 +45,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "68",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.5858,
       "since": "2026-10-21T16:46:09Z",
@@ -45,7 +62,7 @@
         "forecast.html"
       ],
       "previous": "44",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 44,
       "since": "2026-08-08T17:29:45+00:00",
@@ -62,7 +79,7 @@
         "methodology.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 8,
       "since": "2026-09-26T13:58:54Z",
@@ -79,7 +96,7 @@
         "methodology.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 0.3354970656233327,
       "since": "2026-09-27T18:44:27Z",
@@ -96,7 +113,7 @@
         "methodology.html"
       ],
       "previous": "177",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 177,
       "since": "2026-10-10T20:02:20Z",
@@ -113,7 +130,7 @@
         "methodology.html"
       ],
       "previous": "149",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 149,
       "since": "2026-10-10T20:02:20Z",
@@ -130,7 +147,7 @@
         "methodology.html"
       ],
       "previous": "24",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 24,
       "since": "2026-09-26T13:58:54Z",
@@ -147,7 +164,7 @@
         "methodology.html"
       ],
       "previous": "742",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 742,
       "since": "2026-09-26T13:58:54Z",
@@ -164,7 +181,7 @@
         "methodology.html"
       ],
       "previous": "719",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 719,
       "since": "2026-09-27T18:44:27Z",
@@ -181,7 +198,7 @@
         "methodology.html"
       ],
       "previous": "7",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 7,
       "since": "2026-09-26T13:58:54Z",
@@ -198,7 +215,7 @@
         "forecast.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "since": "2026-10-21T16:46:09Z",
@@ -215,7 +232,7 @@
         "forecast.html"
       ],
       "previous": "0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "since": "2026-09-26T13:58:54Z",
@@ -227,15 +244,15 @@
       "display": "72",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": "73",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 73.0,
-      "since": null,
+      "previous": "72",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 72.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_detail_draws.csv, simulation 633",
       "token": "ballots.typical.anc_wards",
       "value": 72.0
@@ -244,15 +261,15 @@
       "display": "633",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": "3128",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 3128.0,
-      "since": null,
+      "previous": "633",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 633.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_detail_draws.csv",
       "token": "ballots.typical.draw",
       "value": 633.0
@@ -266,7 +283,7 @@
         "methodology.html"
       ],
       "previous": "129",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 129,
       "since": "2026-08-08T17:29:45+00:00",
@@ -283,7 +300,7 @@
         "methodology.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 135,
       "since": "2026-08-08T17:29:45+00:00",
@@ -306,7 +323,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "587,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 587000,
       "since": "2026-08-08T17:29:45+00:00",
@@ -320,16 +337,36 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
+        "corrections.html",
+        "sources.html",
         "forecast.html"
       ],
       "previous": "15",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 15,
       "since": "2026-08-08T17:29:45+00:00",
       "source": "external:IEC by-election records, CoJ 2021-2026",
       "token": "byelection_count",
       "value": 15
+    },
+    {
+      "display": "14",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "corrections.html",
+        "sources.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC by-election records, CoJ 2021-2026: the wards that held them",
+      "token": "byelection_wards",
+      "value": 14
     },
     {
       "display": "72",
@@ -342,7 +379,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "72",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 72.0,
       "since": "2026-10-21T16:46:09Z",
@@ -360,7 +397,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "93",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 93.0,
       "since": "2026-10-21T16:46:09Z",
@@ -378,7 +415,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -397,7 +434,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "since": "2026-10-21T16:46:09Z",
@@ -415,7 +452,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "116",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 116.0,
       "since": "2026-09-26T13:58:54Z",
@@ -433,7 +470,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "6.5%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.065,
       "since": "2026-10-21T16:46:09Z",
@@ -451,7 +488,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "67",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.0,
       "since": "2026-10-21T16:46:09Z",
@@ -470,7 +507,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "since": "2026-10-21T16:46:09Z",
@@ -489,7 +526,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "since": "2026-10-21T16:46:09Z",
@@ -507,7 +544,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "17",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 17.0,
       "since": "2026-10-21T16:46:09Z",
@@ -525,7 +562,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "55",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 55.0,
       "since": "2026-10-21T16:46:09Z",
@@ -543,7 +580,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "3.9%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0386,
       "since": "2026-10-21T16:46:09Z",
@@ -562,7 +599,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "89%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8872,
       "since": "2026-10-21T16:46:09Z",
@@ -580,7 +617,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "since": "2026-10-21T16:46:09Z",
@@ -598,7 +635,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "93%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.9274,
       "since": "2026-10-21T16:46:09Z",
@@ -616,7 +653,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "124",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 124.0,
       "since": "2026-10-21T16:46:09Z",
@@ -634,7 +671,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "since": "2026-10-21T16:46:09Z",
@@ -652,7 +689,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1754,
       "since": "2026-10-21T16:46:09Z",
@@ -670,7 +707,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "19%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.190381,
       "since": "2026-10-21T16:46:09Z",
@@ -688,7 +725,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "17%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.171743,
       "since": "2026-10-21T16:46:09Z",
@@ -706,7 +743,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "92%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.9212,
       "since": "2026-10-21T16:46:09Z",
@@ -724,7 +761,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "73%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.729659,
       "since": "2026-10-21T16:46:09Z",
@@ -742,7 +779,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.998,
       "since": "2026-10-21T16:46:09Z",
@@ -760,7 +797,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "27%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.270341,
       "since": "2026-10-21T16:46:09Z",
@@ -778,13 +815,31 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "80%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8,
       "since": "2026-10-21T16:46:09Z",
       "source": "seat_detail_draws.csv + ward_draws.csv, the 10 of 5,000 simulations where the DA wins at least one Soweto ward",
       "token": "claim.soweto.realistic_given_some",
       "value": 0.8
+    },
+    {
+      "display": "10",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/actionsa-soweto.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "ward_draws.csv, 5,000 simulations, the [areas.soweto] wards: the DA wins at least one",
+      "token": "claim.soweto.some_count",
+      "value": 10.0
     },
     {
       "display": "0.2%",
@@ -796,7 +851,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "0.2%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.002,
       "since": "2026-10-21T16:46:09Z",
@@ -814,13 +869,175 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "41",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 41.0,
       "since": "2026-10-21T16:46:09Z",
       "source": "content/joburg/areas.toml [areas.soweto], generated by src/areas.py",
       "token": "claim.soweto.wards_n",
       "value": 41.0
+    },
+    {
+      "display": "620,000",
+      "fmt": "comma",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, ward winners held",
+      "token": "claim.zille_both.needed",
+      "value": 620000.0
+    },
+    {
+      "display": "508,000",
+      "fmt": "comma",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, no ward held, so no excessive seats",
+      "token": "claim.zille_both.needed_open",
+      "value": 508000.0
+    },
+    {
+      "display": "0",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "site/draws ward_vote and list_vote: the DA at 490,000 or more on both ballots",
+      "token": "claim.zille_both.reach",
+      "value": 0.0
+    },
+    {
+      "display": "112",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, ward winners held",
+      "token": "claim.zille_both.seats",
+      "value": 112.0
+    },
+    {
+      "display": "131",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "site/draws, 5,000 simulations; seat law (prediction.seats_of) on simulation 633 rescaled to the median totals, no ward held, so no excessive seats",
+      "token": "claim.zille_both.seats_open",
+      "value": 131.0
+    },
+    {
+      "display": "48%",
+      "fmt": "pct0",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "490,000 on each ballot over the two median totals",
+      "token": "claim.zille_both.share",
+      "value": 0.483238
+    },
+    {
+      "display": "1,013,993",
+      "fmt": "comma",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "site/draws list_vote, median total per simulation",
+      "token": "claim.zille_both.total_list",
+      "value": 1013993.0
+    },
+    {
+      "display": "1,013,993",
+      "fmt": "comma",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "site/draws ward_vote, median total per simulation",
+      "token": "claim.zille_both.total_ward",
+      "value": 1013993.0
+    },
+    {
+      "display": "490,000",
+      "fmt": "comma",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "Helen Zille, News24, 20 October 2026: the claim's figure",
+      "token": "claim.zille_both.votes",
+      "value": 490000.0
     },
     {
       "display": "53",
@@ -832,7 +1049,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "53",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 53,
       "since": "2026-08-08T17:29:45+00:00",
@@ -850,7 +1067,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "47",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 47,
       "since": "2026-08-08T17:29:45+00:00",
@@ -868,7 +1085,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "50",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 50,
       "since": "2026-08-08T17:29:45+00:00",
@@ -886,7 +1103,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "62",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 62,
       "since": "2026-08-08T17:29:45+00:00",
@@ -904,7 +1121,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "97",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 97,
       "since": "2026-08-08T17:29:45+00:00",
@@ -922,7 +1139,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "41",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 41,
       "since": "2026-08-08T17:29:45+00:00",
@@ -940,7 +1157,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "524,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 524000,
       "since": "2026-08-08T17:29:45+00:00",
@@ -958,7 +1175,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "644,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 644000,
       "since": "2026-08-08T17:29:45+00:00",
@@ -976,7 +1193,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "75",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 75,
       "since": "2026-08-08T17:29:45+00:00",
@@ -985,22 +1202,23 @@
       "value": 75
     },
     {
-      "display": "190,000",
+      "display": "248,674",
       "fmt": "comma",
       "mode": "fixed",
-      "movement": "none",
+      "movement": "material",
       "pages": [
+        "corrections.html",
         "claims.html",
         "claims/da-outright-majority.html"
       ],
       "previous": "190,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 190000,
-      "since": "2026-08-08T17:29:45+00:00",
-      "source": "arithmetic: votes every other party must lose to freeze the poll",
+      "since": null,
+      "source": "arithmetic: 490,000 less half the DA's 482,653 votes over both ballots in the IEC 2021 CoJ Seat Calculation Detail",
       "token": "claim_others_shed",
-      "value": 190000
+      "value": 248673.5
     },
     {
       "display": "917,000",
@@ -1012,7 +1230,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "917,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 917000,
       "since": "2026-08-08T17:29:45+00:00",
@@ -1030,7 +1248,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "985,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 985000,
       "since": "2026-08-08T17:29:45+00:00",
@@ -1048,7 +1266,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "1,290,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 1290000,
       "since": "2026-08-08T17:29:45+00:00",
@@ -1066,7 +1284,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "110",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 110,
       "since": "2026-08-08T17:29:45+00:00",
@@ -1084,7 +1302,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "39",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 39,
       "since": "2026-08-08T17:29:45+00:00",
@@ -1102,7 +1320,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "57",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 57,
       "since": "2026-08-08T17:29:45+00:00",
@@ -1120,7 +1338,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "490,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 490000,
       "since": "2026-10-06T01:50:56Z",
@@ -1137,7 +1355,7 @@
         "forecast.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 9.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1154,7 +1372,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5628,
       "since": "2026-10-21T16:46:09Z",
@@ -1171,7 +1389,7 @@
         "forecast.html"
       ],
       "previous": "145",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 145.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1188,7 +1406,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0621,
       "since": "2026-10-21T16:46:09Z",
@@ -1205,7 +1423,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1222,7 +1440,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1239,7 +1457,7 @@
         "forecast.html"
       ],
       "previous": "1.3%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.013149,
       "since": "2026-10-21T16:46:09Z",
@@ -1256,7 +1474,7 @@
         "forecast.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1273,7 +1491,7 @@
         "forecast.html"
       ],
       "previous": "37%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3688,
       "since": "2026-10-21T16:46:09Z",
@@ -1290,7 +1508,7 @@
         "forecast.html"
       ],
       "previous": "142",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 142.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1307,7 +1525,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0423,
       "since": "2026-10-21T16:46:09Z",
@@ -1324,7 +1542,7 @@
         "forecast.html"
       ],
       "previous": "0.5%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.005423,
       "since": "2026-10-21T16:46:09Z",
@@ -1341,7 +1559,7 @@
         "forecast.html"
       ],
       "previous": "1.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.015727,
       "since": "2026-10-21T16:46:09Z",
@@ -1358,7 +1576,7 @@
         "forecast.html"
       ],
       "previous": "2.0%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.020065,
       "since": "2026-10-21T16:46:09Z",
@@ -1375,7 +1593,7 @@
         "forecast.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 14.0,
       "since": "2026-09-30T04:21:21Z",
@@ -1392,7 +1610,7 @@
         "forecast.html"
       ],
       "previous": "86%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8556,
       "since": "2026-10-21T16:46:09Z",
@@ -1409,7 +1627,7 @@
         "forecast.html"
       ],
       "previous": "150",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 150.0,
       "since": "2026-09-30T04:21:21Z",
@@ -1426,7 +1644,7 @@
         "forecast.html"
       ],
       "previous": "9%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 0.0933,
       "since": "2026-09-30T04:21:21Z",
@@ -1443,7 +1661,7 @@
         "forecast.html"
       ],
       "previous": "0.7%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.007013,
       "since": "2026-10-21T16:46:09Z",
@@ -1460,7 +1678,7 @@
         "forecast.html"
       ],
       "previous": "2.5%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.024544,
       "since": "2026-10-21T16:46:09Z",
@@ -1477,7 +1695,7 @@
         "forecast.html"
       ],
       "previous": "32%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.320944,
       "since": "2026-10-21T16:46:09Z",
@@ -1494,7 +1712,7 @@
         "forecast.html"
       ],
       "previous": "43%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.431043,
       "since": "2026-10-21T16:46:09Z",
@@ -1511,7 +1729,7 @@
         "forecast.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1528,7 +1746,7 @@
         "forecast.html"
       ],
       "previous": "27%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.2746,
       "since": "2026-10-21T16:46:09Z",
@@ -1545,7 +1763,7 @@
         "forecast.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1562,7 +1780,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0355,
       "since": "2026-10-21T16:46:09Z",
@@ -1579,7 +1797,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "since": "2026-09-26T13:58:54Z",
@@ -1596,7 +1814,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1613,7 +1831,7 @@
         "forecast.html"
       ],
       "previous": "2.7%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.026948,
       "since": "2026-10-21T16:46:09Z",
@@ -1630,7 +1848,7 @@
         "forecast.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1647,7 +1865,7 @@
         "forecast.html"
       ],
       "previous": "6.5%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.065,
       "since": "2026-10-21T16:46:09Z",
@@ -1664,7 +1882,7 @@
         "forecast.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1681,7 +1899,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0355,
       "since": "2026-09-26T13:58:54Z",
@@ -1698,7 +1916,7 @@
         "forecast.html"
       ],
       "previous": "1.5%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.015385,
       "since": "2026-10-21T16:46:09Z",
@@ -1715,7 +1933,7 @@
         "forecast.html"
       ],
       "previous": "8.9%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.089231,
       "since": "2026-10-21T16:46:09Z",
@@ -1732,7 +1950,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1749,7 +1967,7 @@
         "forecast.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1766,7 +1984,7 @@
         "forecast.html"
       ],
       "previous": "42%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.4156,
       "since": "2026-10-21T16:46:09Z",
@@ -1783,7 +2001,7 @@
         "forecast.html"
       ],
       "previous": "142",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 142.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1800,7 +2018,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0423,
       "since": "2026-10-21T16:46:09Z",
@@ -1817,7 +2035,7 @@
         "forecast.html"
       ],
       "previous": "0.5%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.004812,
       "since": "2026-10-21T16:46:09Z",
@@ -1834,7 +2052,7 @@
         "forecast.html"
       ],
       "previous": "5.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.050529,
       "since": "2026-10-21T16:46:09Z",
@@ -1851,7 +2069,7 @@
         "forecast.html"
       ],
       "previous": "5.9%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.059192,
       "since": "2026-10-21T16:46:09Z",
@@ -1868,7 +2086,7 @@
         "forecast.html"
       ],
       "previous": "16%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1564,
       "since": "2026-10-21T16:46:09Z",
@@ -1885,7 +2103,7 @@
         "forecast.html"
       ],
       "previous": "10",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 10.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1902,7 +2120,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "since": "2026-10-21T16:46:09Z",
@@ -1919,7 +2137,7 @@
         "forecast.html"
       ],
       "previous": "146",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 146.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1936,7 +2154,7 @@
         "forecast.html"
       ],
       "previous": "7%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0685,
       "since": "2026-09-26T13:58:54Z",
@@ -1953,7 +2171,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -1970,7 +2188,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "since": "2026-09-26T13:58:54Z",
@@ -1987,7 +2205,7 @@
         "forecast.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 8.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2004,7 +2222,7 @@
         "forecast.html"
       ],
       "previous": "46%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.4628,
       "since": "2026-10-21T16:46:09Z",
@@ -2021,7 +2239,7 @@
         "forecast.html"
       ],
       "previous": "144",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 144.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2038,7 +2256,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0556,
       "since": "2026-10-21T16:46:09Z",
@@ -2055,7 +2273,7 @@
         "forecast.html"
       ],
       "previous": "0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.001296,
       "since": "2026-10-21T16:46:09Z",
@@ -2072,7 +2290,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2089,7 +2307,7 @@
         "forecast.html"
       ],
       "previous": "2.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.025929,
       "since": "2026-10-21T16:46:09Z",
@@ -2106,7 +2324,7 @@
         "forecast.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 9.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2123,7 +2341,7 @@
         "forecast.html"
       ],
       "previous": "33%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3286,
       "since": "2026-10-21T16:46:09Z",
@@ -2140,7 +2358,7 @@
         "forecast.html"
       ],
       "previous": "145",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 145.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2157,7 +2375,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0621,
       "since": "2026-10-21T16:46:09Z",
@@ -2174,7 +2392,7 @@
         "forecast.html"
       ],
       "previous": "4.0%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.039562,
       "since": "2026-10-21T16:46:09Z",
@@ -2191,7 +2409,7 @@
         "forecast.html"
       ],
       "previous": "0.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.006086,
       "since": "2026-10-21T16:46:09Z",
@@ -2208,7 +2426,7 @@
         "forecast.html"
       ],
       "previous": "3.7%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.036519,
       "since": "2026-10-21T16:46:09Z",
@@ -2225,7 +2443,7 @@
         "forecast.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2242,7 +2460,7 @@
         "forecast.html"
       ],
       "previous": "74%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.7406,
       "since": "2026-10-21T16:46:09Z",
@@ -2259,7 +2477,7 @@
         "forecast.html"
       ],
       "previous": "150",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 150.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2276,7 +2494,7 @@
         "forecast.html"
       ],
       "previous": "9%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0933,
       "since": "2026-10-21T16:46:09Z",
@@ -2293,7 +2511,7 @@
         "forecast.html"
       ],
       "previous": "6.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.061032,
       "since": "2026-10-21T16:46:09Z",
@@ -2310,7 +2528,7 @@
         "forecast.html"
       ],
       "previous": "0.8%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.008102,
       "since": "2026-10-21T16:46:09Z",
@@ -2327,7 +2545,7 @@
         "forecast.html"
       ],
       "previous": "24%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.236835,
       "since": "2026-10-21T16:46:09Z",
@@ -2344,7 +2562,7 @@
         "forecast.html"
       ],
       "previous": "44%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.443694,
       "since": "2026-10-21T16:46:09Z",
@@ -2361,7 +2579,7 @@
         "forecast.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2378,7 +2596,7 @@
         "forecast.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1754,
       "since": "2026-10-21T16:46:09Z",
@@ -2395,7 +2613,7 @@
         "forecast.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2412,7 +2630,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0355,
       "since": "2026-10-21T16:46:09Z",
@@ -2429,7 +2647,7 @@
         "forecast.html"
       ],
       "previous": "0.2%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.002281,
       "since": "2026-10-21T16:46:09Z",
@@ -2446,7 +2664,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "since": "2026-09-26T13:58:54Z",
@@ -2463,7 +2681,7 @@
         "forecast.html"
       ],
       "previous": "6.8%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.068415,
       "since": "2026-10-21T16:46:09Z",
@@ -2480,7 +2698,7 @@
         "forecast.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 8.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2497,7 +2715,7 @@
         "forecast.html"
       ],
       "previous": "10%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1042,
       "since": "2026-10-21T16:46:09Z",
@@ -2514,7 +2732,7 @@
         "forecast.html"
       ],
       "previous": "144",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 144.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2531,7 +2749,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0556,
       "since": "2026-10-21T16:46:09Z",
@@ -2548,7 +2766,7 @@
         "forecast.html"
       ],
       "previous": "1.0%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.009597,
       "since": "2026-10-21T16:46:09Z",
@@ -2565,7 +2783,7 @@
         "forecast.html"
       ],
       "previous": "12%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.12476,
       "since": "2026-10-21T16:46:09Z",
@@ -2582,7 +2800,7 @@
         "forecast.html"
       ],
       "previous": "0.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.005758,
       "since": "2026-10-21T16:46:09Z",
@@ -2599,7 +2817,7 @@
         "forecast.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 9.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2616,7 +2834,7 @@
         "forecast.html"
       ],
       "previous": "35%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3496,
       "since": "2026-10-21T16:46:09Z",
@@ -2633,7 +2851,7 @@
         "forecast.html"
       ],
       "previous": "145",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 145.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2650,7 +2868,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0621,
       "since": "2026-10-21T16:46:09Z",
@@ -2667,7 +2885,7 @@
         "forecast.html"
       ],
       "previous": "0.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.005721,
       "since": "2026-10-21T16:46:09Z",
@@ -2684,7 +2902,7 @@
         "forecast.html"
       ],
       "previous": "13%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.129291,
       "since": "2026-10-21T16:46:09Z",
@@ -2701,7 +2919,7 @@
         "forecast.html"
       ],
       "previous": "5.7%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.056636,
       "since": "2026-10-21T16:46:09Z",
@@ -2718,7 +2936,7 @@
         "forecast.html"
       ],
       "previous": "30%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.298055,
       "since": "2026-10-21T16:46:09Z",
@@ -2742,7 +2960,7 @@
         "your-forecast/index.html"
       ],
       "previous": "270",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 270,
       "since": "2026-08-08T17:29:45+00:00",
@@ -2754,13 +2972,14 @@
       "display": "21 October 2026",
       "fmt": "date_long",
       "mode": "free",
-      "movement": "nominal",
+      "movement": "none",
       "pages": [
         "review.html",
         "forecast.html",
         "claims.html",
         "nobody-will-win.html",
         "nobody-catches-the-votes.html",
+        "if-the-law-were-german.html",
         "laingsburg-2021.html",
         "claims/da-outright-majority.html",
         "claims/anc-absolute-authority.html",
@@ -2769,10 +2988,10 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "21 October 2026",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": "2026-10-21T10:08:34Z",
-      "since": null,
+      "previous_value": "2026-10-21T16:53:55Z",
+      "since": "2026-10-21T16:46:09Z",
       "source": "published:run_date",
       "token": "generated_date",
       "value": "2026-10-21T16:53:55Z"
@@ -2786,7 +3005,7 @@
         "forecast.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2803,7 +3022,7 @@
         "forecast.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "since": "2026-10-21T16:46:09Z",
@@ -2820,13 +3039,30 @@
         "forecast.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1754,
       "since": "2026-10-21T16:46:09Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "govern.da_best_without",
       "value": 0.1754
+    },
+    {
+      "display": "93%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "forecast.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "seat_detail_draws.csv, every party outside the ANC, the EFF and MK",
+      "token": "govern.da_with_small_without",
+      "value": 0.9274
     },
     {
       "display": "6.22%",
@@ -2838,7 +3074,7 @@
         "methodology.html"
       ],
       "previous": "6.22%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.0622,
       "since": "2026-10-06T01:50:56Z",
@@ -2852,10 +3088,11 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
+        "corrections.html",
         "methodology.html"
       ],
       "previous": "18.12%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.1812,
       "since": "2026-10-06T01:50:56Z",
@@ -2872,7 +3109,7 @@
         "nobody-catches-the-votes.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.18,
       "since": "2026-10-06T01:50:56Z",
@@ -2889,7 +3126,7 @@
         "nobody-catches-the-votes.html"
       ],
       "previous": "52,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 52000,
       "since": "2026-10-06T01:50:56Z",
@@ -2906,7 +3143,7 @@
         "index.html"
       ],
       "previous": "130",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 130,
       "since": "2026-10-10T20:02:20Z",
@@ -2923,7 +3160,7 @@
         "index.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 135,
       "since": "2026-10-10T20:02:20Z",
@@ -2940,7 +3177,7 @@
         "index.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 135,
       "since": "2026-10-10T20:02:20Z",
@@ -2957,7 +3194,7 @@
         "index.html"
       ],
       "previous": "126",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 126,
       "since": "2026-10-10T20:02:20Z",
@@ -2974,7 +3211,7 @@
         "index.html"
       ],
       "previous": "134",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 134,
       "since": "2026-10-10T20:02:20Z",
@@ -2991,7 +3228,7 @@
         "index.html"
       ],
       "previous": "127",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 127,
       "since": "2026-10-10T20:02:20Z",
@@ -3000,22 +3237,23 @@
       "value": 127
     },
     {
-      "display": "23%",
+      "display": "24%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "none",
+      "movement": "material",
       "pages": [
+        "corrections.html",
         "methodology.html",
         "laingsburg-2021.html"
       ],
       "previous": "23%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.2306,
-      "since": "2026-10-06T01:50:56Z",
-      "source": "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's share, 23.06% (MODEL-LOG 1.17)",
+      "since": null,
+      "source": "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's 1,530 of 6,453 valid votes (MODEL-LOG 1.17)",
       "token": "hist_laingsburg_da_share",
-      "value": 0.2306
+      "value": 0.2371
     },
     {
       "display": "3",
@@ -3026,7 +3264,7 @@
         "methodology.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 3,
       "since": "2026-10-06T01:50:56Z",
@@ -3043,13 +3281,49 @@
         "methodology.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 4,
       "since": "2026-10-06T01:50:56Z",
       "source": "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021 (MODEL-LOG 1.17): the municipality's wards",
       "token": "hist_laingsburg_wards",
       "value": 4
+    },
+    {
+      "display": "121",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "corrections.html",
+        "minority-administrations.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:Business Day, 22 November 2021: votes for Mpho Moerane, Johannesburg's vote for mayor",
+      "token": "hist_mayor_2021_against",
+      "value": 121
+    },
+    {
+      "display": "144",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "corrections.html",
+        "minority-administrations.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:Business Day, 22 November 2021: votes for Mpho Phalatse, Johannesburg's vote for mayor",
+      "token": "hist_mayor_2021_for",
+      "value": 144
     },
     {
       "display": "90%",
@@ -3060,7 +3334,7 @@
         "index.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.9,
       "since": "2026-09-26T13:58:54Z",
@@ -3077,7 +3351,7 @@
         "index.html"
       ],
       "previous": "21 October 2026",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": "2026-10-21T10:03:00Z",
       "since": "2026-10-21T16:46:09Z",
@@ -3094,7 +3368,7 @@
         "index.html"
       ],
       "previous": "5,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 5000.0,
       "since": "2026-09-26T13:58:54Z",
@@ -3111,7 +3385,7 @@
         "index.html"
       ],
       "previous": "22%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.215472,
       "since": "2026-10-06T01:50:56Z",
@@ -3128,7 +3402,7 @@
         "index.html"
       ],
       "previous": "27%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.27037,
       "since": "2026-10-21T16:46:09Z",
@@ -3145,7 +3419,7 @@
         "index.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "since": "2026-10-21T16:46:09Z",
@@ -3162,7 +3436,7 @@
         "index.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "since": "2026-10-21T16:46:09Z",
@@ -3179,7 +3453,7 @@
         "index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 2.0,
       "since": "2026-09-26T13:58:54Z",
@@ -3196,7 +3470,7 @@
         "index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 6.0,
       "since": "2026-09-26T13:58:54Z",
@@ -3213,7 +3487,7 @@
         "index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 1.0,
       "since": "2026-09-26T13:58:54Z",
@@ -3230,7 +3504,7 @@
         "index.html"
       ],
       "previous": "72",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 72.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3247,7 +3521,7 @@
         "index.html"
       ],
       "previous": "81",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 81.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3264,7 +3538,7 @@
         "index.html"
       ],
       "previous": "48",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 48.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3281,7 +3555,7 @@
         "index.html"
       ],
       "previous": "40",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 40.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3298,7 +3572,7 @@
         "index.html"
       ],
       "previous": "51",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 51.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3315,7 +3589,7 @@
         "index.html"
       ],
       "previous": "31",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 31.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3327,15 +3601,15 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "2",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 2.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.bosa",
       "value": 2.0
@@ -3344,15 +3618,15 @@
       "display": "9",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "9",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 9.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.bosa_hi",
       "value": 9.0
@@ -3361,15 +3635,15 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.bosa_lo",
       "value": 0.0
@@ -3383,7 +3657,7 @@
         "index.html"
       ],
       "previous": "67",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3400,7 +3674,7 @@
         "index.html"
       ],
       "previous": "82",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 82.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3417,7 +3691,7 @@
         "index.html"
       ],
       "previous": "52",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 52.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3434,7 +3708,7 @@
         "index.html"
       ],
       "previous": "25",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 25.0,
       "since": "2026-09-30T04:21:21Z",
@@ -3451,7 +3725,7 @@
         "index.html"
       ],
       "previous": "43",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 43.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3468,7 +3742,7 @@
         "index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3485,7 +3759,7 @@
         "index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3502,7 +3776,7 @@
         "index.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 11.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3519,7 +3793,7 @@
         "index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3536,7 +3810,7 @@
         "index.html"
       ],
       "previous": "17",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 17.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3553,7 +3827,7 @@
         "index.html"
       ],
       "previous": "55",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 55.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3570,7 +3844,7 @@
         "index.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3582,15 +3856,15 @@
       "display": "12",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": "16",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 16.0,
-      "since": null,
+      "previous": "12",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 12.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, council minus the named parties in each simulation",
       "token": "home.seats.others",
       "value": 12.0
@@ -3599,15 +3873,15 @@
       "display": "25",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": "35",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 35.0,
-      "since": null,
+      "previous": "25",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 25.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, council minus the named parties in each simulation",
       "token": "home.seats.others_hi",
       "value": 25.0
@@ -3616,15 +3890,15 @@
       "display": "4",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": "7",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 7.0,
-      "since": null,
+      "previous": "4",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 4.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, council minus the named parties in each simulation",
       "token": "home.seats.others_lo",
       "value": 4.0
@@ -3638,7 +3912,7 @@
         "index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3655,7 +3929,7 @@
         "index.html"
       ],
       "previous": "33",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 33.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3672,7 +3946,7 @@
         "index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3689,7 +3963,7 @@
         "index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3706,7 +3980,7 @@
         "index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3723,7 +3997,7 @@
         "index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3735,15 +4009,15 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "2",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 2.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.vfplus",
       "value": 2.0
@@ -3752,15 +4026,15 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "6",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 6.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.vfplus_hi",
       "value": 6.0
@@ -3769,15 +4043,15 @@
       "display": "1",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "1",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 1.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "forecast_summary.json, 5,000 simulations",
       "token": "home.seats.vfplus_lo",
       "value": 1.0
@@ -3786,15 +4060,15 @@
       "display": "77",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "77",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 77.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "ward_winner_probs.csv, the likeliest winner of each ward",
       "token": "home.wards.anc",
       "value": 77.0
@@ -3803,15 +4077,15 @@
       "display": "45",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "45",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 45.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "ward_winner_probs.csv, the likeliest winner of each ward",
       "token": "home.wards.da",
       "value": 45.0
@@ -3820,15 +4094,15 @@
       "display": "32",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "32",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 32.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "ward_winner_probs.csv, wards the map draws as contested: the winner wins in under render_map.SAFE of simulations (render_map.ward_call)",
       "token": "home.wards_close.anc",
       "value": 32.0
@@ -3837,15 +4111,15 @@
       "display": "8",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "8",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 8.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "ward_winner_probs.csv, wards the map draws as contested: the winner wins in under render_map.SAFE of simulations (render_map.ward_call)",
       "token": "home.wards_close.da",
       "value": 8.0
@@ -3860,13 +4134,30 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-09T01:26:47Z",
       "previous_value": 9,
       "since": "2026-10-09T01:26:47Z",
       "source": "external:News24, 13 December 2021 (https://www.news24.com/southafrica/news/joburg-mayor-phalatse-appoints-multi-party-coalition-executive-20211213): the DA, ActionSA, IFP, FF Plus, PA, ACDP, Cope, UIM and ATM in Mpho Phalatse's coalition",
       "token": "jhb_2021_coalition_parties",
       "value": 9
+    },
+    {
+      "display": "17.6%",
+      "fmt": "pct1",
+      "mode": "free",
+      "movement": "new",
+      "pages": [
+        "forecast.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "judgement:joburg-2026:party.ASA.support",
+      "token": "judgement_asa_support",
+      "value": 0.176
     },
     {
       "display": "136",
@@ -3877,6 +4168,7 @@
         "methodology.html",
         "forecast.html",
         "claims.html",
+        "minority-administrations.html",
         "claims/da-outright-majority.html",
         "claims/anc-absolute-authority.html",
         "claims/da-coalition-red-lines.html",
@@ -3885,7 +4177,7 @@
         "nobody-will-win.html"
       ],
       "previous": "136",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 136,
       "since": "2026-08-08T17:29:45+00:00",
@@ -3902,7 +4194,7 @@
         "minority-administrations.html"
       ],
       "previous": "0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.001,
       "since": "2026-10-21T16:46:09Z",
@@ -3919,7 +4211,7 @@
         "minority-administrations.html"
       ],
       "previous": "59%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5854,
       "since": "2026-10-21T16:46:09Z",
@@ -3936,7 +4228,7 @@
         "minority-administrations.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "since": "2026-10-21T16:46:09Z",
@@ -3953,7 +4245,7 @@
         "minority-administrations.html"
       ],
       "previous": "38%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3788,
       "since": "2026-10-21T16:46:09Z",
@@ -3978,10 +4270,11 @@
         "claims/da-outright-majority.html",
         "claims/anc-absolute-authority.html",
         "claims/mk-biggest-party.html",
+        "claims/actionsa-soweto.html",
         "your-forecast/index.html"
       ],
       "previous": "5,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 5000,
       "since": "2026-09-26T13:58:54Z",
@@ -3998,7 +4291,7 @@
         "methodology.html"
       ],
       "previous": "872",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 872,
       "since": "2026-09-26T13:58:54Z",
@@ -4017,7 +4310,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "since": "2026-10-21T16:46:09Z",
@@ -4034,7 +4327,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "since": "2026-10-21T16:46:09Z",
@@ -4053,7 +4346,7 @@
         "forecast.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "since": "2026-10-21T16:46:09Z",
@@ -4072,7 +4365,7 @@
         "forecast.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "since": "2026-10-21T16:46:09Z",
@@ -4092,7 +4385,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "since": "2026-10-21T16:46:09Z",
@@ -4110,7 +4403,7 @@
         "nobody-will-win.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "since": "2026-10-21T16:46:09Z",
@@ -4127,7 +4420,7 @@
         "your-forecast/index.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "since": "2026-10-21T16:46:09Z",
@@ -4144,7 +4437,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.0,
       "since": "2026-10-06T01:50:56Z",
@@ -4161,7 +4454,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "since": "2026-10-21T16:46:09Z",
@@ -4178,7 +4471,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "since": "2026-10-21T16:46:09Z",
@@ -4195,7 +4488,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.0,
       "since": "2026-10-06T01:50:56Z",
@@ -4212,7 +4505,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "since": "2026-10-21T16:46:09Z",
@@ -4229,7 +4522,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "since": "2026-10-21T16:46:09Z",
@@ -4246,7 +4539,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "since": "2026-10-21T16:46:09Z",
@@ -4263,13 +4556,30 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.0,
       "since": "2026-10-06T01:50:56Z",
       "source": "site/draws/w_bye-1 against site/draws/., middle seats beyond sampling noise",
       "token": "play.bye.w_bye_1.PA",
       "value": 2.0
+    },
+    {
+      "display": "6",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "your-forecast/index.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "reweight.CLOSENESS_LARGE_PARTIES, the parties that make the badge's large-party mean (JUDGEMENT-CALLS \u00a7N10)",
+      "token": "play.closeness_large_parties",
+      "value": 6.0
     },
     {
       "display": "58%",
@@ -4280,7 +4590,7 @@
         "your-forecast/index.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "since": "2026-10-21T16:46:09Z",
@@ -4297,7 +4607,7 @@
         "your-forecast/index.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "since": "2026-10-21T16:46:09Z",
@@ -4314,7 +4624,7 @@
         "your-forecast/index.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "since": "2026-10-21T16:46:09Z",
@@ -4331,7 +4641,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2.5",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.5,
       "since": "2026-10-06T01:50:56Z",
@@ -4343,15 +4653,15 @@
       "display": "67",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
       ],
-      "previous": "69",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 69.0,
-      "since": null,
+      "previous": "67",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 67.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "site/draws/base.bin, parties outside the named rows winning a seat in any simulation",
       "token": "play.others_count",
       "value": 67.0
@@ -4365,7 +4675,7 @@
         "your-forecast/index.html"
       ],
       "previous": "75%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.749921,
       "since": "2026-10-21T16:46:09Z",
@@ -4382,7 +4692,7 @@
         "your-forecast/index.html"
       ],
       "previous": "14%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.144233,
       "since": "2026-10-21T16:46:09Z",
@@ -4399,7 +4709,7 @@
         "your-forecast/index.html"
       ],
       "previous": "38%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.378921,
       "since": "2026-10-21T16:46:09Z",
@@ -4416,7 +4726,7 @@
         "your-forecast/index.html"
       ],
       "previous": "55%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.549683,
       "since": "2026-10-21T16:46:09Z",
@@ -4433,7 +4743,7 @@
         "your-forecast/index.html"
       ],
       "previous": "48%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.476953,
       "since": "2026-10-21T16:46:09Z",
@@ -4450,7 +4760,7 @@
         "your-forecast/index.html"
       ],
       "previous": "59%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.590425,
       "since": "2026-10-21T16:46:09Z",
@@ -4467,7 +4777,7 @@
         "your-forecast/index.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.992096,
       "since": "2026-10-06T01:50:56Z",
@@ -4484,7 +4794,7 @@
         "your-forecast/index.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.994831,
       "since": "2026-10-21T16:46:09Z",
@@ -4501,7 +4811,7 @@
         "your-forecast/index.html"
       ],
       "previous": "72%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.717208,
       "since": "2026-10-21T16:46:09Z",
@@ -4518,7 +4828,7 @@
         "your-forecast/index.html"
       ],
       "previous": "16%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.158297,
       "since": "2026-10-21T16:46:09Z",
@@ -4530,15 +4840,15 @@
       "display": "59%",
       "fmt": "pct0_capped",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "59%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.59111,
+      "since": "2026-10-22T11:38:25Z",
       "source": "pools_2026.json pools[group].members[BOSA]",
       "token": "play.votes.BOSA.black_african",
       "value": 0.59111
@@ -4547,15 +4857,15 @@
       "display": "24%",
       "fmt": "pct0_capped",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "24%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.244399,
+      "since": "2026-10-22T11:38:25Z",
       "source": "pools_2026.json pools[group].members[BOSA]",
       "token": "play.votes.BOSA.indian_asian",
       "value": 0.244399
@@ -4569,7 +4879,7 @@
         "your-forecast/index.html"
       ],
       "previous": "15%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.150729,
       "since": "2026-10-21T16:46:09Z",
@@ -4586,7 +4896,7 @@
         "your-forecast/index.html"
       ],
       "previous": "65%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.654911,
       "since": "2026-10-21T16:46:09Z",
@@ -4603,7 +4913,7 @@
         "your-forecast/index.html"
       ],
       "previous": "100%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "since": "2026-10-21T16:46:09Z",
@@ -4620,7 +4930,7 @@
         "your-forecast/index.html"
       ],
       "previous": "100%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 1.0,
       "since": "2026-10-06T01:50:56Z",
@@ -4637,7 +4947,7 @@
         "your-forecast/index.html"
       ],
       "previous": "100%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "since": "2026-10-21T16:46:09Z",
@@ -4654,7 +4964,7 @@
         "your-forecast/index.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.990723,
       "since": "2026-10-06T01:50:56Z",
@@ -4671,7 +4981,7 @@
         "your-forecast/index.html"
       ],
       "previous": "35%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.351733,
       "since": "2026-10-21T16:46:09Z",
@@ -4688,7 +4998,7 @@
         "your-forecast/index.html"
       ],
       "previous": "29%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.289588,
       "since": "2026-10-21T16:46:09Z",
@@ -4705,7 +5015,7 @@
         "your-forecast/index.html"
       ],
       "previous": "29%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.285618,
       "since": "2026-10-21T16:46:09Z",
@@ -4717,15 +5027,15 @@
       "display": "22%",
       "fmt": "pct0_capped",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "22%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.216249,
+      "since": "2026-10-22T11:38:25Z",
       "source": "pools_2026.json pools[group].members[VFPLUS]",
       "token": "play.votes.VFPLUS.black_african",
       "value": 0.216249
@@ -4734,15 +5044,15 @@
       "display": "20%",
       "fmt": "pct0_capped",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "20%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.200035,
+      "since": "2026-10-22T11:38:25Z",
       "source": "pools_2026.json pools[group].members[VFPLUS]",
       "token": "play.votes.VFPLUS.coloured",
       "value": 0.200035
@@ -4751,15 +5061,15 @@
       "display": "33%",
       "fmt": "pct0_capped",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "33%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.329113,
+      "since": "2026-10-22T11:38:25Z",
       "source": "pools_2026.json pools[group].members[VFPLUS]",
       "token": "play.votes.VFPLUS.indian_asian",
       "value": 0.329113
@@ -4768,18 +5078,36 @@
       "display": "25%",
       "fmt": "pct0_capped",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
+      ],
+      "previous": "25%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.254603,
+      "since": "2026-10-22T11:38:25Z",
+      "source": "pools_2026.json pools[group].members[VFPLUS]",
+      "token": "play.votes.VFPLUS.white",
+      "value": 0.254603
+    },
+    {
+      "display": "6.3%",
+      "fmt": "pct1",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "corrections.html",
+        "methodology.html"
       ],
       "previous": null,
       "previous_published_at": null,
       "previous_since": null,
       "previous_value": null,
       "since": null,
-      "source": "pools_2026.json pools[group].members[VFPLUS]",
-      "token": "play.votes.VFPLUS.white",
-      "value": 0.254603
+      "source": "external:POLLING.md, the Ipsos national poll of 16-20 August 2021 scaled to the contested areas (src/contested_area.py): ActionSA",
+      "token": "poll_asa_2021_scaled",
+      "value": 0.063
     },
     {
       "display": "35%",
@@ -4790,7 +5118,7 @@
         "methodology.html"
       ],
       "previous": "35%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.35,
       "since": "2026-10-06T01:50:56Z",
@@ -4807,7 +5135,7 @@
         "methodology.html"
       ],
       "previous": "25%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.25,
       "since": "2026-10-06T01:50:56Z",
@@ -4824,7 +5152,7 @@
         "methodology.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.18,
       "since": "2026-10-06T01:50:56Z",
@@ -4841,7 +5169,7 @@
         "methodology.html"
       ],
       "previous": "42%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.42,
       "since": "2026-10-06T01:50:56Z",
@@ -4858,7 +5186,7 @@
         "methodology.html"
       ],
       "previous": "541.4",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 541.4,
       "since": "2026-09-26T13:58:54Z",
@@ -4875,7 +5203,7 @@
         "methodology.html"
       ],
       "previous": "545.8",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 545.8,
       "since": "2026-09-26T13:58:54Z",
@@ -4892,7 +5220,7 @@
         "methodology.html"
       ],
       "previous": "723",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 723,
       "since": "2026-09-26T13:58:54Z",
@@ -4909,13 +5237,31 @@
         "methodology.html"
       ],
       "previous": "725",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 725,
       "since": "2026-09-26T13:58:54Z",
       "source": "compare_history:seat_abs_err_coherent, poll_paths=all",
       "token": "polls_off_seat_err_before",
       "value": 725
+    },
+    {
+      "display": "190,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "claims.html",
+        "claims/da-outright-majority.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:the claim test as published on 7 August 2026 (claims/da-outright-majority step 4); wrong, corrected by claim_others_shed",
+      "token": "pub0807_claim_others_shed",
+      "value": 190000
     },
     {
       "display": "5,000",
@@ -4926,7 +5272,7 @@
         "nobody-will-win.html"
       ],
       "previous": "5,000",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 5000,
       "since": "2026-10-06T01:50:56Z",
@@ -4944,7 +5290,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "65",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 65,
       "since": "2026-09-27T18:44:27Z",
@@ -4962,7 +5308,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "74",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 74,
       "since": "2026-09-27T18:44:27Z",
@@ -4979,7 +5325,7 @@
         "nobody-will-win.html"
       ],
       "previous": "62%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 0.62,
       "since": "2026-09-27T18:44:27Z",
@@ -4996,7 +5342,7 @@
         "nobody-will-win.html"
       ],
       "previous": "96%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 0.96,
       "since": "2026-09-27T18:44:27Z",
@@ -5013,7 +5359,7 @@
         "review.html"
       ],
       "previous": "61%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.61,
       "since": "2026-10-06T01:50:56Z",
@@ -5030,7 +5376,7 @@
         "review.html"
       ],
       "previous": "86%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.86,
       "since": "2026-10-06T01:50:56Z",
@@ -5039,38 +5385,40 @@
       "value": 0.86
     },
     {
-      "display": "63%",
-      "fmt": "pct0",
-      "mode": "fixed",
-      "movement": "none",
-      "pages": [
-        "review.html"
-      ],
-      "previous": "63%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-06T01:50:56Z",
-      "previous_value": 0.63,
-      "since": "2026-10-06T01:50:56Z",
-      "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: the DA largest, after the fixes",
-      "token": "rev0806_da_largest_fixed",
-      "value": 0.63
-    },
-    {
       "display": "61%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "none",
+      "movement": "material",
       "pages": [
+        "corrections.html",
+        "review.html"
+      ],
+      "previous": "63%",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-06T01:50:56Z",
+      "previous_value": 0.63,
+      "since": null,
+      "source": "external:MODEL-LOG \u00a71.18, the corrected run of 6 August 2026 that the review describes (the deduct statute and the audit defaults): the DA largest, after the fixes",
+      "token": "rev0806_da_largest_fixed",
+      "value": 0.61
+    },
+    {
+      "display": "53%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "material",
+      "pages": [
+        "corrections.html",
         "review.html"
       ],
       "previous": "61%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.61,
-      "since": "2026-10-06T01:50:56Z",
-      "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: a DA-led minority government viable",
+      "since": null,
+      "source": "external:MODEL-LOG \u00a71.16, the deduct (statutory) row of the audit of 5 August 2026, 3,000 simulations: a DA-led minority government viable, only the ANC opposing",
       "token": "rev0806_da_minority_viable",
-      "value": 0.61
+      "value": 0.53
     },
     {
       "display": "87",
@@ -5081,30 +5429,13 @@
         "review.html"
       ],
       "previous": "87",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 87,
       "since": "2026-10-06T01:50:56Z",
       "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: district-year records with more votes than registered voters",
       "token": "rev0806_overvote_records",
       "value": 87
-    },
-    {
-      "display": "20261104",
-      "fmt": "raw",
-      "mode": "free",
-      "movement": "none",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": "20261104",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-09-26T13:58:54Z",
-      "previous_value": 20261104,
-      "since": "2026-09-26T13:58:54Z",
-      "source": "model:scenario.seed",
-      "token": "run_seed",
-      "value": 20261104
     },
     {
       "display": "2",
@@ -5116,7 +5447,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 2.0,
       "since": "2026-09-26T13:58:54Z",
@@ -5134,7 +5465,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 1.0,
       "since": "2026-09-26T13:58:54Z",
@@ -5152,7 +5483,7 @@
         "your-forecast/index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 6.0,
       "since": "2026-09-26T13:58:54Z",
@@ -5171,7 +5502,7 @@
         "nobody-will-win.html"
       ],
       "previous": "72",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 72.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5190,7 +5521,7 @@
         "nobody-will-win.html"
       ],
       "previous": "48",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 48.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5209,7 +5540,7 @@
         "nobody-will-win.html"
       ],
       "previous": "81",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 81.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5228,7 +5559,7 @@
         "nobody-will-win.html"
       ],
       "previous": "40",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 40.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5247,7 +5578,7 @@
         "nobody-will-win.html"
       ],
       "previous": "31",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 31.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5266,7 +5597,7 @@
         "nobody-will-win.html"
       ],
       "previous": "51",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 51.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5278,16 +5609,16 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "2",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 2.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.BOSA.median",
       "value": 2.0
@@ -5296,16 +5627,16 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "0",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 0.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.BOSA.p5",
       "value": 0.0
@@ -5314,16 +5645,16 @@
       "display": "9",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "9",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 9.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.BOSA.p95",
       "value": 9.0
@@ -5339,7 +5670,7 @@
         "nobody-will-win.html"
       ],
       "previous": "67",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5358,7 +5689,7 @@
         "nobody-will-win.html"
       ],
       "previous": "52",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 52.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5377,7 +5708,7 @@
         "nobody-will-win.html"
       ],
       "previous": "82",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 82.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5396,7 +5727,7 @@
         "nobody-will-win.html"
       ],
       "previous": "25",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 25.0,
       "since": "2026-09-30T04:21:21Z",
@@ -5415,7 +5746,7 @@
         "nobody-will-win.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5434,7 +5765,7 @@
         "nobody-will-win.html"
       ],
       "previous": "43",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 43.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5452,7 +5783,7 @@
         "your-forecast/index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5470,7 +5801,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5488,7 +5819,7 @@
         "your-forecast/index.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 11.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5507,7 +5838,7 @@
         "nobody-will-win.html"
       ],
       "previous": "17",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 17.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5526,7 +5857,7 @@
         "nobody-will-win.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5545,7 +5876,7 @@
         "nobody-will-win.html"
       ],
       "previous": "55",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 55.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5557,16 +5888,16 @@
       "display": "12",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": "16",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 16.0,
-      "since": null,
+      "previous": "12",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 12.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.median",
       "value": 12.0
@@ -5575,16 +5906,16 @@
       "display": "4",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": "7",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 7.0,
-      "since": null,
+      "previous": "4",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 4.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.p5",
       "value": 4.0
@@ -5593,16 +5924,16 @@
       "display": "25",
       "fmt": "int",
       "mode": "generated",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": "35",
-      "previous_published_at": "2026-10-21T16:46:09Z",
-      "previous_since": "2026-10-21T16:46:09Z",
-      "previous_value": 35.0,
-      "since": null,
+      "previous": "25",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 25.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.OTHERS.p95",
       "value": 25.0
@@ -5618,7 +5949,7 @@
         "nobody-will-win.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5637,7 +5968,7 @@
         "nobody-will-win.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5656,7 +5987,7 @@
         "nobody-will-win.html"
       ],
       "previous": "33",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 33.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5674,7 +6005,7 @@
         "your-forecast/index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5692,7 +6023,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5710,7 +6041,7 @@
         "your-forecast/index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "since": "2026-10-21T16:46:09Z",
@@ -5722,16 +6053,16 @@
       "display": "2",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "2",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 2.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.VFPLUS.median",
       "value": 2.0
@@ -5740,16 +6071,16 @@
       "display": "1",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "1",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 1.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.VFPLUS.p5",
       "value": 1.0
@@ -5758,16 +6089,16 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html",
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "6",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 6.0,
+      "since": "2026-10-22T11:38:25Z",
       "source": "seat_draws.csv, 5,000 simulations",
       "token": "seats.VFPLUS.p95",
       "value": 6.0
@@ -5782,7 +6113,7 @@
         "nobody-will-win.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.9,
       "since": "2026-09-26T13:58:54Z",
@@ -5794,15 +6125,15 @@
       "display": "337",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
+      "previous": "337",
+      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_since": "2026-10-22T11:38:25Z",
+      "previous_value": 337,
+      "since": "2026-10-22T11:38:25Z",
       "source": "external:MODEL-LOG \u00a71.296, 'The real record': levels._citywide for the eight metros, consecutive LGE pairs 2006\u21922011, 2011\u21922016 and 2016\u21922021, a party under 1% of the list vote at the earlier election, one absent at the later counted at 0 (read 2026-10-10)",
       "token": "small_party_record_cases",
       "value": 337
@@ -5816,7 +6147,7 @@
         "methodology.html"
       ],
       "previous": "1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 0.01,
       "since": "2026-10-10T20:02:20Z",
@@ -5833,7 +6164,7 @@
         "methodology.html"
       ],
       "previous": "0.7%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0066,
       "since": "2026-10-21T16:46:09Z",
@@ -5850,7 +6181,7 @@
         "methodology.html"
       ],
       "previous": "5%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 0.05,
       "since": "2026-10-10T20:02:20Z",
@@ -5867,7 +6198,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "since": "2026-10-21T16:46:09Z",
@@ -5884,7 +6215,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "since": "2026-10-21T16:46:09Z",
@@ -5901,7 +6232,7 @@
         "forecast.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "since": "2026-10-21T16:46:09Z",
@@ -5918,7 +6249,7 @@
         "forecast.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "since": "2026-10-21T16:46:09Z",
@@ -5935,7 +6266,7 @@
         "forecast.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "since": "2026-10-21T16:46:09Z",
@@ -5952,7 +6283,7 @@
         "forecast.html"
       ],
       "previous": "7.9%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0792,
       "since": "2026-10-21T16:46:09Z",
@@ -5969,7 +6300,7 @@
         "forecast.html"
       ],
       "previous": "3.9%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0392,
       "since": "2026-10-21T16:46:09Z",
@@ -5986,7 +6317,7 @@
         "forecast.html"
       ],
       "previous": "2.2%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0218,
       "since": "2026-10-21T16:46:09Z",
@@ -6003,7 +6334,7 @@
         "forecast.html"
       ],
       "previous": "92%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.924,
       "since": "2026-10-21T16:46:09Z",
@@ -6020,7 +6351,7 @@
         "forecast.html"
       ],
       "previous": "1.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0162,
       "since": "2026-10-21T16:46:09Z",
@@ -6037,7 +6368,7 @@
         "forecast.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "since": "2026-10-21T16:46:09Z",
@@ -6054,7 +6385,7 @@
         "methodology.html"
       ],
       "previous": "last result plus noise",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "last result plus noise",
       "since": "2026-10-10T20:02:20Z",
@@ -6071,7 +6402,7 @@
         "methodology.html"
       ],
       "previous": "11.3",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 11.31,
       "since": "2026-10-10T20:02:20Z",
@@ -6088,7 +6419,7 @@
         "methodology.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 8,
       "since": "2026-10-10T20:02:20Z",
@@ -6105,7 +6436,7 @@
         "methodology.html"
       ],
       "previous": "8.3",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 8.33,
       "since": "2026-10-10T20:02:20Z",
@@ -6122,7 +6453,7 @@
         "methodology.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 6,
       "since": "2026-10-10T20:02:20Z",
@@ -6139,7 +6470,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "since": "2026-10-10T20:02:20Z",
@@ -6156,7 +6487,7 @@
         "methodology.html"
       ],
       "previous": "38.0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 38.0,
       "since": "2026-10-10T20:02:20Z",
@@ -6173,7 +6504,7 @@
         "methodology.html"
       ],
       "previous": "19",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 19,
       "since": "2026-10-10T20:02:20Z",
@@ -6190,7 +6521,7 @@
         "methodology.html"
       ],
       "previous": "34.2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 34.25,
       "since": "2026-10-10T20:02:20Z",
@@ -6207,7 +6538,7 @@
         "methodology.html"
       ],
       "previous": "22",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 22,
       "since": "2026-10-10T20:02:20Z",
@@ -6224,7 +6555,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "since": "2026-10-10T20:02:20Z",
@@ -6241,7 +6572,7 @@
         "methodology.html"
       ],
       "previous": "48.0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 48.0,
       "since": "2026-10-10T20:02:20Z",
@@ -6258,7 +6589,7 @@
         "methodology.html"
       ],
       "previous": "24",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 24,
       "since": "2026-10-10T20:02:20Z",
@@ -6275,7 +6606,7 @@
         "methodology.html"
       ],
       "previous": "29.8",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 29.78,
       "since": "2026-10-10T20:02:20Z",
@@ -6292,7 +6623,7 @@
         "methodology.html"
       ],
       "previous": "19",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 19,
       "since": "2026-10-10T20:02:20Z",
@@ -6309,7 +6640,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "since": "2026-10-10T20:02:20Z",
@@ -6326,7 +6657,7 @@
         "methodology.html"
       ],
       "previous": "36.0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 36.0,
       "since": "2026-10-10T20:02:20Z",
@@ -6343,7 +6674,7 @@
         "methodology.html"
       ],
       "previous": "18",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 18,
       "since": "2026-10-10T20:02:20Z",
@@ -6360,7 +6691,7 @@
         "methodology.html"
       ],
       "previous": "31.0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 30.99,
       "since": "2026-10-10T20:02:20Z",
@@ -6377,7 +6708,7 @@
         "methodology.html"
       ],
       "previous": "21",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 21,
       "since": "2026-10-10T20:02:20Z",
@@ -6394,7 +6725,7 @@
         "methodology.html"
       ],
       "previous": "last result plus noise",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "last result plus noise",
       "since": "2026-10-10T20:02:20Z",
@@ -6411,7 +6742,7 @@
         "methodology.html"
       ],
       "previous": "114.1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 114.07,
       "since": "2026-10-10T20:02:20Z",
@@ -6428,7 +6759,7 @@
         "methodology.html"
       ],
       "previous": "63",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 63,
       "since": "2026-10-10T20:02:20Z",
@@ -6445,7 +6776,7 @@
         "methodology.html"
       ],
       "previous": "66.8",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 66.85,
       "since": "2026-10-10T20:02:20Z",
@@ -6462,7 +6793,7 @@
         "methodology.html"
       ],
       "previous": "48",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 48,
       "since": "2026-10-10T20:02:20Z",
@@ -6479,7 +6810,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "since": "2026-10-10T20:02:20Z",
@@ -6496,7 +6827,7 @@
         "methodology.html"
       ],
       "previous": "8.0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 8.0,
       "since": "2026-10-10T20:02:20Z",
@@ -6513,7 +6844,7 @@
         "methodology.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 4,
       "since": "2026-10-10T20:02:20Z",
@@ -6530,7 +6861,7 @@
         "methodology.html"
       ],
       "previous": "9.2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 9.22,
       "since": "2026-10-10T20:02:20Z",
@@ -6547,7 +6878,7 @@
         "methodology.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 4,
       "since": "2026-10-10T20:02:20Z",
@@ -6564,7 +6895,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "since": "2026-10-10T20:02:20Z",
@@ -6581,7 +6912,7 @@
         "methodology.html"
       ],
       "previous": "22.0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 22.0,
       "since": "2026-10-10T20:02:20Z",
@@ -6598,7 +6929,7 @@
         "methodology.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 11,
       "since": "2026-10-10T20:02:20Z",
@@ -6615,7 +6946,7 @@
         "methodology.html"
       ],
       "previous": "17.1",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 17.09,
       "since": "2026-10-10T20:02:20Z",
@@ -6632,7 +6963,7 @@
         "methodology.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 11,
       "since": "2026-10-10T20:02:20Z",
@@ -6649,7 +6980,7 @@
         "methodology.html"
       ],
       "previous": "337.4",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 337.38,
       "since": "2026-10-10T20:02:20Z",
@@ -6666,7 +6997,7 @@
         "methodology.html"
       ],
       "previous": "224.2",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 224.19,
       "since": "2026-10-10T20:02:20Z",
@@ -6683,7 +7014,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "since": "2026-10-10T20:02:20Z",
@@ -6700,7 +7031,7 @@
         "methodology.html"
       ],
       "previous": "60.0",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 60.0,
       "since": "2026-10-10T20:02:20Z",
@@ -6717,7 +7048,7 @@
         "methodology.html"
       ],
       "previous": "30",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 30,
       "since": "2026-10-10T20:02:20Z",
@@ -6734,7 +7065,7 @@
         "methodology.html"
       ],
       "previous": "27.7",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 27.68,
       "since": "2026-10-10T20:02:20Z",
@@ -6751,7 +7082,7 @@
         "methodology.html"
       ],
       "previous": "18",
-      "previous_published_at": "2026-10-21T16:46:09Z",
+      "previous_published_at": "2026-10-22T11:38:25Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 18,
       "since": "2026-10-10T20:02:20Z",
@@ -6767,9 +7098,9 @@
     "draws": 5000,
     "forecast_content_sha256": "f74c0c2c74e92e32ac5ed21b875d6472f650790a584a5088d16e87cd1ca2a898",
     "forecast_summary_sha256": "a0f5c20167d2fb3090a3ed671c39f0aefe9ba1272471a149eee69de5186d2eea",
-    "git_commit": "92048ba10108401bc785a5ee9e73b4bcaa8cc4cf",
+    "git_commit": "0a73bb798624926844d59f1f6ffb53c228f822dc",
     "git_dirty": true,
-    "model_run_id": "r-f74c0c2c74e9-92048ba1-dirty",
+    "model_run_id": "r-f74c0c2c74e9-0a73bb79-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
@@ -6838,43 +7169,31 @@
   "summary": {
     "by_movement": {
       "material": [
-        "ballots.typical.anc_wards",
-        "ballots.typical.draw",
-        "home.seats.others",
-        "home.seats.others_hi",
-        "home.seats.others_lo",
-        "play.others_count",
-        "seats.OTHERS.median",
-        "seats.OTHERS.p5",
-        "seats.OTHERS.p95"
+        "claim_others_shed",
+        "hist_laingsburg_da_share",
+        "rev0806_da_largest_fixed",
+        "rev0806_da_minority_viable"
       ],
       "new": [
-        "home.seats.bosa",
-        "home.seats.bosa_hi",
-        "home.seats.bosa_lo",
-        "home.seats.vfplus",
-        "home.seats.vfplus_hi",
-        "home.seats.vfplus_lo",
-        "home.wards.anc",
-        "home.wards.da",
-        "home.wards_close.anc",
-        "home.wards_close.da",
-        "play.votes.BOSA.black_african",
-        "play.votes.BOSA.indian_asian",
-        "play.votes.VFPLUS.black_african",
-        "play.votes.VFPLUS.coloured",
-        "play.votes.VFPLUS.indian_asian",
-        "play.votes.VFPLUS.white",
-        "seats.BOSA.median",
-        "seats.BOSA.p5",
-        "seats.BOSA.p95",
-        "seats.VFPLUS.median",
-        "seats.VFPLUS.p5",
-        "seats.VFPLUS.p95",
-        "small_party_record_cases"
-      ],
-      "nominal": [
-        "generated_date"
+        "anc_list_share_median",
+        "byelection_wards",
+        "claim.soweto.some_count",
+        "claim.zille_both.needed",
+        "claim.zille_both.needed_open",
+        "claim.zille_both.reach",
+        "claim.zille_both.seats",
+        "claim.zille_both.seats_open",
+        "claim.zille_both.share",
+        "claim.zille_both.total_list",
+        "claim.zille_both.total_ward",
+        "claim.zille_both.votes",
+        "govern.da_with_small_without",
+        "hist_mayor_2021_against",
+        "hist_mayor_2021_for",
+        "judgement_asa_support",
+        "play.closeness_large_parties",
+        "poll_asa_2021_scaled",
+        "pub0807_claim_others_shed"
       ],
       "none": [
         "anc_entitlement",
@@ -6890,6 +7209,8 @@
         "backtest_wins",
         "ballots.p_anc_excessive",
         "ballots.typical.anc_list",
+        "ballots.typical.anc_wards",
+        "ballots.typical.draw",
         "blind_test_called",
         "blind_test_of",
         "bloc_leak_votes",
@@ -6930,7 +7251,6 @@
         "claim_da_votes_surge",
         "claim_half_surged",
         "claim_hi_turnout",
-        "claim_others_shed",
         "claim_poll_2021",
         "claim_poll_base",
         "claim_poll_surged",
@@ -7033,6 +7353,7 @@
         "coal.DA+EFF+PA+MK.survive.MK",
         "coal.DA+EFF+PA+MK.survive.PA",
         "council_size",
+        "generated_date",
         "govern.anc_routes",
         "govern.anc_routes_strong",
         "govern.da_best_without",
@@ -7046,7 +7367,6 @@
         "hist_jhb_wards_called_2011",
         "hist_jhb_wards_called_2016",
         "hist_jhb_wards_called_2021",
-        "hist_laingsburg_da_share",
         "hist_laingsburg_da_wards",
         "hist_laingsburg_wards",
         "home.band",
@@ -7065,6 +7385,9 @@
         "home.seats.asa",
         "home.seats.asa_hi",
         "home.seats.asa_lo",
+        "home.seats.bosa",
+        "home.seats.bosa_hi",
+        "home.seats.bosa_lo",
         "home.seats.da",
         "home.seats.da_hi",
         "home.seats.da_lo",
@@ -7077,12 +7400,22 @@
         "home.seats.mk",
         "home.seats.mk_hi",
         "home.seats.mk_lo",
+        "home.seats.others",
+        "home.seats.others_hi",
+        "home.seats.others_lo",
         "home.seats.pa",
         "home.seats.pa_hi",
         "home.seats.pa_lo",
         "home.seats.rise",
         "home.seats.rise_hi",
         "home.seats.rise_lo",
+        "home.seats.vfplus",
+        "home.seats.vfplus_hi",
+        "home.seats.vfplus_lo",
+        "home.wards.anc",
+        "home.wards.da",
+        "home.wards_close.anc",
+        "home.wards_close.da",
         "jhb_2021_coalition_parties",
         "majority",
         "minority.ANC_minority_DA_ASA_oppose",
@@ -7110,6 +7443,7 @@
         "play.largest.DA",
         "play.largest_tied",
         "play.max_figure_se",
+        "play.others_count",
         "play.roll.black_african",
         "play.roll.white",
         "play.turnout.black_african",
@@ -7120,6 +7454,8 @@
         "play.votes.ANC.black_african",
         "play.votes.ASA.black_african",
         "play.votes.ASA.white",
+        "play.votes.BOSA.black_african",
+        "play.votes.BOSA.indian_asian",
         "play.votes.DA.black_african",
         "play.votes.DA.white",
         "play.votes.EFF.black_african",
@@ -7129,6 +7465,10 @@
         "play.votes.RISE.black_african",
         "play.votes.RISE.indian_asian",
         "play.votes.RISE.white",
+        "play.votes.VFPLUS.black_african",
+        "play.votes.VFPLUS.coloured",
+        "play.votes.VFPLUS.indian_asian",
+        "play.votes.VFPLUS.white",
         "poll_ipsos_w2_anc",
         "poll_ipsos_w2_da",
         "poll_srf_q2_anc",
@@ -7144,10 +7484,7 @@
         "pub0831_p_excessive_anc",
         "rev0806_da_eff_mk_share",
         "rev0806_da_largest_first",
-        "rev0806_da_largest_fixed",
-        "rev0806_da_minority_viable",
         "rev0806_overvote_records",
-        "run_seed",
         "seats.ALJAMAAH.median",
         "seats.ALJAMAAH.p5",
         "seats.ALJAMAAH.p95",
@@ -7157,6 +7494,9 @@
         "seats.ASA.median",
         "seats.ASA.p5",
         "seats.ASA.p95",
+        "seats.BOSA.median",
+        "seats.BOSA.p5",
+        "seats.BOSA.p95",
         "seats.DA.median",
         "seats.DA.p5",
         "seats.DA.p95",
@@ -7169,13 +7509,20 @@
         "seats.MK.median",
         "seats.MK.p5",
         "seats.MK.p95",
+        "seats.OTHERS.median",
+        "seats.OTHERS.p5",
+        "seats.OTHERS.p95",
         "seats.PA.median",
         "seats.PA.p5",
         "seats.PA.p95",
         "seats.RISE.median",
         "seats.RISE.p5",
         "seats.RISE.p95",
+        "seats.VFPLUS.median",
+        "seats.VFPLUS.p5",
+        "seats.VFPLUS.p95",
         "seats.band",
+        "small_party_record_cases",
         "small_party_share",
         "small_party_surge",
         "small_party_surge_share",
@@ -7234,11 +7581,9 @@
         "val_tshwane_wrong"
       ]
     },
-    "n": 388,
+    "n": 406,
     "n_rounding": 0,
-    "n_visible": 10,
-    "nominal": [
-      "generated_date"
-    ]
+    "n_visible": 4,
+    "nominal": []
   }
 }

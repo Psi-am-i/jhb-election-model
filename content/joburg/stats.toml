@@ -165,13 +165,6 @@ format = "int"
 inserted = "2026-08-07"
 used_in = "the November surprise (×2), methodology"
 
-[run_seed]
-mode = "free"
-source = "model:scenario.seed"
-format = "raw"
-inserted = "2026-09-17"
-used_in = "no page since 2026-10-23 (the forecast footer dropped the seed, site sweep brief 1 B30); retire it with publication.retire at the next --publish, then delete this entry"
-
 [anc_entitlement]
 mode = "free"
 # the pure-proportional counterfactual IS the entitlement: Germany-2023 rule

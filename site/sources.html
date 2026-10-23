@@ -75,8 +75,9 @@ codes. A wrong guess raises no error: the site returns a different election&rsqu
 results. One election, the 2014 national and provincial vote, is missing from
 the results portal; its files are on a second, older IEC site.</p>
 <h2 id="the-election-results">The election results</h2>
-<p>The model rests on six elections at voting-district level, the finest grain the
-IEC publishes:</p>
+<p>This Model reads the municipal elections from 2000 to 2021 and the national
+and provincial elections from 1999 to 2024 at voting-district level, the finest
+grain the IEC publishes:</p>
 <div class="tablewrap"><table>
 <thead>
 <tr>
@@ -90,7 +91,11 @@ IEC publishes:</p>
 <td>Both ballots — ward and party list — for every voting district</td>
 </tr>
 <tr>
-<td>2014, 2019, 2024 national/provincial elections</td>
+<td>2000 and 2006 municipal elections</td>
+<td>Turnout, for the range each population group&rsquo;s turnout is drawn from</td>
+</tr>
+<tr>
+<td>1999 to 2024 national/provincial elections</td>
 <td>The provincial ballot, the model&rsquo;s between-elections baseline</td>
 </tr>
 </tbody>
@@ -114,7 +119,8 @@ the 2016 election, now exists in the Internet Archive and nowhere official.</p>
 registration. It is a snapshot from 2024. Every turnout figure built on it as
 current would be wrong.</p>
 <h2 id="by-elections">By-elections</h2>
-<p>Fifteen Johannesburg wards have held by-elections since 2021. They are the only
+<p><span class="mstat" data-mode="fixed" data-token="byelection_count" data-when="2026-08-05" data-prov="15 on 8 August.&#10;SOURCE: IEC by-election results. The Johannesburg ward by-elections held since the 2021 election." tabindex="0">15</span> by-elections have been held in <span class="mstat" data-mode="fixed" data-token="byelection_wards" data-when="2026-10-23" data-prov="14 wards on 23 October.&#10;SOURCE: IEC by-election results. The Johannesburg wards that have held a by-election since the 2021 election; one ward held two." tabindex="0">14</span>
+Johannesburg wards since 2021. They are the only
 direct evidence of how opinion has moved between elections. The model reads them
 and moves each party&rsquo;s expected share up to halfway toward what they imply (see the methodology). The IEC&rsquo;s official download page could not supply them: its report
 links work only inside the browser session that created them. The IEC&rsquo;s public
@@ -125,9 +131,9 @@ model uses those.</p>
 <p>Statistics South Africa publishes ward-level population estimates from Census
 2022 (age, sex and population group for all 135 wards). The model uses one
 thing from them: each ward&rsquo;s population-group shares, which split that ward&rsquo;s
-registered voters into groups. The more detailed small-area data (income, dwelling type,
-employment) is not published, because at ward level it can identify households.
-Access under conditions exists, and we have not sought it.</p>
+registered voters into groups. Census 2022 publishes home language, income,
+dwelling type and employment only down to municipality level; Stats SA confirmed
+in August 2026 that no small-area data was made for Census 2022.</p>
 <h2 id="what-nobody-publishes">What nobody publishes</h2>
 <ul>
 <li><strong>Historic voting-district boundaries.</strong> The IEC draws these with its own
@@ -149,7 +155,7 @@ large to publish. Anyone who downloads the same sources can confirm they hold
 exactly the data this forecast was computed from, and a file altered or
 withdrawn upstream shows up as a mismatch.</p>
 <div class="colophon">
-  Reader edition, generated from docs-public/sources.md on 2026-10-22. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
+  Reader edition, generated from docs-public/sources.md on 2026-10-23. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div class="foot-text">

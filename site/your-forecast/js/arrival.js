@@ -138,7 +138,7 @@ export function showArrival(v) {
     el("div", { className: "yf-arr-later" },
       el("div", {}, el("h3", {}, "The vote"), countdown(spec.election, now)),
       el("div", {}, el("h3", {}, "After the count"),
-        el("p", {}, "The leaderboard lists names after the count."),
+        el("p", {}, "If a leaderboard is published after the count, it shows names."),
         count)));
   R.hidden = false;
   entryCount().then(n => { count.textContent = countLine(n); count.hidden = !count.textContent; });
