@@ -143,3 +143,15 @@ no 2016–21 contest after 2019-07-24; no record says whether that is real.
    (*inferred*, not checked).
 6. The IEC roll pages give 862 (JHB) and 796 (TSH) VDs against 865 and 774 in the
    crosswalks; not reconciled.
+
+## Checked 2026-10-23 (plan step 1.5)
+
+- The IEC by-election dashboard (`MapsJason/{year}/ByElections.js`) serves the
+  2016 and 2021 cycles only. 2000, 2006, 2008, 2010–2015 and 2017–2020 return
+  HTTP 404 (curl, 2026-10-23). The pre-2016 cycles are not available from this
+  source; other IEC sources are still to be checked.
+- Each contest's file (e.g. `MapsJason/1102/EEID1102BigMapsNational.js`) carries
+  `RegisteredVoters`, `SpoiltVotes`, `TotalVotesCast`, `SpecialVotes` and
+  `ValidVotesCast`. `src/fetch_byelections.py` `COLUMNS` keeps none of them, so
+  by-election turnout can be fetched rather than derived from the previous
+  LGE's roll.
