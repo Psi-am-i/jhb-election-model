@@ -46,7 +46,12 @@ but it is a judgement call of the kind you asked to avoid.
 **Recorded.** Option 1: the frozen forecast keeps the measured 0.72
 (`levels.size_centre`); ActionSA's centre is the model's own, 12.67% mean list
 share (MODEL-LOG §1.335). No code change. The page states the spread
-second-election parties have kept (0.2 to 1.5), in the site text brief.
+second-election parties have kept, in the site text brief.
+
+**Corrected 2026-10-24.** Option 1 above, as put to the owner, said "from 0.2
+to 1.5". "1.5" had no source. Pooled per party across metros the record runs
+from COPE 0.20 to Al Jama-ah about 1.39 (EFF 1.26); single metros run 0.14 to
+2.98 (`rounds/2026-10-23-out-of-sample/retention/SPEC.md`).
 
 ### 33. How will the frozen forecast be chosen from the pre-freeze arms? — answered 2026-10-23
 
