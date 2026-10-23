@@ -1,0 +1,23 @@
+mean list share, % of valid votes, 5,000 draws
+party              B      BF     A7t      A7      G2      GP
+DA             25.16   25.16   25.16   24.30   25.16   25.16
+ANC            21.24   21.24   21.24   22.15   21.24   21.24
+ASA            17.64   17.64   17.64   17.64   17.64   17.64
+EFF             9.56    9.56    9.56   10.27    9.56    9.56
+MK              8.54    8.54    8.54    8.43    8.54    8.54
+PA              6.20    6.20    6.20    5.56    6.20    6.20
+RISE            1.72    1.72    1.72    1.75    1.72    1.72
+IFP             1.61    1.61    1.61    1.40    1.61    1.61
+BOSA            1.07    1.07    1.07    1.09    1.07    1.07
+VFPLUS          0.84    0.84    0.84    0.85    0.84    0.84
+ALJAMAAH        0.80    0.80    0.80    0.81    0.80    0.80
+ACDP            0.68    0.68    0.68    0.69    0.68    0.68
+ATM             0.45    0.45    0.45    0.40    0.45    0.45
+AHC             0.39    0.39    0.39    0.39    0.39    0.39
+A7t vs B: largest |change| +0.000 pp (DA)
+A7 vs B: largest |change| +0.912 pp (ANC)
+BF vs B: largest |change| +0.000 pp (DA)
+G2 vs BF: largest |change| +0.000 pp (DA)
+GP vs BF: largest |change| +0.000 pp (DA)
+G2 vs B: largest |change| +0.000 pp (DA)
+GP vs B: largest |change| +0.000 pp (DA)

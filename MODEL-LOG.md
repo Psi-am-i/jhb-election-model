@@ -31158,3 +31158,74 @@ The fall is in the large parties' term. Mild's ANC and DA closeness went from 0.
 The bands are unchanged (owner's (a)). `tests/test_reweight.py` BRIEF_TABLE re-recorded on 336d666d. Not measured: whether readers' shared predictions sit closer to or further from ours than the brief's examples, which would say whether the bands now read harsh in use.
 
 Correction to OWNER-DECISIONS item 13 as asked: its "16 October forecast" column is model 7ea27c28's (the 8 October draws, the table's own record), not the 16 October draws (de1911fd, aa95c51). On those draws mild scores 0.888 and moderate 0.760, but against the forecast.json committed beside them, whose start was still the 8 October prediction (ANC 70, PA 24 seats; those draws' medians 74 and 14), so that column measures a mismatched pair and is not quoted as the 16 October forecast's.
+
+## 1.333 Before the freeze: by-elections off and γ from the other fold, Johannesburg 2026 (2026-10-23)
+
+Owner, item 31: "test the two inputs." Pre-registration
+`prereg/2026-10-23-prefreeze-arms.md` (9cd11c9; amendment 762957e before any
+run). Driver `rounds/2026-10-23-out-of-sample/prefreeze/run_arms.py` (261b29f),
+seed 20261104, 5,000 draws each, `run_model` in process, nothing written under
+`data/`. Checks C1–C4 all passed: the arms are paired; each switch took (A7:
+`w_bye` 0, no by-election files, the 79 tilted VDs at ×1.000; every arm's γ as
+drawn equals its definition in all 10,000 solve calls); the κ = 0.25 turnout and
+the fold-1 refit rebuild byte-identical; B reproduces the live site (P(largest
+alone) ANC 58%, DA 34%, tied 3.6%; every seat median; ANC + DA majority 56.5%
+against the site's 56%).
+
+Measured, 5,000 draws each, against B unless stated:
+
+| arm | what changes | P(ANC largest alone) | P(DA largest alone) | median seats moved by more than 1 | ward favourites changed (of 135) | largest mean list-share change |
+|---|---|---|---|---|---|---|
+| B | the live forecast | 58.1% | 33.8% | — | — | — |
+| BF | fold-1 placeholder γ rows no longer block `gamma_recent` | 61.2% | 30.9% | none | 5 (4 PA → DA, 1 MK → ANC) | 0.000 pp |
+| A7t | by-election turnout tilt off | 58.4% | 33.5% | none | 0 | 0.000 pp |
+| A7 | by-elections off | 72.1% | 20.6% | ANC +2, DA −2.5, EFF +2 | 1 | +0.91 pp (ANC) |
+| G2 | γ from 2019 → 2021 | 56.7% | 34.9% | none | 6 | 0.000 pp |
+| GP | γ from both folds pooled | 59.1% | 32.9% | none | 6 | 0.000 pp |
+
+A7's list shares: DA 25.16 → 24.30, ANC 21.24 → 22.15, EFF 9.56 → 10.27, PA
+6.20 → 5.56, IFP 1.61 → 1.40, ActionSA 17.64 → 17.64. Coalition majorities move
+by under 2 points in every arm except A7, where ANC + ASA + EFF goes
+56.3% → 67.3% and ANC + ASA + MK 36.9% → 42.5%. Tables:
+`summary.md`, `list_shares.txt` and `coalitions_table.txt` in the run directory,
+copied to `rounds/2026-10-23-out-of-sample/prefreeze/results/`.
+
+**Scored.**
+- **P1 held.** ANC largest alone +14.0 points, DA −13.2 (bound: 4 each).
+- **P2 falsified.** ActionSA's list share does not move. Its centre is the
+  owner's 17.6% (`judgements/joburg-2026.toml` `[party.ASA]`, 21 October),
+  which by-election evidence does not reach. The pre-registration missed this.
+- **P3 held.** A7t moves no mean list share (largest change 0.000 points;
+  bound 0.05).
+- **P4 held.** G2 and GP move no mean list share (0.000 points; bound 0.3),
+  because calibration pins the citywide level.
+- **P5 held.** 6 ward favourites change in each of G2 and GP (bound 1 to 13).
+- **P6 held.** The largest median-seat move in G2 or GP is 1 (bound 3).
+- **P7 held on seats, falsified on chances against B.** On median seats GP lies
+  between B and G2 for the five largest parties. On P(ANC largest alone) GP is
+  59.1%, outside B–G2 (58.1%, 56.7%), because B also carries the placeholder
+  defect. Against BF (61.2%) it lies between. The caveat recorded before the run
+  allowed this.
+- **P8 falsified on chances.** BF moves no median seat by more than 1 (held),
+  but P(ANC largest alone) moves +3.1 points and DA −2.9 (bound: under 1). Four
+  wards change favourite from PA to DA once PA's ward pattern flattens (γ
+  1.0 → 0.544), and that reaches the largest-party race.
+
+**What it means.** The by-election term is the larger of the two inputs: it
+accounts for 14 points of the ANC–DA largest-party race and 2 to 2.5 median seats
+each. (`summary.md` prints medians rounded to whole seats, half to even, so its
+DA 64 is 64.5 and BF's EFF 24 is 24.5.) Its
+turnout tilt alone does nothing measurable, so the term acts through party
+levels. γ moves geography only. Which fold it comes from shifts the
+largest-party chances by 1–5 points and up to 6 ward favourites, and no
+median seat by more than 1. The placeholder defect (DATA-QUALITY 21) is about
+as large as the choice of fold. Nothing here says which arm is right: 2026 has
+no result, and no backtest scores either input.
+
+Limits:
+- fold 2's ward γ is negative for AIC (−0.09) and COPE (−0.02), used as fitted
+  in G2 and GP (AIC also in GP);
+- G2 loses the fold-1 fits for APC and AZAPO, which fold 2 does not fit;
+- the site's interactive reads fold 1 (`export_interactive.py:158`);
+- ActionSA, PA (other than its `gamma_recent` value) and MK have no fold γ in
+  any arm.

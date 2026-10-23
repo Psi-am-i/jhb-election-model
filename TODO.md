@@ -104,7 +104,10 @@ propose for each: keep, relabel, move or delete. Owner decides the deletions.
 2019→2021 fit; γ from both fits pooled. Pre-register under `prereg/`, run
 outside `data/` with the worker count capped (owner: "please leave some cpu
 available"), one old-vs-new report each in `reports/model-changes/`, then a new
-owner item for what is frozen. Before 31 October.
+owner item for what is frozen. Before 31 October. **Run 2026-10-23**: MODEL-LOG §1.333, five reports in
+`reports/model-changes/2026-10-23-prefreeze-*`; waits on OWNER-DECISIONS 33.
+If G2 or GP is frozen, `export_interactive.py:158` (fold 1 hard-coded) must
+follow. Fix DATA-QUALITY 21 in `run_model` if BF or later is frozen.
 Left by step 0: `reports/model-changes/build_report.py` reads the quarantined
 `history.json`, so it cannot run until a forward-chained one exists; the
 in-sample banner in `reports/model-changes/template.html` comes out then.

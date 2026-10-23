@@ -50,6 +50,19 @@ alternative: one change from what readers have seen since 21 October.
 
 **Blocks.** The freeze, by 31 October. The runs go ahead either way.
 
+**Results, 2026-10-23** (run after this item was written; MODEL-LOG §1.333).
+Reports, one per arm against the current forecast:
+`reports/model-changes/2026-10-23-prefreeze-{BF,A7t,A7,G2,GP}/report.html`.
+
+| arm | ANC largest alone | DA largest alone | what else moves |
+|---|---|---|---|
+| B, the current forecast | 58.1% | 33.8% | |
+| BF, defect fixed | 61.2% | 30.9% | 4 wards PA → DA |
+| A7t, by-election turnout tilt off | 58.4% | 33.5% | nothing measurable |
+| A7, by-elections off | 72.1% | 20.6% | ANC +2 seats, DA −2.5, EFF +2; ANC list vote +0.9 points |
+| G2, γ 2019 → 2021 | 56.7% | 34.9% | 6 wards; no seat median moves by more than 1 |
+| GP, γ pooled | 59.1% | 32.9% | 6 wards; no seat median moves |
+
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
