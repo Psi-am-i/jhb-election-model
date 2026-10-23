@@ -19,9 +19,11 @@ Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
 **Context.** With your 17.6% call withdrawn (item 33), ActionSA's level comes
 from its 2021 list vote (18.1%) times a retention, how much of its first result
-a party keeps at its second local election. The model uses 0.72, the typical
-value for a party of its size, fitted mostly on established parties between
-0.5% and 10%. You commissioned a measurement on second-election parties up to
+a party keeps at its second local election. The model uses 0.72, MEASURED: a
+line fitted to 292 pairs of consecutive local results (59 parties, eight
+metros, 2000–2021), read at ActionSA's 2021 size (`levels.size_centre`). The
+pairs are mostly established parties between 0.5% and 10%, few at their second
+election and none near 18%, and the line hardly depends on size (R² 0.04). You commissioned a measurement on second-election parties up to
 2021 (MODEL-LOG §1.334; `rounds/2026-10-23-out-of-sample/retention/`).
 - **The record splits:** COPE kept about 0.2 and APC about 0.4; UDM about 0.7;
   EFF 0.9–3.0, Al Jama-ah 1.2–1.6 and AIC 1.1 grew. No party was near
@@ -34,7 +36,7 @@ value for a party of its size, fitted mostly on established parties between
   (interpolated, not run).
 
 **Options.**
-1. Keep 0.72, the model's existing rule. No new judgement. The page says
+1. Keep 0.72, the model's existing measured rule. No new judgement. The page says
    ActionSA's level rests on a typical retention and that second-election
    parties have kept from 0.2 to 1.5 of their first result.
 2. Use 0.85, second-election parties' median. A measured value with no better
