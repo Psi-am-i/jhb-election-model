@@ -1286,3 +1286,17 @@ are the IEC's; which VDs sit in a ward is the solver's, not the IEC's list.
 **What would separate the readings.** A per-voting-district registration file
 for 2026 (the IEC publishes none that the repository holds): it would give the
 true part sizes and make the apportionment unnecessary.
+
+## 21. 🔴 Placeholder rows in the fold γ files block real fits (found 2026-10-23)
+
+`fold.py` writes a row for every party, including those it could not fit:
+γ = 1.0 when the party's base citywide share is ≤ 0.001 or the fold never saw
+it, and γ = 0.0 when the party has no target votes (`fold.py:592-605`).
+`run_model` takes any listed party as fitted (`montecarlo.py:6670`), so a
+placeholder row stops it falling through to `gamma_recent.csv`. In the live
+Johannesburg 2026 forecast (fold 1), PA, ALJAMAAH and AIC are drawn at 1.0
+while `gamma_recent.csv` holds real fits for PA (0.5443) and ALJAMAAH (0.8874);
+MINORITY_FRONT and NFP are drawn at 0.0. The per-run note `gamma.default_1.0`
+labels the placeholders "fold1", so it undercounts who took the default.
+Found by the blind pollster review of `prereg/2026-10-23-prefreeze-arms.md`;
+measured as arm BF there. Not yet fixed in code.

@@ -15,6 +15,41 @@ Last updated: 2026-10-23.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
+### 33. How will the frozen forecast be chosen from the pre-freeze arms?
+
+**Context.** You asked for the two untested inputs to be tested before the
+freeze (item 31, answered). The runs are pre-registered in
+`prereg/2026-10-23-prefreeze-arms.md`:
+- **B:** the current forecast.
+- **BF:** B with a defect fixed. Three parties (PA, ALJAMAAH, AIC) are drawn with
+  a ward pattern of 1.0 because placeholder rows in the γ file hide their real
+  fits.
+- **A7t:** the by-election turnout tilt off.
+- **A7:** all by-election terms off.
+- **G2:** γ from 2019→2021.
+- **GP:** γ from both fits pooled.
+
+None of them can be scored, because 2026 has no result. A choice made after
+seeing the numbers can drift toward the outcome someone prefers, so the
+pollster review recommends fixing the rule before anything is read. The
+results come to you in a fixed order, each opening with what is known about
+its input, with the headline chances after.
+
+**Options.**
+1. Freeze B with the defect fixed (BF), and publish the other arms beside it
+   as how far the untested inputs move the forecast.
+2. Freeze on evidence status, decided now:
+   - by-elections stay at ½, measured on 2021 (on scores now withdrawn as in-sample);
+   - γ pooled from both folds, which uses the most data and adds no new judgement;
+   - the defect fixed.
+3. Decide after seeing the reports.
+
+**Recommendation.** Option 2. It is fixed before any result, it uses the most
+evidence for each input, and it fixes the defect. Option 1 is the cautious
+alternative: one change from what readers have seen since 21 October.
+
+**Blocks.** The freeze, by 31 October. The runs go ahead either way.
+
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
