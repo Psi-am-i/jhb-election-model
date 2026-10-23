@@ -21,6 +21,9 @@ What is checked, and how each check is shown to see:
   scanned for file names and internal words; a constructed tooltip carrying
   one is caught, and the clean form is not.
 * **Line 1's six states** (`build_site.tooltip_text`), on constructed changes.
+* **A figure that moved keeps its "Was"** in the edition that moved it and in
+  every later one, through `_ledger_candidates` over a constructed ledger
+  (owner, 2026-10-23; audits/2026-10-23-site-sweep/BRIEF-tooltip-was.md).
 
 Inputs are constructed except where a test says it builds the tree.
 """
@@ -134,9 +137,14 @@ def test_no_sentence_in_the_table_carries_a_technical_word():
 
 def _c(token="home.p_anc_largest", display="35%", movement="material", previous="45%",
        previous_since="2026-10-06T10:00:00Z", since=None):
+    """A change whose prior value is its previous one when the two differ:
+    the ledger holds one earlier run."""
+    moved = previous is not None and previous != display
     return {"token": token, "display": display, "movement": movement,
             "previous": previous, "previous_since": previous_since,
-            "previous_published_at": previous_since, "since": since}
+            "previous_published_at": previous_since, "since": since,
+            "prior": previous if moved else None,
+            "prior_since": previous_since if moved else None}
 
 
 def _tip(c, *, publishing=True, registry=None, by_token=None):
@@ -224,6 +232,91 @@ def test_line_one_frozen_figures():
                           edition="2026-10-21", publishing=True, facts=FACTS,
                           dated_on={"claim_short_by": "2026-08-07"}
                           ).startswith("39 seats on 7 August.\n")
+
+
+# --- "Was" outlives the edition that moved the figure ---------------------------
+
+def _row(token, display, published_at, movement="none", value=None, superseded_at=None):
+    import publication as P
+    return P.Row(token=token, value=display if value is None else value, display=display,
+                 fmt="pct0", source="s", model_run_id="r1", run_at=None, as_of=None,
+                 published_at=published_at, change_class=None, reason=None,
+                 movement=movement, superseded_at=superseded_at)
+
+
+def _editions():
+    """Line 1 of three tooltips in each of three editions built over one
+    constructed ledger, each edition appended before the next is built:
+    ``home.p_anc_largest`` moves 47 -> 58 in edition N (with a rounding row
+    inside the 47 run) and is reprinted unchanged in N+1 and N+2;
+    ``home.p_alone`` never moves; ``tile.p_da_largest`` moves 30 -> 40 in N,
+    and its only 35 is a superseded row, which is not a value the reader was
+    shown as current."""
+    import build_site as B
+    import publication as P
+    ledger = [_row("home.p_anc_largest", "47%", "2026-09-26T00:00:00Z", "new", 0.471),
+              _row("home.p_anc_largest", "47%", "2026-10-06T00:00:00Z", "rounding", 0.468),
+              _row("home.p_alone", "12%", "2026-09-26T00:00:00Z", "new"),
+              _row("home.p_alone", "12%", "2026-10-06T00:00:00Z"),
+              _row("tile.p_da_largest", "30%", "2026-09-26T00:00:00Z", "new"),
+              _row("tile.p_da_largest", "35%", "2026-10-06T00:00:00Z", "material",
+                   superseded_at="2026-10-06T00:00:00Z")]
+    shown = {"home.p_anc_largest": ("58%", 0.58), "home.p_alone": ("12%", 0.12),
+             "tile.p_da_largest": ("40%", 0.40)}
+    ident = {"model_run_id": "r-abc-1234", "run_at": None, "as_of": None}
+    out = []
+    for now in ("2026-10-21T16:46:09Z", "2026-10-22T11:38:25Z", "2026-10-23T03:02:10Z"):
+        occ = [{"token": t, "value": v, "display": d, "fmt": "pct0", "source": "s",
+                "mode": "free", "tolerance": None, "page": "x.html"}
+               for t, (d, v) in shown.items()]
+        rows, changes = B._ledger_candidates(occ, P.latest_of(ledger), ident, now,
+                                             reason="r", change_class="mechanism",
+                                             since=P.run_starts(ledger), history=ledger)
+        by = {c["token"]: c for c in changes}
+        out.append({t: B.tooltip_text(c, by_token=by, registry={}, edition=now[:10],
+                                      publishing=True, facts=FACTS).split("\n")[0]
+                    for t, c in by.items()})
+        ledger = ledger + rows
+    return out
+
+
+def test_a_moved_figure_says_what_it_was_in_its_edition_and_every_later_one():
+    n, n1, n2 = _editions()
+    assert n["home.p_anc_largest"] == "58% chance since 21 October. Was 47% on 26 September.", n
+    for later in (n1, n2):
+        assert later["home.p_anc_largest"] == (
+            "58% chance since 21 October. Was 47% on 26 September."), later
+
+
+def test_a_figure_that_never_moved_has_no_was_clause():
+    for edition in _editions():
+        assert edition["home.p_alone"] == "12% chance since 26 September.", edition
+        assert "Was" not in edition["home.p_alone"]
+
+
+def test_a_superseded_row_is_not_a_prior_value():
+    for edition in _editions():
+        line = edition["tile.p_da_largest"]
+        assert line.endswith(" Was 30% on 26 September."), edition
+        assert "35" not in line, line
+
+
+def test_prior_values_dates_the_run_as_run_starts_did_while_it_was_current():
+    """The date "Was" names is the date `run_starts` returned while that value
+    was current, including across a retirement, which starts a new run."""
+    import publication as P
+    rows = [_row("r", "9", "2026-08-08T00:00:00Z", "new"),
+            _row("r", "9", "2026-09-01T00:00:00Z", superseded_at="2026-09-01T00:00:00Z"),
+            _row("r", "9", "2026-09-26T00:00:00Z", "new")]
+    while_current = P.run_starts(rows)["r"]
+    rows.append(_row("r", "11", "2026-10-21T00:00:00Z", "material"))
+    assert P.prior_values(rows) == {"r": ("9", while_current)}, P.prior_values(rows)
+    assert while_current == "2026-09-26T00:00:00Z"
+    # a value the build is about to show is the current one, not the ledger's
+    assert P.prior_values(rows, {"r": "9"}) == {"r": ("11", "2026-10-21T00:00:00Z")}
+    # a value that returns names the other one, not itself
+    rows.append(_row("r", "9", "2026-10-22T00:00:00Z", "material"))
+    assert P.prior_values(rows) == {"r": ("11", "2026-10-21T00:00:00Z")}
 
 
 # --- end to end: the build ------------------------------------------------------

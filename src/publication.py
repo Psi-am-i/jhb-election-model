@@ -325,6 +325,36 @@ def before_latest_publication(rows: Iterable[Row]) -> tuple[list[Row], Row | Non
     return [r for r in rows if r.published_at < newest.published_at], newest
 
 
+def _runs(rows: Iterable[Row]) -> dict[str, list[dict]]:
+    """Each token's runs, oldest first: ``{"display", "since", "live"}``.
+
+    A run is the unbroken sequence of a token's rows, in publication order,
+    that show the reader the same thing (`normalise_string` of ``display``). A
+    ``rounding`` row continues it: the raw value moved and the glyph did not.
+    A row after a retirement (``superseded_at``) starts a new run, because the
+    figure stopped being current in between. ``since`` is the run's first
+    ``published_at``; ``live`` is whether any of its rows is unsuperseded, and
+    ``display`` is the first such row's (the first row's when none is).
+
+    The one segmentation `run_starts` and `prior_values` both read, so the
+    date a value was "since" while current and the date a later edition says
+    it "was" cannot disagree.
+    """
+    runs: dict[str, list[dict]] = {}
+    last: dict[str, Row] = {}
+    for row in sorted(rows, key=lambda r: r.published_at):
+        prev = last.get(row.token)
+        if (prev is None or prev.superseded_at
+                or normalise_string(prev.display) != normalise_string(row.display)):
+            runs.setdefault(row.token, []).append(
+                {"display": row.display, "since": row.published_at, "live": False})
+        run = runs[row.token][-1]
+        if not row.superseded_at and not run["live"]:
+            run["display"], run["live"] = row.display, True
+        last[row.token] = row
+    return runs
+
+
 def run_starts(rows: Iterable[Row]) -> dict[str, str]:
     """When each token's CURRENT displayed value was first published.
 
@@ -334,23 +364,37 @@ def run_starts(rows: Iterable[Row]) -> dict[str, str]:
     August read "Unchanged since 30 September" — the date it was last
     re-stated, which says nothing about how long it has stood.
 
-    A run is the unbroken sequence of a token's rows, in publication order,
-    that show the reader the same thing (`normalise_string` of ``display``). A
-    ``rounding`` row continues it: the raw value moved and the glyph did not.
-    A row after a retirement (``superseded_at``) starts a new run, because the
-    figure stopped being current in between. Returns ``{token: published_at}``
-    of the first row of each token's last run; the one definition every
-    tooltip date and `changes.json`'s ``since`` reads.
+    Runs are `_runs`. Returns ``{token: published_at}`` of the first row of
+    each token's last run; the one definition every tooltip "since" date and
+    `changes.json`'s ``since`` reads.
     """
-    start: dict[str, str] = {}
-    last: dict[str, Row] = {}
-    for row in sorted(rows, key=lambda r: r.published_at):
-        prev = last.get(row.token)
-        if (prev is None or prev.superseded_at
-                or normalise_string(prev.display) != normalise_string(row.display)):
-            start[row.token] = row.published_at
-        last[row.token] = row
-    return start
+    return {token: r[-1]["since"] for token, r in _runs(rows).items()}
+
+
+def prior_values(rows: Iterable[Row],
+                 current: dict[str, str] | None = None) -> dict[str, tuple[str, str]]:
+    """``{token: (display, since)}``: the last published value of each token
+    that differs from its current one, and when that value first appeared.
+
+    Owner, 2026-10-23 (audits/2026-10-23-site-sweep/BRIEF-tooltip-was.md): a
+    figure that moved keeps saying what it was. The tooltip used to say "Was
+    47% on 26 September" only in the edition that moved it; the next edition,
+    reprinting 58% unchanged, dropped it.
+
+    ``current`` is the display a build is about to show per token (default:
+    each token's latest row). Runs are `_runs`, so ``since`` is the date
+    `run_starts` returned while that value was current. A run made only of
+    superseded rows is not a value a reader was shown as current and is
+    skipped. A token with no earlier distinct value is absent.
+    """
+    out: dict[str, tuple[str, str]] = {}
+    for token, runs in _runs(rows).items():
+        now = normalise_string((current or {}).get(token, runs[-1]["display"]))
+        for run in reversed(runs):
+            if run["live"] and normalise_string(run["display"]) != now:
+                out[token] = (run["display"], run["since"])
+                break
+    return out
 
 
 class Unattributable(ValueError):

@@ -1180,7 +1180,8 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
 def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
                        now: str, *, reason: str | None,
                        change_class: str | None,
-                       since: dict[str, str] | None = None):
+                       since: dict[str, str] | None = None,
+                       history: list | None = None):
     """The rows this build WOULD publish, and the reader-facing diff of them.
 
     ⛔ ONE FUNCTION BUILDS BOTH, DELIBERATELY. The printed report, the
@@ -1205,6 +1206,14 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
     value first appeared) and ``since`` (when the value on the page first
     appeared — the same date when nothing moved, None when this build would
     publish it for the first time).
+
+    ``history`` is the ledger rows ``since`` was computed from. Each change
+    also carries ``prior`` and ``prior_since``: `publication.prior_values`
+    against the display on the page, the last published value that differs
+    from it and when that value first appeared, whether it moved in this
+    build or earlier (None when it never has). ``previous`` is the last
+    published row, which `classify` and the arrows compare against; ``prior``
+    is what the tooltip's "Was" names.
     """
     since = since or {}
     by_token: dict[str, dict] = {}
@@ -1223,6 +1232,8 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
                 f"values means the registry resolved twice and the ledger "
                 f"cannot say which one the reader was shown.")
 
+    priors = publication.prior_values(history or [],
+                                      {n: o["display"] for n, o in by_token.items()})
     rows: list[publication.Row] = []
     changes: list[dict] = []
     for name in sorted(by_token):
@@ -1263,6 +1274,8 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
             "previous_since": None if prev is None else since.get(name),
             "since": (since.get(name) if prev is not None
                       and movement in ("none", "rounding") else None),
+            "prior": priors[name][0] if name in priors else None,
+            "prior_since": priors[name][1] if name in priors else None,
             "fmt": occ.get("fmt"), "source": occ.get("source", ""),
             "mode": occ.get("mode"), "pages": pages[name],
         })
@@ -1313,9 +1326,12 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
 
     Line 1 is the figure as displayed, its unit word, and its history:
 
-    * a LIVE figure, from the ledger: moved (``since`` this edition, ``Was``
-      the last published value on the date that value first appeared),
-      unchanged (since its run's first date), new (since this edition). A
+    * a LIVE figure, from the ledger: moved (``since`` this edition),
+      unchanged (since its run's first date), new (since this edition). One
+      that has ever shown another value then says ``Was`` the last such value
+      (``prior``) on the date that value first appeared (``prior_since``), in
+      the edition that moved it and in every later one (owner, 2026-10-23:
+      audits/2026-10-23-site-sweep/BRIEF-tooltip-was.md). A
       figure typed on the site before it became a token (``on_site``) is dated
       from that day while its value has not changed since it was first
       ledgered: the ledger's first row is not its first publication (owner's
@@ -1388,11 +1404,9 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         if live and live["display"] != c["display"]:
             line += f" {shown(live['display'])} {since_part(live)}."
     else:
-        part = since_part(c)
-        line = f"{shown(c['display'])} {part}."
-        if part == this and c["previous"] is not None:
-            line += (f" Was {bare(c['previous'])} on "
-                     f"{when(c['previous_since'] or c['previous_published_at'])}.")
+        line = f"{shown(c['display'])} {since_part(c)}."
+        if c.get("prior") is not None:
+            line += f" Was {bare(c['prior'])} on {when(c['prior_since'])}."
     return f"{line}\nSOURCE: {who}. {said}"
 
 
@@ -2204,7 +2218,7 @@ def main(argv: list[str] | None = None) -> int:
     rows, changes = _ledger_candidates(published, classified, ident, now,
                                        reason=args.reason,
                                        change_class=args.change_class,
-                                       since=since)
+                                       since=since, history=classified_rows)
     summary = publication.summarise(rows)
     # ⛔ `new` IS NOT A MOVE, and treating it as one writes a lie into a record
     # that cannot be rewritten. `classify` returns "new" for a first
