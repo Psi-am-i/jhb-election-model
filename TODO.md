@@ -98,6 +98,9 @@ instructions throught the project folder as the next plan"). Inventory every
 file and instruction that is legacy, stale or contradicted, including the
 in-sample score originals (`OWNER-DECISIONS-ANSWERED` 32 lists them), and
 propose for each: keep, relabel, move or delete. Owner decides the deletions.
+Known entries so far: `data/processed/fold5_parameters.csv` (no fit_status
+column, cannot be refitted under the default options, its only reader
+`--fit-from 5` now refused; `declares.py --verify` shows it ✗).
 
 **Pre-freeze arms (OWNER-DECISIONS-ANSWERED 31, 2026-10-23).** Johannesburg
 2026, paired with the current forecast: by-election terms off; γ from the
@@ -120,6 +123,15 @@ once on the settled tree, at a time the owner chooses (CPU).
 **ActionSA's level, later** (owner: "we cna deal with that later"). The call
 of 21 October (§SJ2) is withdrawn; whether ActionSA's model-own level needs
 a different treatment is open.
+
+**Site text for the withdrawn ActionSA call** (needed before the freeze UAT;
+site brief under QC.md §4b, owner's approval). `content/joburg/stats.toml`
+`judgement_asa_support` (sources `judgement:joburg-2026:party.ASA.support`,
+which no longer exists) and the `[[audit.fixed]]` 17.6% entry on methodology;
+`content/joburg/model-claims.toml` claim `actionsa-judged-level`; the
+methodology and forecast Limits passages that state 17.6%; the docstring
+example at `src/stats.py:65`. Live text was true when published, so it gets
+a dated "Since then" note, not a correction (publication convention).
 Left by step 0: `reports/model-changes/build_report.py` reads the quarantined
 `history.json`, so it cannot run until a forward-chained one exists; the
 in-sample banner in `reports/model-changes/template.html` comes out then.
