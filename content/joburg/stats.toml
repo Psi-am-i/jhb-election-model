@@ -1664,6 +1664,17 @@ captured = "2026-10-23"
 used_in = "forecast — Limits; methodology — how each party's support moves"
 unverifiable = "a ratio of past IEC results read from the retention record on 2026-10-23; a measurement of the past, not a model output"
 
+# The date the ActionSA call was withdrawn, typed in /methodology's sentence
+# after the dated passage (that passage's own "21" and "23" are cleared by its
+# data-asof). Added 2026-10-24.
+[[audit.fixed]]
+value = "23"
+context = "that judgement was withdrawn on 23 October"
+kind = "history"
+source = "the date the owner withdrew the ActionSA call: JUDGEMENT-CALLS.md §SJ2 ('Withdrawn 2026-10-23'), MODEL-LOG §1.335, OWNER-DECISIONS-ANSWERED 33"
+reviewed = "2026-10-24"
+page = "methodology.html"
+
 # The ANC's middle list-ballot share over the published simulations, for the
 # methodology's seat-law section (it read "a citywide vote in the
 # mid-twenties", typed).
