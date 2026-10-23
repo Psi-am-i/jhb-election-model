@@ -91,6 +91,13 @@ the zille card". Which quarantined files may be deleted is OWNER-DECISIONS 32;
 `~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/remove-originals.sh`
 is held until then.
 Next: step 4 (stop gap), step 5.1 (freeze by 31 October), then steps 1-3.
+
+**Pre-freeze arms (OWNER-DECISIONS-ANSWERED 31, 2026-10-23).** Johannesburg
+2026, paired with the current forecast: by-election terms off; γ from the
+2019→2021 fit; γ from both fits pooled. Pre-register under `prereg/`, run
+outside `data/` with the worker count capped (owner: "please leave some cpu
+available"), one old-vs-new report each in `reports/model-changes/`, then a new
+owner item for what is frozen. Before 31 October.
 Left by step 0: `reports/model-changes/build_report.py` reads the quarantined
 `history.json`, so it cannot run until a forward-chained one exists; the
 in-sample banner in `reports/model-changes/template.html` comes out then.

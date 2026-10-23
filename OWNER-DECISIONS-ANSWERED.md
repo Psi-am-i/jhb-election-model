@@ -5,6 +5,36 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 31. Before the freeze: test two inputs the backtest never checks? — answered 2026-10-23
+
+**Context.** The data audit (`rounds/2026-10-23-out-of-sample/DATA-USE-AUDIT.md`)
+found two inputs of the 2026 forecast that no backtest scores:
+- **By-elections.** Their pull on each party's share, the turnout tilt and the
+  ward-level term act only in Johannesburg 2026.
+- **γ (how much of each party's ward pattern carries over).** The forecast reads
+  the 2014→2016 fit, kept so the 2019→2021 fit stays a validation set; every
+  backtest reads the most recent fit.
+
+**Options.**
+1. Before 31 October, run the forecast with by-elections off, and with γ from
+   2019→2021 and from both pooled, and send you an old-vs-new report for each;
+   you choose what is frozen.
+2. Freeze on the current inputs and state on the page that these two are not
+   tested.
+
+**Recommendation.** Option 1, with option 2's statement whichever is frozen.
+
+**Blocks.** The freeze, by 31 October (`rounds/2026-10-23-out-of-sample/DATA-PLAN.md` §7).
+
+**Your answer.** "test the two inputs."
+
+**Recorded.** Option 1. The three arms (by-elections off; γ from 2019→2021; γ
+from both fits pooled) are pre-registered under `prereg/` and run against the
+current forecast with the same seed and draws, outside `data/`; each gets an
+old-vs-new report in `reports/model-changes/`, and the frozen choice comes back
+to you as a new item. Work in `TODO.md`. Run with the CPU left free for you
+("please leave some cpu available").
+
 ### 30. Tooltips without the previous value: a corrections entry? — answered 2026-10-23
 
 **Context.** Since the 22 October publication, a live figure's tooltip has said

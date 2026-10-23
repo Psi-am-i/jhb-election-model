@@ -39,26 +39,10 @@ match.
 
 **Blocks.** Nothing before the freeze.
 
-### 31. Before the freeze: test two inputs the backtest never checks?
-
-**Context.** The data audit (`rounds/2026-10-23-out-of-sample/DATA-USE-AUDIT.md`)
-found two inputs of the 2026 forecast that no backtest scores:
-- **By-elections.** Their pull on each party's share, the turnout tilt and the
-  ward-level term act only in Johannesburg 2026.
-- **γ (how much of each party's ward pattern carries over).** The forecast reads
-  the 2014→2016 fit, kept so the 2019→2021 fit stays a validation set; every
-  backtest reads the most recent fit.
-
-**Options.**
-1. Before 31 October, run the forecast with by-elections off, and with γ from
-   2019→2021 and from both pooled, and send you an old-vs-new report for each;
-   you choose what is frozen.
-2. Freeze on the current inputs and state on the page that these two are not
-   tested.
-
-**Recommendation.** Option 1, with option 2's statement whichever is frozen.
-
-**Blocks.** The freeze, by 31 October (`rounds/2026-10-23-out-of-sample/DATA-PLAN.md` §7).
+**Partly answered 2026-10-23:** "dont delete anything yet". Nothing is deleted
+and `remove-originals.sh` is not run; the 5,506 originals stay in the project
+and the 5,515 copies stay in quarantine. Which option applies, and when, stays
+open.
 
 ### 21. Outreach: the drafts, the X posts and the X ads
 
