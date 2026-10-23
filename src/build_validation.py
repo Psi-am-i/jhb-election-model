@@ -262,23 +262,14 @@ def largest_miss_sentence(target: str, results: dict) -> str:
             f"{row['forecast']} forecast, {row['actual']} won.")
 
 
-def in_sample_settings(processed: Path = Path("data/processed")) -> int | None:
-    """How many settings history.json's in-sample manifest marks as chosen on
-    data that include the elections scored (its ``in_sample.keys``), or None
-    without that record."""
-    path = Path(processed) / "history.json"
-    if not path.exists():
-        return None
-    keys = (json.loads(path.read_text(encoding="utf-8")).get("manifest", {})
-            .get("in_sample", {}).get("keys") or {})
-    return len(keys) or None
+def markdown(target: str, results: dict) -> str:
+    """The section's Markdown, from the validation record ``results``.
 
-
-def markdown(target: str, results: dict, in_sample_settings: int | None = None) -> str:
-    """The section's Markdown. ``in_sample_settings``: how many of This
-    Model's settings the past-elections record (history.json's in-sample
-    manifest, :func:`in_sample_settings`) marks as chosen on data that include
-    the elections scored; None when that record is absent."""
+    It says "Several" settings were chosen on records that include the
+    elections scored, and gives no count: the validation record holds only
+    each city's in-sample flag, and the one count on disk (history.json's
+    in-sample manifest) is of a different, later run. A count from it would
+    describe a run other than the one scored here (review, 2026-10-23)."""
     import stats
     h = headline(results)
     best = {s: min(r["baselines"].items(), key=lambda kv: kv[1]["crps"])
@@ -431,11 +422,9 @@ def markdown(target: str, results: dict, in_sample_settings: int | None = None) 
             "so.** Two kinds of input could not be confined to the period "
             "before the election:")
         add("")
-        add("* **Settings.** "
-            + (f"{in_sample_settings} of This Model's settings were"
-               if in_sample_settings else "Several of This Model's settings were")
-            + " chosen on records that include the elections scored here, so "
-            "they have seen the results they are tested against.")
+        add("* **Settings.** Several of This Model's settings were chosen on "
+            "records that include the elections scored here, so they have seen "
+            "the results they are tested against.")
         add("* **The census.** Ward-level population-group shares come from the 2022 "
             "census, taken after the 2021 election; it is the only census we "
             "hold. A census records who lives in a ward, not how they voted, "
@@ -561,7 +550,7 @@ def main(argv: list[str] | None = None) -> int:
         out_json.parent.mkdir(parents=True, exist_ok=True)
         out_json.write_text(json.dumps(record, indent=2))
 
-    body = markdown(args.target, results, in_sample_settings())
+    body = markdown(args.target, results)
     # FROM THE RECORD, not from the flags. In --from-json the run being
     # described is the one on disk, and `args.draws` would be whatever the
     # default happens to be — a footer stating the wrong draw count under

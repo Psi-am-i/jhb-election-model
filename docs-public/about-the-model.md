@@ -232,7 +232,7 @@ Two of the three baselines produce a single number rather than a range, so CRPS 
 
 **These are not fully out-of-sample scores, and every run says so.** Two kinds of input could not be confined to the period before the election:
 
-* **Settings.** 8 of This Model's settings were chosen on records that include the elections scored here, so they have seen the results they are tested against.
+* **Settings.** Several of This Model's settings were chosen on records that include the elections scored here, so they have seen the results they are tested against.
 * **The census.** Ward-level population-group shares come from the 2022 census, taken after the 2021 election; it is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result. It is still information from after the fact, and is declared as such.
 
 **How much a breakaway party takes was a leak until 14 August 2026.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows depends mostly on whether that figure's support is in *this* city. Before 2021 the record held two such splits measured in the leader's own city: GOOD in Cape Town and the NFP in eThekwini. This Model used to add splits from after 2021, including MK's three years later, which flattered these scores. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg's figure is worse for it.

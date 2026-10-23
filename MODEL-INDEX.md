@@ -129,6 +129,7 @@ arithmetic test can see.
 | `ward_winners` | `backtest`, `validate_seats` | `?` | yes |
 | `write` | `areas`, `bye_value`, `site_assets`, `site_text`, `width_record` | `?` | yes |
 | `write_assets` | `build_leaderboard`, `build_your_forecast` | `?` | yes |
+| `wrong_party_seats` | `arms`, `stats` | `?` | yes |
 
 ### 1.3 One value, typed under two names
 

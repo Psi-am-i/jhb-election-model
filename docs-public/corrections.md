@@ -10,9 +10,9 @@ This page lists errors on published pages. Nothing is removed from it.
 
 ## <span data-asof="2026-10-23">"which adds a ward to Soweto"</span> — published 21 October 2026, corrected 23 October 2026
 
-<span data-asof="2026-10-23">**What was wrong.** The card on Herman Mashaba's Soweto claim said the IEC's September roll adds a ward to Soweto. No ward was added: ward 29 crossed this site's rule for a Soweto ward once each voting district was placed wholly in one ward.
+<span data-asof="2026-10-23">**What was wrong.** The card on Herman Mashaba's Soweto claim said the IEC's September roll adds a ward to Soweto. No ward was added: ward 29 crossed this site's rule for a Soweto ward once this site placed each voting district wholly in one ward.
 
-**What is right.** A dated note on the card says so.</span>
+**What is right.** The card says the forecast reads the IEC's September roll and that this site counts that many wards as Soweto, and a dated note on it says why ward 29 now counts.</span>
 
 ## <span data-asof="2026-10-23">"checked against a full re-run of the model, and every party's seat change agreed within sampling error"</span> — published 21 October 2026, corrected 23 October 2026
 

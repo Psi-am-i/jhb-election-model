@@ -579,7 +579,7 @@ def published_list_share_median(party: str, ctx: dict):
     return float(_np.median(shares[:, cols.index(party)]))
 
 
-
+def wrong_party_seats(summed_abs_error) -> int:
     """Seats given to the wrong party: half the summed absolute seat error,
     which counts every misplaced seat twice, once where it went and once where
     it should have gone (owner, 2026-10-10: "if 43 seats are the wrong party
