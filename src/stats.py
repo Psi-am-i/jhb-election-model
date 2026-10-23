@@ -62,7 +62,7 @@ Source grammar:
   both print.
 * ``judgement:<city>-<target>:<dotted path>`` — into that city-year's
   judgements file (``judgements/<city>-<target>.toml``), the values the owner
-  set by hand and the run applied (``judgement:joburg-2026:party.ASA.support``).
+  set by hand and the run applied (``judgement:joburg-2026:party.MK.parent_weight``).
   A judgement call is written once, there; a page quoting it reads it from
   there (:func:`judgement_value`).
 * ``run:<description>`` / ``external:<description>`` — never auto-resolved;

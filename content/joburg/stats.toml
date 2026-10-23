@@ -931,7 +931,7 @@ page = "index.html, forecast.html, nobody-will-win.html"
 
 [[audit.fixed]]
 value = "8"
-context = "The ANC is now ahead for largest party, where on 8 August the DA led clearly:"  # re-keyed 2026-10-16: wording (owner-approved draft for UAT)
+context = "The race for largest party is now close, where on 8 August the DA led clearly:"  # re-keyed 2026-10-24: wording (owner-approved brief, audits/2026-10-23-freeze/BRIEF-site-text.md §1)
 kind = "history"
 source = "the date of the published edition this piece is compared against (the 8 August deploy; /corrections, 27 September)"
 reviewed = "2026-10-02"
@@ -1612,14 +1612,6 @@ reviewed = "2026-10-02"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "17.6%"
-context = "instead, at 17.6% of the"
-kind = "judgement"
-source = "JUDGEMENT-CALLS.md §SJ2 (the owner's call of 2026-10-21, judgements/joburg-2026.toml support = 0.176)"
-reviewed = "2026-10-21"
-page = "methodology.html"
-
-[[audit.fixed]]
 value = "50%"
 context = "recommended 50%"
 kind = "judgement"
@@ -1642,15 +1634,35 @@ page = "methodology.html"
 # added 2026-10-23 (site sweep, brief 1)
 # ---------------------------------------------------------------------------
 
-# ActionSA's expected share, the owner's judgement call (JUDGEMENT-CALLS.md
-# §SJ2), read from the judgements file where it is set, so the forecast page's
-# Limits cannot drift from it.
-[judgement_asa_support]
-mode = "free"
-source = "judgement:joburg-2026:party.ASA.support"
+# `judgement_asa_support` (the owner's ActionSA call, read from the judgements
+# file) was retired 2026-10-24: the call was withdrawn on 2026-10-23
+# (JUDGEMENT-CALLS.md §SJ2, MODEL-LOG §1.335), so its source no longer exists.
+# The figure survives only as history, `pub1021_asa_support` below
+# (audits/2026-10-23-freeze/BRIEF-site-text.md §4).
+
+# ActionSA's level as the owner set it from 21 to 23 October 2026, quoted as
+# history on the forecast page's Limits and on /methodology.
+[pub1021_asa_support]
+mode = "fixed"
+value = 0.176
 format = "pct1"
-inserted = "2026-10-23"
-used_in = "forecast — Limits"
+source = "external:JUDGEMENT-CALLS.md §SJ2, the owner's call of 2026-10-21 (judgements/joburg-2026.toml [party.ASA] support = 0.176), withdrawn 2026-10-23"
+captured = "2026-10-21"
+used_in = "forecast — Limits; methodology — how each party's support moves"
+unverifiable = "a judgement call that has been withdrawn; nothing in the model produces it"
+historical = "the owner's call, applied 21 October 2026 and withdrawn 23 October 2026; kept as history, and the prose must date it"
+
+# What COPE kept of its first local-election list share (2011) at its second
+# (2016), pooled across the eight metros: 3.34 / 16.50 = 0.20. A count of past
+# IEC results, so fixed; the words are the figure.
+[record_cope_second_lge_kept]
+mode = "fixed"
+value = "a fifth"
+format = "raw"
+source = "external:rounds/2026-10-23-out-of-sample/retention/SPEC.md, the retention table's COPE row (2011→16, eight metros, list ballot) and the r-table's '0.20 (COPE)'; MODEL-LOG §1.334"
+captured = "2026-10-23"
+used_in = "forecast — Limits; methodology — how each party's support moves"
+unverifiable = "a ratio of past IEC results read from the retention record on 2026-10-23; a measurement of the past, not a model output"
 
 # The ANC's middle list-ballot share over the published simulations, for the
 # methodology's seat-law section (it read "a citywide vote in the

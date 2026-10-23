@@ -196,13 +196,9 @@ text = "When parties merge and only one is on the ballot it inherits a share of 
 symbol = "pools.apply_mergers"
 state = "live"
 
-[[claim]]
-id = "actionsa-judged-level"
-page = "docs-public/methodology.md"
-text = "ActionSA is set at 17.6% of the list vote; every other party's share is scaled down in proportion, and ActionSA keeps the model's usual uncertainty for a party of that size."
-symbol = "montecarlo._apply_strength_judgements"
-state = "live"
-note = "Owner's call 2026-10-21, judgements/joburg-2026.toml [party.ASA] support 0.176, sigma_j 0 (JUDGEMENT-CALLS §SJ2, MODEL-LOG §1.330)."
+# `actionsa-judged-level` retired 2026-10-24: the owner's 17.6% call was
+# withdrawn on 2026-10-23 (JUDGEMENT-CALLS §SJ2, MODEL-LOG §1.335) and the page
+# now states it only as history (audits/2026-10-23-freeze/BRIEF-site-text.md §4).
 
 [[claim]]
 id = "starting-level-blends-local-and-national"

@@ -110,14 +110,14 @@ Two things are drawn:
   ActionSA polled {{hist_asa_pr_2021}} in this city's 2021 local election and
   {{hist_asa_npe_2024}} in the city in the 2024 national election. It has no
   national-to-local gap on record, so its starting level comes from its local
-  result alone. In this forecast its level is set by our judgement instead, at
-  17.6% of the list vote: This Model carries the 2021 result forward at the
-  share a typical party of its size keeps between local elections, and its
-  by-elections lift it part of the way back; we judge that ActionSA keeps more
-  of that vote than This Model does. Every other party's share is scaled down in proportion so
-  the shares still add up, and ActionSA keeps This Model's usual uncertainty
-  for a party of that size. It cannot be changed on [your
-  forecast](your-forecast/).
+  result alone. This Model carries the 2021 result forward at the share a
+  typical party of its size keeps between local elections, and its
+  by-elections lift it part of the way back. Of the parties on record at their
+  second local election, COPE kept about {{record_cope_second_lge_kept}} of its
+  first result and the EFF grew. The record does not say which ActionSA will
+  be. <span data-asof="2026-10-21">From 21 to 23 October ActionSA's level was set
+  by our judgement at {{pub1021_asa_support}}</span>; that judgement was
+  withdrawn on 23 October.
 - **Turnout, per pool.** It is drawn from what turnout has done in that city
   before. Turnout fell in every group in
   2021, so the range allows falls as well as rises.
