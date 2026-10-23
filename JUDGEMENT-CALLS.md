@@ -125,6 +125,7 @@ promotion note in §F.
 | `extrapolation_damping` | 0.6 | `config/dimensions.toml` | **AMENDED 2026-09-24 (register audit).** 0.6. One other copy in `pools.py`, not a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key). The third, a default argument of a function deleted 2026-10-17 (§1.321), is gone. The value acts only when a second census is configured, and none is. | 🔴 | §H8 |
 | `extrapolation_max_years` / `max_extrapolation` | 8 / 8.0 | `dimensions.toml`, `pools.Config` | 8 / 8.0 — two copies of one number, one in TOML and one as a dataclass field. | 🔴 | §H9 |
 | `FRESHNESS_GRACE_S` | — | `stats.py`, `freshness_problems` | Typed at 300s. ARGUED, NOT TESTED — the harness cannot score a publishing guard; the strong half of the check catches the 16-day defect with no window at all. | 🟡 | §D16 |
+| `FIT_MIN_BASE_SHARE` | 0.001 | `fold.py` (`main`, `fit_status`) | The base citywide share at or below which a fold writes γ = 1.0 without fitting. Named 2026-10-23; the literal was in `fold.main` before. A row it skips still reaches the forecast as a fitted γ of 1.0 and blocks `gamma_recent` (DATA-QUALITY 21). Typed, never swept. | 🔴 | §V1 |
 | `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast. | 🔴 | §H6 |
 | `GRID_MARGIN_CELLS` | — | `hex_cartogram.py` | Typed at 2 and purely operational: the Johannesburg optimum uses no cell in the outermost ring. | 🟢 | §D18 |
 | `kappa_bye` | 0.25 | `turnout.py --kappa-bye` | 0.25. Same provenance and the same artefact problem as `w_recency`. | 🔴 | §H3 |
@@ -5045,6 +5046,28 @@ above), so the rule says nothing about them; their slates are listed as
 `independents` in the run's `_ballot_report`.
 
 **How to check it.** `tests/test_ward_contest_rule.py`.
+
+## V. Added 2026-10-23 — which fold rows are fits
+
+### §V1 · `FIT_MIN_BASE_SHARE` — 0.001 — 🔴 typed, never swept
+
+**Where.** `fold.py`: `main`'s γ loop (a party at or below it gets γ = 1.0,
+unfitted) and `fit_status` (which names that row a placeholder,
+`base share <= 0.001`).
+
+**Now.** 0.001 of the base election's citywide vote. Below it the regression
+has too few votes per VD to fit a slope, which is the argument; the value was
+typed, not measured. It was an unnamed literal in `fold.main` until
+2026-10-23, when `fit_status` needed the same threshold and the two were made
+one constant. Number-neutral: the fold files refit byte-identical.
+
+**What it reaches.** `run_model` reads any fold row as a fitted γ, so a party
+under the threshold is drawn at 1.0 and never reaches `gamma_recent.csv`
+(DATA-QUALITY 21; prereg `2026-10-23-prefreeze-arms.md`, amendment, arm BF).
+
+**How to check it.** Refit the folds at other thresholds (`fold.py --out`
+writes beside the canonical file) and compare the parties that cross it; no
+backtest scores the 2026 γ.
 
 ## Appendix — how this register has failed before
 

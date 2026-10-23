@@ -608,6 +608,25 @@ shrinks it is `level_floor` itself, which has a range and therefore faces the
 full bar. **At 1.3e-05 against a seat ~300× larger, it is a mechanism to know
 about, not a defect costing seats.**
 
+**Not every fold row is a fit.** `fold.py` writes a γ for every party in a
+fold's universe, and two kinds of row are placeholders: γ = 1.0 where the base
+citywide share is ≤ 0.001 (`FIT_MIN_BASE_SHARE`), and γ = 0.0 where the target
+has no votes for the party (every y is zero). `fold.fit_status` names which
+rows those are (`fitted`, `base share <= 0.001`, `no target votes`, `unseen`).
+`run_model` reads any row present as fitted (`if p in params[ballot]["gamma"]`),
+so a placeholder row blocks `gamma_recent.csv` for that party.
+
+**Pooled γ (`fold.py --pool 1,2 --out DIR`).** `fit_gamma` is `gamma_sums`
+(Σwxy, Σwx², n) divided by `gamma_from_sums`. The pooled fit adds each fold's
+sums, per ballot and party, over the folds whose row is a real fit, and divides
+once: the through-origin fit over every fold's VD rows together, not the mean
+of the folds' γs. Each fold is prepared as its own default fit (`fold_inputs`,
+`fold_target`, the same functions `main` fits through). It writes
+`gamma_pooled_fold1-2.csv` with the folds that contributed and each fold's
+`fit_status`; nothing in the forecast reads it. `--fold N --out DIR` writes
+the ordinary fit into DIR so it can be compared with the canonical file;
+`--out` under `data/` is refused.
+
 **Known:** `fit_gamma` is a no-intercept OLS of noisy y on noisy x — regression
 dilution, monotone in party size (COPE 0.17 PR / 0.074 Ward against ANC 1.03).
 γ carries no uncertainty into the draws. `calibrate_theta` returns 0.0000 for

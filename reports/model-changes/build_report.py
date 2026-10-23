@@ -13,7 +13,9 @@ Inputs. The two forecasts are arm runs with their arrays saved
 write them), same draws and seed. The two backtests are ``history.json``
 files from ``src/compare_history.py``, same draws and seed; the old one is
 usually the tracked file at the commit before the round, given as
-``REV:path``.
+``REV:path``. Give both histories or neither: with neither (a round whose
+inputs no backtest tests), no ``history.json`` is read, ``backtest.json`` is
+``null`` and the backtest panel says only ``NO_BACKTEST``.
 
     .venv/bin/python reports/model-changes/build_report.py \\
         --old-arm data/arms/step11/A/joburg-2026 \\
@@ -23,6 +25,10 @@ usually the tracked file at the commit before the round, given as
         --round reports/model-changes/2026-10-14
 
 Reads only; writes only into ``--round``.
+
+Per party the forecast carries mean seats (``seats``), median seats
+(``median``), the 5-95% range, list share, wards won, the largest-party chance
+(ties split evenly among the tied) and the majority chance.
 """
 import argparse
 import json
@@ -33,6 +39,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
+NO_BACKTEST = "No backtest: neither input is tested by any backtest."
 PARTIES = ["ANC", "DA", "EFF", "ASA", "MK", "PA", "IFP", "ACDP", "VFPLUS",
            "RISE", "ALJAMAAH"]
 
@@ -58,6 +65,7 @@ def forecast(arms, council):
             s = sd[:, i]
             out["parties"].setdefault(p, {})[name] = {
                 "seats": round(float(s.mean()), 1),
+                "median": float(np.median(s)),
                 "lo": int(np.percentile(s, 5)),
                 "hi": int(np.percentile(s, 95)),
                 "vote": round(100 * float(pr[:, i].mean()), 1),
@@ -102,21 +110,25 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--old-arm", required=True)
     ap.add_argument("--new-arm", required=True)
-    ap.add_argument("--old-history", required=True)
-    ap.add_argument("--new-history", required=True)
+    ap.add_argument("--old-history", default=None)
+    ap.add_argument("--new-history", default=None)
     ap.add_argument("--round", required=True, type=Path)
     ap.add_argument("--council", type=int, default=270)
     ap.add_argument("--map", default=str(ROOT / "data/processed/ward_paths.json"))
     a = ap.parse_args()
+    if (a.old_history is None) != (a.new_history is None):
+        ap.error("give both --old-history and --new-history, or neither")
 
     f = forecast({"old": load_arm(a.old_arm), "new": load_arm(a.new_arm)}, a.council)
-    b = backtest(read_history(a.old_history), read_history(a.new_history))
+    b = (None if a.old_history is None
+         else backtest(read_history(a.old_history), read_history(a.new_history)))
     (a.round / "f2026.json").write_text(json.dumps(f))
     (a.round / "backtest.json").write_text(json.dumps(b))
     page = (HERE / "template.html").read_text()
     for k, v in {"__LEDE__": (a.round / "lede.html").read_text(),
                  "__WHY__": (a.round / "why.html").read_text(),
                  "__F2026__": json.dumps(f), "__BACKTEST__": json.dumps(b),
+                 "__NO_BACKTEST__": json.dumps(NO_BACKTEST),
                  "__MAP__": Path(a.map).read_text()}.items():
         page = page.replace(k, v)
     (a.round / "report.html").write_text(page)
