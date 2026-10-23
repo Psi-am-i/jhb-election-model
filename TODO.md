@@ -117,6 +117,9 @@ placeholder fix and the ActionSA call withdrawn, Johannesburg 2026 only.
 Pre-registration `prereg/2026-10-23-freeze-settings.md`. Sequence: writer
 (code and tests) → review → `backup_ignored.py` → `inputs_preflight --strict`
 → fold files and pooled file → `width_record.py --emit` → canonical run →
+`overhang_regimes.py` → `freeze.py` → `export_draws.py` (three cells, `--index`)
+→ `citywide_table.py --city joburg --target 2026` → `render_map.py` and
+`hex_cartogram.py` (the build refuses maps from an older run) →
 old-vs-new report → UAT → owner's yes → freeze hash by 31 October. Whole suite
 once on the settled tree, at a time the owner chooses (CPU).
 
