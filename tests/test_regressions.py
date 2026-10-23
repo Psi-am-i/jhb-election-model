@@ -628,7 +628,6 @@ def test_no_top_level_function_is_defined_and_never_used():
 #
 #   pools.constrain_pool_turnout — a `:func:` docstring reference and a `# NOTE:`
 #                               comment, both inside pools.py itself.
-#   stats.dated_spans         — one docstring in tests/test_published_page.py.
 #
 # They are NOT in `ALLOWED` above, because ALLOWED excuses a function from the
 # text-regex guard and these are not excused — they are recorded, with the
@@ -636,7 +635,6 @@ def test_no_top_level_function_is_defined_and_never_used():
 # this worker's to change.
 PROSE_ONLY_REFERENCES = {
     "constrain_pool_turnout": "pools.py — its own docstring and a # NOTE",
-    "dated_spans": "stats.py — one docstring in tests/test_published_page.py",
 }
 
 
@@ -655,11 +653,11 @@ def test_no_public_function_is_kept_alive_only_by_prose():
     That is the failure CLAUDE.md calls the worst-record class: the scan was
     healthy, the detector worked, and it found nothing **in the wrong set**.
 
-    The four are recorded in `PROSE_ONLY_REFERENCES` rather than fixed, because
+    They are recorded in `PROSE_ONLY_REFERENCES` rather than fixed, because
     `src/` is not this test's to edit — and the record is checked BOTH ways, so
-    the list cannot rot in either direction: a fifth is a failure, and a fourth
-    that acquires a caller is also a failure, which is what makes the entry
-    disappear when the defect does.
+    the list cannot rot in either direction: a new prose-only function is a
+    failure, and a recorded one that acquires a caller is also a failure, which
+    is what makes the entry disappear when the defect does.
     """
     import collections
     refs: collections.Counter = collections.Counter()
