@@ -165,8 +165,10 @@ lists its views.
 
 ## 7. Order, and what the frozen forecast carries
 
-**The 2026 forecast frozen by 31 October carries A2, A3, A5 and A7 as they are;
-A1 and A11 do not reach it** (A11 measured). Readers see the list of inputs the
+**The 2026 forecast frozen by 31 October carries A2, A3 and A7 as they are, and
+A5 as the owner chose on 2026-10-23: γ from folds 1 and 2 pooled, with the
+fold files' placeholder rows no longer read (OWNER-DECISIONS-ANSWERED 33,
+DATA-QUALITY 21). A1 and A11 do not reach it** (A11 measured). Readers see the list of inputs the
 forecast reads, and `inputs_preflight --strict`'s output, beside the hash.
 
 | When | Work |

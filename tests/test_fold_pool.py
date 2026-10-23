@@ -255,12 +255,17 @@ def test_the_arms_rule_on_parties_fitted_in_both_one_and_neither():
 
 def test_the_arms_patch_reaches_run_model():
     """The γ switch replaces ``montecarlo.load_parameters`` in process. That
-    reaches ``run_model`` only because ``run_model`` looks the name up as a
-    module global; and the substitute must be handed out for the fold-1 file
-    only, as a copy, and be removed afterwards."""
+    reaches ``run_model`` only because the γ chain looks the name up as a
+    module global (since 2026-10-23 inside ``resolve_gamma``, which
+    ``run_model`` calls); and the substitute must be handed out for the
+    fold-1 file only, as a copy, and be removed afterwards. Since the same
+    date Johannesburg 2026 reads the pooled file, not fold 1
+    (``montecarlo.GAMMA_POOL``), so the driver's arms reproduce on 261b29f
+    only; this tests the patch, not the arms."""
     import montecarlo as M
     D = _driver()
-    assert "load_parameters" in M.run_model.__code__.co_names
+    assert "resolve_gamma" in M.run_model.__code__.co_names
+    assert "load_parameters" in M.resolve_gamma.__code__.co_names
     params = {"PR": {"theta": {}, "theta_raw": {}, "gamma": {"X": 0.5}}}
     counter: dict = {}
     original = M.load_parameters

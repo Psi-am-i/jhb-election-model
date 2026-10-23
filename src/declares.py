@@ -209,6 +209,16 @@ KINDS: dict[str, Kind] = {
         "BRIEF items 12 and 19 — the group-share tripwire's thresholds and "
         "the by-election class weights come from precomputed records, which "
         "must name the code they were built by"),
+    # A fitted γ table a run reads: every `fold<N>_parameters*.csv` and every
+    # `gamma_pooled_fold*.csv`. DATA-QUALITY 21: fold files wrote placeholder
+    # γ rows (1.0, 0.0) that the forecast read as fits. Each row now carries
+    # `fit_status`; `fold.load_parameters` refuses a file without it, and a
+    # pooled file's per-fold statuses must agree with the fold files beside it.
+    "fit": Kind(
+        "fit", ("fit_status",),
+        "DATA-QUALITY 21 — placeholder γ rows indistinguishable from fits "
+        "blocked gamma_recent in the forecast; the status column is what says "
+        "which rows are real"),
 }
 
 
@@ -268,7 +278,8 @@ class CannotAudit(SystemExit):
 #: The order `report` prints the kinds in. It must name every kind in `KINDS`:
 #: until 2026-09-28 it was a literal inside `report`, and a fifth kind added to
 #: `KINDS` was counted in the headline and never printed.
-REPORT_ORDER = ("scoreboard", "run", "spec", "reduction", "record", "intermediate")
+REPORT_ORDER = ("scoreboard", "run", "spec", "reduction", "record", "fit",
+                "intermediate")
 if set(REPORT_ORDER) != set(KINDS):
     raise CannotAudit(f"REPORT_ORDER {sorted(REPORT_ORDER)} does not name every "
                       f"kind in KINDS {sorted(KINDS)}")
@@ -863,6 +874,82 @@ def _record_rows(processed: Path) -> list[Row]:
     return rows
 
 
+def _fit_status_column(path: Path) -> dict[tuple[str, str], str] | None:
+    """``{(ballot, party): fit_status}`` of a fold parameters file, or None
+    when it has no ``fit_status`` column. Read as CSV, not through
+    ``fold.load_parameters``, which refuses such a file."""
+    import csv
+    with path.open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        if "fit_status" not in (reader.fieldnames or []):
+            return None
+        return {(r["ballot"], r["party"]): r["fit_status"] for r in reader}
+
+
+def _fit_rows(processed: Path) -> list[Row]:
+    """The fitted γ tables (DATA-QUALITY 21).
+
+    A fold file: ``✓`` with a ``fit_status`` column, ``✗`` without (it is
+    refused by ``fold.load_parameters``; refit with ``fold.py --fold N``).
+    A pooled file (``fold.py --pool``): ``✓`` when, for every fold it names,
+    each party's status equals that fold file's ``fit_status`` (a party the
+    fold file lacks must read ``unseen``); ``~`` when any differs, which means
+    the pooled fit and the fold files describe different fits; ``✗`` when a
+    named fold file is absent or has no status column, so nothing can be
+    checked."""
+    import csv
+    import re
+    try:
+        import fold as _fold
+    except Exception as exc:  # the audit must say it could not look
+        raise CannotAudit(f"cannot import fold: {exc}") from exc
+    rows = []
+    for p in sorted(processed.rglob("fold*_parameters*.csv")):
+        r = Row(_display(p), "fit")
+        if _fit_status_column(p) is None:
+            r.states["fit_status"] = UNDECLARED
+            r.notes.append("no fit_status column: fold.load_parameters refuses "
+                           "it; refit with src/fold.py --fold N")
+        else:
+            r.states["fit_status"] = DECLARED
+        rows.append(r)
+    for p in sorted(processed.rglob("gamma_pooled_fold*.csv")):
+        r = Row(_display(p), "fit")
+        m = re.fullmatch(r"gamma_pooled_fold([\d-]+)\.csv", p.name)
+        folds = [int(f) for f in m.group(1).split("-")] if m else []
+        with p.open(encoding="utf-8", newline="") as fh:
+            pooled = list(csv.DictReader(fh))
+        missing, differ = [], []
+        for n in folds:
+            beside = p.parent / f"fold{n}_parameters.csv"
+            have = _fit_status_column(beside) if beside.exists() else None
+            if have is None:
+                missing.append(beside.name)
+                continue
+            for row in pooled:
+                want = have.get((row["ballot"], row["party"]),
+                                _fold.UNFITTED_UNSEEN)
+                if row.get(f"fold{n}") != want:
+                    differ.append(f"fold{n} {row['ballot']} {row['party']}: "
+                                  f"pooled {row.get(f'fold{n}')!r}, fold file "
+                                  f"{want!r}")
+        if not folds or missing:
+            r.states["fit_status"] = UNDECLARED
+            r.notes.append("cannot check against "
+                           + (", ".join(missing) or "any fold (no folds in "
+                              "the name)")
+                           + ": absent or without fit_status")
+        elif differ:
+            r.states["fit_status"] = LYING
+            r.notes.append(f"{len(differ)} status(es) disagree with the fold "
+                           f"files, e.g. {differ[0]} — rebuild with src/fold.py "
+                           f"--pool {','.join(str(f) for f in folds)}")
+        else:
+            r.states["fit_status"] = DECLARED
+        rows.append(r)
+    return rows
+
+
 def audit(processed: Path | None = None) -> list[Row]:
     root = _processed_root(processed)
     live_sha = _live_pools_sha()
@@ -870,7 +957,7 @@ def audit(processed: Path | None = None) -> list[Row]:
     live_keys = {live_sha} if live_sha else set()
     manifests = [root] if processed is not None else [root, SITE_DRAWS]
     return (spec + _json_rows(live_keys, root, manifests) + _reduction_rows(root)
-            + _record_rows(root) + _intermediate_rows(root))
+            + _record_rows(root) + _fit_rows(root) + _intermediate_rows(root))
 
 
 def report(rows: list[Row]) -> str:

@@ -29,13 +29,21 @@ Usage:
     python src/fold.py --fold 1        # 2014 NPE -> 2016 LGE
     python src/fold.py --fold 2        # 2019 NPE -> 2021 LGE
     python src/fold.py --fold 1 --out DIR      # the same fit, written into DIR
-    python src/fold.py --pool 1,2 --out DIR    # γ over folds 1 and 2 together
+    python src/fold.py --pool 1,2              # γ over folds 1 and 2 together
+    python src/fold.py --pool 1,2 --out DIR    # the same, written into DIR
 
 ``--out DIR`` writes the parameters file into DIR (refused under ``data/``)
 instead of the city's processed directory, so a refit can be compared with
 the canonical file without replacing it.
 
-``--pool 1,2 --out DIR`` fits γ, per ballot and party, over the folds' VD rows
+Every parameters file carries a ``fit_status`` column, per row
+(``fit_status``: ``fitted``, or why the row is a placeholder), and
+``load_parameters`` reads γ only from ``fitted`` rows and refuses a file
+without the column (DATA-QUALITY 21). For a ``--fit-from`` run the status is
+the source fold's: the γ in that row is the source's, or the 1.0 default
+where the source has no fitted row.
+
+``--pool 1,2`` fits γ, per ballot and party, over the folds' VD rows
 together: γ = (Σ w·x·y summed over every fold) ÷ (Σ w·x² summed over every
 fold), the same through-origin weighted fit as ``fit_gamma`` (``gamma_sums``,
 ``gamma_from_sums``), not the mean of the folds' γs. Each fold is prepared as
@@ -47,6 +55,9 @@ for the party (written as 0.0), or the fold never saw it. It writes
 party), the two sums, the VD count, ``contributing`` (the folds that fitted it)
 and one ``fold<N>`` column per fold with that fold's ``fit_status``. No θ.
 It takes no other option: the pooled fit is defined on each fold's defaults.
+Without ``--out`` it writes into the city's processed directory, where
+``montecarlo`` reads it for a target ``montecarlo.GAMMA_POOL`` names
+(Johannesburg 2026: folds 1 and 2).
 """
 
 from __future__ import annotations
@@ -366,16 +377,37 @@ def calibrate_theta(
 
 
 def load_parameters(path: Path) -> dict[str, dict[str, dict[str, float]]]:
-    """Read a fold's fitted parameters back in, for out-of-sample transfer."""
-    out: defaultdict[str, dict[str, dict[str, float]]] = defaultdict(
-        lambda: {"theta": {}, "theta_raw": {}, "gamma": {}}
+    """Read a fold's fitted parameters back in, for out-of-sample transfer.
+
+    ``{ballot: {"theta", "theta_raw", "gamma", "status"}}``. ``gamma`` holds
+    only the rows whose ``fit_status`` is ``FITTED``: a placeholder γ (1.0 for
+    a base share <= ``FIT_MIN_BASE_SHARE``, 0.0 for no target votes) is not a
+    fit, and a reader that took it would stop the party falling through to
+    ``gamma_recent`` and then 1.0 (DATA-QUALITY 21). θ is read for every row,
+    because θ is calibrated for every party, placeholders included.
+    ``status`` maps every party in the file to its ``fit_status``.
+
+    REFUSES (SystemExit) a file without the ``fit_status`` column: such a file
+    cannot say which γ rows are placeholders, so reading it would reproduce
+    the defect."""
+    out: defaultdict[str, dict[str, dict]] = defaultdict(
+        lambda: {"theta": {}, "theta_raw": {}, "gamma": {}, "status": {}}
     )
-    with path.open(encoding="utf-8", newline="") as handle:
-        for row in csv.DictReader(handle):
-            ballot = row["ballot"]
-            out[ballot]["theta"][row["party"]] = float(row["theta_calibrated"])
-            out[ballot]["theta_raw"][row["party"]] = float(row["theta_raw"])
-            out[ballot]["gamma"][row["party"]] = float(row["gamma"])
+    with Path(path).open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if "fit_status" not in (reader.fieldnames or []):
+            raise SystemExit(
+                f"{path} has no fit_status column, so its placeholder γ rows "
+                f"cannot be told from fitted ones (DATA-QUALITY 21). Refit it: "
+                f"`.venv/bin/python src/fold.py --fold <N> --city <city>` "
+                f"writes the column (POOLS-REEMIT-QUEUE.md: a re-emit window).")
+        for row in reader:
+            ballot, party = row["ballot"], row["party"]
+            out[ballot]["theta"][party] = float(row["theta_calibrated"])
+            out[ballot]["theta_raw"][party] = float(row["theta_raw"])
+            out[ballot]["status"][party] = row["fit_status"]
+            if row["fit_status"] == FITTED:
+                out[ballot]["gamma"][party] = float(row["gamma"])
     return dict(out)
 
 
@@ -598,8 +630,6 @@ def refuse_data_out(out_dir: Path) -> None:
 def write_pooled(args) -> int:
     """``--pool``: write ``pooled_gamma`` as CSV into ``--out``."""
     folds = [int(f) for f in args.pool.split(",")]
-    if args.out is None:
-        raise SystemExit("--pool needs --out DIR")
     unknown = [f for f in folds if f not in FOLDS]
     if unknown or len(set(folds)) != len(folds):
         raise SystemExit(f"--pool {args.pool}: folds must be distinct, from "
@@ -609,9 +639,11 @@ def write_pooled(args) -> int:
         raise SystemExit("--pool fits each fold's DEFAULT fit; it takes no "
                          "--fit-from, --entrant, --turnout, --stability or "
                          "--w-split")
-    refuse_data_out(args.out)
+    if args.out is not None:
+        refuse_data_out(args.out)
+    out_dir = args.out if args.out is not None else cityconfig.active().processed
     pooled = pooled_gamma(folds, args.data_dir)
-    path = pooled_path(args.out, folds)
+    path = pooled_path(out_dir, folds)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -696,7 +728,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--pool", default=None, metavar="N,M",
         help="fit γ over these folds together (default fit of each) and write "
-             "gamma_pooled_foldN-M.csv into --out; no θ")
+             "gamma_pooled_foldN-M.csv into --out, else into the city's "
+             "processed directory; no θ")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
@@ -823,10 +856,18 @@ def main(argv: list[str] | None = None) -> int:
             }
         if source and ballot in source:
             # Out-of-sample: γ comes from the other fold, defaulting to 1.0 for
-            # parties it never saw.
+            # parties it never saw or did not fit (`load_parameters` reads
+            # fitted γ rows only). The row's status is the source's.
             gamma = {p: source[ballot]["gamma"].get(p, 1.0) for p in universe}
+            status = {p: source[ballot]["status"].get(p, UNFITTED_UNSEEN)
+                      for p in universe}
         else:
             gamma = {}
+            # ONE DEFINITION of a real fit: `fit_status`, the rule the branch
+            # below applies (1.0 at or under FIT_MIN_BASE_SHARE; 0.0 from
+            # fit_gamma when the target has no votes for the party).
+            status = {p: fit_status(p, base_city, target_city, universe)
+                      for p in universe}
             for p in universe:
                 if base_city.get(p, 0) > FIT_MIN_BASE_SHARE:
                     gamma[p], _ = fit_gamma(
@@ -858,7 +899,8 @@ def main(argv: list[str] | None = None) -> int:
                 model_base_share, model_base_city, target_city, gamma,
                 weight, universe
             )
-        fitted[ballot] = {"theta": theta, "theta_raw": theta_raw, "gamma": gamma}
+        fitted[ballot] = {"theta": theta, "theta_raw": theta_raw, "gamma": gamma,
+                          "status": status}
 
         prediction = predict(model_base_share, model_base_city, theta, gamma)
         predicted_votes[ballot] = prediction
@@ -975,7 +1017,10 @@ def main(argv: list[str] | None = None) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["ballot", "party", "theta_raw", "theta_calibrated", "gamma"])
+        # `fit_status` LAST, so the value columns are what they were before
+        # the column existed (DATA-QUALITY 21).
+        writer.writerow(["ballot", "party", "theta_raw", "theta_calibrated", "gamma",
+                         "fit_status"])
         for ballot, values in fitted.items():
             for party in sorted(values["theta"]):
                 writer.writerow([
@@ -983,6 +1028,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"{values['theta_raw'][party]:.4f}",
                     f"{values['theta'][party]:.4f}",
                     f"{values['gamma'][party]:.4f}",
+                    values["status"][party],
                 ])
     print(f"\n  wrote {out}  (fold 2 validates against these, per §4.1)")
     print(

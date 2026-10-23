@@ -125,8 +125,9 @@ promotion note in §F.
 | `extrapolation_damping` | 0.6 | `config/dimensions.toml` | **AMENDED 2026-09-24 (register audit).** 0.6. One other copy in `pools.py`, not a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key). The third, a default argument of a function deleted 2026-10-17 (§1.321), is gone. The value acts only when a second census is configured, and none is. | 🔴 | §H8 |
 | `extrapolation_max_years` / `max_extrapolation` | 8 / 8.0 | `dimensions.toml`, `pools.Config` | 8 / 8.0 — two copies of one number, one in TOML and one as a dataclass field. | 🔴 | §H9 |
 | `FRESHNESS_GRACE_S` | — | `stats.py`, `freshness_problems` | Typed at 300s. ARGUED, NOT TESTED — the harness cannot score a publishing guard; the strong half of the check catches the 16-day defect with no window at all. | 🟡 | §D16 |
-| `FIT_MIN_BASE_SHARE` | 0.001 | `fold.py` (`main`, `fit_status`) | The base citywide share at or below which a fold writes γ = 1.0 without fitting. Named 2026-10-23; the literal was in `fold.main` before. A row it skips still reaches the forecast as a fitted γ of 1.0 and blocks `gamma_recent` (DATA-QUALITY 21). Typed, never swept. | 🔴 | §V1 |
-| `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast. | 🔴 | §H6 |
+| `FIT_MIN_BASE_SHARE` | 0.001 | `fold.py` (`main`, `fit_status`) | The base citywide share at or below which a fold writes γ = 1.0 without fitting. Named 2026-10-23; the literal was in `fold.main` before. Since 2026-10-23 such a row is marked in the file's `fit_status` column and not read, so the party takes `gamma_recent`, then 1.0 (DATA-QUALITY 21, fixed). Typed, never swept. | 🔴 | §V1 |
+| `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | **AMENDED 2026-10-23.** Its 2026 entry no longer reaches Johannesburg, whose γ is pooled (`GAMMA_POOL`, §V2); it still sets Tshwane 2026 (fold 1) and every past target. | 🔴 | §H6 |
+| `GAMMA_POOL` | `{"joburg\|2026": (1, 2)}` | `montecarlo.py` (`gamma_folds_for`, `resolve_gamma`) | Johannesburg 2026 takes γ from folds 1 and 2 fitted together (`fold.py --pool 1,2`), owner 2026-10-23 (OWNER-DECISIONS-ANSWERED 33). No backtest scores the 2026 γ. | 🔴 | §V2 |
 | `GRID_MARGIN_CELLS` | — | `hex_cartogram.py` | Typed at 2 and purely operational: the Johannesburg optimum uses no cell in the outermost ring. | 🟢 | §D18 |
 | `kappa_bye` | 0.25 | `turnout.py --kappa-bye` | 0.25. Same provenance and the same artefact problem as `w_recency`. | 🔴 | §H3 |
 | `LEVEL_DF` | 7.0 | `montecarlo.py` | Ships 7.0. Read only under `draw_law = "incumbent"` since 2026-10-12 (§A57), where it is live and swept (`test_levers_are_live` holds that law open); the shipped universal draw does not read it. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints. | 🟡 | §A18 + §F8 |
@@ -1107,7 +1108,7 @@ Each row: `§SJ<n>` · party · target · `support` / `overperform` / `sigma_j` 
 | row | party | target | entry | reason | evidence | date | check |
 |---|---|---|---|---|---|---|---|
 | §SJ1 | MK | joburg 2026 | `parent_weight = 0.9` (a pool-vector judgement, not a strength: no `support`, `overperform` or `sigma_j`) | Owner, 2026-10-15: "it is more like 90% ANC resemblance". MK's starting pool vector is 90% the ANC's and 10% the city's own composition, against the default of 35% (§F6). | None the record supplies: MK has no result at a local election in Johannesburg. The default's range over past splinters runs from ActionSA about 0.02 through GOOD 0.28 to EFF 0.89, so 0.9 sits at the top of it; the nearest past case, EFF from the ANC, measured 0.89. Argued, not tested. | 2026-10-15 | **Superseded while MK's own fit is identified** (owner, 2026-10-15, "option A"; confirmed 2026-10-21: the fitted placement wins, and "identified" means the fit finds the party in at least one pool): MK is fitted on its 2024 national ward results (`pools.place_vectorless`; the spec's `fitted_from_national[MK].superseded` names `parent_weight`), so this weight is not read. The entry stays on the sheet as the owner's call and is read again only if that fit stops identifying a pool. The 2026 forecast is reported with and without it (`pools.py --emit --without-judgements --out DIR`, POOLS-REEMIT-QUEUE) and scored against the 2026 result, MK's pool shares against its measured vector. |
-| §SJ2 | ASA (ActionSA) | joburg 2026 | `support = 0.176`, `sigma_j = 0` | Owner, 2026-10-21: "Put action SA at 17.6%". The judged centre replaces the model's own (12.64% of the list vote): ActionSA's 2021 list vote (18.1%) carried forward at the record's typical retention for a party its size (0.72, because ActionSA has stood in one local election only) to 13.1%, blended with its by-elections to 14.7%, pulled by the size shrink to 14.5%, and divided by 1.146 when the parties' levels were made to add to 100% (OWNER-DECISIONS item 1 has the steps). Every other party is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at 17.6%. | The record holds one local election for ActionSA (2021 list vote 18.1%), its share of Johannesburg's 2024 national ballot (6.22%; 5.4% after the model's national-to-local conversion, a route the model weights at zero for ActionSA because it has no national-to-local gap on record), and four by-elections since 2021 that imply 18.9% (capped by the model at 16.3%). The by-elections are the only post-2021 evidence of its local level and the model already reads them; four contests are thin evidence of a citywide share. Argued, not tested. | 2026-10-21 | Against the 2026 result: ActionSA's list share against 17.6% and against the model's own centre (MODEL-LOG §1.330 has both runs). The forecast is reported with and without it (`apply_judgements` off). |
+| §SJ2 | ASA (ActionSA) — **WITHDRAWN 2026-10-23** | joburg 2026 | ~~`support = 0.176`, `sigma_j = 0`~~ (entry removed from `judgements/joburg-2026.toml`) | **Withdrawn 2026-10-23.** Owner: "remove my action sa judgement call which just serms to ,make things compolicated. we cna deal with that later." (OWNER-DECISIONS-ANSWERED 33.) ActionSA takes the model's own centre. Kept as the record of the call that was in force from 2026-10-21 to 2026-10-23. The call was: Owner, 2026-10-21: "Put action SA at 17.6%". The judged centre replaces the model's own (12.64% of the list vote): ActionSA's 2021 list vote (18.1%) carried forward at the record's typical retention for a party its size (0.72, because ActionSA has stood in one local election only) to 13.1%, blended with its by-elections to 14.7%, pulled by the size shrink to 14.5%, and divided by 1.146 when the parties' levels were made to add to 100% (OWNER-DECISIONS item 1 has the steps). Every other party is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at 17.6%. | The record holds one local election for ActionSA (2021 list vote 18.1%), its share of Johannesburg's 2024 national ballot (6.22%; 5.4% after the model's national-to-local conversion, a route the model weights at zero for ActionSA because it has no national-to-local gap on record), and four by-elections since 2021 that imply 18.9% (capped by the model at 16.3%). The by-elections are the only post-2021 evidence of its local level and the model already reads them; four contests are thin evidence of a citywide share. Argued, not tested. | 2026-10-21 | Against the 2026 result: ActionSA's list share against 17.6% and against the model's own centre (MODEL-LOG §1.330 has both runs). The forecast is reported with and without it (`apply_judgements` off). |
 
 *(`parent_weight` entries are rows of this register as well as strength entries. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
 
@@ -2040,7 +2041,7 @@ asks for is still unrun; this gives the sign only.
 
 **Where.** `montecarlo.py`
 
-**Now.** The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast.
+**Now.** **AMENDED 2026-10-23.** Johannesburg 2026 no longer reads its 2026 entry: `GAMMA_POOL` takes precedence there and pools folds 1 and 2 (§V2). The entry still sets Tshwane 2026 (fold 1), and the other entries every past target. `gamma_folds_for` checks that every fold it returns, pooled or not, targets a year before the target.
 
 **Record.** Which γ fold each target may read. The code's own comment concedes that for 2026 *"the constraint alone does not pick one"* — the live forecast uses fold 1, the 2014→2016 fold, over the 2019→2021 one. A contestable choice on the published forecast
 
@@ -5061,13 +5062,47 @@ typed, not measured. It was an unnamed literal in `fold.main` until
 2026-10-23, when `fit_status` needed the same threshold and the two were made
 one constant. Number-neutral: the fold files refit byte-identical.
 
-**What it reaches.** `run_model` reads any fold row as a fitted γ, so a party
-under the threshold is drawn at 1.0 and never reaches `gamma_recent.csv`
-(DATA-QUALITY 21; prereg `2026-10-23-prefreeze-arms.md`, amendment, arm BF).
+**What it reaches.** Until 2026-10-23 `run_model` read any fold row as a
+fitted γ, so a party under the threshold was drawn at 1.0 and never reached
+`gamma_recent.csv` (DATA-QUALITY 21; prereg `2026-10-23-prefreeze-arms.md`,
+amendment, arm BF). Since then every fold file carries `fit_status`,
+`fold.load_parameters` reads γ from `fitted` rows only (and refuses a file
+without the column), and the party falls through to `gamma_recent`, then 1.0.
+The threshold now decides which parties take that fallback.
 
 **How to check it.** Refit the folds at other thresholds (`fold.py --out`
 writes beside the canonical file) and compare the parties that cross it; no
 backtest scores the 2026 γ.
+
+### §V2 · `GAMMA_POOL` — `{"joburg|2026": (1, 2)}` — 🔴 owner's call, not tested
+
+**Where.** `montecarlo.py`: `gamma_folds_for` (the source, and the check that
+every fold in it targets a year before the target) and `resolve_gamma` (the
+chain `run_model` and `export_interactive` both read). The pooled γ is
+`gamma_pooled_fold1-2.csv` in Johannesburg's processed directory, written by
+`fold.py --pool 1,2`.
+
+**Now.** Johannesburg 2026 takes γ from folds 1 (2014 → 2016) and 2
+(2019 → 2021) fitted together: one through-origin weighted fit over both
+folds' VD rows, each fold contributing only where its row is a real fit
+(`fold.fit_status`), not the mean of two γs. A party neither fold fitted takes
+`gamma_recent`, then 1.0. Tshwane 2026 and every past target keep their
+`GAMMA_FOLD` fold.
+
+**Why.** Owner, 2026-10-23, answering OWNER-DECISIONS item 33 (option 2,
+"go with your reccommendation"; OWNER-DECISIONS-ANSWERED 33): the pooled fit
+uses the most data and adds no new judgement. Measured before the decision as
+arm GP (MODEL-LOG §1.333): it moves no mean list share, 6 ward favourites, and
+no median seat by more than 1, against the site.
+
+**Limits.** No backtest scores the 2026 γ: 2026 has no result, and a past
+target cannot pool both folds without one of them having seen it. Pooling
+also spends the fold the plan's §4.1 kept for validation (fit on fold 1,
+validate on fold 2), so no fold is left out of the fit. Fold 2's
+ward γ is negative for AIC and COPE (§1.333 limits), and AIC's enters the pool.
+
+**How to check it.** Against the 2026 result: the ward-level deviation of each
+party from its citywide share, against the pooled γ and against each fold's.
 
 ## Appendix — how this register has failed before
 

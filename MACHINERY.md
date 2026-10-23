@@ -580,7 +580,7 @@ rejected because the group total may only be fitted on the previous cycle, which
 
 | Piece | Where | Source | Saw |
 |---|---|---|---|
-| γ per party per ballot | `fold{N}_parameters.csv`, fold precedes the target (asserted) | MEASURED | prior transition ✅ |
+| γ per party per ballot | `fold{N}_parameters.csv` (`fitted` rows only), or for a `GAMMA_POOL` city-year `gamma_pooled_fold1-2.csv`; every fold precedes the target (asserted, `gamma_folds_for`) | MEASURED | prior transitions ✅ |
 | γ fallback | `gamma_recent.csv` | MEASURED | last LGE→NPE before the target ✅ |
 | γ default 1.0 | `montecarlo.py` | JUDGED (JUDGEMENT-CALLS §A48) | who took it is recorded per run as the delivery note `gamma.default_1.0` |
 | `dev` (logit deviation) | computed from the base | DERIVED | prior NPE ✅ |
@@ -612,18 +612,34 @@ about, not a defect costing seats.**
 fold's universe, and two kinds of row are placeholders: γ = 1.0 where the base
 citywide share is ≤ 0.001 (`FIT_MIN_BASE_SHARE`), and γ = 0.0 where the target
 has no votes for the party (every y is zero). `fold.fit_status` names which
-rows those are (`fitted`, `base share <= 0.001`, `no target votes`, `unseen`).
-`run_model` reads any row present as fitted (`if p in params[ballot]["gamma"]`),
-so a placeholder row blocks `gamma_recent.csv` for that party.
+rows those are (`fitted`, `base share <= 0.001`, `no target votes`, `unseen`),
+and every parameters file `main` writes carries that as its last column,
+`fit_status` (a `--fit-from` file carries the source fold's status).
+`fold.load_parameters` reads γ from `fitted` rows only and θ from every row,
+and REFUSES a file without the column. So a placeholder row no longer blocks
+`gamma_recent.csv`: the party falls through to it, then to 1.0 (DATA-QUALITY
+21, fixed 2026-10-23).
 
-**Pooled γ (`fold.py --pool 1,2 --out DIR`).** `fit_gamma` is `gamma_sums`
+**One chain, `montecarlo.resolve_gamma`.** `run_model` and
+`export_interactive` both read γ through it: the source `gamma_folds_for`
+names, then `gamma_recent.csv` (target directory), then 1.0. The source is
+`GAMMA_POOL` for the city-years it lists (Johannesburg 2026: folds 1 and 2
+pooled, JUDGEMENT-CALLS §V2), else the `GAMMA_FOLD` fold for the year
+(Tshwane 2026 and every past target); every fold in either must target a year
+before the target. Each party is labelled with its source: `fold<N>`,
+`pooled ` plus the folds that contributed (`pooled 1+2`, `pooled 2`), `recent`,
+or `default 1.0`; a placeholder is never read, so it is never labelled as a
+fold. A missing pooled file is refused, not replaced by fold 1.
+
+**Pooled γ (`fold.py --pool 1,2`, or `--out DIR` to write elsewhere).** `fit_gamma` is `gamma_sums`
 (Σwxy, Σwx², n) divided by `gamma_from_sums`. The pooled fit adds each fold's
 sums, per ballot and party, over the folds whose row is a real fit, and divides
 once: the through-origin fit over every fold's VD rows together, not the mean
 of the folds' γs. Each fold is prepared as its own default fit (`fold_inputs`,
 `fold_target`, the same functions `main` fits through). It writes
 `gamma_pooled_fold1-2.csv` with the folds that contributed and each fold's
-`fit_status`; nothing in the forecast reads it. `--fold N --out DIR` writes
+`fit_status`. Without `--out` it writes into the city's processed directory,
+where `resolve_gamma` reads it. `--fold N --out DIR` writes
 the ordinary fit into DIR so it can be compared with the canonical file;
 `--out` under `data/` is refused.
 

@@ -377,10 +377,22 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
         reason=_INCUMBENT_ONLY)
        for lever in ("dirichlet_floor", "dirichlet_scale")
        for year in ("2021", "2026")},
-    # At 2026 the lever is live since 2026-10-21 (ActionSA's strength
-    # judgement, JUDGEMENT-CALLS §SJ2), so its 2026 entry is deleted and the
-    # sweep must see it move there. At 2021 it stays inert for a different
-    # reason, which its gate now checks: a backtest ignores every judgement.
+    # At 2026 the lever was live from 2026-10-21 (ActionSA's strength
+    # judgement, JUDGEMENT-CALLS §SJ2) until that judgement was withdrawn on
+    # 2026-10-23; with no strength entry in any judgements file it is inert
+    # there again, gated on `no_strength_judgements`, which opens the moment
+    # the owner enters one. At 2021 it stays inert for a different reason,
+    # which its gate checks: a backtest ignores every judgement.
+    ("apply_judgements", "2026"): Null(
+        cause="UNDELIVERED",
+        where="`montecarlo.strength_judgements`: no strength entry exists to "
+              "apply",
+        blocker="DATA", gate_check="no_strength_judgements",
+        evidence="2026-10-23: §SJ2 (ActionSA) withdrawn by the owner; no "
+                 "judgements file declares `support` or `overperform`; "
+                 "checked with no model run",
+        reason="strength judgements (design 1j v3 §11) are read at run time "
+               "and are number-neutral until the owner enters one."),
     ("apply_judgements", "2021"): Null(
         cause="UNDELIVERED",
         where="`montecarlo.strength_judgements`: a target with a result file "
@@ -920,9 +932,9 @@ PERTURB: dict[str, object] = {
     # THE DRAW LAW (design 1j v4-L1, 2026-10-12): perturbed to the incumbent
     # law, which must move every party's draw.
     "draw_law": "incumbent",
-    # Strength judgements off: live at 2026 since ActionSA's entry (§SJ2);
-    # inert at 2021, where a backtest ignores them (EXPECTED_INERT, gate
-    # `backtest_ignores_judgements`).
+    # Strength judgements off: inert at 2026 while no judgements file declares
+    # one (§SJ2 withdrawn 2026-10-23; gate `no_strength_judgements`) and at
+    # 2021, where a backtest ignores them (gate `backtest_ignores_judgements`).
     "apply_judgements": False,
     # The small-party centre correction (prereg arm UC), switched on.
     "centre_correction": True,
@@ -1380,6 +1392,21 @@ def _gate_incumbent_law_shipped_off(year: str) -> tuple[bool, str]:
         + ("" if shipped == "universal" else " — THE GATE IS OPEN"))
 
 
+def _gate_no_strength_judgements(year: str) -> tuple[bool, str]:
+    """No `judgements/*.toml` file declares a strength (`support` or
+    `overperform`), so `apply_judgements` has nothing to switch (design v3
+    §11.2: number-neutral then). Read off the files; no model run."""
+    import tomllib
+    found = []
+    for f in sorted((ROOT / "judgements").glob("*.toml")):
+        table = (tomllib.loads(f.read_text()).get("party") or {})
+        found += [f"{f.name}:{p}" for p, body in table.items()
+                  if "support" in body or "overperform" in body]
+    return not found, (f"{len(list((ROOT / 'judgements').glob('*.toml')))} "
+                       f"judgements files; strength entries: {found or 'none'}"
+                       + (" — THE GATE IS OPEN" if found else ""))
+
+
 def _gate_backtest_ignores_judgements(year: str) -> tuple[bool, str]:
     """The target has a result file, and `montecarlo.strength_judgements`
     applies no entry from any city's judgements file for it, so
@@ -1400,6 +1427,7 @@ def _gate_backtest_ignores_judgements(year: str) -> tuple[bool, str]:
 
 GATES = {
     "incumbent_law_shipped_off": _gate_incumbent_law_shipped_off,
+    "no_strength_judgements": _gate_no_strength_judgements,
     "backtest_ignores_judgements": _gate_backtest_ignores_judgements,
     "arrivals_are_named": _gate_arrivals_are_named,
     "bye_deltas_absent": _gate_bye_deltas_absent,

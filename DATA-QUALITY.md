@@ -1287,7 +1287,7 @@ are the IEC's; which VDs sit in a ward is the solver's, not the IEC's list.
 for 2026 (the IEC publishes none that the repository holds): it would give the
 true part sizes and make the apportionment unnecessary.
 
-## 21. 🔴 Placeholder rows in the fold γ files block real fits (found 2026-10-23)
+## 21. 🔴 Placeholder rows in the fold γ files block real fits (found and fixed 2026-10-23)
 
 `fold.py` writes a row for every party, including those it could not fit:
 γ = 1.0 when the party's base citywide share is ≤ 0.001 or the fold never saw
@@ -1299,4 +1299,17 @@ while `gamma_recent.csv` holds real fits for PA (0.5443) and ALJAMAAH (0.8874);
 MINORITY_FRONT and NFP are drawn at 0.0. The per-run note `gamma.default_1.0`
 labels the placeholders "fold1", so it undercounts who took the default.
 Found by the blind pollster review of `prereg/2026-10-23-prefreeze-arms.md`;
-measured as arm BF there. Not yet fixed in code.
+measured as arm BF there.
+
+**Fixed 2026-10-23** (`prereg/2026-10-23-freeze-settings.md`, change 1).
+`fold.main` writes each row's `fit_status` as the file's last column; the value
+columns are unchanged (folds 1–4 refit with the column equal the files on disk
+in every value column, check K2). `fold.load_parameters` reads γ from `fitted`
+rows only and refuses a file without the column, and `montecarlo.resolve_gamma`
+(read by `run_model` and `export_interactive`) labels each party by its real
+source, so `gamma.default_1.0` names the parties that took 1.0. Every fold
+file on disk must be refitted to gain the column; until then a run refuses.
+The fix reaches every target whose fold has placeholder rows: every fold file
+of every city has some, Tshwane's included. `fold5_parameters.csv` cannot be
+refitted under the default options (fold 5 has no prior LGE), so it stays
+without the column and `fold.py --fit-from 5` refuses it.

@@ -6,6 +6,13 @@
     .venv/bin/python rounds/.../run_arms.py baseline --out DIR   # C4: B's headline figures
     .venv/bin/python rounds/.../run_arms.py summary --out DIR    # the amendment's tables
 
+⚠️ REPRODUCES ON 261b29f ONLY. From 2026-10-23 (the freeze settings,
+``prereg/2026-10-23-freeze-settings.md``) Johannesburg 2026 reads γ from
+``gamma_pooled_fold1-2.csv`` (``montecarlo.GAMMA_POOL``), not
+``fold1_parameters.csv``, and ``fold.load_parameters`` skips placeholder rows,
+so the fold-1 patch below no longer reaches the run and arm B is no longer the
+tree as it is.
+
 Johannesburg 2026, seed 20261104, 5,000 draws (``--draws`` overrides). One arm
 per invocation: the in-process patches below are installed for the duration of
 one ``run_model`` call and removed after it, and a fresh process keeps one

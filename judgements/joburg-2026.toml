@@ -107,13 +107,8 @@ parent_weight = 0.9
 register = "§SJ1"
 # weights = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-[party.ASA]
-# OWNER'S CALL, 2026-10-21: ActionSA's centre is 17.6% of the list vote, in
-# place of the model's own (MODEL-LOG §1.330). sigma_j = 0: the model's own
-# width at that size, nothing added. JUDGEMENT-CALLS.md §SJ2.
-support = 0.176
-sigma_j = 0.0
-register = "§SJ2"
+# [party.ASA] (support 0.176, §SJ2) was withdrawn by the owner on 2026-10-23;
+# ActionSA takes the model's own centre. JUDGEMENT-CALLS.md §SJ2.
 
 [party.RISE]
 baseline_share = 0.0156

@@ -64,6 +64,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            "test_spine", "test_theta_prior", "test_ward_pr_ratios",
            "test_ward_parts", "test_roll_2026", "test_pool_shares_one_roll", "test_splinter_parent_weight", "test_model_claims", "test_solve_and_predict", "test_pool_placement", "test_ward_contest_rule", "test_national_record_fit",
            "test_blended_centres", "test_bye_value", "test_fold_pool",
+           "test_gamma_source",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
            "test_publication_ledger", "test_published_page",
            # Added 2026-09-25: `render_home` shipped on 24 Sep with no test of

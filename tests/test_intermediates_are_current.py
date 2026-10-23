@@ -220,6 +220,17 @@ def _regenerate(root: Path) -> list[str]:
             run("src/gamma_recent.py", "--city", city, "--target", year)
         for fold in ("1", "2", "3", "4"):
             run("src/fold.py", "--fold", fold, "--city", city)
+    # Every fold file carries `fit_status` (DATA-QUALITY 21), which the
+    # byte comparison below therefore covers. The pooled γ the Johannesburg
+    # 2026 forecast reads (`montecarlo.GAMMA_POOL`) is written by the pooled
+    # fit into the city's processed directory; one invocation per pool entry,
+    # derived from the table rather than typed.
+    sys.path.insert(0, str(ROOT / "src"))
+    import montecarlo as _M
+    for key, folds in sorted(_M.GAMMA_POOL.items()):
+        city, _year = key.split("|")
+        run("src/fold.py", "--pool", ",".join(str(f) for f in folds),
+            "--city", city)
     return failed
 
 
