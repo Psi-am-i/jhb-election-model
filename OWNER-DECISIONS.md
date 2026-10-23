@@ -15,6 +15,51 @@ Last updated: 2026-10-23.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
+### 32. Which quarantined score files may be deleted?
+
+**Context.** 5,515 backtest score files were copied to
+`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/`; 5,506 originals
+are still in the project. You said the scores may be useful for 2026. The
+evaluation and its review (`rounds/2026-10-23-out-of-sample/SCORES-FOR-2026-*.md`)
+agree: the 2026 forecast needs none of them, but these are the only record of
+what was tried and of the in-sample baseline the clean re-run is compared with:
+`history.json`/`.md`, the arm and sweep outputs, `width_budget.json`, and the
+seven reports' `backtest.json`. The past-target seat draws, ward-winner and
+coalition tables and `validation_2021.json` are not needed.
+
+**Options.**
+1. Keep those named files (copy in quarantine, original removed from the
+   project); delete the rest from both.
+2. Keep everything in quarantine; remove all originals from the project.
+3. Keep everything where it is until the clean re-run exists.
+
+**Recommendation.** Option 2: nothing is lost, and the project holds no in-sample
+score a reader or the build could pick up. The removal script would be cut to
+match.
+
+**Blocks.** Nothing before the freeze.
+
+### 31. Before the freeze: test two inputs the backtest never checks?
+
+**Context.** The data audit (`rounds/2026-10-23-out-of-sample/DATA-USE-AUDIT.md`)
+found two inputs of the 2026 forecast that no backtest scores:
+- **By-elections.** Their pull on each party's share, the turnout tilt and the
+  ward-level term act only in Johannesburg 2026.
+- **γ (how much of each party's ward pattern carries over).** The forecast reads
+  the 2014→2016 fit, kept so the 2019→2021 fit stays a validation set; every
+  backtest reads the most recent fit.
+
+**Options.**
+1. Before 31 October, run the forecast with by-elections off, and with γ from
+   2019→2021 and from both pooled, and send you an old-vs-new report for each;
+   you choose what is frozen.
+2. Freeze on the current inputs and state on the page that these two are not
+   tested.
+
+**Recommendation.** Option 1, with option 2's statement whichever is frozen.
+
+**Blocks.** The freeze, by 31 October (`rounds/2026-10-23-out-of-sample/DATA-PLAN.md` §7).
+
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
