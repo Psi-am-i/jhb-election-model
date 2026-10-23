@@ -108,6 +108,18 @@ owner item for what is frozen. Before 31 October. **Run 2026-10-23**: MODEL-LOG 
 `reports/model-changes/2026-10-23-prefreeze-*`; waits on OWNER-DECISIONS 33.
 If G2 or GP is frozen, `export_interactive.py:158` (fold 1 hard-coded) must
 follow. Fix DATA-QUALITY 21 in `run_model` if BF or later is frozen.
+
+**Freeze settings (OWNER-DECISIONS-ANSWERED 33, 2026-10-23).** Pooled γ, the
+placeholder fix and the ActionSA call withdrawn, Johannesburg 2026 only.
+Pre-registration `prereg/2026-10-23-freeze-settings.md`. Sequence: writer
+(code and tests) → review → `backup_ignored.py` → `inputs_preflight --strict`
+→ fold files and pooled file → `width_record.py --emit` → canonical run →
+old-vs-new report → UAT → owner's yes → freeze hash by 31 October. Whole suite
+once on the settled tree, at a time the owner chooses (CPU).
+
+**ActionSA's level, later** (owner: "we cna deal with that later"). The call
+of 21 October (§SJ2) is withdrawn; whether ActionSA's model-own level needs
+a different treatment is open.
 Left by step 0: `reports/model-changes/build_report.py` reads the quarantined
 `history.json`, so it cannot run until a forward-chained one exists; the
 in-sample banner in `reports/model-changes/template.html` comes out then.
