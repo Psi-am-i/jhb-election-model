@@ -47,8 +47,7 @@ the ANC's wards; the test cannot say how many, and the card says so.
 **Recommendation.** 1. Each end is a computed result under a stated
 assumption, and the card names the limit.
 
-**Blocks.** The E5 note in the brief 1 release. Everything else in brief 1
-can go without it.
+**Status, 23 October.** Live since the brief 1 release (version 3b0fb7a7), as option 1, under your instruction to deploy if the review passed. Choosing 2 or 3 changes one note on the 490,000 card.
 
 ### 28. ActionSA's level: measure it instead of judging it?
 
