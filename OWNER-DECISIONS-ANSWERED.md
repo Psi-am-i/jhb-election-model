@@ -5,6 +5,132 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 30. Tooltips without the previous value: a corrections entry? — answered 2026-10-23
+
+**Context.** Since the 22 October publication, a live figure's tooltip has said
+only when its value started ("58% chance since 21 October") and not what it
+was before ("Was 47% on 26 September"). The previous value showed only on the
+day a figure moved. The 21 October build showed it; the 22 and 23 October
+builds dropped it. Every figure on the page was correct; the history was
+missing. A fix is being written (`audits/2026-10-23-site-sweep/BRIEF-tooltip-was.md`).
+
+**Options.**
+1. A corrections entry: what was missing, the dates, and that every tooltip now
+   shows the previous value.
+2. No entry: no published figure was wrong, and the corrections page lists
+   wrong statements.
+
+**Recommendation.** Option 1. Readers who looked on 22 or 23 October saw a
+figure presented with no history, which is what the tooltip exists to prevent.
+
+**Blocks.** Nothing; the fix ships either way. The entry, if wanted, goes in the
+same release.
+
+**Your answer.** "2. Just fix it. no corrections entry."
+
+**Recorded.** No corrections entry. The fix is commit f51b54a on `site-sweep-1` (`publication.prior_values`; tests in `tests/test_tooltip_says.py` and `tests/test_published_page.py`).
+
+### 29. Backtests that use later results: refit per election, then re-score? — answered 2026-10-23
+
+**Context.** You allowed one exception to "only data from before the election":
+the census, for each ward's population-group split. All 24 backtests (eight
+metros at 2011, 2016 and 2021) also use settings chosen with results from the
+election being tested, or later ones:
+
+| Setting | Chosen on | Used in the test draws |
+|---|---|---|
+| Turnout correlation between groups | turnout changes 2011→2016 and 2016→2021, all eight metros | every test |
+| Level shrink and its scale | Johannesburg 2016 and the eight metros at 2021 | every test |
+| National-vs-local balance (spine k) | transitions up to 2016→2021; kept after a sweep scored on 16 backtests | every test |
+| New-party chance and size | kept after a sweep scored on 9 backtests | 2011 tests only |
+| Slate growth | changes up to 2016→2021 | none (real ballot lists used) |
+| Dirichlet scale | sweep on 9 backtests | none (current draw method does not read it) |
+
+Switches chosen by comparing backtest scores: polls off, the arrival-group draw
+off, the draw method, ward noise and the level floor.
+
+**Options.**
+1. A pre-registered round: refit turnout correlation, level shrink and spine k
+   for each test from earlier elections only, re-run all 24, and publish the new
+   scores with the census as the stated exception and the switches listed.
+2. Keep the settings; the scoring page names each one and the tests it touches.
+
+**Recommendation.** Option 1, with option 2's wording on the page until it lands.
+
+**Blocks.** The scoring page's claims about past accuracy.
+
+**Your answer.** "For each election you can use all of those variations between previous elections- BUT YOU CANNOT INCLUDE THE ELECTION YOU ARE FORECASSTING. And teh data is patchy an inconsistent. Have all your changes planned. The submit the plan for review by a pollster skill agent before implementing anything." Then a data programme (complete national, provincial, local and by-election results for the 8 metros; every election pair local-local, national-local and local-national, at city and ward level: vote, turnout, population-group variation; per-party shrink, vote change and turnout change for every ward in every pair, saying exactly why where it cannot be done; how those changes themselves change; every by-election against the elections before and after it, and its correlation with the next; the backtest from data dated before each election only, the census and any exception the pollster finds accepted in the polling literature being the only exceptions). "DELETE ANY CONTAMINATED SCORES OR RESULTS. I WANT EXACTLY ZERIO chance they are being read and accepted blindly. START with Johannesburg data." On keeping the settings: "Seriously? It's embarrassingly bad. Go and ask Pollster agent if that is how forecasts are meant to work. i want the reply on record." On option 1: "You can do this as a stop gap. But it seems woefuly incomplete … Since it's what we cna do now, do it now. Make absolutely sure you do not ingest some earlier data thgat is contaminated."
+
+**Recorded.** Option 1 now as a stop gap, then the full programme. Planned in `rounds/2026-10-23-out-of-sample/PLAN.md`, reviewed by a pollster agent before any implementation; the pollster's answer on keeping the settings is recorded there. TODO: the round.
+
+### 27. Zille's 490,000 on both ballots: publish the test as a range? — answered 2026-10-23
+
+**Context.** On 20 October Helen Zille said: "490 000 people need to vote DA
+on both ballots. That would give us 136 of the council's 270 seats." (News24,
+interviewed by Ann Bernstein of CDE). Brief 1 item E5 adds a dated note to
+the claim card that tests it through the seat law, with every figure computed
+by the build from the published simulations.
+
+Run through the seat law, the figure depends on who wins the wards. The test
+can only hold the wards fixed, so it gives two ends:
+
+| Figure | Typical simulation's ward winners held (ANC wins 72 wards) | No party wins more wards than its vote entitles it to |
+|---|---|---|
+| DA seats from 490,000 on each ballot | 112 | 131 |
+| DA votes needed on each ballot for 136 | 620,000 | 508,000 |
+
+Common to both ends: This Model expects a median of 1,013,993 votes on each
+ballot, so 490,000 is 48%. The DA reaches 490,000 on both ballots in 0 of
+5,000 simulations. Your proportional check on 23 October (about 130 seats,
+about 511,000 needed) is the second column. A DA on 48% would take some of
+the ANC's wards; the test cannot say how many, and the card says so.
+
+**Options.**
+1. Publish the range as above.
+2. Publish only the no-surplus end (131 seats, 508,000 needed), and say that
+   the ANC's ward wins could lower it.
+3. Publish only the two figures that need no ward assumption: 48% of the
+   vote, and 0 of 5,000 simulations.
+
+**Recommendation.** 1. Each end is a computed result under a stated
+assumption, and the card names the limit.
+
+**Status, 23 October.** Live since the brief 1 release (version 3b0fb7a7), as option 1, under your instruction to deploy if the review passed. Choosing 2 or 3 changes one note on the 490,000 card.
+
+**Your answer.** "PUBLISH this: This Model expects a median of 1,013,993 votes on each ballot, so 490,000 is 48%. The DA reaches 490,000 on both ballots in 0 of 5,000 simulations. If the DA did in fact win 48% that would take some of the ANC's wards. (Can we not inflate turnout for teh DA population groups and see what wards they woudl in fact win in this scenario?)"
+
+**Recorded.** Option 3 for the card's note (replaces the range now live). The turnout scenario is in `rounds/2026-10-23-out-of-sample/PLAN.md`. TODO: card note; scenario.
+
+### 28. ActionSA's level: measure it instead of judging it? — answered 2026-10-23
+
+**Context.** ActionSA's expected Johannesburg share is your judgement call
+(JUDGEMENT-CALLS §SJ2), 17.6%. This Model already gives the national route
+no weight for ActionSA. The parts that are judgement are retaining 0.72 of
+its 2021 share and the blend with by-elections. The record holds two things
+that could be measured instead:
+
+* how much of its first local result a new party keeps at its second local
+  election, across the eight metros;
+* ActionSA's own by-election swings against its 2021 result in the same
+  wards. This Model already reads these: four contests imply 18.9%, capped
+  at 16.3%.
+
+**Options.**
+1. Commission the measurement as a pre-registered round. If it holds up,
+   it replaces the judgement at the next forecast run.
+2. Keep the judgement as it is.
+
+**Recommendation.** 1. It would turn a hand-set number into a measured one.
+It changes the forecast, so it goes through the normal round: pre-register,
+measure against the record, report old against new.
+
+**Blocks.** Nothing in brief 1.
+
+**Your answer.** "DO THIS Commission the measurement as a pre-registered round." On new-party retention: "yes until 2021 not beyond." On the by-election cap: "how is the cap applied?" And: "turnout shrink is one thing, but if every party % shrinks where do the missing % of votes go?"
+
+**Recorded.** A pre-registered round; second-election retention measured on pairs ending no later than 2021. Planned in `rounds/2026-10-23-out-of-sample/PLAN.md`. TODO: the round.
+
+
 ### 26. The site text sweep: how to fix what it found — answered 2026-10-23
 
 **Context.** On 23 October seven read-only reviewers checked every reader-facing
