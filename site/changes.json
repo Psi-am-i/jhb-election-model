@@ -10,7 +10,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "59",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 59.0,
       "prior": "58",
@@ -24,17 +24,17 @@
       "display": "21%",
       "fmt": "pct0",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "21%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.2126083972515016,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "published:list_share_median:ANC",
       "token": "anc_list_share_median",
       "value": 0.2126083972515016
@@ -49,7 +49,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "68",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.5858,
       "prior": "60",
@@ -68,7 +68,7 @@
         "forecast.html"
       ],
       "previous": "44",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 44,
       "prior": null,
@@ -87,7 +87,7 @@
         "methodology.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 8,
       "prior": null,
@@ -106,7 +106,7 @@
         "methodology.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 0.3354970656233327,
       "prior": "37%",
@@ -125,7 +125,7 @@
         "methodology.html"
       ],
       "previous": "177",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 177,
       "prior": "353",
@@ -144,7 +144,7 @@
         "methodology.html"
       ],
       "previous": "149",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 149,
       "prior": "297",
@@ -163,7 +163,7 @@
         "methodology.html"
       ],
       "previous": "24",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 24,
       "prior": null,
@@ -182,7 +182,7 @@
         "methodology.html"
       ],
       "previous": "742",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 742,
       "prior": null,
@@ -201,7 +201,7 @@
         "methodology.html"
       ],
       "previous": "719",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 719,
       "prior": "721",
@@ -220,7 +220,7 @@
         "methodology.html"
       ],
       "previous": "7",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 7,
       "prior": null,
@@ -239,7 +239,7 @@
         "forecast.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "prior": "62%",
@@ -258,7 +258,7 @@
         "forecast.html"
       ],
       "previous": "0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "prior": null,
@@ -277,7 +277,7 @@
         "forecast.html"
       ],
       "previous": "72",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 72.0,
       "prior": "73",
@@ -296,7 +296,7 @@
         "forecast.html"
       ],
       "previous": "633",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 633.0,
       "prior": "3128",
@@ -315,7 +315,7 @@
         "methodology.html"
       ],
       "previous": "129",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 129,
       "prior": null,
@@ -334,7 +334,7 @@
         "methodology.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 135,
       "prior": null,
@@ -359,7 +359,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "587,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 587000,
       "prior": null,
@@ -380,7 +380,7 @@
         "forecast.html"
       ],
       "previous": "15",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 15,
       "prior": null,
@@ -394,18 +394,18 @@
       "display": "14",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "sources.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "14",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 14,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:IEC by-election records, CoJ 2021-2026: the wards that held them",
       "token": "byelection_wards",
       "value": 14
@@ -421,7 +421,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "72",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 72.0,
       "prior": "66",
@@ -441,7 +441,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "93",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 93.0,
       "prior": "144",
@@ -461,7 +461,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "1",
@@ -482,7 +482,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "prior": "47%",
@@ -502,7 +502,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "116",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 116.0,
       "prior": null,
@@ -522,7 +522,7 @@
         "claims/anc-absolute-authority.html"
       ],
       "previous": "6.5%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.065,
       "prior": "12%",
@@ -542,7 +542,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "67",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.0,
       "prior": "66",
@@ -563,7 +563,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "prior": "45%",
@@ -584,7 +584,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "prior": "1.4%",
@@ -604,7 +604,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "17",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 17.0,
       "prior": "22",
@@ -624,7 +624,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "55",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 55.0,
       "prior": "50",
@@ -644,7 +644,7 @@
         "claims/mk-biggest-party.html"
       ],
       "previous": "3.9%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0386,
       "prior": "1.4%",
@@ -665,7 +665,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "89%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8872,
       "prior": "78%",
@@ -685,7 +685,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "prior": "43%",
@@ -705,7 +705,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "93%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.9274,
       "prior": "87%",
@@ -725,7 +725,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "124",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 124.0,
       "prior": "117",
@@ -745,7 +745,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "prior": "143",
@@ -765,7 +765,7 @@
         "claims/da-coalition-red-lines.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1754,
       "prior": "16%",
@@ -785,7 +785,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "19%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.190381,
       "prior": "16%",
@@ -805,7 +805,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "17%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.171743,
       "prior": "12%",
@@ -825,7 +825,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "92%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.9212,
       "prior": "83%",
@@ -845,7 +845,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "73%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.729659,
       "prior": null,
@@ -865,7 +865,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.998,
       "prior": "97%",
@@ -885,7 +885,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "27%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.270341,
       "prior": "23%",
@@ -905,7 +905,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "80%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8,
       "prior": "88%",
@@ -919,18 +919,18 @@
       "display": "10",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "claims.html",
         "claims/actionsa-soweto.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "10",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 10.0,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "ward_draws.csv, 5,000 simulations, the [areas.soweto] wards: the DA wins at least one",
       "token": "claim.soweto.some_count",
       "value": 10.0
@@ -945,7 +945,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "0.2%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.002,
       "prior": "2.7%",
@@ -965,7 +965,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "41",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 41.0,
       "prior": "40",
@@ -979,18 +979,18 @@
       "display": "0",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "claims.html",
         "claims/da-outright-majority.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "0",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.0,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "site/draws, 5,000 simulations, ward_vote and list_vote: the DA at 490,000 or more on both ballots",
       "token": "claim.zille_both.reach",
       "value": 0.0
@@ -999,18 +999,18 @@
       "display": "48%",
       "fmt": "pct0",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "claims.html",
         "claims/da-outright-majority.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "48%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.483238,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "490,000 over the median total on each ballot",
       "token": "claim.zille_both.share",
       "value": 0.483238
@@ -1039,18 +1039,18 @@
       "display": "490,000",
       "fmt": "comma",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "claims.html",
         "claims/da-outright-majority.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "490,000",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 490000.0,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "Helen Zille, News24, 20 October 2026: the claim's figure",
       "token": "claim.zille_both.votes",
       "value": 490000.0
@@ -1065,7 +1065,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "53",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 53,
       "prior": null,
@@ -1085,7 +1085,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "47",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 47,
       "prior": null,
@@ -1105,7 +1105,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "50",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 50,
       "prior": null,
@@ -1125,7 +1125,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "62",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 62,
       "prior": null,
@@ -1145,7 +1145,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "97",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 97,
       "prior": null,
@@ -1165,7 +1165,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "41",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 41,
       "prior": null,
@@ -1185,7 +1185,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "524,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 524000,
       "prior": null,
@@ -1205,7 +1205,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "644,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 644000,
       "prior": null,
@@ -1225,7 +1225,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "75",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 75,
       "prior": null,
@@ -1239,19 +1239,19 @@
       "display": "248,674",
       "fmt": "comma",
       "mode": "fixed",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "claims.html",
         "claims/da-outright-majority.html"
       ],
-      "previous": "190,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
-      "previous_since": "2026-08-08T17:29:45+00:00",
-      "previous_value": 190000,
+      "previous": "248,674",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 248673.5,
       "prior": "190,000",
       "prior_since": "2026-08-08T17:29:45+00:00",
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "arithmetic: 490,000 less half the DA's 482,653 votes over both ballots in the IEC 2021 CoJ Seat Calculation Detail",
       "token": "claim_others_shed",
       "value": 248673.5
@@ -1266,7 +1266,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "917,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 917000,
       "prior": null,
@@ -1286,7 +1286,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "985,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 985000,
       "prior": null,
@@ -1306,7 +1306,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "1,290,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 1290000,
       "prior": null,
@@ -1326,7 +1326,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "110",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 110,
       "prior": null,
@@ -1346,7 +1346,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "39",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 39,
       "prior": null,
@@ -1366,7 +1366,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "57",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 57,
       "prior": null,
@@ -1386,7 +1386,7 @@
         "claims/da-outright-majority.html"
       ],
       "previous": "490,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 490000,
       "prior": null,
@@ -1405,7 +1405,7 @@
         "forecast.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 9.0,
       "prior": "7",
@@ -1424,7 +1424,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5628,
       "prior": "21%",
@@ -1443,7 +1443,7 @@
         "forecast.html"
       ],
       "previous": "145",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 145.0,
       "prior": "143",
@@ -1462,7 +1462,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0621,
       "prior": "5%",
@@ -1481,7 +1481,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "0.1%",
@@ -1500,7 +1500,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "2.8%",
@@ -1519,7 +1519,7 @@
         "forecast.html"
       ],
       "previous": "1.3%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.013149,
       "prior": "5.7%",
@@ -1538,7 +1538,7 @@
         "forecast.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "prior": "7",
@@ -1557,7 +1557,7 @@
         "forecast.html"
       ],
       "previous": "37%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3688,
       "prior": "16%",
@@ -1576,7 +1576,7 @@
         "forecast.html"
       ],
       "previous": "142",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 142.0,
       "prior": "143",
@@ -1595,7 +1595,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0423,
       "prior": "5%",
@@ -1614,7 +1614,7 @@
         "forecast.html"
       ],
       "previous": "0.5%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.005423,
       "prior": "under 0.1%",
@@ -1633,7 +1633,7 @@
         "forecast.html"
       ],
       "previous": "1.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.015727,
       "prior": "3.6%",
@@ -1652,7 +1652,7 @@
         "forecast.html"
       ],
       "previous": "2.0%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.020065,
       "prior": "7.5%",
@@ -1671,7 +1671,7 @@
         "forecast.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 14.0,
       "prior": "15",
@@ -1690,7 +1690,7 @@
         "forecast.html"
       ],
       "previous": "86%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8556,
       "prior": "63%",
@@ -1709,7 +1709,7 @@
         "forecast.html"
       ],
       "previous": "150",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 150.0,
       "prior": "151",
@@ -1728,7 +1728,7 @@
         "forecast.html"
       ],
       "previous": "9%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 0.0933,
       "prior": "10%",
@@ -1747,7 +1747,7 @@
         "forecast.html"
       ],
       "previous": "0.7%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.007013,
       "prior": "0.5%",
@@ -1766,7 +1766,7 @@
         "forecast.html"
       ],
       "previous": "2.5%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.024544,
       "prior": "15%",
@@ -1785,7 +1785,7 @@
         "forecast.html"
       ],
       "previous": "32%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.320944,
       "prior": "28%",
@@ -1804,7 +1804,7 @@
         "forecast.html"
       ],
       "previous": "43%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.431043,
       "prior": "25%",
@@ -1823,7 +1823,7 @@
         "forecast.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "prior": "8",
@@ -1842,7 +1842,7 @@
         "forecast.html"
       ],
       "previous": "27%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.2746,
       "prior": "18%",
@@ -1861,7 +1861,7 @@
         "forecast.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "prior": "144",
@@ -1880,7 +1880,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0355,
       "prior": "6%",
@@ -1899,7 +1899,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "prior": null,
@@ -1918,7 +1918,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "4.3%",
@@ -1937,7 +1937,7 @@
         "forecast.html"
       ],
       "previous": "2.7%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.026948,
       "prior": "6.8%",
@@ -1956,7 +1956,7 @@
         "forecast.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "prior": "6",
@@ -1975,7 +1975,7 @@
         "forecast.html"
       ],
       "previous": "6.5%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.065,
       "prior": "12%",
@@ -1994,7 +1994,7 @@
         "forecast.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "prior": "142",
@@ -2013,7 +2013,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0355,
       "prior": null,
@@ -2032,7 +2032,7 @@
         "forecast.html"
       ],
       "previous": "1.5%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.015385,
       "prior": "under 0.1%",
@@ -2051,7 +2051,7 @@
         "forecast.html"
       ],
       "previous": "8.9%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.089231,
       "prior": "5.0%",
@@ -2070,7 +2070,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "5.0%",
@@ -2089,7 +2089,7 @@
         "forecast.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "prior": "13",
@@ -2108,7 +2108,7 @@
         "forecast.html"
       ],
       "previous": "42%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.4156,
       "prior": "61%",
@@ -2127,7 +2127,7 @@
         "forecast.html"
       ],
       "previous": "142",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 142.0,
       "prior": "149",
@@ -2146,7 +2146,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0423,
       "prior": "9%",
@@ -2165,7 +2165,7 @@
         "forecast.html"
       ],
       "previous": "0.5%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.004812,
       "prior": "0.4%",
@@ -2184,7 +2184,7 @@
         "forecast.html"
       ],
       "previous": "5.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.050529,
       "prior": "16%",
@@ -2203,7 +2203,7 @@
         "forecast.html"
       ],
       "previous": "5.9%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.059192,
       "prior": "23%",
@@ -2222,7 +2222,7 @@
         "forecast.html"
       ],
       "previous": "16%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1564,
       "prior": "19%",
@@ -2241,7 +2241,7 @@
         "forecast.html"
       ],
       "previous": "10",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 10.0,
       "prior": "11",
@@ -2260,7 +2260,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "prior": "43%",
@@ -2279,7 +2279,7 @@
         "forecast.html"
       ],
       "previous": "146",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 146.0,
       "prior": "147",
@@ -2298,7 +2298,7 @@
         "forecast.html"
       ],
       "previous": "7%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0685,
       "prior": null,
@@ -2317,7 +2317,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "0.1%",
@@ -2336,7 +2336,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "prior": null,
@@ -2355,7 +2355,7 @@
         "forecast.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 8.0,
       "prior": "10",
@@ -2374,7 +2374,7 @@
         "forecast.html"
       ],
       "previous": "46%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.4628,
       "prior": "24%",
@@ -2393,7 +2393,7 @@
         "forecast.html"
       ],
       "previous": "144",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 144.0,
       "prior": "146",
@@ -2412,7 +2412,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0556,
       "prior": "7%",
@@ -2431,7 +2431,7 @@
         "forecast.html"
       ],
       "previous": "0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.001296,
       "prior": "13%",
@@ -2450,7 +2450,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "0.1%",
@@ -2469,7 +2469,7 @@
         "forecast.html"
       ],
       "previous": "2.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.025929,
       "prior": "7.7%",
@@ -2488,7 +2488,7 @@
         "forecast.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 9.0,
       "prior": "10",
@@ -2507,7 +2507,7 @@
         "forecast.html"
       ],
       "previous": "33%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3286,
       "prior": "20%",
@@ -2526,7 +2526,7 @@
         "forecast.html"
       ],
       "previous": "145",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 145.0,
       "prior": "146",
@@ -2545,7 +2545,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0621,
       "prior": "7%",
@@ -2564,7 +2564,7 @@
         "forecast.html"
       ],
       "previous": "4.0%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.039562,
       "prior": "8.2%",
@@ -2583,7 +2583,7 @@
         "forecast.html"
       ],
       "previous": "0.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.006086,
       "prior": "under 0.1%",
@@ -2602,7 +2602,7 @@
         "forecast.html"
       ],
       "previous": "3.7%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.036519,
       "prior": "8.9%",
@@ -2621,7 +2621,7 @@
         "forecast.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "prior": "16",
@@ -2640,7 +2640,7 @@
         "forecast.html"
       ],
       "previous": "74%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.7406,
       "prior": "62%",
@@ -2659,7 +2659,7 @@
         "forecast.html"
       ],
       "previous": "150",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 150.0,
       "prior": "152",
@@ -2678,7 +2678,7 @@
         "forecast.html"
       ],
       "previous": "9%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0933,
       "prior": "11%",
@@ -2697,7 +2697,7 @@
         "forecast.html"
       ],
       "previous": "6.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.061032,
       "prior": "22%",
@@ -2716,7 +2716,7 @@
         "forecast.html"
       ],
       "previous": "0.8%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.008102,
       "prior": "0.5%",
@@ -2735,7 +2735,7 @@
         "forecast.html"
       ],
       "previous": "24%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.236835,
       "prior": "26%",
@@ -2754,7 +2754,7 @@
         "forecast.html"
       ],
       "previous": "44%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.443694,
       "prior": "33%",
@@ -2773,7 +2773,7 @@
         "forecast.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "prior": "7",
@@ -2792,7 +2792,7 @@
         "forecast.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1754,
       "prior": "16%",
@@ -2811,7 +2811,7 @@
         "forecast.html"
       ],
       "previous": "141",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 141.0,
       "prior": "143",
@@ -2830,7 +2830,7 @@
         "forecast.html"
       ],
       "previous": "4%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0355,
       "prior": "5%",
@@ -2849,7 +2849,7 @@
         "forecast.html"
       ],
       "previous": "0.2%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.002281,
       "prior": "4.3%",
@@ -2868,7 +2868,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.0,
       "prior": null,
@@ -2887,7 +2887,7 @@
         "forecast.html"
       ],
       "previous": "6.8%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.068415,
       "prior": "11%",
@@ -2906,7 +2906,7 @@
         "forecast.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 8.0,
       "prior": "11",
@@ -2925,7 +2925,7 @@
         "forecast.html"
       ],
       "previous": "10%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1042,
       "prior": "21%",
@@ -2944,7 +2944,7 @@
         "forecast.html"
       ],
       "previous": "144",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 144.0,
       "prior": "147",
@@ -2963,7 +2963,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0556,
       "prior": "7%",
@@ -2982,7 +2982,7 @@
         "forecast.html"
       ],
       "previous": "1.0%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.009597,
       "prior": "under 0.1%",
@@ -3001,7 +3001,7 @@
         "forecast.html"
       ],
       "previous": "12%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.12476,
       "prior": "8.0%",
@@ -3020,7 +3020,7 @@
         "forecast.html"
       ],
       "previous": "0.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.005758,
       "prior": "14%",
@@ -3039,7 +3039,7 @@
         "forecast.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 9.0,
       "prior": "17",
@@ -3058,7 +3058,7 @@
         "forecast.html"
       ],
       "previous": "35%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3496,
       "prior": "59%",
@@ -3077,7 +3077,7 @@
         "forecast.html"
       ],
       "previous": "145",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 145.0,
       "prior": "153",
@@ -3096,7 +3096,7 @@
         "forecast.html"
       ],
       "previous": "6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0621,
       "prior": "11%",
@@ -3115,7 +3115,7 @@
         "forecast.html"
       ],
       "previous": "0.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.005721,
       "prior": "0.4%",
@@ -3134,7 +3134,7 @@
         "forecast.html"
       ],
       "previous": "13%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.129291,
       "prior": "23%",
@@ -3153,7 +3153,7 @@
         "forecast.html"
       ],
       "previous": "5.7%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.056636,
       "prior": "29%",
@@ -3172,7 +3172,7 @@
         "forecast.html"
       ],
       "previous": "30%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.298055,
       "prior": "35%",
@@ -3198,7 +3198,7 @@
         "your-forecast/index.html"
       ],
       "previous": "270",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 270,
       "prior": null,
@@ -3228,7 +3228,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "21 October 2026",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": "2026-10-21T16:53:55Z",
       "prior": "29 September 2026",
@@ -3247,7 +3247,7 @@
         "forecast.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "prior": "10",
@@ -3266,7 +3266,7 @@
         "forecast.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "prior": "4",
@@ -3285,7 +3285,7 @@
         "forecast.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.1754,
       "prior": "16%",
@@ -3299,17 +3299,17 @@
       "display": "93%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "93%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.9274,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "seat_detail_draws.csv, every party outside the ANC, the EFF and MK",
       "token": "govern.da_with_small_without",
       "value": 0.9274
@@ -3324,7 +3324,7 @@
         "methodology.html"
       ],
       "previous": "6.22%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.0622,
       "prior": null,
@@ -3344,7 +3344,7 @@
         "methodology.html"
       ],
       "previous": "18.12%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.1812,
       "prior": null,
@@ -3363,7 +3363,7 @@
         "nobody-catches-the-votes.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.18,
       "prior": null,
@@ -3382,7 +3382,7 @@
         "nobody-catches-the-votes.html"
       ],
       "previous": "52,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 52000,
       "prior": null,
@@ -3401,7 +3401,7 @@
         "index.html"
       ],
       "previous": "130",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 130,
       "prior": null,
@@ -3420,7 +3420,7 @@
         "index.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 135,
       "prior": null,
@@ -3439,7 +3439,7 @@
         "index.html"
       ],
       "previous": "135",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 135,
       "prior": null,
@@ -3458,7 +3458,7 @@
         "index.html"
       ],
       "previous": "126",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 126,
       "prior": null,
@@ -3477,7 +3477,7 @@
         "index.html"
       ],
       "previous": "134",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 134,
       "prior": null,
@@ -3496,7 +3496,7 @@
         "index.html"
       ],
       "previous": "127",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 127,
       "prior": null,
@@ -3510,19 +3510,19 @@
       "display": "24%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "methodology.html",
         "laingsburg-2021.html"
       ],
-      "previous": "23%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
-      "previous_since": "2026-10-06T01:50:56Z",
-      "previous_value": 0.2306,
+      "previous": "24%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.2371,
       "prior": "23%",
       "prior_since": "2026-10-06T01:50:56Z",
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's 1,530 of 6,453 valid votes (MODEL-LOG 1.17)",
       "token": "hist_laingsburg_da_share",
       "value": 0.2371
@@ -3536,7 +3536,7 @@
         "methodology.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 3,
       "prior": null,
@@ -3555,7 +3555,7 @@
         "methodology.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 4,
       "prior": null,
@@ -3569,18 +3569,18 @@
       "display": "121",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "minority-administrations.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "121",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 121,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:Business Day, 22 November 2021: votes for Mpho Moerane, Johannesburg's vote for mayor",
       "token": "hist_mayor_2021_against",
       "value": 121
@@ -3589,18 +3589,18 @@
       "display": "144",
       "fmt": "int",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "minority-administrations.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "144",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 144,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:Business Day, 22 November 2021: votes for Mpho Phalatse, Johannesburg's vote for mayor",
       "token": "hist_mayor_2021_for",
       "value": 144
@@ -3614,7 +3614,7 @@
         "index.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.9,
       "prior": null,
@@ -3633,7 +3633,7 @@
         "index.html"
       ],
       "previous": "21 October 2026",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": "2026-10-21T10:03:00Z",
       "prior": "29 September 2026",
@@ -3652,7 +3652,7 @@
         "index.html"
       ],
       "previous": "5,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 5000.0,
       "prior": null,
@@ -3671,7 +3671,7 @@
         "index.html"
       ],
       "previous": "22%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.215472,
       "prior": null,
@@ -3690,7 +3690,7 @@
         "index.html"
       ],
       "previous": "27%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.27037,
       "prior": "25%",
@@ -3709,7 +3709,7 @@
         "index.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "prior": "0.1%",
@@ -3728,7 +3728,7 @@
         "index.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "prior": "62%",
@@ -3747,7 +3747,7 @@
         "index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 2.0,
       "prior": null,
@@ -3766,7 +3766,7 @@
         "index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 6.0,
       "prior": null,
@@ -3785,7 +3785,7 @@
         "index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 1.0,
       "prior": null,
@@ -3804,7 +3804,7 @@
         "index.html"
       ],
       "previous": "72",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 72.0,
       "prior": "66",
@@ -3823,7 +3823,7 @@
         "index.html"
       ],
       "previous": "81",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 81.0,
       "prior": "92",
@@ -3842,7 +3842,7 @@
         "index.html"
       ],
       "previous": "48",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 48.0,
       "prior": "28",
@@ -3861,7 +3861,7 @@
         "index.html"
       ],
       "previous": "40",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 40.0,
       "prior": "27",
@@ -3880,7 +3880,7 @@
         "index.html"
       ],
       "previous": "51",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 51.0,
       "prior": "52",
@@ -3899,7 +3899,7 @@
         "index.html"
       ],
       "previous": "31",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 31.0,
       "prior": "11",
@@ -3918,7 +3918,7 @@
         "index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 2.0,
       "prior": null,
@@ -3937,7 +3937,7 @@
         "index.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 9.0,
       "prior": null,
@@ -3956,7 +3956,7 @@
         "index.html"
       ],
       "previous": "0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.0,
       "prior": null,
@@ -3975,7 +3975,7 @@
         "index.html"
       ],
       "previous": "67",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.0,
       "prior": "66",
@@ -3994,7 +3994,7 @@
         "index.html"
       ],
       "previous": "82",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 82.0,
       "prior": "90",
@@ -4013,7 +4013,7 @@
         "index.html"
       ],
       "previous": "52",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 52.0,
       "prior": "45",
@@ -4032,7 +4032,7 @@
         "index.html"
       ],
       "previous": "25",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 25.0,
       "prior": "24",
@@ -4051,7 +4051,7 @@
         "index.html"
       ],
       "previous": "43",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 43.0,
       "prior": "57",
@@ -4070,7 +4070,7 @@
         "index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "prior": "8",
@@ -4089,7 +4089,7 @@
         "index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "prior": "2",
@@ -4108,7 +4108,7 @@
         "index.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 11.0,
       "prior": "16",
@@ -4127,7 +4127,7 @@
         "index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "prior": "0",
@@ -4146,7 +4146,7 @@
         "index.html"
       ],
       "previous": "17",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 17.0,
       "prior": "22",
@@ -4165,7 +4165,7 @@
         "index.html"
       ],
       "previous": "55",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 55.0,
       "prior": "50",
@@ -4184,7 +4184,7 @@
         "index.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "prior": "7",
@@ -4203,7 +4203,7 @@
         "index.html"
       ],
       "previous": "12",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 12.0,
       "prior": "16",
@@ -4222,7 +4222,7 @@
         "index.html"
       ],
       "previous": "25",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 25.0,
       "prior": "35",
@@ -4241,7 +4241,7 @@
         "index.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 4.0,
       "prior": "7",
@@ -4260,7 +4260,7 @@
         "index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "prior": "23",
@@ -4279,7 +4279,7 @@
         "index.html"
       ],
       "previous": "33",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 33.0,
       "prior": "36",
@@ -4298,7 +4298,7 @@
         "index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "prior": "14",
@@ -4317,7 +4317,7 @@
         "index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "prior": "2",
@@ -4336,7 +4336,7 @@
         "index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "prior": "15",
@@ -4355,7 +4355,7 @@
         "index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "prior": "0",
@@ -4374,7 +4374,7 @@
         "index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 2.0,
       "prior": null,
@@ -4393,7 +4393,7 @@
         "index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 6.0,
       "prior": null,
@@ -4412,7 +4412,7 @@
         "index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 1.0,
       "prior": null,
@@ -4431,7 +4431,7 @@
         "index.html"
       ],
       "previous": "77",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 77.0,
       "prior": null,
@@ -4450,7 +4450,7 @@
         "index.html"
       ],
       "previous": "45",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 45.0,
       "prior": null,
@@ -4469,7 +4469,7 @@
         "index.html"
       ],
       "previous": "32",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 32.0,
       "prior": null,
@@ -4488,7 +4488,7 @@
         "index.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 8.0,
       "prior": null,
@@ -4508,7 +4508,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-09T01:26:47Z",
       "previous_value": 9,
       "prior": null,
@@ -4522,17 +4522,17 @@
       "display": "17.6%",
       "fmt": "pct1",
       "mode": "free",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "forecast.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "17.6%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.176,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "judgement:joburg-2026:party.ASA.support",
       "token": "judgement_asa_support",
       "value": 0.176
@@ -4555,7 +4555,7 @@
         "nobody-will-win.html"
       ],
       "previous": "136",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-08-08T17:29:45+00:00",
       "previous_value": 136,
       "prior": null,
@@ -4574,7 +4574,7 @@
         "minority-administrations.html"
       ],
       "previous": "0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.001,
       "prior": "13%",
@@ -4593,7 +4593,7 @@
         "minority-administrations.html"
       ],
       "previous": "59%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5854,
       "prior": "48%",
@@ -4612,7 +4612,7 @@
         "minority-administrations.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0,
       "prior": "4.0%",
@@ -4631,7 +4631,7 @@
         "minority-administrations.html"
       ],
       "previous": "38%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3788,
       "prior": "50%",
@@ -4662,7 +4662,7 @@
         "your-forecast/index.html"
       ],
       "previous": "5,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 5000,
       "prior": null,
@@ -4681,7 +4681,7 @@
         "methodology.html"
       ],
       "previous": "872",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 872,
       "prior": null,
@@ -4702,7 +4702,7 @@
         "claims/actionsa-soweto.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "prior": "0.1%",
@@ -4721,7 +4721,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "prior": "43%",
@@ -4742,7 +4742,7 @@
         "forecast.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "prior": "47%",
@@ -4763,7 +4763,7 @@
         "forecast.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "prior": "45%",
@@ -4785,7 +4785,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "prior": "62%",
@@ -4805,7 +4805,7 @@
         "nobody-will-win.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "prior": "1.4%",
@@ -4824,7 +4824,7 @@
         "your-forecast/index.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "prior": "0.1%",
@@ -4843,7 +4843,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.0,
       "prior": null,
@@ -4862,7 +4862,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "prior": null,
@@ -4881,7 +4881,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "prior": null,
@@ -4900,7 +4900,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.0,
       "prior": null,
@@ -4919,7 +4919,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "prior": null,
@@ -4938,7 +4938,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 2.0,
       "prior": "4",
@@ -4957,7 +4957,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "prior": null,
@@ -4976,7 +4976,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.0,
       "prior": null,
@@ -4990,17 +4990,17 @@
       "display": "6",
       "fmt": "int",
       "mode": "generated",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "your-forecast/index.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "6",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 6.0,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "reweight.CLOSENESS_LARGE_PARTIES, the parties that make the badge's large-party mean (JUDGEMENT-CALLS \u00a7N10)",
       "token": "play.closeness_large_parties",
       "value": 6.0
@@ -5014,7 +5014,7 @@
         "your-forecast/index.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "prior": "47%",
@@ -5033,7 +5033,7 @@
         "your-forecast/index.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "prior": "45%",
@@ -5052,7 +5052,7 @@
         "your-forecast/index.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "prior": "1.4%",
@@ -5071,7 +5071,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2.5",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 2.5,
       "prior": null,
@@ -5090,7 +5090,7 @@
         "your-forecast/index.html"
       ],
       "previous": "67",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 67.0,
       "prior": "69",
@@ -5109,7 +5109,7 @@
         "your-forecast/index.html"
       ],
       "previous": "75%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.749921,
       "prior": "63%",
@@ -5128,7 +5128,7 @@
         "your-forecast/index.html"
       ],
       "previous": "14%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.144233,
       "prior": "27%",
@@ -5147,7 +5147,7 @@
         "your-forecast/index.html"
       ],
       "previous": "38%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.378921,
       "prior": "37%",
@@ -5166,7 +5166,7 @@
         "your-forecast/index.html"
       ],
       "previous": "55%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.549683,
       "prior": "53%",
@@ -5185,7 +5185,7 @@
         "your-forecast/index.html"
       ],
       "previous": "48%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.476953,
       "prior": "45%",
@@ -5204,7 +5204,7 @@
         "your-forecast/index.html"
       ],
       "previous": "59%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.590425,
       "prior": "52%",
@@ -5223,7 +5223,7 @@
         "your-forecast/index.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.992096,
       "prior": null,
@@ -5242,7 +5242,7 @@
         "your-forecast/index.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.994831,
       "prior": "91%",
@@ -5261,7 +5261,7 @@
         "your-forecast/index.html"
       ],
       "previous": "72%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.717208,
       "prior": "56%",
@@ -5280,7 +5280,7 @@
         "your-forecast/index.html"
       ],
       "previous": "16%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.158297,
       "prior": "34%",
@@ -5299,7 +5299,7 @@
         "your-forecast/index.html"
       ],
       "previous": "59%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.59111,
       "prior": null,
@@ -5318,7 +5318,7 @@
         "your-forecast/index.html"
       ],
       "previous": "24%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.244399,
       "prior": null,
@@ -5337,7 +5337,7 @@
         "your-forecast/index.html"
       ],
       "previous": "15%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.150729,
       "prior": null,
@@ -5356,7 +5356,7 @@
         "your-forecast/index.html"
       ],
       "previous": "65%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.654911,
       "prior": "84%",
@@ -5375,7 +5375,7 @@
         "your-forecast/index.html"
       ],
       "previous": "100%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "prior": "90%",
@@ -5394,7 +5394,7 @@
         "your-forecast/index.html"
       ],
       "previous": "100%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 1.0,
       "prior": null,
@@ -5413,7 +5413,7 @@
         "your-forecast/index.html"
       ],
       "previous": "100%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "prior": "69%",
@@ -5432,7 +5432,7 @@
         "your-forecast/index.html"
       ],
       "previous": "over 99%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.990723,
       "prior": null,
@@ -5451,7 +5451,7 @@
         "your-forecast/index.html"
       ],
       "previous": "35%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.351733,
       "prior": "52%",
@@ -5470,7 +5470,7 @@
         "your-forecast/index.html"
       ],
       "previous": "29%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.289588,
       "prior": null,
@@ -5489,7 +5489,7 @@
         "your-forecast/index.html"
       ],
       "previous": "29%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.285618,
       "prior": "31%",
@@ -5508,7 +5508,7 @@
         "your-forecast/index.html"
       ],
       "previous": "22%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.216249,
       "prior": null,
@@ -5527,7 +5527,7 @@
         "your-forecast/index.html"
       ],
       "previous": "20%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.200035,
       "prior": null,
@@ -5546,7 +5546,7 @@
         "your-forecast/index.html"
       ],
       "previous": "33%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.329113,
       "prior": null,
@@ -5565,7 +5565,7 @@
         "your-forecast/index.html"
       ],
       "previous": "25%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.254603,
       "prior": null,
@@ -5579,18 +5579,18 @@
       "display": "6.3%",
       "fmt": "pct1",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "methodology.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "6.3%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.063,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:POLLING.md, the Ipsos national poll of 16-20 August 2021 scaled to the contested areas (src/contested_area.py): ActionSA",
       "token": "poll_asa_2021_scaled",
       "value": 0.063
@@ -5604,7 +5604,7 @@
         "methodology.html"
       ],
       "previous": "35%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.35,
       "prior": null,
@@ -5623,7 +5623,7 @@
         "methodology.html"
       ],
       "previous": "25%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.25,
       "prior": null,
@@ -5642,7 +5642,7 @@
         "methodology.html"
       ],
       "previous": "18%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.18,
       "prior": null,
@@ -5661,7 +5661,7 @@
         "methodology.html"
       ],
       "previous": "42%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.42,
       "prior": null,
@@ -5680,7 +5680,7 @@
         "methodology.html"
       ],
       "previous": "541.4",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 541.4,
       "prior": null,
@@ -5699,7 +5699,7 @@
         "methodology.html"
       ],
       "previous": "545.8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 545.8,
       "prior": null,
@@ -5718,7 +5718,7 @@
         "methodology.html"
       ],
       "previous": "723",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 723,
       "prior": null,
@@ -5737,7 +5737,7 @@
         "methodology.html"
       ],
       "previous": "725",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 725,
       "prior": null,
@@ -5751,18 +5751,18 @@
       "display": "190,000",
       "fmt": "comma",
       "mode": "fixed",
-      "movement": "new",
+      "movement": "none",
       "pages": [
         "claims.html",
         "claims/da-outright-majority.html"
       ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
+      "previous": "190,000",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 190000,
       "prior": null,
       "prior_since": null,
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:the claim test as published on 7 August 2026 (claims/da-outright-majority step 4); wrong, corrected by claim_others_shed",
       "token": "pub0807_claim_others_shed",
       "value": 190000
@@ -5776,7 +5776,7 @@
         "nobody-will-win.html"
       ],
       "previous": "5,000",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 5000,
       "prior": null,
@@ -5796,7 +5796,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "65",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 65,
       "prior": "54",
@@ -5816,7 +5816,7 @@
         "laingsburg-2021.html"
       ],
       "previous": "74",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 74,
       "prior": "55",
@@ -5835,7 +5835,7 @@
         "nobody-will-win.html"
       ],
       "previous": "62%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 0.62,
       "prior": "71%",
@@ -5854,7 +5854,7 @@
         "nobody-will-win.html"
       ],
       "previous": "96%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-27T18:44:27Z",
       "previous_value": 0.96,
       "prior": "58%",
@@ -5873,7 +5873,7 @@
         "review.html"
       ],
       "previous": "61%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.61,
       "prior": null,
@@ -5892,7 +5892,7 @@
         "review.html"
       ],
       "previous": "86%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 0.86,
       "prior": null,
@@ -5906,18 +5906,18 @@
       "display": "61%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "review.html"
       ],
-      "previous": "63%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
-      "previous_since": "2026-10-06T01:50:56Z",
-      "previous_value": 0.63,
+      "previous": "61%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.61,
       "prior": "63%",
       "prior_since": "2026-10-06T01:50:56Z",
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:MODEL-LOG \u00a71.18, the corrected run of 6 August 2026 that the review describes (the deduct statute and the audit defaults): the DA largest, after the fixes",
       "token": "rev0806_da_largest_fixed",
       "value": 0.61
@@ -5926,18 +5926,18 @@
       "display": "53%",
       "fmt": "pct0",
       "mode": "fixed",
-      "movement": "material",
+      "movement": "none",
       "pages": [
         "corrections.html",
         "review.html"
       ],
-      "previous": "61%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
-      "previous_since": "2026-10-06T01:50:56Z",
-      "previous_value": 0.61,
+      "previous": "53%",
+      "previous_published_at": "2026-10-23T03:02:10Z",
+      "previous_since": "2026-10-23T03:02:10Z",
+      "previous_value": 0.53,
       "prior": "61%",
       "prior_since": "2026-10-06T01:50:56Z",
-      "since": null,
+      "since": "2026-10-23T03:02:10Z",
       "source": "external:MODEL-LOG \u00a71.16, the deduct (statutory) row of the audit of 5 August 2026, 3,000 simulations: a DA-led minority government viable, only the ANC opposing",
       "token": "rev0806_da_minority_viable",
       "value": 0.53
@@ -5951,7 +5951,7 @@
         "review.html"
       ],
       "previous": "87",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-06T01:50:56Z",
       "previous_value": 87,
       "prior": null,
@@ -5971,7 +5971,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 2.0,
       "prior": null,
@@ -5991,7 +5991,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 1.0,
       "prior": null,
@@ -6011,7 +6011,7 @@
         "your-forecast/index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 6.0,
       "prior": null,
@@ -6032,7 +6032,7 @@
         "nobody-will-win.html"
       ],
       "previous": "72",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 72.0,
       "prior": "66",
@@ -6053,7 +6053,7 @@
         "nobody-will-win.html"
       ],
       "previous": "48",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 48.0,
       "prior": "28",
@@ -6074,7 +6074,7 @@
         "nobody-will-win.html"
       ],
       "previous": "81",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 81.0,
       "prior": "92",
@@ -6095,7 +6095,7 @@
         "nobody-will-win.html"
       ],
       "previous": "40",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 40.0,
       "prior": "27",
@@ -6116,7 +6116,7 @@
         "nobody-will-win.html"
       ],
       "previous": "31",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 31.0,
       "prior": "11",
@@ -6137,7 +6137,7 @@
         "nobody-will-win.html"
       ],
       "previous": "51",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 51.0,
       "prior": "52",
@@ -6157,7 +6157,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 2.0,
       "prior": null,
@@ -6177,7 +6177,7 @@
         "your-forecast/index.html"
       ],
       "previous": "0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 0.0,
       "prior": null,
@@ -6197,7 +6197,7 @@
         "your-forecast/index.html"
       ],
       "previous": "9",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 9.0,
       "prior": null,
@@ -6218,7 +6218,7 @@
         "nobody-will-win.html"
       ],
       "previous": "67",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 67.0,
       "prior": "66",
@@ -6239,7 +6239,7 @@
         "nobody-will-win.html"
       ],
       "previous": "52",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 52.0,
       "prior": "45",
@@ -6260,7 +6260,7 @@
         "nobody-will-win.html"
       ],
       "previous": "82",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 82.0,
       "prior": "90",
@@ -6281,7 +6281,7 @@
         "nobody-will-win.html"
       ],
       "previous": "25",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 25.0,
       "prior": "24",
@@ -6302,7 +6302,7 @@
         "nobody-will-win.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "prior": "8",
@@ -6323,7 +6323,7 @@
         "nobody-will-win.html"
       ],
       "previous": "43",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 43.0,
       "prior": "57",
@@ -6343,7 +6343,7 @@
         "your-forecast/index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "prior": "2",
@@ -6363,7 +6363,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "prior": "0",
@@ -6383,7 +6383,7 @@
         "your-forecast/index.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 11.0,
       "prior": "16",
@@ -6404,7 +6404,7 @@
         "nobody-will-win.html"
       ],
       "previous": "17",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 17.0,
       "prior": "22",
@@ -6425,7 +6425,7 @@
         "nobody-will-win.html"
       ],
       "previous": "5",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 5.0,
       "prior": "7",
@@ -6446,7 +6446,7 @@
         "nobody-will-win.html"
       ],
       "previous": "55",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 55.0,
       "prior": "50",
@@ -6466,7 +6466,7 @@
         "your-forecast/index.html"
       ],
       "previous": "12",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 12.0,
       "prior": "16",
@@ -6486,7 +6486,7 @@
         "your-forecast/index.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 4.0,
       "prior": "7",
@@ -6506,7 +6506,7 @@
         "your-forecast/index.html"
       ],
       "previous": "25",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 25.0,
       "prior": "35",
@@ -6527,7 +6527,7 @@
         "nobody-will-win.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "prior": "23",
@@ -6548,7 +6548,7 @@
         "nobody-will-win.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 6.0,
       "prior": "14",
@@ -6569,7 +6569,7 @@
         "nobody-will-win.html"
       ],
       "previous": "33",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 33.0,
       "prior": "36",
@@ -6589,7 +6589,7 @@
         "your-forecast/index.html"
       ],
       "previous": "3",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 3.0,
       "prior": "2",
@@ -6609,7 +6609,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 1.0,
       "prior": "0",
@@ -6629,7 +6629,7 @@
         "your-forecast/index.html"
       ],
       "previous": "14",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 14.0,
       "prior": "15",
@@ -6649,7 +6649,7 @@
         "your-forecast/index.html"
       ],
       "previous": "2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 2.0,
       "prior": null,
@@ -6669,7 +6669,7 @@
         "your-forecast/index.html"
       ],
       "previous": "1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 1.0,
       "prior": null,
@@ -6689,7 +6689,7 @@
         "your-forecast/index.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 6.0,
       "prior": null,
@@ -6709,7 +6709,7 @@
         "nobody-will-win.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.9,
       "prior": null,
@@ -6728,7 +6728,7 @@
         "methodology.html"
       ],
       "previous": "337",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-22T11:38:25Z",
       "previous_value": 337,
       "prior": null,
@@ -6747,7 +6747,7 @@
         "methodology.html"
       ],
       "previous": "1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 0.01,
       "prior": null,
@@ -6766,7 +6766,7 @@
         "methodology.html"
       ],
       "previous": "0.7%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0066,
       "prior": "9.0%",
@@ -6785,7 +6785,7 @@
         "methodology.html"
       ],
       "previous": "5%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 0.05,
       "prior": null,
@@ -6804,7 +6804,7 @@
         "forecast.html"
       ],
       "previous": "under 0.1%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0004,
       "prior": "0.1%",
@@ -6823,7 +6823,7 @@
         "forecast.html"
       ],
       "previous": "56%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5646,
       "prior": "43%",
@@ -6842,7 +6842,7 @@
         "forecast.html"
       ],
       "previous": "90%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.8956,
       "prior": "62%",
@@ -6861,7 +6861,7 @@
         "forecast.html"
       ],
       "previous": "58%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.5806,
       "prior": "47%",
@@ -6880,7 +6880,7 @@
         "forecast.html"
       ],
       "previous": "34%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.3384,
       "prior": "45%",
@@ -6899,7 +6899,7 @@
         "forecast.html"
       ],
       "previous": "7.9%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0792,
       "prior": null,
@@ -6918,7 +6918,7 @@
         "forecast.html"
       ],
       "previous": "3.9%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0392,
       "prior": null,
@@ -6937,7 +6937,7 @@
         "forecast.html"
       ],
       "previous": "2.2%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0218,
       "prior": "3.8%",
@@ -6956,7 +6956,7 @@
         "forecast.html"
       ],
       "previous": "92%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.924,
       "prior": "70%",
@@ -6975,7 +6975,7 @@
         "forecast.html"
       ],
       "previous": "1.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0162,
       "prior": "1.3%",
@@ -6994,7 +6994,7 @@
         "forecast.html"
       ],
       "previous": "3.6%",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-21T16:46:09Z",
       "previous_value": 0.0358,
       "prior": "1.4%",
@@ -7013,7 +7013,7 @@
         "methodology.html"
       ],
       "previous": "last result plus noise",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "last result plus noise",
       "prior": null,
@@ -7032,7 +7032,7 @@
         "methodology.html"
       ],
       "previous": "11.3",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 11.31,
       "prior": null,
@@ -7051,7 +7051,7 @@
         "methodology.html"
       ],
       "previous": "8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 8,
       "prior": null,
@@ -7070,7 +7070,7 @@
         "methodology.html"
       ],
       "previous": "8.3",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 8.33,
       "prior": null,
@@ -7089,7 +7089,7 @@
         "methodology.html"
       ],
       "previous": "6",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 6,
       "prior": null,
@@ -7108,7 +7108,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "prior": null,
@@ -7127,7 +7127,7 @@
         "methodology.html"
       ],
       "previous": "38.0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 38.0,
       "prior": null,
@@ -7146,7 +7146,7 @@
         "methodology.html"
       ],
       "previous": "19",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 19,
       "prior": null,
@@ -7165,7 +7165,7 @@
         "methodology.html"
       ],
       "previous": "34.2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 34.25,
       "prior": null,
@@ -7184,7 +7184,7 @@
         "methodology.html"
       ],
       "previous": "22",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 22,
       "prior": null,
@@ -7203,7 +7203,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "prior": null,
@@ -7222,7 +7222,7 @@
         "methodology.html"
       ],
       "previous": "48.0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 48.0,
       "prior": null,
@@ -7241,7 +7241,7 @@
         "methodology.html"
       ],
       "previous": "24",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 24,
       "prior": null,
@@ -7260,7 +7260,7 @@
         "methodology.html"
       ],
       "previous": "29.8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 29.78,
       "prior": null,
@@ -7279,7 +7279,7 @@
         "methodology.html"
       ],
       "previous": "19",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 19,
       "prior": null,
@@ -7298,7 +7298,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "prior": null,
@@ -7317,7 +7317,7 @@
         "methodology.html"
       ],
       "previous": "36.0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 36.0,
       "prior": null,
@@ -7336,7 +7336,7 @@
         "methodology.html"
       ],
       "previous": "18",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 18,
       "prior": null,
@@ -7355,7 +7355,7 @@
         "methodology.html"
       ],
       "previous": "31.0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 30.99,
       "prior": null,
@@ -7374,7 +7374,7 @@
         "methodology.html"
       ],
       "previous": "21",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 21,
       "prior": null,
@@ -7393,7 +7393,7 @@
         "methodology.html"
       ],
       "previous": "last result plus noise",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "last result plus noise",
       "prior": null,
@@ -7412,7 +7412,7 @@
         "methodology.html"
       ],
       "previous": "114.1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 114.07,
       "prior": null,
@@ -7431,7 +7431,7 @@
         "methodology.html"
       ],
       "previous": "63",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 63,
       "prior": null,
@@ -7450,7 +7450,7 @@
         "methodology.html"
       ],
       "previous": "66.8",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 66.85,
       "prior": null,
@@ -7469,7 +7469,7 @@
         "methodology.html"
       ],
       "previous": "48",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 48,
       "prior": null,
@@ -7488,7 +7488,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "prior": null,
@@ -7507,7 +7507,7 @@
         "methodology.html"
       ],
       "previous": "8.0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 8.0,
       "prior": null,
@@ -7526,7 +7526,7 @@
         "methodology.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 4,
       "prior": null,
@@ -7545,7 +7545,7 @@
         "methodology.html"
       ],
       "previous": "9.2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 9.22,
       "prior": null,
@@ -7564,7 +7564,7 @@
         "methodology.html"
       ],
       "previous": "4",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 4,
       "prior": null,
@@ -7583,7 +7583,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "prior": null,
@@ -7602,7 +7602,7 @@
         "methodology.html"
       ],
       "previous": "22.0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 22.0,
       "prior": null,
@@ -7621,7 +7621,7 @@
         "methodology.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 11,
       "prior": null,
@@ -7640,7 +7640,7 @@
         "methodology.html"
       ],
       "previous": "17.1",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 17.09,
       "prior": null,
@@ -7659,7 +7659,7 @@
         "methodology.html"
       ],
       "previous": "11",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 11,
       "prior": null,
@@ -7678,7 +7678,7 @@
         "methodology.html"
       ],
       "previous": "337.4",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 337.38,
       "prior": null,
@@ -7697,7 +7697,7 @@
         "methodology.html"
       ],
       "previous": "224.2",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 224.19,
       "prior": null,
@@ -7716,7 +7716,7 @@
         "methodology.html"
       ],
       "previous": "uniform swing",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": "uniform swing",
       "prior": null,
@@ -7735,7 +7735,7 @@
         "methodology.html"
       ],
       "previous": "60.0",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 60.0,
       "prior": null,
@@ -7754,7 +7754,7 @@
         "methodology.html"
       ],
       "previous": "30",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 30,
       "prior": null,
@@ -7773,7 +7773,7 @@
         "methodology.html"
       ],
       "previous": "27.7",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 27.68,
       "prior": null,
@@ -7792,7 +7792,7 @@
         "methodology.html"
       ],
       "previous": "18",
-      "previous_published_at": "2026-10-22T11:38:25Z",
+      "previous_published_at": "2026-10-23T03:02:10Z",
       "previous_since": "2026-10-10T20:02:20Z",
       "previous_value": 18,
       "prior": null,
@@ -7810,9 +7810,9 @@
     "draws": 5000,
     "forecast_content_sha256": "f74c0c2c74e92e32ac5ed21b875d6472f650790a584a5088d16e87cd1ca2a898",
     "forecast_summary_sha256": "a0f5c20167d2fb3090a3ed671c39f0aefe9ba1272471a149eee69de5186d2eea",
-    "git_commit": "4927ea594bf45a664017c81adbaf0e51aabebeb6",
+    "git_commit": "a1df7b62bdf4d87a230e19b198823bbe68ad79a3",
     "git_dirty": true,
-    "model_run_id": "r-f74c0c2c74e9-4927ea59-dirty",
+    "model_run_id": "r-f74c0c2c74e9-a1df7b62-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
@@ -7880,30 +7880,12 @@
   },
   "summary": {
     "by_movement": {
-      "material": [
-        "claim_others_shed",
-        "hist_laingsburg_da_share",
-        "rev0806_da_largest_fixed",
-        "rev0806_da_minority_viable"
-      ],
       "new": [
-        "anc_list_share_median",
-        "byelection_wards",
-        "claim.soweto.some_count",
-        "claim.zille_both.reach",
-        "claim.zille_both.share",
-        "claim.zille_both.total",
-        "claim.zille_both.votes",
-        "govern.da_with_small_without",
-        "hist_mayor_2021_against",
-        "hist_mayor_2021_for",
-        "judgement_asa_support",
-        "play.closeness_large_parties",
-        "poll_asa_2021_scaled",
-        "pub0807_claim_others_shed"
+        "claim.zille_both.total"
       ],
       "none": [
         "anc_entitlement",
+        "anc_list_share_median",
         "anc_ward_median",
         "asa_2021_seats",
         "backtest_cities",
@@ -7922,6 +7904,7 @@
         "blind_test_of",
         "bloc_leak_votes",
         "byelection_count",
+        "byelection_wards",
         "claim.anc.median",
         "claim.anc_alone.best",
         "claim.anc_alone.count",
@@ -7947,8 +7930,12 @@
         "claim.soweto.none_share",
         "claim.soweto.realistic_given_none",
         "claim.soweto.realistic_given_some",
+        "claim.soweto.some_count",
         "claim.soweto.some_share",
         "claim.soweto.wards_n",
+        "claim.zille_both.reach",
+        "claim.zille_both.share",
+        "claim.zille_both.votes",
         "claim_490k_of_2021",
         "claim_anc_collapse_seats",
         "claim_anc_entitlement_surged",
@@ -7958,6 +7945,7 @@
         "claim_da_votes_surge",
         "claim_half_surged",
         "claim_hi_turnout",
+        "claim_others_shed",
         "claim_poll_2021",
         "claim_poll_base",
         "claim_poll_surged",
@@ -8064,6 +8052,7 @@
         "govern.anc_routes",
         "govern.anc_routes_strong",
         "govern.da_best_without",
+        "govern.da_with_small_without",
         "hist_asa_npe_2024",
         "hist_asa_pr_2021",
         "hist_asa_pr_2021_rounded",
@@ -8074,8 +8063,11 @@
         "hist_jhb_wards_called_2011",
         "hist_jhb_wards_called_2016",
         "hist_jhb_wards_called_2021",
+        "hist_laingsburg_da_share",
         "hist_laingsburg_da_wards",
         "hist_laingsburg_wards",
+        "hist_mayor_2021_against",
+        "hist_mayor_2021_for",
         "home.band",
         "home.generated",
         "home.n_draws",
@@ -8124,6 +8116,7 @@
         "home.wards_close.anc",
         "home.wards_close.da",
         "jhb_2021_coalition_parties",
+        "judgement_asa_support",
         "majority",
         "minority.ANC_minority_DA_ASA_oppose",
         "minority.ANC_minority_only_DA_opposes",
@@ -8146,6 +8139,7 @@
         "play.bye.w_bye_1.EFF",
         "play.bye.w_bye_1.IFP",
         "play.bye.w_bye_1.PA",
+        "play.closeness_large_parties",
         "play.largest.ANC",
         "play.largest.DA",
         "play.largest_tied",
@@ -8176,6 +8170,7 @@
         "play.votes.VFPLUS.coloured",
         "play.votes.VFPLUS.indian_asian",
         "play.votes.VFPLUS.white",
+        "poll_asa_2021_scaled",
         "poll_ipsos_w2_anc",
         "poll_ipsos_w2_da",
         "poll_srf_q2_anc",
@@ -8184,6 +8179,7 @@
         "polls_off_crps_before",
         "polls_off_seat_err_after",
         "polls_off_seat_err_before",
+        "pub0807_claim_others_shed",
         "pub0808_n_draws",
         "pub0831_anc_entitlement",
         "pub0831_anc_ward_median",
@@ -8191,6 +8187,8 @@
         "pub0831_p_excessive_anc",
         "rev0806_da_eff_mk_share",
         "rev0806_da_largest_first",
+        "rev0806_da_largest_fixed",
+        "rev0806_da_minority_viable",
         "rev0806_overvote_records",
         "seats.ALJAMAAH.median",
         "seats.ALJAMAAH.p5",
@@ -8290,7 +8288,7 @@
     },
     "n": 401,
     "n_rounding": 0,
-    "n_visible": 4,
+    "n_visible": 0,
     "nominal": []
   }
 }
