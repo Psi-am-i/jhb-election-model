@@ -24,6 +24,8 @@ What is checked, and how each check is shown to see:
 * **A figure that moved keeps its "Was"** in the edition that moved it and in
   every later one, through `_ledger_candidates` over a constructed ledger
   (owner, 2026-10-23; audits/2026-10-23-site-sweep/BRIEF-tooltip-was.md).
+  A corrected FROZEN figure does too, its "Was" dated to the replaced value's
+  first publication (BRIEF-tooltip-was-frozen.md).
 
 Inputs are constructed except where a test says it builds the tree.
 """
@@ -317,6 +319,72 @@ def test_prior_values_dates_the_run_as_run_starts_did_while_it_was_current():
     # a value that returns names the other one, not itself
     rows.append(_row("r", "9", "2026-10-22T00:00:00Z", "material"))
     assert P.prior_values(rows) == {"r": ("11", "2026-10-21T00:00:00Z")}
+
+
+def _frozen_editions():
+    """Line 1 of two FIXED tooltips in two editions built over one constructed
+    ledger, the build's ``first_ledgered`` and ``dated_on`` passed as `main`
+    computes them: ``rev0806_da_largest_fixed`` is first ledgered at 63% on 8
+    August in a passage dated 6 August, corrected to 61% in edition N and
+    republished unchanged in N+1; ``rev0806_da_minority_viable`` stays 63%."""
+    import build_site as B
+    import publication as P
+    fixed, still = "rev0806_da_largest_fixed", "rev0806_da_minority_viable"
+    ledger = [_row(fixed, "63%", "2026-08-08T00:00:00Z", "new"),
+              _row(fixed, "63%", "2026-10-06T00:00:00Z"),
+              _row(still, "63%", "2026-08-08T00:00:00Z", "new")]
+    shown = {fixed: "61%", still: "63%"}
+    dated_on = {fixed: "2026-08-06", still: "2026-08-06"}
+    ident = {"model_run_id": "r-abc-1234", "run_at": None, "as_of": None}
+    out = []
+    for now in ("2026-10-23T03:02:10Z", "2026-10-24T09:00:00Z"):
+        occ = [{"token": t, "value": d, "display": d, "fmt": "pct0", "source": "s",
+                "mode": "fixed", "tolerance": "exact", "page": "review.html"}
+               for t, d in shown.items()]
+        rows, changes = B._ledger_candidates(occ, P.latest_of(ledger), ident, now,
+                                             reason="r", change_class="correction",
+                                             since=P.run_starts(ledger), history=ledger)
+        first = {}
+        for r in ledger:
+            if r.token not in first or str(r.published_at) < first[r.token]:
+                first[r.token] = str(r.published_at)
+        by = {c["token"]: c for c in changes}
+        out.append({t: B.tooltip_text(c, by_token=by, registry={}, edition=now[:10],
+                                      publishing=True, facts=FACTS, first_ledgered=first,
+                                      dated_on=dated_on).split("\n")[0]
+                    for t, c in by.items()})
+        ledger = ledger + rows
+    return out
+
+
+def test_a_corrected_frozen_figure_says_what_it_was_on_its_first_date():
+    """Owner, 2026-10-23 (audits/2026-10-23-site-sweep/BRIEF-tooltip-was-frozen.md):
+    on 6 August the review said 63%, so a tooltip reading "61% chance on 6
+    August." puts the corrected value on the wrong date."""
+    for edition in _frozen_editions():
+        assert edition["rev0806_da_largest_fixed"] == (
+            "61% chance since 23 October. Was 63% on 6 August."), edition
+
+
+def test_a_frozen_figure_never_corrected_says_only_when_it_was_published():
+    for edition in _frozen_editions():
+        assert edition["rev0806_da_minority_viable"] == "63% chance on 6 August.", edition
+
+
+def test_a_frozen_figure_corrected_twice_dates_the_middle_value_by_its_run():
+    """When the replaced value is not the token's first run, its date is the
+    run's own (``prior_since``), not the passage's: 6 August was the first
+    value's date, not the second's."""
+    import build_site as B
+    c = {"token": "rev0806_da_largest_fixed", "display": "59%", "movement": "material",
+         "previous": "61%", "previous_since": "2026-10-23T03:02:10Z",
+         "previous_published_at": "2026-10-23T03:02:10Z", "since": None,
+         "prior": "61%", "prior_since": "2026-10-23T03:02:10Z", "mode": "fixed"}
+    line = B.tooltip_text(c, by_token={c["token"]: c}, registry={}, edition="2026-10-25",
+                          publishing=True, facts=FACTS,
+                          first_ledgered={c["token"]: "2026-08-08T00:00:00Z"},
+                          dated_on={c["token"]: "2026-08-06"}).split("\n")[0]
+    assert line == "59% chance since 25 October. Was 61% on 23 October.", line
 
 
 # --- end to end: the build ------------------------------------------------------

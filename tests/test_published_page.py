@@ -927,25 +927,34 @@ def test_a_coalition_token_is_spelled_the_same_whatever_the_seat_order():
 
 
 # --------------------------------------------------------------------------
-# a live figure that moved keeps saying what it was
+# a figure that moved keeps saying what it was
 # --------------------------------------------------------------------------
 #
 # Owner, 2026-10-23 (audits/2026-10-23-site-sweep/BRIEF-tooltip-was.md): "When
 # a number changes we are meant to show what it was and what it is now." The
 # tooltip said "Was 47% on 26 September" only in the edition that moved the
 # figure; the editions after it reprinted 58% unchanged and dropped the clause.
+# A corrected FROZEN figure printed its new value against its old date and no
+# "Was" at all (BRIEF-tooltip-was-frozen.md).
 
 #: "Was <value> on <date>." in a tooltip's line 1.
 WAS = re.compile(r" Was (.+?) on (\d{1,2} [A-Z][a-z]+(?: \d{4})?)\.")
 
 
-def _was_population(pages: dict[str, str], registry: dict) -> tuple[set, dict, str]:
-    """``(live, expected, edition)`` for built ``pages``: every live figure
-    rendered on them as ``(page, token)``, and for those whose token has a
-    prior distinct value in the ledger, the "Was" clause its tooltip owes.
+def _was_population(pages: dict[str, str], registry: dict) -> tuple[set, dict, str, set]:
+    """``(rendered, expected, edition, frozen)`` for built ``pages``: every
+    figure rendered on them with a token, as ``(page, token)``; for those whose
+    token has a prior distinct value in the ledger, the "Was" clause its
+    tooltip owes; and the subset of ``rendered`` that is frozen.
 
-    Live is what `build_site.tooltip_text` dates from the ledger: not
-    ``mode="fixed"``, not ``tracks`` or ``historical``, not a ``date_long``.
+    Frozen is what `build_site.tooltip_text` dates as published rather than
+    current: ``mode="fixed"``, ``tracks`` or ``historical``. A ``date_long``
+    figure prints the date alone and owes no "Was". A live figure's "Was" is
+    dated to the run the prior value began (``prior_since``); a frozen one's
+    too, unless that run is the token's first, when it is the figure's first
+    publication: the earliest of its dated passage (the ``data-asof`` region
+    around it on any page), ``on_site`` and its first ledger row.
+
     The ledger rows are those the build classifies against (the newest
     publication's predecessors when site/ is that publication), and the current
     value is the figure as rendered on the page, not the build's record of it."""
@@ -958,36 +967,56 @@ def _was_population(pages: dict[str, str], registry: dict) -> tuple[set, dict, s
         edition = newest.published_at[:10]
     fmt = {c["token"]: c.get("fmt") for c in
            json.loads((SITE / "changes.json").read_text("utf-8"))["changes"]}
-    live, current = set(), {}
+    rendered, frozen, dated, current = set(), set(), set(), {}
+    dated_on: dict[str, str] = {}
     for page, text in pages.items():
-        for span in _spans(text):
+        regions = statlib.dated_spans(text)
+        for m in SPAN.finditer(text):
+            span = dict(ATTR.findall(m.group(1)))
             token = span.get("data-token")
             if not token:
                 continue
+            rendered.add((page, token))
+            current[token] = unescape(m.group(2))
+            asof = next((d for lo, hi, d in regions if lo <= m.start() < hi), "")
+            if asof:
+                dated_on[token] = min(dated_on.get(token, asof), asof)
             entry = registry.get(token) or {}
-            if (span.get("data-mode") == "fixed" or entry.get("mode") == "fixed"
-                    or entry.get("tracks") or entry.get("historical")
-                    or fmt.get(token) == "date_long"):
-                continue
-            live.add((page, token))
-            current[token] = span["rendered"]
+            if fmt.get(token) == "date_long":
+                dated.add((page, token))
+            elif (span.get("data-mode") == "fixed" or entry.get("mode") == "fixed"
+                    or entry.get("tracks") or entry.get("historical")):
+                frozen.add((page, token))
+    first: dict[str, str] = {}
+    for r in rows:
+        if r.published_at and (r.token not in first or str(r.published_at) < first[r.token]):
+            first[r.token] = str(r.published_at)
     prior = publication.prior_values(rows, current)
-    expected = {(page, token): (prior[token][0],
-                                build_site.tooltip_date(prior[token][1], edition))
-                for page, token in live if token in prior}
-    return live, expected, edition
+
+    def was_on(page, token):
+        value, since = prior[token]
+        if (page, token) in frozen and str(since) == first.get(token):
+            known = [str(d)[:10] for d in (dated_on.get(token),
+                                           (registry.get(token) or {}).get("on_site"),
+                                           first.get(token)) if d]
+            since = min(known)
+        return value, build_site.tooltip_date(since, edition)
+    expected = {(page, token): was_on(page, token)
+                for page, token in rendered - dated if token in prior}
+    return rendered, expected, edition, frozen
 
 
-def was_faults(pages: dict[str, str], live: set, expected: dict) -> tuple[set, set]:
-    """``(missing, spurious)``: live figures whose tooltip lacks the "Was"
-    clause they owe (or names another value or date), and live figures whose
-    tooltip carries one they do not owe. Every occurrence on every page is
-    read; a token on two pages is two figures to a reader."""
+def was_faults(pages: dict[str, str], rendered: set, expected: dict) -> tuple[set, set]:
+    """``(missing, spurious)``: figures whose tooltip lacks the "Was" clause
+    they owe (or names another value or date), and figures whose tooltip
+    carries one they do not owe. Every occurrence on every page is read; a
+    token on two pages is two figures to a reader. Only the "Was" clause is
+    compared; the "since"/"on" half of line 1 is the unit tests'."""
     said: dict[tuple, tuple | None] = {}
     for page, text in pages.items():
         for span in _spans(text):
             key = (page, span.get("data-token"))
-            if key not in live:
+            if key not in rendered:
                 continue
             m = WAS.search(unescape(span.get("data-prov", "")).split("\n")[0])
             got = None if m is None else (m.group(1), m.group(2))
@@ -1007,39 +1036,47 @@ def _was_pages() -> dict[str, str]:
     return {str(f.relative_to(SITE)): f.read_text("utf-8") for f in sorted(SITE.rglob("*.html"))}
 
 
-def test_every_live_figure_that_has_moved_says_what_it_was():
-    """Two sets, equal both ways: the live figures on the built pages whose
-    token has a prior distinct published value (from the ledger), and the
-    live figures whose tooltip says "Was <that value> on <the date it first
-    appeared>" (from the HTML). The population is bounded on both sides as a
-    fraction of the live figures rendered: below, the scan read nothing that
+def test_every_figure_that_has_moved_says_what_it_was():
+    """Two sets, equal both ways: the figures on the built pages, live and
+    frozen, whose token has a prior distinct published value (from the
+    ledger), and the figures whose tooltip says "Was <that value> on <its
+    date>" (from the HTML). Each population is bounded on both sides: the
+    owing share of all figures rendered (below, the scan read nothing that
     could move; above, every figure has a prior, which a ledger in which most
-    figures were never revised does not produce."""
+    figures were never revised does not produce), and the frozen figures as a
+    share of those rendered and of those owing, so a scan that stopped reading
+    frozen figures, or read only them, fails."""
     if not LANDING.exists():
         skip("site/index.html is absent — nothing has been built to check")
     pages = _was_pages()
-    live, expected, _ = _was_population(pages, _registry())
-    assert live, "no live figure was found on any page in site/: the scan read nothing"
-    share = len(expected) / len(live)
-    assert 0.05 <= share <= 0.9, (len(expected), len(live))
-    missing, spurious = was_faults(pages, live, expected)
-    assert not missing, ("live figures that moved and do not say what they were "
+    rendered, expected, _, frozen = _was_population(pages, _registry())
+    assert rendered, "no tokened figure was found on any page in site/: the scan read nothing"
+    share = len(expected) / len(rendered)
+    assert 0.05 <= share <= 0.9, (len(expected), len(rendered))
+    assert 0.02 <= len(frozen) / len(rendered) <= 0.5, (len(frozen), len(rendered))
+    frozen_owing = set(expected) & frozen
+    assert frozen_owing, "no frozen figure owes a Was clause: the frozen half was not read"
+    assert len(frozen_owing) / len(frozen) <= 0.5, (len(frozen_owing), len(frozen))
+    missing, spurious = was_faults(pages, rendered, expected)
+    assert not missing, ("figures that moved and do not say what they were "
                          f"(page, token): {sorted(missing)[:10]}")
-    assert not spurious, ("live figures saying what they were with no prior value "
+    assert not spurious, ("figures saying what they were with no prior value "
                           f"(page, token): {sorted(spurious)[:10]}")
 
 
 def test_the_was_check_sees_a_stripped_clause_and_an_invented_one():
     """Constructed violations on copies of the real pages: one "Was" clause
-    stripped from a figure that owes it, and one added to a live figure that
-    never moved. Each is caught alone, and the check is quiet once reverted."""
+    stripped from a live figure that owes it and one from a frozen figure
+    that owes it, and one added to a live figure that never moved. Each is
+    caught alone, and the check is quiet once reverted."""
     if not LANDING.exists():
         skip("site/index.html is absent — nothing has been built to check")
     pages = _was_pages()
-    live, expected, _ = _was_population(pages, _registry())
-    assert was_faults(pages, live, expected) == (set(), set())
-    owing = sorted(expected)[0]
-    never = sorted(live - set(expected))[0]
+    rendered, expected, _, frozen = _was_population(pages, _registry())
+    assert was_faults(pages, rendered, expected) == (set(), set())
+    owing = sorted(set(expected) - frozen)[0]
+    owing_frozen = sorted(set(expected) & frozen)[0]
+    never = sorted(rendered - set(expected) - frozen)[0]
 
     def mutate(key, edit):
         page, token = key
@@ -1050,13 +1087,14 @@ def test_the_was_check_sees_a_stripped_clause_and_an_invented_one():
                                  pages[page])
         assert n, key
         return out
-    stripped = mutate(owing, lambda prov: WAS.sub("", prov, count=1))
-    assert stripped != pages
-    assert was_faults(stripped, live, expected) == ({owing}, set())
+    for key in (owing, owing_frozen):
+        stripped = mutate(key, lambda prov: WAS.sub("", prov, count=1))
+        assert stripped != pages
+        assert was_faults(stripped, rendered, expected) == ({key}, set())
     invented = mutate(never, lambda prov: prov.replace(".&#10;", ". Was 1 on 1 August.&#10;", 1))
     assert invented != pages
-    assert was_faults(invented, live, expected) == (set(), {never})
-    assert was_faults(pages, live, expected) == (set(), set())
+    assert was_faults(invented, rendered, expected) == (set(), {never})
+    assert was_faults(pages, rendered, expected) == (set(), set())
 
 
 if __name__ == "__main__":

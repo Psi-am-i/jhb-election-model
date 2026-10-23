@@ -1339,9 +1339,15 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
     * a FROZEN figure (``mode = "fixed"``, ``tracks`` or ``historical``): ``on``
       the date it was published, which is the dated passage's own date
       (``data-asof``, ``dated_on``), ``on_site`` or its first ledger row,
-      whichever is earliest; then, for one that ``tracks`` a live figure
-      that has moved, the live figure and its date. A pinned figure is not
-      current, and "since" would say it is.
+      whichever is earliest. A pinned figure is not current, and "since"
+      would say it is. One that was CORRECTED (it has a ``prior``) says the
+      value now shown ``since`` that value first appeared, as a live figure
+      is dated, then ``Was`` the value it replaced ``on`` the date that value
+      was first published: the earliest-of rule above when the replaced value
+      is the token's first run, else ``prior_since`` (owner, 2026-10-23:
+      audits/2026-10-23-site-sweep/BRIEF-tooltip-was-frozen.md). Then, for
+      one that ``tracks`` a live figure that has moved, the live figure and
+      its date.
     * a DATE (format ``date_long``): the date alone.
 
     Outside a publication, "since <this edition>" is "in this build": a build
@@ -1398,8 +1404,17 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         known = [str(d)[:10] for d in ((dated_on or {}).get(c["token"]), entry.get("on_site"),
                                        first.get(c["token"])) if d]
         published_on = min(known) if known else None
-        line = (f"{shown(c['display'])} on {when(published_on)}." if published_on
-                else f"{shown(c['display'])} {'on ' + when(edition) if publishing else 'in this build'}.")
+        if c.get("prior") is not None:
+            # corrected: the value now shown, since it first appeared, then the
+            # value it replaced on the date that one was first published
+            first_run = str(c["prior_since"]) == str(first.get(c["token"]))
+            prior_on = published_on if first_run and published_on else c["prior_since"]
+            line = (f"{shown(c['display'])} {since_part(c)}. "
+                    f"Was {bare(c['prior'])} on {when(prior_on)}.")
+        elif published_on:
+            line = f"{shown(c['display'])} on {when(published_on)}."
+        else:
+            line = f"{shown(c['display'])} {'on ' + when(edition) if publishing else 'in this build'}."
         live = by_token.get(tracked) if tracked else None
         if live and live["display"] != c["display"]:
             line += f" {shown(live['display'])} {since_part(live)}."

@@ -1912,13 +1912,18 @@ tooltips read one date. "Unchanged since" used to name the latest edition.
 **Every figure's tooltip has one writer, `build_site.tooltip_text`** (owner,
 2026-10-22; audits/2026-10-22-tooltips/BRIEF.md). `stats.render` leaves
 `data-prov` empty; the build fills it with two lines. Line 1 is the figure, its
-unit word and its history from those dates: `<v> since <this edition>. Was
-<old> on <date>.` when it moved, `<v> since <run start>.` when it did not,
-`<v> since <this edition>.` when it is new (`on_site` dates a figure typed
-before it became a token), and for a pinned figure (`mode = "fixed"`,
-`tracks` or `historical`) `<v> on <date>.`, the date being the earliest of its
-dated passage's `data-asof`, `on_site` and its first ledger row, followed by
-the live counterpart when one it `tracks` has moved. A date figure is the date
+unit word and its history from those dates: `<v> since <this edition>.` when
+it moved, `<v> since <run start>.` when it did not, `<v> since <this
+edition>.` when it is new (`on_site` dates a figure typed before it became a
+token); a figure that has ever shown another value then adds `Was <prior> on
+<date that value first appeared>.` in every edition (`publication.prior_values`).
+A pinned figure (`mode = "fixed"`, `tracks` or `historical`) is `<v> on
+<date>.`, the date being the earliest of its dated passage's `data-asof`,
+`on_site` and its first ledger row; a corrected one is `<v> since <run
+start>. Was <prior> on <date>.`, that date being the earliest-of rule when the
+replaced value is the token's first run and the replaced run's start
+otherwise. Either is followed by the live counterpart when one it `tracks` has
+moved. A date figure is the date
 alone. Outside a publication "since <this edition>" reads "in this build".
 Line 2 is `SOURCE: <who>. <sentence>.` from `src/tooltip_says.py`: one table
 of token-name patterns, each with the unit word, the source ("This Model" for
