@@ -301,8 +301,8 @@ def typical(seats_by_party: dict, parties) -> int:
     party's distance scaled by its own 5-95% spread. A real simulation adds up
     exactly and is something the model produced, where a mean or median of each
     party is not (the ANC's mean list seats were 3.85 while 64% of simulations
-    gave it none). Used by the "two ballots" bars and the map's council bar.
-    ``seats_by_party`` maps party -> sequence of seats per simulation."""
+    gave it none). ``seats_by_party`` maps party -> sequence of seats per
+    simulation. The pages call it through :func:`typical_simulation`."""
     import numpy as np
     parties = [p for p in parties if p in seats_by_party]
     n = len(next(iter(seats_by_party.values())))
@@ -312,6 +312,24 @@ def typical(seats_by_party: dict, parties) -> int:
     return min(range(n), key=lambda i: sum(
         abs(seats_by_party[p][i] - meds[p]) / spread[p] for p in parties))
 
+
+
+def typical_simulation(processed: Path) -> int:
+    """THE TYPICAL SIMULATION of the run in ``processed``: :func:`typical` over
+    ``seat_draws.csv`` and the parties a seats table names
+    (:func:`named_parties`). One call, one party set: the forecast page's "two
+    ballots" bars (``render_sheet``) and the map's council bar
+    (``render_map``) both show this simulation. Until 2026-10-23 the map
+    passed its own key's eight parties and the bars the named set, so the two
+    showed different simulations under a comment saying they were the same."""
+    import csv as _csv
+    path = Path(processed) / "seat_draws.csv"
+    with path.open(encoding="utf-8", newline="") as fh:
+        rows = list(_csv.DictReader(fh))
+    if not rows:
+        raise SystemExit(f"{path} has no simulations in it")
+    seats = {p: [int(r[p]) for r in rows] for p in rows[0] if p not in SEAT_DRAW_META}
+    return typical(seats, named_parties(processed))
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -372,7 +390,8 @@ def excessive_by_party(by_party: dict, names: dict, chance, prefix: str,
     """"the ANC 62%, MK Party 3.8%, the EFF 2.7%, every other party 1.3% or less".
 
     ``by_party`` is forecast_summary.json's ``p_excessive_by_party``; ``names``
-    maps a code to its reader name; ``chance(name, value, source)`` makes a
+    maps a code to its reader name, or is a function giving the name with its
+    article (``tooltip_says.party_name``); ``chance(name, value, source)`` makes a
     token. Parties at or above ``EXCESSIVE_FLOOR`` are named, highest first;
     the clause about the rest carries the highest of their figures as its own
     token, and is left out when no other party ever triggers the clause.
@@ -386,6 +405,8 @@ def excessive_by_party(by_party: dict, names: dict, chance, prefix: str,
     rest = [v for v, c in figures if v < EXCESSIVE_FLOOR and v > 0]
 
     def who(c):
+        if callable(names):
+            return names(c)
         nm = names.get(c, c)
         return ("the " if nm.isupper() else "") + nm
 

@@ -688,6 +688,33 @@ def backfill(city: str, rows: Iterable[Row], *, root: Path | None = None) -> int
     return append(city, batch, root=root, _page_verified=True)
 
 
+def _summary(processed: Path) -> dict:
+    """``forecast_summary.json`` of ``processed``, or ``{}`` when it is absent
+    or unreadable."""
+    path = Path(processed) / "forecast_summary.json"
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def forecast_content_sha(processed: Path) -> str | None:
+    """THE CONTENT HASH of the run in ``processed``: everything the model
+    computed (``forecast_summary.json``), with the run's own volatile
+    ``_``-prefixed stamps stripped, so two identical forecasts hash
+    identically. ``None`` when there is no summary. The one definition:
+    :func:`run_identity` records it as ``forecast_content_sha256``, and the
+    ward maps carry it as the run they were drawn from (``render_map``,
+    ``hex_cartogram``), which ``build_site`` compares with the run its
+    headline figures are read from."""
+    content = {k: v for k, v in _summary(processed).items() if not k.startswith("_")}
+    return hashlib.sha256(
+        json.dumps(content, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest() if content else None
+
+
 def run_identity(processed: Path) -> dict:
     """WHICH RUN produced these figures — enough to attribute, not to re-derive.
 
@@ -723,20 +750,8 @@ def run_identity(processed: Path) -> dict:
     was retired.
     """
     summary_path = processed / "forecast_summary.json"
-    summary: dict = {}
-    if summary_path.is_file():
-        try:
-            summary = json.loads(summary_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            summary = {}
-
-    # The CONTENT hash: everything the model computed, with the run's own
-    # volatile stamps stripped. Two identical forecasts must hash identically or
-    # the id cannot answer "did anything change".
-    content = {k: v for k, v in summary.items() if not k.startswith("_")}
-    content_sha = hashlib.sha256(
-        json.dumps(content, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest() if content else None
+    summary = _summary(processed)
+    content_sha = forecast_content_sha(processed)
 
     ident: dict = {
         "run_at": summary.get("_generated"),

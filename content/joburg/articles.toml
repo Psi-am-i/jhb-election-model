@@ -33,9 +33,9 @@ date = "2026-08-08"
 title = "Nobody will win Johannesburg — and an obscure voting law will give the ANC more seats than expected"
 standfirst = """Johannesburg votes on two ballots at once, and they are added
 together. A party with tightly concentrated support can win more wards than its
-share entitles it to — and nobody unseats a ward winner. The shortfall is taken
-from every other party. The clause has fired exactly once before, in a Karoo
-town of seven seats."""
+share entitles it to — and nobody unseats a ward winner. The other parties
+share the list seats that remain. The only case found in the Commission's seat
+calculations we searched is a Karoo town of seven seats."""
 href = "nobody-will-win"
 og_headline = "Nobody will win Johannesburg"
 og_visual = "seat-ranges"
@@ -60,13 +60,13 @@ href = "minority-administrations"
 [[article]]
 date = "2026-08-08"
 title = "If the law were German instead"
-standfirst = """The same votes under our seat law and Germany's of 2000, 2015
-and 2023."""
+standfirst = """The same votes under our seat law and three of Germany's: before
+2013, from 2013 and from 2023."""
 href = "if-the-law-were-german"
 
 [[article]]
 date = "2026-08-08"
 title = "Laingsburg, 2021"
-standfirst = """The only place the clause has fired — the whole mechanism in a
-council of seven."""
+standfirst = """The only case of the clause found in the Commission's seat
+calculations we searched: the whole mechanism in a council of seven."""
 href = "laingsburg-2021"

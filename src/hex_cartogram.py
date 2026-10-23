@@ -86,6 +86,7 @@ MARK_END = "<!-- __HEXMAP_END__ -->"
 # map's, and tests/test_hex_cartogram.py asserts they still are.
 # Tiers, floors and the drawing rule are render_map's — imported, never copied.
 from render_map import SAFE, TIP_FLOOR, OTHER_FLOOR, ward_call, ward_hatch, map_key  # noqa: E402
+from render_map import RUN_ATTR, drawn_from  # noqa: E402
 
 # Hexagon area as a multiple of (city area / ward count). 1.0 makes the tiles
 # cover the real silhouette; smaller values loosen the packing and shorten the
@@ -366,8 +367,13 @@ def _luminance(hex_colour: str) -> float:
 # rendering
 # --------------------------------------------------------------------------
 
-def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") -> str:
+def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city",
+           run: str = "") -> str:
     """The inline-SVG snippet, between __HEXMAP_START__/__HEXMAP_END__.
+
+    ``run`` is the run ``probs`` comes from (``render_map.drawn_from``),
+    written as ``data-run`` so the build can refuse a map drawn from another
+    run than the headline beside it (``render_map.stale_maps``).
 
     Deterministic: the ward order is fixed by :func:`_ward_key`, every
     coordinate is formatted to one decimal, and the pattern dictionary is
@@ -427,7 +433,7 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
     tier_key = map_key(called)
 
     return f"""{MARK_START}
-  <details class="rollup" data-band="forecast" data-map="cartogram" open hidden>
+  <details class="rollup" data-band="forecast" data-map="cartogram" {RUN_ATTR}="{run}" open hidden>
     <summary><span class="eyebrow">The same forecast, drawn by seats instead of by land</span>
     <h2>Who wins how many</h2></summary>
     <p class="maplede">Wards elect half the council, 135 seats, first past the post. A ward needs no
@@ -529,7 +535,7 @@ def main(argv: list[str] | None = None) -> int:
         probs = {r["ward"]: r for r in csv.DictReader(fh)}
 
     layout = build_layout(ward_paths, method=args.assign, area_factor=args.area_factor)
-    snippet = render(layout, probs)
+    snippet = render(layout, probs, run=drawn_from(args.probs.parent))
 
     hex_area = 1.5 * math.sqrt(3.0) * layout.radius ** 2
     before = ink_table(layout.areas, probs)

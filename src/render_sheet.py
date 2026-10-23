@@ -255,13 +255,9 @@ def verdict_class(verdict: str) -> str:
         raise SystemExit(f"claims.toml verdict {verdict!r} is not on the verdict scale "
                          f"(render_sheet.VERDICT_STEP: {sorted(VERDICT_STEP)})")
     return f"v-{VERDICT_STEP[key]}"
-NAMES = {
-    "DA": "DA", "ANC": "ANC", "EFF": "EFF", "MK": "MK Party", "ASA": "ActionSA",
-    "PA": "PA", "IFP": "IFP", "RISE": "Rise Mzansi", "VFPLUS": "VF+",
-    "ACDP": "ACDP", "ALJAMAAH": "Al Jama-ah", "ENTRANT": "New entrant",
-    "SOUTH_AFRICAN_COMMUNIST_PARTY": "SACP", "BOSA": "BOSA",
-    "ALL_CITIZENS_PARTY": "All Citizens Party",
-}
+#: The site's one table of party names: ``render_map.NAMES`` (the same
+#: object), which the browser's copy of render_map also reads.
+from render_map import NAMES  # noqa: E402
 import scenarios as _scenarios  # noqa: E402  (constants below read it)
 
 #: The seat laws, in the order the pages list them: ``(key, name, what it
@@ -269,12 +265,16 @@ import scenarios as _scenarios  # noqa: E402  (constants below read it)
 #: on /forecast prints them, and /your-forecast/'s seat-law lever offers them
 #: under the same names (``build_play.laws_json``). The key is the draws' and
 #: ``overhang_regimes``' name for the law.
+#: The German names are the laws' years (owner, 2026-10-23): uncompensated
+#: surplus seats until 2013, levelling from the 2013 law, surplus winners not
+#: seated from the 2023 law. They read "Germany 2000 law" and "Germany 2015
+#: law" until then, years in which Germany passed no seat law.
 #: The notes are plain words with no figure (STYLE rules 6 and 8): the page
 #: puts them into a LIVE region, where the number gate cannot see a digit.
 SEAT_LAWS = (
     ("deduct", "South African law", "the council keeps its size; the surplus comes off the other parties"),
-    ("expand", "Germany 2000 law", "the council grows by the surplus"),
-    ("level", "Germany 2015 law", "the council grows until every party's seats match its vote"),
+    ("expand", "Germany before 2013", "the council grows by the surplus"),
+    ("level", "Germany 2013 law", "the council grows until every party's seats match its vote"),
     ("cap", "Germany 2023 law", "the council keeps its size; surplus ward winners are not seated"),
 )
 
@@ -438,6 +438,94 @@ def _soweto(args, rows, seats, thr, winners, since_vals, tok, chance):
             "claim.soweto.realistic_given_some", c["realistic"][~none].mean(),
             f"{both}, the {int((~none).sum()):,} of {n:,} simulations where the DA "
             f"wins at least one Soweto ward")
+    # how many simulations that chance rests on (site sweep, 2026-10-23: the
+    # card printed it as a chance on about ten)
+    since_vals["soweto_some_count"] = tok(
+        "claim.soweto.some_count", int((~none).sum()), "int",
+        f"ward_draws.csv, {n:,} simulations, the [areas.soweto] wards: the DA wins at "
+        f"least one")
+
+
+#: Helen Zille's figure (News24, 20 October 2026): DA votes on EACH ballot.
+ZILLE_BOTH_VOTES = 490_000
+#: The precision of the votes-needed search, in votes.
+ZILLE_BOTH_STEP = 1_000
+
+
+def zille_both(processed, majority: int, council: int) -> dict:
+    """This Model's test of "490 000 people need to vote DA on both ballots.
+    That would give us 136 of the council's 270 seats" (Helen Zille, News24,
+    20 October 2026), THROUGH THE SEAT LAW, from the published simulations
+    (``site/draws``: each simulation's whole votes on each ballot and its ward
+    winners, the integers the run's seat law read).
+
+    * ``total_ward``, ``total_list``: the median total votes on each ballot;
+    * ``share``: the DA's share of the two ballots together at those totals
+      with the stated votes on each;
+    * ``seats``: the DA's seats under the law (``prediction.seats_of``, the one
+      composition of it) in the typical simulation (``scenarios.
+      typical_simulation``) with each ballot rescaled to its median total, the
+      DA given the stated votes and every other party scaled in proportion to
+      fill the rest, and THE WARD WINNERS HELD AS THEY ARE IN THAT SIMULATION,
+      which is the test's limit: a DA on these votes would win more wards
+      than the typical simulation gives it, and the ANC fewer;
+    * ``needed``: the votes on each ballot the DA needs for ``majority`` seats
+      under the same test, to ``ZILLE_BOTH_STEP``;
+    * ``seats_open``, ``needed_open``: the same two with NO ward held, so no
+      party has excessive seats and the law reduces to the quota on the
+      combined vote: the other end of the bracket, since a DA on these votes
+      would win some of the ANC's wards but not, in this test, a known number;
+    * ``reach``: the simulations in which the DA has at least the stated
+      votes on both ballots.
+    """
+    import json as _json
+    import prediction as _pred
+    import scenarios as _sc
+    blocks, cols = _sc.published_draw_blocks()
+    man = _json.loads((Path(__file__).resolve().parent.parent / "site" / "draws"
+                       / "manifest.json").read_text(encoding="utf-8"))
+    ward_parties = man["ward_parties"]
+    lot = _sc.summary_lot(Path(processed))
+    t = _sc.typical_simulation(Path(processed))
+    totals = {bal: float(np.median(blocks[bal].sum(axis=1))) for bal in ("ward_vote", "list_vote")}
+
+    def council_with(v: int, held: bool = True) -> dict:
+        votes = {}
+        for bal, key in (("ward_vote", "ward_votes"), ("list_vote", "list_votes")):
+            row = dict(zip(cols[bal], (int(x) for x in blocks[bal][t])))
+            rest = sum(x for p, x in row.items() if p != "DA")
+            left = int(round(totals[bal])) - v
+            raw = {p: x * left / rest for p, x in row.items() if p != "DA"}
+            whole = {p: int(np.floor(x)) for p, x in raw.items()}
+            for p in sorted(raw, key=lambda q: -(raw[q] - whole[q]))[:left - sum(whole.values())]:
+                whole[p] += 1
+            whole["DA"] = v
+            votes[key] = whole
+        calls = [ward_parties[k] for k in blocks["ward_winner"][t]] if held else []
+        return _pred.seats_of({"ward_calls": calls, **votes}, council, lot=lot)
+
+    def da(v: int, held: bool) -> int:
+        return council_with(v, held)["seats"].get("DA", {}).get("total", 0)
+
+    def needed(held: bool) -> int:
+        lo, hi = 0, int(min(totals.values()))
+        if da(hi, held) < majority:
+            raise SystemExit("zille_both: the DA cannot reach a majority on any vote in this test")
+        while hi - lo > ZILLE_BOTH_STEP:
+            mid = (lo + hi) // 2
+            if da(mid, held) >= majority:
+                hi = mid
+            else:
+                lo = mid
+        return int(round(hi / ZILLE_BOTH_STEP) * ZILLE_BOTH_STEP)
+    da_w = blocks["ward_vote"][:, cols["ward_vote"].index("DA")]
+    da_l = blocks["list_vote"][:, cols["list_vote"].index("DA")]
+    return {"total_ward": totals["ward_vote"], "total_list": totals["list_vote"],
+            "share": 2 * ZILLE_BOTH_VOTES / (totals["ward_vote"] + totals["list_vote"]),
+            "seats": da(ZILLE_BOTH_VOTES, True), "needed": needed(True),
+            "seats_open": da(ZILLE_BOTH_VOTES, False), "needed_open": needed(False),
+            "reach": int(((da_w >= ZILLE_BOTH_VOTES) & (da_l >= ZILLE_BOTH_VOTES)).sum()),
+            "typical": t, "draws": int(blocks["ward_vote"].shape[0])}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -523,6 +611,11 @@ def main(argv: list[str] | None = None) -> int:
     def esc(s):
         return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
+    # The site's one reader name for a party, with its article ("the ANC",
+    # "Operation Dudula"): it printed "the DUDULA" from the code until 2026-10-23.
+    import tooltip_says as _says
+    _party_name = _says.party_name
+
     # --- tiles --------------------------------------------------------------
     tiles = [
         (chance("tile.p_alone", p_alone), "One party reaches a majority alone", ""),
@@ -538,7 +631,7 @@ def main(argv: list[str] | None = None) -> int:
          "At least one party triggers it: " + chance("tile.p_excessive_any", summary["p_excessive_any"],
                                                      "forecast_summary.json p_excessive_any")
          + " chance" + (". Beyond the ANC: " + _excl if (_excl := _scq.excessive_by_party(
-             summary.get("p_excessive_by_party", {}), NAMES, chance, "tile.p_excessive",
+             summary.get("p_excessive_by_party", {}), _party_name, chance, "tile.p_excessive",
              "forecast_summary.json p_excessive_by_party", exclude=("ANC",))) else "")),
     ]
     tiles_html = "".join(
@@ -677,10 +770,21 @@ def main(argv: list[str] | None = None) -> int:
     anc_strong = sum(1 for m in cands
                      if "ANC" in members_of(m) and "DA" not in members_of(m)
                      and float((msum(m) >= thr).mean()) > 0.5)
+    # With the smaller parties as well: every party outside the ANC, the EFF
+    # and MK, over EVERY party's seats (`scenarios.all_party_seats`, the
+    # claims' one definition), the arithmetic the red-lines claim tests. The
+    # lede said "its one realistic option is ActionSA and the PA" until
+    # 2026-10-23, beside a claim card rating the larger coalition near certain.
+    _all_A, _, _ = _scq.all_party_seats(args.processed, rows)
+    _all_zero = np.zeros(len(rows), dtype=int)
+    da_with_small = float((sum((_all_A[p] for p in _all_A if p not in ("ANC", "EFF", "MK")),
+                               _all_zero) >= thr).mean())
     govern_lede = (
-        f'<p class="lede">If the DA rules out the ANC, the EFF and MK, its one realistic '
-        f'option is ActionSA and the PA: {chance("govern.da_best_without", da_best)} chance '
-        f'they have the numbers. The ANC without the DA has '
+        f'<p class="lede">If the DA rules out the ANC, the EFF and MK, ActionSA and the PA '
+        f'give it the numbers: {chance("govern.da_best_without", da_best)} chance. With the '
+        f'smaller parties as well: '
+        f'{chance("govern.da_with_small_without", da_with_small, "seat_detail_draws.csv, every party outside the ANC, the EFF and MK")}'
+        f' chance. The ANC without the DA has '
         f'{tok("govern.anc_routes", anc_routes, "int")} workable majorities, '
         f'{tok("govern.anc_routes_strong", anc_strong, "int")} of them with a better than '
         f'even chance of reaching {{{{majority}}}} seats. This is arithmetic, not a '
@@ -710,8 +814,18 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- minority administrations ---------------------------------------------
     minority_rows = summary["minority"]
+    # THE ROW'S WORDS COME FROM ITS PARTIES, NOT FROM THE SUMMARY'S KEY. The
+    # key (`coalitions.py`'s scenario label) names the token and stays as
+    # published; it carried "(2021 pattern)", printed until 2026-10-23, and the
+    # DA's mayor in 2021 won with more votes than the ANC alone had (articles,
+    # minority administrations).
+    def minority_words(m):
+        opp = [_party_name(p) for p in m["opposed"].split("+")]
+        who = opp[0] if len(opp) == 1 else ", ".join(opp[:-1]) + " and " + opp[-1]
+        return (f"{_party_name(m['candidate'], article=False)} minority, "
+                + (f"only {who} opposes" if len(opp) == 1 else f"{who} oppose"))
     minority_html = "".join(
-        f"<tr><td>{esc(m['scenario'])}</td><td class=\"num\">"
+        f"<tr><td>{esc(minority_words(m))}</td><td class=\"num\">"
         f"{chance('minority.' + re.sub(r'[^A-Za-z0-9]+', '_', m['scenario']).strip('_'), m['p_viable'], 'forecast_summary.json minority')}"
         f"</td></tr>" for m in minority_rows)
 
@@ -818,6 +932,31 @@ def main(argv: list[str] | None = None) -> int:
             "majority": "{{majority}}",
         }
         _soweto(args, rows, _A, thr, _winners, since_vals, tok, chance)
+        # Zille's 490,000 on both ballots (News24, 20 October 2026; brief 1 E5)
+        _z = zille_both(args.processed, int(np.median(thr)), int(np.median(council)))
+        _zsrc = (f"site/draws, {_z['draws']:,} simulations; seat law (prediction.seats_of) on "
+                 f"simulation {_z['typical']} rescaled to the median totals, ward winners held")
+        since_vals.update({
+            "zille_both_total_ward": tok("claim.zille_both.total_ward", int(round(_z["total_ward"])),
+                                         "comma", "site/draws ward_vote, median total per simulation"),
+            "zille_both_total_list": tok("claim.zille_both.total_list", int(round(_z["total_list"])),
+                                         "comma", "site/draws list_vote, median total per simulation"),
+            "zille_both_share": tok("claim.zille_both.share", f"{_z['share']:.6f}", "pct0",
+                                    "490,000 on each ballot over the two median totals"),
+            "zille_both_seats": tok("claim.zille_both.seats", _z["seats"], "int", _zsrc),
+            "zille_both_needed": tok("claim.zille_both.needed", _z["needed"], "comma", _zsrc),
+            "zille_both_seats_open": tok(
+                "claim.zille_both.seats_open", _z["seats_open"], "int",
+                _zsrc.replace("ward winners held", "no ward held, so no excessive seats")),
+            "zille_both_needed_open": tok(
+                "claim.zille_both.needed_open", _z["needed_open"], "comma",
+                _zsrc.replace("ward winners held", "no ward held, so no excessive seats")),
+            "zille_both_reach": tok("claim.zille_both.reach", _z["reach"], "int",
+                                    "site/draws ward_vote and list_vote: the DA at 490,000 or "
+                                    "more on both ballots"),
+            "zille_both_votes": tok("claim.zille_both.votes", ZILLE_BOTH_VOTES, "comma",
+                                    "Helen Zille, News24, 20 October 2026: the claim's figure"),
+        })
         if _wall:
             # ⛔ A RANGE OVER ONE SIMULATION IS NOT A RANGE. This printed
             # "the ANC falling to 34 – 34 seats" — min and max of a single
@@ -912,9 +1051,10 @@ def main(argv: list[str] | None = None) -> int:
         segs, at = "", 0.0
         for nm, n, code in items:
             if n <= 0: continue
+            what = f"{n} seat" + ("" if n == 1 else "s")
             segs += (f'<rect class="pc-{code}" x="{at / total * 100:.2f}%" y="0" '
                      f'width="{n / total * 100:.2f}%" height="26" '
-                     f'data-tip="{nm} — {n} seats"><title>{nm} — {n} seats</title></rect>')
+                     f'data-tip="{nm} — {what}"><title>{nm} — {what}</title></rect>')
             at += n
         return (f'<div class="ballot"><div class="ballot-h">{label}</div>'
                 f'<svg class="ballot-bar" width="100%" height="26" role="img" '
@@ -938,7 +1078,8 @@ def main(argv: list[str] | None = None) -> int:
     # give it none — so the bar said "4 list seats" beside a tile saying the
     # clause fires in 64% (owner, 2026-09-17: "can't be both"). A single real
     # simulation adds up exactly AND is something the model actually produced:
-    # the one closest to every charted party's median seats.
+    # the one closest to every charted party's median seats
+    # (`scenarios.typical_simulation`, which the map's council bar calls too).
     OTHER = "__other__"
     detail: dict[int, dict[str, tuple[int, int]]] = {}
     with (args.processed / "seat_detail_draws.csv").open(encoding="utf-8", newline="") as fh:
@@ -946,7 +1087,7 @@ def main(argv: list[str] | None = None) -> int:
             detail.setdefault(int(r["draw"]), {})[r["party"]] = (
                 int(r["ward_seats"]), int(r["list_seats"]))
     import scenarios as _scen
-    typical = _scen.typical(S, CHART_PARTIES)
+    typical = _scen.typical_simulation(args.processed)
     sim = detail[typical]
     named_codes = [p for p in sorted(sim, key=lambda q_: -sum(sim[q_]))
                    if NAMES.get(p) and CHIPS.get(p) and sum(sim[p]) >= 3]

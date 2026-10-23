@@ -1057,8 +1057,9 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 support is drawn from a bell curve on a log scale, so its share is multiplied
 up or down. The curve is wider for a smaller party and for a party new to the
 city. Its width is measured from how far This Model's expected shares missed in
-the past elections before this one. Part of each simulation's move is shared
-by all parties. It cannot be changed on [your forecast](your-forecast/).
+the past elections before this one. Parties below a fifth of the vote share part
+of each simulation's move; a party with a fifth or more moves on its own. It
+cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.make_drawer` (the draw, the calibration pass, the composition subtraction), `montecarlo.party_width`, `width_sigma`, `width_location`, `width_rho`, `pool_spec_centres`, `mean_conservation`; `src/width_record.py` (the record); scenario key `draw_law`.
 
@@ -1943,7 +1944,9 @@ otherwise. **None has been measured; several have never been moved at all.**
 
 **Plain — The excessive-seats clause.** The clause is applied as amended in
 2021, with the arithmetic the Commission used in Laingsburg in 2021 (see *How
-Johannesburg's council elections work*). No court has ruled on it. [Your forecast](your-forecast/) applies three versions of Germany's seat law instead; two of
+Johannesburg's council elections work*). No court has ruled on it. [Your
+prediction](your-forecast/) seats every council under South African law, and
+shows three versions of Germany's seat law beside it for comparison; two of
 them enlarge the council and move the majority line.
 
 ⛔ **RECLASSIFIED 2026-09-02 (§1.165). This is not a lever and it must never be

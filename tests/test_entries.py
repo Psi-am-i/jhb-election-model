@@ -500,6 +500,9 @@ PRIVACY_MUST = (
     "public on the leaderboard",
     "psi@whysoserious.city",
     "seal id",
+    # site sweep 2026-10-23: the third party the page loads code from, and the
+    # copy of the entries made on results night to rank them
+    "cdn.jsdelivr.net", "copied from the database to the site author's computer",
 )
 PRIVACY_MUST_NOT = ("keeps no record of what it signed", "none of them\nkeeps the forecast",
                     "The site\nstores nothing that names a visitor")

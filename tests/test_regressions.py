@@ -864,6 +864,13 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         "LEVELS",         # the nominal coverage levels 50/80/90 a report prints
         "LGE_YEARS", "LGE_ELECTIONS", "FOLDS",        # calendar/route structure
         "independent_wards", "no_pr_list_wards",      # per-call council facts
+        # Site sweep, 2026-10-23. `render_sheet.ZILLE_BOTH_VOTES` is the figure
+        # a quoted claim states (Helen Zille, News24, 20 October 2026), not a
+        # belief of the model; `ZILLE_BOTH_STEP` is the precision of the search
+        # for the votes that claim's test needs. `build_validation.CODE_WIDTH`
+        # is the width the backtest report cuts a party code to, read back to
+        # name the party: structure, not belief.
+        "ZILLE_BOTH_VOTES", "ZILLE_BOTH_STEP", "CODE_WIDTH",
     }
     RUN_CONTROL = {"draws", "seed", "jobs", "n_jobs", "verbose", "tolerance",
                    "report", "bins", "replicates", "boot", "max_draws",

@@ -85,8 +85,8 @@ VISUALS = {"seat-ranges"}
 #: 43bbf59). The map is our prediction's, labelled as such by the owner's
 #: OFFICIAL PREDICTION seal over its corner.
 INTERACTIVE_HEAD = "Know Politics?"
-INTERACTIVE_BODY = ("Pick your winners, seal your prediction and let's see if you "
-                    "can beat us on election day.")
+INTERACTIVE_BODY = ("Pick your winners, seal your prediction and see how it ranks "
+                    "against the result.")
 INTERACTIVE_CTA = "Make yours at"
 PREDICTION_SEAL = "seal-official-prediction.svg"
 

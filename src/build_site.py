@@ -340,7 +340,10 @@ MODEL_DOCS = {
         "review.html",
         "The review",
         "",
-        "model-review.html",
+        # the review's own technical audit (model-review.html) described the
+        # council-growth reading of the seat law and is archived as superseded
+        # (archive/superseded-pages/); the record of the errors is the log
+        "MODEL-LOG.md",
         "How the first version of the model was reviewed against its own plan, "
         "the errors that review found, and how each was fixed.",
     ),
@@ -613,6 +616,48 @@ def fill_commentary(html: str, city: str | None = None) -> str:
     city = city or cityconfig.active().slug
     return html.replace(COMMENTARY_MARKER,
                         render_home._articles(REPO_ROOT / "content" / city).strip(), 1)
+
+
+#: FIGURES WHOSE DEFINITION CHANGED WHILE THE FORECAST DID NOT: ``{token:
+#: (the publication that first showed the new definition, why)}``. A figure
+#: here gets no arrow when it is compared with a row published before that
+#: publication; its ledger rows are untouched and still record the move (the
+#: ledger is append-only, and the move happened). Added 2026-10-23 (site
+#: sweep, brief 1 B32): on 22 October BOSA and the Freedom Front Plus got their
+#: own seat rows (`scenarios.named_parties`), so "Others" and the typical
+#: simulation the bars show changed meaning on the same run, and the pages
+#: marked them ▼ as if the forecast had moved.
+_ROWS_FOR_BOSA_AND_VFPLUS = ("2026-10-22T11:38:25Z",
+                             "BOSA and the Freedom Front Plus got their own seat rows; same run")
+REDEFINED: dict[str, tuple[str, str]] = {
+    t: _ROWS_FOR_BOSA_AND_VFPLUS for t in (
+        "seats.OTHERS.median", "seats.OTHERS.p5", "seats.OTHERS.p95",
+        "home.seats.others", "home.seats.others_lo", "home.seats.others_hi",
+        "play.others_count", "ballots.typical.draw", "ballots.typical.anc_wards")}
+
+
+#: The pages whose ward maps are drawn into their source by render_map and
+#: hex_cartogram; the home page's map is cut from the first at build time
+#: (`fill_home_map`), so it is this page's.
+MAP_PAGES = ("forecast-sheet.html",)
+
+
+def maps_are_current(processed: Path, pages=MAP_PAGES) -> list[str]:
+    """Every reason the ward maps on ``pages`` are not drawn from the run in
+    ``processed``, which is the run the headline figures beside them are read
+    from. Each page must carry both maps (``__MAP_`` and ``__HEXMAP_``), each
+    naming that run. Added 2026-10-23: the live map had been drawn from the
+    29 September run under a headline quoting the 21 October one."""
+    import hex_cartogram
+    import render_map
+    problems = []
+    for name in pages:
+        page = (REPO_ROOT / name).read_text(encoding="utf-8")
+        for marker in (render_map.MARK_START, hex_cartogram.MARK_START):
+            if marker not in page:
+                problems.append(f"{name} has no {marker} map")
+        problems += [f"{name}: {p}" for p in render_map.stale_maps(page, processed)]
+    return problems
 
 
 def fill_home_map(html: str) -> str:
@@ -1552,6 +1597,11 @@ def main(argv: list[str] | None = None) -> int:
     cityconfig.use(getattr(args, "city", None))
     args.processed = args.processed or cityconfig.use_target(
         getattr(args, "target", None)).processed
+    # Before anything is written: the ward maps are drawn from the run the
+    # headline figures are read from (render_map.stale_maps).
+    map_problems = maps_are_current(args.processed)
+    if map_problems:
+        raise SystemExit("refusing to build: " + "; ".join(map_problems))
 
     args.out.mkdir(exist_ok=True)
     # The stylesheet and the site's scripts go first: every page links them,
@@ -2175,6 +2225,9 @@ def main(argv: list[str] | None = None) -> int:
     for c in changes:
         if c["movement"] not in ("material", "minor", "nominal") or c["previous"] is None:
             continue
+        if (c["token"] in REDEFINED
+                and str(c.get("previous_published_at") or "") < REDEFINED[c["token"]][0]):
+            continue        # its definition moved, not the forecast (REDEFINED)
         try:
             glyph = "▲" if float(c["value"]) > float(c["previous_value"]) else "▼"
         except (TypeError, ValueError):

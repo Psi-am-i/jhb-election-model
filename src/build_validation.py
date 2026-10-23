@@ -48,22 +48,57 @@ CITIES = [
     ("buffalocity", "Buffalo City"),
 ]
 
-# Display names for the parties that reach a council. The backtest report
-# truncates its own party column to fit a terminal, so the canonical code is
-# mapped here rather than read back out of formatted output.
-DISPLAY = {
-    "ANC": "ANC", "DA": "DA", "EFF": "EFF", "ASA": "ActionSA", "IFP": "IFP",
-    "VFPLUS": "VF+", "PA": "PA", "ACDP": "ACDP", "ALJAMAAH": "Al Jama-ah",
-    "AIC": "AIC", "COPE": "COPE", "GOOD": "GOOD", "UDM": "UDM", "APC": "APC",
-    "PAC": "PAC", "NFP": "NFP", "ATM": "ATM", "MK": "MK", "UIM": "UIM",
-    "AHC": "African Heart Congress",
-    "CAPE_COLOURED_CONGRESS": "Cape Coloured Congress",
-    "ABANTU_BATHO_CONGRESS": "Abantu Batho Congress",
-    "ACTIVE_CITIZENS_COALITION": "Active Citizens Coalition",
-    "AFRIKAN_ALLIANCE_OF_SOCIAL_DEMOCRATS": "Afrikan Alliance of Social Democrats",
-    "NORTHERN_ALLIANCE": "Northern Alliance",
-    "DEFENDERS_OF_THE_PEOPLE": "Defenders of the People",
-}
+# The backtest report truncates its own party column to fit a terminal
+# (twelve characters: "ACTIVE_CITIZ", "INDEPENDENT_"), so the stored code is
+# resolved back to the party it stands for (`party_names`) and named by the
+# site's one rule (`render_map.party_label`). Until 2026-10-23 a typed table
+# named some parties and the rest printed as truncated codes in title case
+# ("Active Citiz", "Dop", two rows of "Independent").
+CODE_WIDTH = 12
+
+
+def party_names(slug: str, year: str, rows: list[dict]) -> list[str]:
+    """The reader's name for each of ``rows``' parties, in order.
+
+    A stored code is the party's code cut to :data:`CODE_WIDTH`. It is matched
+    to the parties on that city's ballot that year (the cleaned voting-district
+    file); where the cut fits several, the IEC's published seats pick the one
+    with the row's actual seats, and parties with identical figures take their
+    names in alphabetical order, each once. A code that matches nothing keeps
+    the code's words."""
+    import csv as _csv
+    import cityconfig
+    import official_seats
+    import parties
+    import render_map
+    code = cityconfig.load(slug).code
+    path = Path("data/raw/elections") / f"lge{year}_{code}_vd_party_clean.csv"
+    on_ballot: dict[str, str] = {}      # code -> the ballot's own name
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as fh:
+            on_ballot = {parties.canonical(r["sPartyName"]): r["sPartyName"]
+                         for r in _csv.DictReader(fh)}
+    official = (official_seats.read(code, int(year)) or {}).get("parties", {})
+    seats_of = {parties.canonical(k): v.get("seats") for k, v in official.items()}
+    used: set[str] = set()
+    out = []
+    for r in rows:
+        short = r["party"]
+        fits = sorted(f for f in on_ballot if f == short or
+                      (len(short) == CODE_WIDTH and f.startswith(short)))
+        if len(fits) > 1:
+            fits = [f for f in fits if seats_of.get(f) == r["actual"]] or fits
+        fits = [f for f in fits if f not in used]
+        full = fits[0] if fits else short
+        used.add(full)
+        # a short code the pages do not name ("DOP") is named from the
+        # ballot's own words, by the same rule
+        named = full in render_map.NAMES or full in render_map.READER_NAMES \
+            or full in parties.PARTIES or full not in on_ballot
+        out.append(render_map.party_label(full) if named else render_map.reader_name(
+            parties._derived_code(parties.normalise(on_ballot[full]))))
+    return out
+
 
 BASELINES = {
     "uniform-swing": "uniform swing",
@@ -168,7 +203,83 @@ def headline(results: dict) -> dict:
     }
 
 
-def markdown(target: str, results: dict) -> str:
+def losses_sentence(results: dict, best: dict) -> str:
+    """Where This Model loses to its best baseline (by CRPS, the comparison
+    table's) on each measure, read from the scores. It said "In one city the
+    model loses ... Mangaung, the smallest council in the set" until
+    2026-10-23: Buffalo City's council is smaller, and on seats This Model
+    loses in two other cities."""
+    import stats
+    names = {s: r["name"] for s, r in results.items()}
+
+    def _join(xs):
+        return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+    crps_lose = [names[s] for s, r in results.items()
+                 if s in best and r["model"]["crps"] > best[s][1]["crps"]]
+    wrong = {s: (stats.wrong_party_seats(r["model"]["seat_mae"]),
+                 stats.wrong_party_seats(best[s][1]["seat_mae"]))
+             for s, r in results.items() if s in best}
+    seat_lose = [names[s] for s, (m, b) in wrong.items() if m > b]
+    seat_tie = [names[s] for s, (m, b) in wrong.items() if m == b]
+    parts = []
+    parts.append(f"On the range score its best baseline beats This Model in "
+                 f"{_join(crps_lose)}." if crps_lose else
+                 "On the range score This Model beats its best baseline in every city.")
+    if seat_lose:
+        parts.append(f"On seats given to the wrong party it loses in {_join(seat_lose)}"
+                     + (f" and ties in {_join(seat_tie)}." if seat_tie else "."))
+    elif seat_tie:
+        parts.append(f"On seats given to the wrong party it ties in {_join(seat_tie)}.")
+    return "**Where This Model loses.** " + " ".join(parts)
+
+
+def largest_miss_sentence(target: str, results: dict) -> str:
+    """The largest seat miss in the city tables, read from the scores, and
+    whether that party stood at the city's previous local election (its
+    cleaned voting-district file). It said "Every party in this table existed
+    in 2021" until 2026-10-23, above a table whose largest miss is ActionSA,
+    which first stood in 2021."""
+    import csv as _csv
+    import cityconfig
+    import parties
+    miss, slug, row = max(((abs(p["forecast"] - p["actual"]), s, p)
+                           for s, r in results.items() for p in r["model"]["parties"]),
+                          key=lambda t: t[0])
+    name = party_names(slug, target, [row])[0]
+    city = results[slug]["name"]
+    prev = str(int(target) - 5)
+    code = cityconfig.load(slug).code
+    path = Path("data/raw/elections") / f"lge{prev}_{code}_vd_party_clean.csv"
+    stood = None
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as fh:
+            stood = any(parties.canonical(r["sPartyName"]).startswith(row["party"])
+                        for r in _csv.DictReader(fh))
+    lead = (f"{name} first stood in {city} in {target}, and its seats there are"
+            if stood is False else f"{name}'s seats in {city} are")
+    return (f"{lead} This Model's largest miss in the tables above: "
+            f"{row['forecast']} forecast, {row['actual']} won.")
+
+
+def in_sample_settings(processed: Path = Path("data/processed")) -> int | None:
+    """How many settings history.json's in-sample manifest marks as chosen on
+    data that include the elections scored (its ``in_sample.keys``), or None
+    without that record."""
+    path = Path(processed) / "history.json"
+    if not path.exists():
+        return None
+    keys = (json.loads(path.read_text(encoding="utf-8")).get("manifest", {})
+            .get("in_sample", {}).get("keys") or {})
+    return len(keys) or None
+
+
+def markdown(target: str, results: dict, in_sample_settings: int | None = None) -> str:
+    """The section's Markdown. ``in_sample_settings``: how many of This
+    Model's settings the past-elections record (history.json's in-sample
+    manifest, :func:`in_sample_settings`) marks as chosen on data that include
+    the elections scored; None when that record is absent."""
+    import stats
     h = headline(results)
     best = {s: min(r["baselines"].items(), key=lambda kv: kv[1]["crps"])
             for s, r in results.items() if r["baselines"]}
@@ -188,11 +299,11 @@ def markdown(target: str, results: dict) -> str:
     add("")
     add("### How it was tested")
     add("")
-    add("Each forecast used what a forecaster had before polling day: the "
-        "previous local election for its geography, the national election "
-        "before it for each party's starting level, and the voters' roll. It "
-        "also used the 2022 census, taken after the election; *What this does "
-        "not prove* says why that cannot leak a result.")
+    add("Each forecast used the previous local election for its geography, "
+        "the national election before it for each party's starting level, and "
+        "the voters' roll. It also used the 2022 census, taken after the "
+        "election, and settings chosen on records that include the elections "
+        "scored; *What this does not prove* says which.")
     add("")
     add("It was done in **eight metros, not one**. A model tuned on a single "
         "city can look excellent there and have learned only that city. Each "
@@ -208,7 +319,7 @@ def markdown(target: str, results: dict) -> str:
     add("| baseline | what it does |")
     add("|---|---|")
     add("| **last result repeats** | assume the previous local election happens again, unchanged |")
-    add("| **uniform swing** | take the national swing since the last election and apply it equally everywhere |")
+    add("| **uniform swing** | take the previous local election and add each party's change between the city's two national elections before the one forecast, equally in every voting district |")
     add("| **last result plus noise** | the previous result, with uncertainty added around it |")
     add("")
     add("Uniform swing is the usual standard for judging election models, and "
@@ -263,24 +374,28 @@ def markdown(target: str, results: dict) -> str:
         add("|---|---|---|---|")
         shown = [p for p in m["parties"]
                  if not (p["actual"] == 0 and p["forecast"] == 0)]
-        for p in shown:
-            name = DISPLAY.get(p["party"], p["party"].replace("_", " ").title())
+        for p, name in zip(shown, party_names(slug, target, shown)):
             add(f"| {name} | {p['actual']} | {p['forecast']} | "
                 f"{p['forecast'] - p['actual']:+d} |")
         add("")
         # The total is over EVERY party, not over the rows above, which are
         # the largest few. Saying so is the difference between a total and a
-        # total that appears not to add up.
-        add(f"*{m['seat_mae']} seats out in total — across every party that "
-            f"stood, not only the {len(shown)} shown above.*")
+        # total that appears not to add up. ONE UNIT with the methodology's
+        # table: seats given to the wrong party (`stats.wrong_party_seats`,
+        # the one definition), not the summed error, which counts each
+        # misplaced seat twice and printed 96 beside the table's 48.
+        add(f"*{stats.wrong_party_seats(m['seat_mae'])} seats given to the wrong "
+            f"party in total, across every party that stood, not only the "
+            f"{len(shown)} shown above.*")
         add("")
     add("### The technical measures, in plain language")
     add("")
     add("Three measures appear above, and they measure different things.")
     add("")
-    add("**Seats out** adds up how many seats the forecast got wrong for each "
-        "party. It is easy to read, and it ignores most of what a forecast "
-        "says: it looks only at the single most likely outcome, not the range "
+    add("**Seats given to the wrong party** counts the seats the forecast "
+        "placed with a party that did not win them, from each party's middle "
+        "forecast. It is easy to read, and it ignores most of what a forecast "
+        "says: it looks only at each party's middle figure, not the range "
         "around it.")
     add("")
     add("**CRPS** (the continuous ranked probability score) is the number in "
@@ -297,9 +412,9 @@ def markdown(target: str, results: dict) -> str:
         "streets vote which way would show up here.")
     add("")
     add("Two of the three baselines produce a single number rather "
-        "than a range, so CRPS favours a model that gives ranges. The seats-out "
-        "figure is the like-for-like comparison; its margin is smaller, and "
-        "still in This Model's favour.")
+        "than a range, so CRPS favours a model that gives ranges. The seats "
+        "given to the wrong party are the like-for-like comparison; their "
+        "margin is smaller, and still in This Model's favour.")
     add("")
     add("### What this does not prove")
     add("")
@@ -313,10 +428,14 @@ def markdown(target: str, results: dict) -> str:
         # lead-in no longer counts, and the splinter bullet has moved out of
         # this list into the paragraph below, where it belongs as history.
         add("**These are not fully out-of-sample scores, and every run says "
-            "so.** At least one input could not be confined to the period "
-            "before the election; the run prints the full list above its "
-            "results:")
+            "so.** Two kinds of input could not be confined to the period "
+            "before the election:")
         add("")
+        add("* **Settings.** "
+            + (f"{in_sample_settings} of This Model's settings were"
+               if in_sample_settings else "Several of This Model's settings were")
+            + " chosen on records that include the elections scored here, so "
+            "they have seen the results they are tested against.")
         add("* **The census.** Ward-level population-group shares come from the 2022 "
             "census, taken after the 2021 election; it is the only census we "
             "hold. A census records who lives in a ward, not how they voted, "
@@ -336,23 +455,30 @@ def markdown(target: str, results: dict) -> str:
             # claiming the leak for six weeks, on a page whose second paragraph
             # says "No number on this page was typed by a person". The sentence
             # is not a number, which is exactly the hole.
-            "support is in *this* city. Only one such split had happened "
-            "anywhere before 2021. This Model used to fill that gap with splits "
-            "from after 2021, including MK's three years later, which "
-            "flattered these scores. Since 14 August 2026 the record is cut at "
-            "the election being forecast, as every other record here is. "
-            "Johannesburg's figure is worse for it.")
+            #
+            # ⛔ AND ITS COUNT WAS WRONG UNTIL 2026-10-23: "Only one such split
+            # had happened anywhere before 2021", on a page naming Malema and
+            # De Lille. The record cut at 2021 (`pools.home_splinter_record(
+            # before_year="2021")`) holds two splits measured in the leader's
+            # own city, GOOD (2019, Cape Town) and the NFP (2014, eThekwini);
+            # the sentence now names them.
+            "support is in *this* city. Before 2021 the record held two such "
+            "splits measured in the leader's own city: GOOD in Cape Town and "
+            "the NFP in eThekwini. This Model used to add splits from after "
+            "2021, including MK's three years later, which flattered these "
+            "scores. Since 14 August 2026 the record is cut at the election "
+            "being forecast, as every other record here is. Johannesburg's "
+            "figure is worse for it.")
         add("")
         add("Read the scores as an estimate of what the machinery is worth, "
             "not as a sealed prediction made in 2021.")
     add("")
-    add("**In one city the model loses.** Uniform swing beats it in Mangaung, "
-        "the smallest council in the set.")
+    add(losses_sentence(results, best))
     add("")
-    add("**The past is not the future.** Scoring well against 2021 does not "
-        "guarantee 2026. Every party in this table existed in 2021. A party "
-        "that has never stood before is the hardest thing to forecast, and the "
-        "model's weakest area.")
+    add(f"**The past is not the future.** Scoring well against {target} does "
+        f"not guarantee 2026. {largest_miss_sentence(target, results)} A party "
+        f"that has never stood before is the hardest thing to forecast, and "
+        f"This Model's weakest area.")
     add("")
     return "\n".join(L)
 
@@ -435,7 +561,7 @@ def main(argv: list[str] | None = None) -> int:
         out_json.parent.mkdir(parents=True, exist_ok=True)
         out_json.write_text(json.dumps(record, indent=2))
 
-    body = markdown(args.target, results)
+    body = markdown(args.target, results, in_sample_settings())
     # FROM THE RECORD, not from the flags. In --from-json the run being
     # described is the one on disk, and `args.draws` would be whatever the
     # default happens to be — a footer stating the wrong draw count under

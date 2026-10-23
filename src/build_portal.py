@@ -92,16 +92,18 @@ def render(cards: list[dict]) -> str:
             detail = (f'<div class="pc-num">{h["leader_seats"]}'
                       f'<span>/{c["council"]}</span></div>'
                       f'<div class="pc-sub">{sub}. '
-                      f'{c["majority"]} are needed to govern.</div>')
+                      f'{c["majority"]} is a majority.</div>')
             cta = "Open the forecast →"
         else:
+            # a city with no 2026 forecast is described by its config's
+            # top-level structure, which is its 2021 council (cities/*.toml)
             detail = (f'<div class="pc-num pc-soon">{c["council"]}'
-                      f'<span> seats</span></div>'
+                      f'<span> seats in 2021</span></div>'
                       # "Not modelled yet" was flatly contradicted by
                       # /about, which publishes a 2021 backtest for all eight
                       # metros. What is missing is a 2026 FORECAST, and the
                       # card has to say which of the two it means.
-                      f'<div class="pc-sub">{c["wards"]} wards. No 2026 '
+                      f'<div class="pc-sub">{c["wards"]} wards in 2021. No 2026 '
                       f'forecast yet — its 2021 backtest is on the '
                       f'<a href="https://joburg.whysoserious.city/about">'
                       f'scoring page</a>.</div>')
@@ -132,10 +134,9 @@ def render(cards: list[dict]) -> str:
   </header>
   <div class="pcards">{cards_html}</div>
   <p class="pfoot">Each city is modelled from the Electoral Commission's own
-  voting-district results. A city appears here with numbers only once its
-  allocator reproduces that city's published 2011, 2016 and 2021 councils
-  exactly — until then it says "in preparation", because a plausible-looking
-  wrong forecast is worse than none.</p>
+  voting-district results, and every metro's seat calculation reproduces its
+  published 2011, 2016 and 2021 councils. A city shows numbers here once it has
+  a 2026 forecast; until then it says "in preparation".</p>
 </div>"""
 
 

@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from pathlib import Path
 
 import cityconfig
@@ -37,9 +38,72 @@ CHIPS = {
     "ASA": "#2FA79B", "PA": "#E0A419", "IFP": "#C8442A", "RISE": "#7A6BA8",
     "VFPLUS": "#B0752D", "ACDP": "#6B4E9E", "ALJAMAAH": "#2E8B72",
 }
-NAMES = {"DA": "DA", "ANC": "ANC", "EFF": "EFF", "MK": "MK Party",
-         "ASA": "ActionSA", "PA": "PA", "IFP": "IFP", "ALJAMAAH": "Al Jama-ah"}
+#: THE SITE'S ONE TABLE OF PARTY NAMES as the pages print them; a party it
+#: does not list is named by :func:`reader_name`, and :func:`party_label` is
+#: the two together. ``render_sheet.NAMES`` is this object. Until 2026-10-23
+#: the map kept an eight-party copy and named every other party by its code in
+#: title case, so the council bar said "Bosa", "Vfplus" and "Rise" beside a
+#: seat table saying "BOSA", "VF+" and "Rise Mzansi". Here, not in
+#: render_sheet, because this module runs in the browser too and imports
+#: nothing heavy.
+NAMES = {
+    "DA": "DA", "ANC": "ANC", "EFF": "EFF", "MK": "MK Party", "ASA": "ActionSA",
+    "PA": "PA", "IFP": "IFP", "RISE": "Rise Mzansi", "VFPLUS": "VF+",
+    "ACDP": "ACDP", "ALJAMAAH": "Al Jama-ah", "ENTRANT": "New entrant",
+    "SOUTH_AFRICAN_COMMUNIST_PARTY": "SACP", "BOSA": "BOSA",
+    "ALL_CITIZENS_PARTY": "All Citizens Party",
+}
 GREY = "#9aa09a"
+
+
+# A reader-facing name for a party the pages do not name by hand: acronyms as
+# the parties write them, and an apostrophe the derived code lost ("PEOPLE_S"
+# is "People's"). `parties.display_name`'s plain `.title()` printed "Aic",
+# "Move Sa" and "People S Consent Party" on /make/ (review 2026-10-02). Kept
+# HERE, not in parties.py: build_crosswalk writes display_name into a data
+# artefact, and parties.py is shipped as seat code to the seat Worker
+# (interactive/tools/sync_py.mjs), whose hash a name must not move; and
+# parties.py is one of the pool emit's dependencies (pools._EMIT_DEPENDENCIES).
+# Moved from build_play 2026-10-23, so the map's tooltips (which this module
+# also draws in the browser) name parties by the same rule as every page.
+READER_NAMES: dict[str, str] = {
+    "AHC": "AHC", "AIC": "AIC", "APC": "APC", "ATM": "ATM", "AZAPO": "AZAPO",
+    "COPE": "COPE", "NCC": "NCC", "NFP": "NFP", "OKM": "OKM", "PAC": "PAC",
+    "UDM": "UDM", "UIM": "UIM", "GOOD": "GOOD", "AGANG": "Agang SA",
+    "DUDULA": "Operation Dudula", "IMSTAYING": "ImStaying",
+}
+_KEEP_UPPER = {"SA", "KZN"}
+_SMALL = {"OF", "AND", "THE", "FOR", "IN"}
+
+
+def reader_name(code: str) -> str:
+    """The name a reader sees for ``code``: :data:`parties.PARTIES`, then
+    :data:`READER_NAMES`, then the code's words in title case, with "SA"
+    kept upper, small words lower after the first, and a lone "S" rejoined
+    to the word before it as "'s"."""
+    import parties as _parties
+    if code in _parties.PARTIES:
+        return _parties.PARTIES[code][0]
+    if code in READER_NAMES:
+        return READER_NAMES[code]
+    words: list[str] = []
+    for w in code.split("_"):
+        if w == "S" and words:
+            words[-1] += "'s"
+        elif w in _KEEP_UPPER:
+            words.append(w)
+        elif w in _SMALL and words:
+            words.append(w.lower())
+        else:
+            words.append(w.capitalize())
+    return " ".join(words)
+
+
+def party_label(code: str) -> str:
+    """The name a page prints for ``code``: :data:`NAMES`, then
+    :func:`reader_name`."""
+    return NAMES.get(code) or reader_name(code)
+
 MARK_START = "<!-- __MAP_START__ -->"
 MARK_END = "<!-- __MAP_END__ -->"
 
@@ -151,13 +215,13 @@ def ward_call(ward: str, winner: str, pw: float, dist: str) -> dict:
     def _pc(v):
         # ⛔ never "100%": it reads as certain, and wards that looked safe have lost
         return "over 99%" if v > 0.99 else f"{v:.0%}"
-    share = " · ".join(f"{NAMES.get(c, c.title())} {_pc(v)}" for c, v in main)
+    share = " · ".join(f"{party_label(c)} {_pc(v)}" for c, v in main)
     if other >= OTHER_FLOOR:
         share += f" · other {other:.0%}"
-    name = NAMES.get(winner, winner.title())
+    name = party_label(winner)
     if pw >= SAFE:
         return {"fill": CHIPS.get(winner, UNKNOWN_CHIP), "cls": "solid", "bands": [],
-                "tip": f"Ward {ward} · {name} in over 9 of every 10 simulations — {share}"}
+                "tip": f"Ward {ward} · {name} in 9 or more of every 10 simulations — {share}"}
     bands = stripe_parties(main, limit=4)
     rest = 1.0 - sum(v for _, v in bands)
     # A ward under 90% with only ONE party at >= 10% still must not look safe,
@@ -247,6 +311,47 @@ def map_key(called: dict, n_draws_token: str = "{{n_draws}}") -> str:
       at least 1 in 10 of the {n_draws_token} simulations; the wider the stripe, the more simulations
       it wins. Grey is every other party together. These are shares of simulations, not vote shares.</span>"""
 
+
+
+#: THE RUN A MAP WAS DRAWN FROM. Each map snippet (this module's and
+#: ``hex_cartogram``'s) carries ``data-run``: the content hash of the run whose
+#: ``ward_winner_probs.csv`` it was drawn from (``publication.
+#: forecast_content_sha``, the one definition). The pages' headline figures are
+#: read from the run at build time, so ``build_site`` compares the two and
+#: refuses a map drawn from another run (:func:`stale_maps`). Added 2026-10-23:
+#: the map on the live pages had been drawn from the 29 September run while
+#: the headline beside it quoted the 21 October one, and nothing compared them.
+RUN_ATTR = "data-run"
+_RUN = re.compile(r'<!-- __(MAP|HEXMAP)_START__ -->(.*?)<!-- __\1_END__ -->', re.S)
+
+
+def drawn_from(processed: Path) -> str:
+    """The value a map snippet drawn from ``processed`` carries in ``data-run``."""
+    import publication
+    sha = publication.forecast_content_sha(Path(processed))
+    if not sha:
+        raise SystemExit(f"no forecast_summary.json in {processed}: a map must "
+                         f"name the run it was drawn from")
+    return sha
+
+
+def stale_maps(page: str, processed: Path) -> list[str]:
+    """Every problem with the ward maps in ``page`` against the run in
+    ``processed``: a map region without ``data-run``, or one drawn from another
+    run. Empty means every map on the page is this run's. A page with no map
+    region has no problem here (the caller says which pages must carry one)."""
+    want = drawn_from(processed)
+    problems = []
+    for name, region in _RUN.findall(page):
+        got = re.findall(RUN_ATTR + r'="([0-9a-f]*)"', region)
+        if not got:
+            problems.append(f"the {name} map names no run it was drawn from "
+                            f"(no {RUN_ATTR}): re-run its renderer")
+        elif any(g != want for g in got):
+            problems.append(f"the {name} map was drawn from run {got[0][:12]}, "
+                            f"the headline is read from run {want[:12]}: re-run "
+                            f"src/render_map.py and src/hex_cartogram.py")
+    return problems
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -345,14 +450,18 @@ def main(argv: list[str] | None = None) -> int:
 
     # The full council as a plain stacked bar, not a city silhouette: PR seats
     # have no geography, so drawing them inside the city outline suggested one
-    # (owner, 2026-09-17). Same typical simulation as the "two ballots" bars.
+    # (owner, 2026-09-17). The typical simulation is the one the "two ballots"
+    # bars show: one call (`scenarios.typical_simulation`), one party set. Until
+    # 2026-10-23 this passed KEY_PARTIES and the bars the named set, and the
+    # two showed different simulations.
     import csv as _csv
     import scenarios as _scen
-    with (Path("data/processed") / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+    processed = args.probs.parent
+    with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
         _draws = list(_csv.DictReader(fh))
-    _parties = [k for k in _draws[0] if k not in ("draw", "threshold", "council_size")]
+    _parties = [k for k in _draws[0] if k not in _scen.SEAT_DRAW_META]
     _S = {p: [int(r[p]) for r in _draws] for p in _parties}
-    _t = _scen.typical(_S, KEY_PARTIES)
+    _t = _scen.typical_simulation(processed)
     seats = sorted(((p, _S[p][_t]) for p in _parties if _S[p][_t] > 0), key=lambda kv: -kv[1])
     council = int(_draws[_t]["council_size"])
     named_total = sum(n for _, n in seats)
@@ -363,7 +472,7 @@ def main(argv: list[str] | None = None) -> int:
     bands, cursor_x = [], 0.0
     for party, n in seats:
         w = BAR_W * n / council
-        nm = NAMES.get(party, "Others" if party == "OTHER" else party.title())
+        nm = "Others" if party == "OTHER" else party_label(party)
         bands.append(f'<rect x="{cursor_x:.1f}" y="0" width="{w:.1f}" height="{BAR_H:.0f}" '
                      f'fill="{CHIPS.get(party, GREY)}" data-tip="{nm} — {n} of {council} seats"/>')
         cursor_x += w
@@ -374,9 +483,10 @@ def main(argv: list[str] | None = None) -> int:
     <text x="8" y="16" class="mapcap">Ward races — 135 seats, first past the post</text>"""
 
     tier_key = map_key(called)
+    run = drawn_from(processed)
 
     snippet = f"""{MARK_START}
-  <details class="rollup" data-band="forecast" data-map="geo" open>
+  <details class="rollup" data-band="forecast" data-map="geo" {RUN_ATTR}="{run}" open>
     <summary><span class="eyebrow">The map — every ward, called using {{{{n_draws}}}} simulations</span>
     <h2>Who wins where</h2></summary>
     <p class="maplede">Wards elect half the council, 135 seats, first past the post. A ward needs no

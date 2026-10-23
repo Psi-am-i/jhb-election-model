@@ -165,6 +165,13 @@ format = "int"
 inserted = "2026-08-07"
 used_in = "the November surprise (×2), methodology"
 
+[run_seed]
+mode = "free"
+source = "model:scenario.seed"
+format = "raw"
+inserted = "2026-09-17"
+used_in = "no page since 2026-10-23 (the forecast footer dropped the seed, site sweep brief 1 B30); retire it with publication.retire at the next --publish, then delete this entry"
+
 [anc_entitlement]
 mode = "free"
 # the pure-proportional counterfactual IS the entitlement: Germany-2023 rule
@@ -210,13 +217,6 @@ source = "published:run_date"
 format = "date_long"
 inserted = "2026-09-17"
 used_in = "footer colophon and dateline — the run the page's figures come from; since 2026-10-15 read from the published draws, the same run as the forecast's card"
-
-[run_seed]
-mode = "free"
-source = "model:scenario.seed"
-format = "raw"
-inserted = "2026-09-17"
-used_in = "footer colophon"
 
 [n_draws]
 mode = "free"
@@ -416,14 +416,17 @@ historical = "published 6 August 2026; kept as the original of a written piece"
 [rev0806_da_largest_fixed]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
-value = 0.63
-source = "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: the DA largest, after the fixes"
+value = 0.61
+# CORRECTED 2026-10-23 (site sweep, brief 1 C3): 0.63, sourced to the page
+# itself; no run gives it. MODEL-LOG §1.18 records the corrected run of
+# 6 August with "DA largest 61%".
+source = "external:MODEL-LOG §1.18, the corrected run of 6 August 2026 that the review describes (the deduct statute and the audit defaults): the DA largest, after the fixes"
 captured = "2026-08-06"
 format = "pct0"
 used_in = "review, as published"
 
-unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
-historical = "published 6 August 2026; kept as the original of a written piece"
+unverifiable = "the corrected run of 6 August's figure in MODEL-LOG §1.18; that run is superseded"
+historical = "the review of 6 August 2026, corrected in place on 2026-10-23 (it printed 63%, a figure no run gives)"
 [rev0806_da_largest_first]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -438,14 +441,17 @@ historical = "published 6 August 2026; kept as the original of a written piece"
 [rev0806_da_minority_viable]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
-value = 0.61
-source = "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: a DA-led minority government viable"
+value = 0.53
+# CORRECTED 2026-10-23 (site sweep, brief 1 C4): 0.61, the council-growth
+# ("expand") reading's figure (MODEL-LOG §1.15). Under the statute (deduct) the
+# audit of 5 August measured 53.0% at 3,000 simulations (§1.16).
+source = "external:MODEL-LOG §1.16, the deduct (statutory) row of the audit of 5 August 2026, 3,000 simulations: a DA-led minority government viable, only the ANC opposing"
 captured = "2026-08-06"
 format = "pct0"
 used_in = "review, as published"
 
-unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
-historical = "published 6 August 2026; kept as the original of a written piece"
+unverifiable = "the statutory reading's figure in the audit of 5 August (MODEL-LOG §1.16); that run is superseded"
+historical = "the review of 6 August 2026, corrected in place on 2026-10-23 (it printed 61%, the council-growth reading's figure)"
 [hist_da_bloc_change_votes]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -471,8 +477,12 @@ unverifiable = "a measured historical figure from an official result or the cens
 [hist_laingsburg_da_share]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
-value = 0.2306
-source = "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's share, 23.06% (MODEL-LOG 1.17)"
+value = 0.23710
+# CORRECTED 2026-10-23 (site sweep, brief 1 C12): 0.2306, which is not the
+# cited report's figure. The report's Excessive Seat Calculation gives the
+# DA 1,530 of 6,453 valid votes (both ballots), 23.71%
+# (audits/2026-10-09-site-batch/law/sources/iec-lge2021-seat-calculation-detail-wc051-laingsburg.pdf).
+source = "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's 1,530 of 6,453 valid votes (MODEL-LOG 1.17)"
 captured = "2026-08-08"
 format = "pct0"
 used_in = "Laingsburg, 2021; methodology (the seat law)"
@@ -599,6 +609,20 @@ used_in = "colophons, sources, evidence weights — restated 3x"
 
 unverifiable = "IEC by-election records — an external count, not a model output"
 
+# The wards those by-elections were held in: ward 102 held two (2023-08-23 and
+# 2026-02-25). Counted 2026-10-23 with byelections.load_byelections over
+# data/raw/byelections/byelections_Gauteng_vd_party.csv, prefix 798, after the
+# 2021 election (site sweep, brief 1 B24).
+[byelection_wards]
+mode = "fixed"
+value = 14
+source = "external:IEC by-election records, CoJ 2021-2026: the wards that held them"
+captured = "2026-10-23"
+format = "int"
+used_in = "sources (by-elections)"
+
+unverifiable = "IEC by-election records — an external count, not a model output"
+
 [turnout_seats_moved]
 mode = "fixed"
 value = 2
@@ -657,13 +681,30 @@ used_in = "claims/zille-490k step 4"
 unverifiable = "arithmetic on two published figures, not a quantity the model emits"
 [claim_others_shed]
 mode = "fixed"
-value = 190000
-source = "arithmetic: votes every other party must lose to freeze the poll"
-captured = "2026-08-07"
+# CORRECTED 2026-10-23 (site sweep, brief 1 E1): 190,000, which no arithmetic
+# on the two figures gives. With the 2021 total frozen, the other parties lose
+# what the DA gains: 490,000 less the DA's 2021 votes per ballot, 482,653 over
+# both ballots in the IEC 2021 CoJ Seat Calculation Detail, halved.
+value = 248673.5
+source = "arithmetic: 490,000 less half the DA's 482,653 votes over both ballots in the IEC 2021 CoJ Seat Calculation Detail"
+captured = "2026-10-23"
 format = "comma"
 tolerance = 20000
-used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
+used_in = "claims/da-outright-majority, the since box's correction of step 4"
 unverifiable = "arithmetic on two published figures, not a quantity the model emits"
+
+# The figure step 4 printed from 7 August, kept in that dated step as
+# published; the since box corrects it (claim_others_shed).
+[pub0807_claim_others_shed]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 190000
+source = "external:the claim test as published on 7 August 2026 (claims/da-outright-majority step 4); wrong, corrected by claim_others_shed"
+captured = "2026-08-07"
+format = "comma"
+used_in = "claims/da-outright-majority step 4, as published, and its correction"
+unverifiable = "a figure as published on a dated page"
+historical = "published 7 August 2026; kept as the original of a dated step, with a correction in the since box"
 
 # The last DA-led council in Johannesburg (December 2021): a fact of record,
 # quoted in the Mashaba claim's intro (JUDGEMENT-CALLS.md §P3). Added
@@ -1611,3 +1652,61 @@ kind = "convention"
 source = "a reference to MODEL-LOG.md's section number"
 reviewed = "2026-10-10"
 page = "methodology.html"
+
+# ---------------------------------------------------------------------------
+# added 2026-10-23 (site sweep, brief 1)
+# ---------------------------------------------------------------------------
+
+# ActionSA's expected share, the owner's judgement call (JUDGEMENT-CALLS.md
+# §SJ2), read from the judgements file where it is set, so the forecast page's
+# Limits cannot drift from it.
+[judgement_asa_support]
+mode = "free"
+source = "judgement:joburg-2026:party.ASA.support"
+format = "pct1"
+inserted = "2026-10-23"
+used_in = "forecast — Limits"
+
+# The ANC's middle list-ballot share over the published simulations, for the
+# methodology's seat-law section (it read "a citywide vote in the
+# mid-twenties", typed).
+[anc_list_share_median]
+mode = "free"
+source = "published:list_share_median:ANC"
+format = "pct0"
+inserted = "2026-10-23"
+used_in = "methodology — the seat law"
+
+# The one independent poll before 2021 (Ipsos, national, August 2021, 1.5% for
+# ActionSA), scaled to the areas ActionSA contested: POLLING.md "Feeding the
+# POLL rather than the outcome, 1.5% national scales to about 6.3% wherever
+# ActionSA stood".
+[poll_asa_2021_scaled]
+mode = "fixed"
+value = 0.063
+source = "external:POLLING.md, the Ipsos national poll of 16-20 August 2021 scaled to the contested areas (src/contested_area.py): ActionSA"
+captured = "2026-10-23"
+format = "pct1"
+used_in = "methodology (polls)"
+unverifiable = "a poll figure converted once by a recorded method, not a model output"
+
+# The vote for mayor on 22 November 2021: Mpho Phalatse (DA) 144, Mpho Moerane
+# (ANC) 121 (Business Day, 22 November 2021), a majority of the whole council.
+[hist_mayor_2021_for]
+mode = "fixed"
+value = 144
+source = "external:Business Day, 22 November 2021: votes for Mpho Phalatse, Johannesburg's vote for mayor"
+captured = "2026-10-23"
+format = "int"
+used_in = "minority administrations"
+unverifiable = "a recorded council vote, not a model output"
+
+[hist_mayor_2021_against]
+mode = "fixed"
+value = 121
+source = "external:Business Day, 22 November 2021: votes for Mpho Moerane, Johannesburg's vote for mayor"
+captured = "2026-10-23"
+format = "int"
+used_in = "minority administrations"
+unverifiable = "a recorded council vote, not a model output"
+

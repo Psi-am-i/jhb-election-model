@@ -22,6 +22,7 @@ for a share whose format leaves the sign to the prose, or none), ``<who>``, and 
   scenario's codes, ``_``-joined);
 * :class:`Facts`, the run's own counts (never typed here): the forecast's
   simulation count, the past-elections test's, the validation's and its year;
+* ``ballot`` (``ward`` or ``list``), said as it is;
 * constants read from the modules that define them (the map's safe share,
   the small-party test's two shares).
 
@@ -158,6 +159,8 @@ SAYS: tuple[Say, ...] = (
     # --- the who-can-govern lede ---------------------------------------------
     Say(r"govern\.da_best_without", "chance", M,
         "The best chance, across " + _SIMS + ", of any coalition in the table that includes the DA and not the ANC, the EFF or MK Party."),
+    Say(r"govern\.da_with_small_without", "chance", M,
+        "The % of " + _SIMS + " where every party except the ANC, the EFF and MK Party together held a majority of the council."),
     Say(r"govern\.anc_routes", "", M,
         "The coalitions in the table that include the ANC and not the DA."),
     Say(r"govern\.anc_routes_strong", "", M,
@@ -203,6 +206,25 @@ SAYS: tuple[Say, ...] = (
         "Of the simulations where the DA wins no Soweto ward, the % where it leads no majority, either with ActionSA and the PA or with the ANC."),
     Say(r"claim\.soweto\.realistic_given_some", "chance", M,
         "Of the simulations where the DA wins at least one Soweto ward, the % where it leads a majority with ActionSA and the PA, or with the ANC, as the largest party in it."),
+    Say(r"claim\.soweto\.some_count", "", M,
+        "The number of the " + _SIMS + " in which the DA wins at least one of Soweto's wards."),
+    # the 490,000 claim on both ballots (Helen Zille, News24, 20 October 2026)
+    Say(r"claim\.zille_both\.votes", "", "Helen Zille, News24",
+        "The votes she said the DA needs on each of the two ballots."),
+    Say(r"claim\.zille_both\.total_(?P<ballot>ward|list)", "", M,
+        "The middle total of votes on the {ballot} ballot across " + _SIMS + "."),
+    Say(r"claim\.zille_both\.share", "", M,
+        "Helen Zille's figure on each ballot, as a % of the votes This Model expects on the two ballots together."),
+    Say(r"claim\.zille_both\.seats", "seats", M,
+        "The DA's seats under the seat law with Helen Zille's figure on each ballot, in This Model's most typical simulation with the wards each party wins there held as they are."),
+    Say(r"claim\.zille_both\.needed", "", M,
+        "The votes on each ballot the DA needs for a majority of the council, in the same test."),
+    Say(r"claim\.zille_both\.seats_open", "seats", M,
+        "The DA's seats under the seat law with Helen Zille's figure on each ballot, at the votes This Model expects, when no party wins more wards than its share entitles it to."),
+    Say(r"claim\.zille_both\.needed_open", "", M,
+        "The votes on each ballot the DA needs for a majority of the council when no party wins more wards than its share entitles it to."),
+    Say(r"claim\.zille_both\.reach", "", M,
+        "The number of the " + _SIMS + " in which the DA wins at least Helen Zille's figure on both ballots."),
     Say(r"claim\.soweto\.wards_n", "wards", M,
         "The 2026 wards This Model counts as Soweto, from the addresses of their voting stations."),
     # the 490,000 claim (Helen Zille, Business Day): figures tested on 7 August
@@ -214,6 +236,8 @@ SAYS: tuple[Say, ...] = (
         "Helen Zille's DA vote target as a % of the votes cast in Johannesburg in 2021."),
     Say(r"claim_others_shed", "", IEC21,
         "The votes every other party would have to lose for the DA to double its vote while the total stays at the 2021 level."),
+    Say(r"pub0807_claim_others_shed", "", IEC21,
+        "The votes every other party would have to lose for the DA to double its vote while the total stays at the 2021 level, as the test of 7 August published it."),
     Say(r"claim_hi_turnout", "%", "IEC past results",
         "The highest turnout on record in Johannesburg's voting districts, weighted by their registered voters."),
     Say(r"claim_poll_base", "", M,
@@ -249,6 +273,8 @@ SAYS: tuple[Say, ...] = (
         "How far {party}'s middle seat count moves from the forecast when the by-elections since 2021 count fully."),
     Say(rf"play\.bye\.w_bye_0\.{_P}", "seats", M,
         "How far {party}'s middle seat count moves from the forecast when the by-elections since 2021 do not count at all."),
+    Say(r"play\.closeness_large_parties", "", M,
+        "The parties with the most seats in our prediction whose closeness, taken together, counts twice as much as the other parties' in the badge."),
     Say(r"play\.max_figure_se", "seats", M,
         "The largest standard error a figure on this page may have before the page withholds it: how far, typically, the figure would move if the same number of simulations were made again."),
     # --- the run and the council ---------------------------------------------
@@ -257,11 +283,12 @@ SAYS: tuple[Say, ...] = (
     Say(r"majority", "seats", "Municipal Structures Act",
         "The seats a majority of the council needs: more than half of them."),
     Say(r"n_vds", "", M, "The voting districts This Model simulates in Johannesburg."),
-    Say(r"run_seed", "", M,
-        "The random seed of This Model's simulations; the same seed reproduces them."),
     Say(r"anc_entitlement", "seats", M,
         "The ANC's middle seat count across " + _SIMS + " if every party's seats matched its votes exactly."),
     Say(r"anc_ward_median", "wards", M, "The ANC's average ward wins across " + _SIMS + "."),
+    Say(r"anc_list_share_median", "", M, "The ANC's middle share of the list vote across " + _SIMS + "."),
+    Say(r"judgement_asa_support", "", "Our judgement",
+        "ActionSA's expected share of the list vote, set by our judgement in place of This Model's own."),
     Say(r"small_party_share", "", M,
         "The share of the party-list vote under which a party counts as small, in the test of past local elections."),
     Say(r"small_party_surge_share", "", M,
@@ -288,10 +315,10 @@ SAYS: tuple[Say, ...] = (
     Say(r"rev0806_da_minority_viable", "chance", M,
         "The % of simulations where a DA minority government had the numbers, in the forecast the review describes."),
     Say(r"rev0806_overvote_records", "", "IEC past results",
-        "The voting-district results, one per district and election, with more votes than registered voters."),
+        "The voting-district results, one per district and election, whose turnout was above the ceiling the review set, a little over the registered voters."),
     # --- the tests against real elections ------------------------------------
     Say(r"backtest_cities", "", M,
-        "The metros where This Model forecast the {val_year} election from earlier data and was scored against the result."),
+        "The metros where This Model was run on the {val_year} election and scored against the result."),
     Say(r"backtest_wins", "", M,
         "The metros where This Model's error score for the {val_year} election beat the best simple forecast's."),
     Say(r"backtest_crps_better", "", M,
@@ -327,11 +354,11 @@ SAYS: tuple[Say, ...] = (
     Say(r"polls_off_seat_err_after", "seats", M,
         "The seats This Model's forecasts were off by in its test against past metro elections, counted for every party and added up, with polls taken out."),
     Say(r"blind_test_called", "wards", M,
-        "The 2021 Johannesburg ward winners This Model called correctly when forecasting that election from earlier ones."),
+        "The 2021 Johannesburg ward winners This Model called correctly when given only that election's citywide totals."),
     Say(r"hist_jhb_wards_(?P<year>\d{4})", "wards", M,
         "The wards in Johannesburg's {year} election, as scored in This Model's test against it."),
     Say(r"hist_jhb_wards_called_(?P<year>\d{4})", "wards", M,
-        "The {year} Johannesburg ward winners This Model called correctly, forecasting that election from earlier ones across {n_hist} simulations."),
+        "The {year} Johannesburg ward winners This Model called correctly in its test against that election, across {n_hist} simulations. Several of its settings were chosen on records that include that election."),
     # --- outside sources ------------------------------------------------------
     Say(r"asa_2021_seats", "seats", IEC21, "ActionSA's seats on Johannesburg's council after the 2021 election, its first."),
     Say(r"blind_test_of", "wards", IEC21, "The wards in Johannesburg's 2021 election."),
@@ -346,6 +373,14 @@ SAYS: tuple[Say, ...] = (
     Say(r"hist_asa_npe_2024", "", "IEC 2024 results",
         "ActionSA's share of Johannesburg's national ballot in the 2024 national election."),
     Say(r"hist_laingsburg_da_share", "", IEC21, "The DA's share of the vote in Laingsburg's 2021 local election."),
+    Say(r"hist_mayor_2021_for", "", "Business Day, 22 November 2021",
+        "The councillors' votes for the DA's candidate, Mpho Phalatse, when Johannesburg's council elected its mayor in November 2021."),
+    Say(r"hist_mayor_2021_against", "", "Business Day, 22 November 2021",
+        "The councillors' votes for the ANC's candidate, Mpho Moerane, in the same vote."),
+    Say(r"byelection_wards", "wards", "IEC by-election results",
+        "The Johannesburg wards that have held a by-election since the 2021 election; one ward held two."),
+    Say(r"poll_asa_2021_scaled", "", "Ipsos",
+        "ActionSA's share in Ipsos's national poll of August 2021, the only independent poll before that election, scaled to the areas ActionSA contested."),
     Say(r"hist_laingsburg_da_wards", "wards", IEC21, "The wards the DA won in Laingsburg in 2021."),
     Say(r"hist_laingsburg_wards", "wards", IEC21, "The wards in Laingsburg in 2021."),
     Say(r"poll_ipsos_w2_(?P<party>anc|da)", "", "Ipsos",
@@ -400,12 +435,11 @@ NO_ARTICLE = frozenset({"BOSA", "VFPLUS"})
 
 
 def party_name(code: str, *, article: bool = True) -> str:
-    """The reader's name for ``code``: ``render_sheet.NAMES``, then
-    ``build_play.reader_name``; "the " before a name in capitals, as every
-    page writes it ("the ANC", "MK Party"), except :data:`NO_ARTICLE`."""
-    import build_play
-    import render_sheet
-    name = render_sheet.NAMES.get(code) or build_play.reader_name(code)
+    """The reader's name for ``code``: ``render_map.party_label`` (the site's
+    one names table, then ``reader_name``); "the " before a name in capitals,
+    as every page writes it ("the ANC", "MK Party"), except :data:`NO_ARTICLE`."""
+    import render_map
+    name = render_map.party_label(code)
     return ("the " + name) if article and name.isupper() and code not in NO_ARTICLE else name
 
 
@@ -476,6 +510,8 @@ def _fill(say: Say, m: re.Match, facts: Facts) -> str:
         vals["city"] = _cities()[g["city"]]
     if "year" in g:
         vals["year"] = g["year"]
+    if "ballot" in g:
+        vals["ballot"] = g["ballot"]
     needs = set(re.findall(r"\{(\w+)\}", say.says))
     if "n_hist" in needs:
         vals["n_hist"] = f"{int(facts.n_hist):,}" if facts.n_hist else "its"
