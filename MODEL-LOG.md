@@ -31364,3 +31364,23 @@ Al Jama-ah won ward 9 in 2021 with 49% and took 21% of ward 10
   The γ changes alone moved it about 1 point.
 - ActionSA's level depends on the borrowed retention 0.72 (§1.334;
   OWNER-DECISIONS item 34).
+
+## 1.336 The frozen Johannesburg 2026 forecast, built (2026-10-24)
+
+The run in §1.335 was made into published artefacts on a clean tree at 3fdc419:
+- `freeze.py` wrote `forecast_frozen.json`, content_sha256
+  e1b960fb84af5c8d7b8076e751764f6b9dc07e17eff26c2cec9822a9dae3b926;
+- `export_draws.py --jobs 2` wrote the base cell and the cells `w_bye=0` and
+  `w_bye=1` (5,000 draws each), then `--index site/draws`;
+- `citywide_table.py --city joburg --target 2026` wrote `citywide_2026.json`.
+
+Committed in 024f873.
+
+`declares --verify` now fails on 5 of 180 artefacts:
+- `history.json` and `validation_2021.json`, both withdrawn as in-sample;
+- `fold5_parameters.csv`, which no longer has a reader;
+- two files that declare nothing.
+
+The site draw manifests and the freeze pass. Not yet on the site: the text
+brief (`audits/2026-10-23-freeze/BRIEF-site-text.md`) waits on the owner, and
+no UAT build has been made.
