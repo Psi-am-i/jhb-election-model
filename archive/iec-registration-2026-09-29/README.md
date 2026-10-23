@@ -62,3 +62,45 @@ Note on the voting-district column (checked on commit, 2026-10-21): Johannesburg
 865 voting districts in 1,059 VD-ward rows in `data/processed/vd_ward_2026.csv`.
 The IEC's per-ward VD count follows a rule of its own that is not documented on
 the page. No reader uses the column.
+
+## All eight metros, read 2026-10-23
+
+On 2026-10-23 the page still labelled its snapshot "Registered voters as at
+29 September 2026". Every metro was read through the same selectors and pager,
+by same-origin form posts from inside the page (the page's own postback, no
+login, nothing else submitted). Each metro's rows were sent out of the page
+compactly encoded and decoded locally. The decoded ward count, voting-district
+sum and registered sum were checked against the page's own figures, and all
+matched:
+
+| metro | file | wards | voting districts | registered (ward sum = demographics total) |
+|---|---|---|---|---|
+| Johannesburg | `../iec-registration-2026-09-26/joburg_ward_registration_2026-09-26.csv` (unchanged) | 135 | 862 | 2,417,915 |
+| Tshwane | `tshwane_ward_registration_2026-09-29.csv` (unchanged) | 107 | 796 | 1,684,463 |
+| Ekurhuleni | `ekurhuleni_ward_registration_2026-09-29.csv` | 112 | 653 | 1,711,998 |
+| eThekwini | `ethekwini_ward_registration_2026-09-29.csv` | 112 | 839 | 2,032,565 |
+| Cape Town | `capetown_ward_registration_2026-09-29.csv` | 118 | 829 | 2,158,976 |
+| Mangaung | `mangaung_ward_registration_2026-09-29.csv` | 51 | 388 | 447,397 |
+| Nelson Mandela Bay | `nelsonmandelabay_ward_registration_2026-09-29.csv` | 60 | 268 | 636,660 |
+| Buffalo City | `buffalocity_ward_registration_2026-09-29.csv` | 50 | 380 | 458,695 |
+
+- **Johannesburg:** the 29 September ward table is identical, ward by ward
+  (voting districts and registered), to the 26 September file. The
+  demographics block, which read 2,417,302 on 26 September (613 short of the
+  ward sum), now reads 2,417,915, equal to the ward sum. Gauteng's total moved
+  from 6,749,631 (26 September) to 6,751,064 (29 September), +1,433, outside
+  Johannesburg.
+- **Tshwane:** identical, ward by ward, to the file read on 2026-10-21.
+- **The other six metros** are new here. `build_concordance.py` reads a city's
+  newest snapshot (`inputs_preflight.roll_snapshot`), so these reach a city's
+  2026 crosswalk the next time it is built. No 2026 forecast is run for them
+  today.
+- **Which roll is official:** the IEC timetable put the certified roll's
+  publication at 26 August, after objections closed on 18 August. The roll
+  closed at proclamation. The page's snapshot dates (26 and 29 September) are
+  later than that. Whether the 29 September figures are the certified roll or
+  a later update is not stated on the page; the Johannesburg and Tshwane ward
+  rows did not change between the two dates.
+- **The ANC nomination case** (Electoral Court 16 September; Constitutional
+  Court 15 October) concerns candidate lists in six municipalities, Mangaung
+  the only metro, not the voters' roll.
