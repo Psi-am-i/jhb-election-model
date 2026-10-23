@@ -108,3 +108,50 @@ new item in `OWNER-DECISIONS.md`.
   needs that changed too.
 - **Negative ward γ in fold 2** (AIC −0.09, COPE −0.02) inverts those two parties' geography in G2
   and, if they survive pooling, in GP.
+
+---
+
+## Amendment, 2026-10-23, before any run (after blind pollster review)
+
+The review found a defect in the baseline itself, checked against the code:
+`run_model` takes any party listed in the fold file as fitted
+(`montecarlo.py:6670`, `if p in params[ballot]["gamma"]`), so fold 1's
+placeholder rows (γ written as 1.0 by the unfitted branch, `fold.py:592-605`)
+block the real fits in `gamma_recent.csv`. PA (recent 0.5443), ALJAMAAH (0.8874)
+and AIC are drawn at 1.0 in the live forecast. Fold 1 also writes γ = 0.0 for
+parties with no target votes (MINORITY_FRONT, NFP; SRWP in fold 2), which the
+base-share test does not catch.
+
+**Definition replacing the fallback rule above.** A fold row is a *real fit*
+unless the party's base citywide share is ≤ 0.001, the fold never saw it, or
+its target share is 0 (γ written as 0.0). A party without a real fit takes
+`gamma_recent`, then 1.0: the order `run_model` intends.
+
+**New arm BF.** B with that definition applied to fold 1: placeholder rows no
+longer block `gamma_recent`. BF against B measures the defect. G2 and GP use the
+same definition and are compared with BF, so each γ comparison moves only γ
+values. They are also reported against B.
+
+**Added to the report:**
+- A table per party and arm (B, BF, G2, GP) of the γ drawn and its source,
+  separating "γ changed" (fitted in both) from "γ appeared" (fitted in only one).
+- The negative fitted γ values (fold 2 ward AIC −0.09, COPE −0.02) flagged,
+  not bounded. Bounding or shrinking them would be a new judgement call and is
+  not made here.
+- Each arm's movement in median seats and in ward favourites set beside the
+  baseline's own 5–95% seat range.
+- Arms in fixed order (B, BF, A7t, A7, G2, GP), each opening with its input's
+  evidence status, with the headline chances after.
+
+**P8 (BF).** PA's and ALJAMAAH's ward patterns flatten (γ 1.0 → 0.544 and
+0.887). No party's median seats move by more than 1, and P(largest alone) moves
+by less than 1 point for every party.
+
+**P7 caveat, written before the result.** P7 holds by construction for each
+party's γ. P(largest alone) depends on many γs together, so GP can fall outside
+B–G2 on it without a fault; P7 is scored on the five parties' median seats and
+the chances separately.
+
+**How the frozen arm is chosen** is asked of the owner before any result is read
+(OWNER-DECISIONS, "How will the frozen forecast be chosen from the pre-freeze
+arms?").
