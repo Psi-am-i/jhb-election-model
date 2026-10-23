@@ -97,7 +97,7 @@
         <section class="pl-ctl" aria-labelledby="h-turn">
           <h3 id="h-turn">Turnout by population group</h3>
           <p class="yf-sub">Move any or all four. A group you leave alone stays at the forecast's turnout. The scale is percentage points
-            of that group's registered voters.<sup class="fn"><a href="#note-turnout">2</a></sup></p>
+            of that group's estimated registered voters.<sup class="fn"><a href="#note-turnout">2</a></sup></p>
           <div class="pl-pub pl-turntwin"><!-- __PLAY:turnout__ --></div>
           <div data-live="turnout" class="pl-sliders"></div>
           <details class="rollup pl-comp">
@@ -116,8 +116,10 @@
           <!-- why the belief slider stops, or why a poll cannot be chosen: after
                the slider's block, which fades while no poll is chosen -->
           <p data-live="trustwhy" class="pl-note pl-zonewhy yf-slot" id="trust-why" role="status"></p>
-          <p class="pl-note">A poll's accuracy, as the model rates it, comes from its sample size, the polling house's typical
-            miss and the time since fieldwork. At full belief the page gives a poll that error alone.</p>
+          <p class="pl-note">A poll's error, as This Model rates it, has four parts: sampling error from its effective sample
+            size, smaller for a city subsample of a national survey; a house error, one figure for every polling house;
+            an allowance when the poll does not publish how it screened for likely voters; and an allowance that grows
+            with the time since fieldwork. At full belief the page gives a poll that error alone.</p>
           <p class="pl-note"><!-- __PLAY:refused__ --></p>
         </section>
 
@@ -354,16 +356,17 @@
   <section class="pl-notes" aria-labelledby="h-notes">
     <h2 id="h-notes">Notes</h2>
     <ol>
-      <li id="note-browser">Your figures are worked out in your browser from the published simulations; your settings
-        are not recorded. A chance is the share of the {{n_draws}} simulations in which the outcome happens, weighted by
+      <li id="note-browser">Your figures are worked out in your browser from the published simulations. Your settings
+        are not stored until you open the share sheet with a setting moved; that seals your prediction and enters it
+        (<a href="../privacy">privacy</a>). A chance is the share of the {{n_draws}} simulations in which the outcome happens, weighted by
         your settings. A figure is withheld when its sampling error exceeds <!-- __PLAY:maxse__ --> seats.</li>
-      <li id="note-turnout">The page does not re-run the model. It re-weights the model's {{n_draws}} published simulations
-        towards those with the turnout you set. For Black African turnout at the top of the slider's range this was
-        checked against a full re-run of the model, and every party's seat change agreed within sampling error. The other
-        groups use the same method, unchecked. Past this range, or with groups moved far in opposite directions, the
+      <li id="note-turnout">The page does not re-run This Model. It re-weights This Model's {{n_draws}} published
+        simulations towards those with the turnout you set: it shows those simulations, not what This Model forecasts if
+        turnout changes. Past this range, or with groups moved far in opposite directions, the
         simulations run out and the slider stops.</li>
       <li id="note-groups">Each bar is one party's vote split by population group, as the model fits it to the ward results
-        of 2021. "Registered" is the split of the voters' roll.</li>
+        of 2021. "Registered" is the voters' roll split by each ward's census population groups; the roll does not record population
+        group.</li>
       <li id="note-new"><!-- __PLAY:newparties__ --></li>
       <li id="note-poll">Each poll is a Johannesburg subsample of a larger survey. Under a poll, the figures describe the
         model's simulations nearest the poll; the poll does not come true. The slider stops where too few simulations
@@ -391,8 +394,8 @@
         the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
         holding a majority. No chance is given for it. The badge says how close your prediction is to ours. For
         each party, it takes the share of the published forecast's {{n_draws}} simulations, each counted once, that
-        land at least as far from our seats as yours, and the same for the list vote; the largest parties in our
-        prediction count double. The badges are fixed bands of that score, from Safe bet, closest, to Hail Mary. The
+        land at least as far from our seats as yours, and the same for the list vote. The <!-- __PLAY:largeparties__ -->
+        largest parties in our prediction, taken together, count twice as much as all the others taken together. The badges are fixed bands of that score, from Safe bet, closest, to Hail Mary. The
         score is not a chance and is not shown, and the badge plays no part in the ranking. A ward's chance is the share of
         the simulations in which your party wins it; your
         map draws it as the strength of each ward's colour, and the number of your ward calls we expect to come true

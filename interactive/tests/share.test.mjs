@@ -186,7 +186,7 @@ test("a card's outcome is words: the council and the badge, with no chance and n
   assert.equal(SC.verdictLine("likely", "your"), "We think your prediction is likely, but time will tell.");
   assert.equal(SC.verdictLine("very unlikely"), "We think this prediction is very unlikely, but time will tell.");
   assert.equal(SC.RANKING_SENTENCE, "All predictions are judged by " + SC.RANK_ORDER + ".");
-  assert.ok(SC.SEALED_LINE.startsWith("When you share it, your prediction is sealed and will be ranked against the result on election day. ") &&
+  assert.ok(SC.SEALED_LINE.startsWith("When you share it, your prediction is sealed and will be ranked against the result after the count. ") &&
     SC.SEALED_LINE.endsWith(SC.RANKING_SENTENCE));
   // each fixture's verdict is its own badge's phrase, in the third person
   for (const [F, k] of [[A, "A"], [Bspec, "B"]]) assert.equal(F.verdict, SC.verdictLine(FIXTURE[k].answer.outcome.phrase));

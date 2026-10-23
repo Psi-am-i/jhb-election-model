@@ -371,7 +371,11 @@ def pr_seats(allocation: Allocation, ward_wins: dict[str, int]) -> dict[str, int
     Ward seats are deducted from the total entitlement -- winning a ward does not
     add a seat, it decides which entitled seat is filled by a ward councillor
     (plan §0). A negative result is overhang: the party won more wards than its
-    entitlement and keeps them, which pushes the council above ``total_seats``.
+    entitlement and keeps them. Under the law (item 16, ``overhang_rule =
+    "deduct"``) the council stays at ``total_seats`` and the other parties share
+    the list seats that remain; the council grows only under the labelled
+    ``expand`` and ``level`` counterfactuals. (Until 2026-10-23 this said the
+    surplus pushes the council above ``total_seats``.)
     """
     return {
         party: allocation.seats.get(party, 0) - ward_wins.get(party, 0)

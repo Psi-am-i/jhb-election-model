@@ -38,7 +38,7 @@ Links in this site's advertising and social posts use short addresses, one per
 channel: `/go` on the billboard, `/x`, `/ig`, `/r` (Reddit), `/yt` (YouTube),
 `/li` and `/fb` for social posts, `/e` in email, `/fm` on radio, and `/g` for
 Google Ads. Each forwards to the home page, and the same address ending in `p`
-(`/xp`, `/ep` and so on) to Your Forecast; each writes one log line naming the
+(`/xp`, `/ep` and so on) to Your prediction; each writes one log line naming the
 channel and the site's own address, and nothing about the visitor.
 The site counts those lines by channel.
 
@@ -71,6 +71,9 @@ you share it, three things happen on the site's server.
   "share", the button used (WhatsApp, X, copy or the phone's share menu) and
   the site's own address, as the short links above do.
 
+When someone opens a shared link, the page asks the server whether the link's
+seal is genuine and when it was made. Nothing is stored.
+
 ## Predictions entered
 
 Every sealed prediction is entered in a ranking against the result. Opening the
@@ -100,7 +103,9 @@ leaderboard lists entries by place, under the name typed on each, or
 "Anonymous" and the start of its seal id if none was typed. The name is then
 public on the leaderboard.
 
-**How long.** The entries are deleted ninety days after the leaderboard is
+**How long.** On results night the entries are copied from the database to
+the site author's computer to rank them; that copy is kept until the entries
+are deleted. The entries are deleted ninety days after the leaderboard is
 published, and within six months of polling day if no leaderboard is
 published. At that deletion the names come off the leaderboard: each entry
 then shows as "Anonymous" and the start of its seal id, and the leaderboard
@@ -147,6 +152,12 @@ under which it processes personal data only to provide its service to this
 site and must keep that data secure. POPIA permits a transfer abroad to a
 recipient bound by an agreement of that kind.
 
+[Your prediction](your-forecast/) loads the code that runs its calculations in
+your browser, Pyodide and numpy, from jsDelivr (`cdn.jsdelivr.net`), a public
+network for open-source files. jsDelivr receives your IP address and browser
+details when it serves them, under its own
+[privacy policy](https://www.jsdelivr.com/terms/privacy-policy).
+
 ## Your rights
 
 Under POPIA you may:
@@ -156,8 +167,9 @@ Under POPIA you may:
 - object to its processing.
 
 Send a request to [psi@whysoserious.city](mailto:psi@whysoserious.city). The
-only records the site keeps are those described above, held by Cloudflare for
-the site; an entry is found by its seal id.
+only records the site keeps are those described above: held by Cloudflare for
+the site, and the results-night copy of the entries on the author's computer.
+An entry is found by its seal id.
 
 If you are not satisfied with the answer, you may complain to the
 [Information Regulator](https://inforegulator.org.za/), South Africa's

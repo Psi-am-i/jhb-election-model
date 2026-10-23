@@ -4,11 +4,11 @@
   "note": "the council keeps its size; the surplus comes off the other parties"
  },
  "expand": {
-  "label": "Germany 2000 law",
+  "label": "Germany before 2013",
   "note": "the council grows by the surplus"
  },
  "level": {
-  "label": "Germany 2015 law",
+  "label": "Germany 2013 law",
   "note": "the council grows until every party's seats match its vote"
  },
  "cap": {

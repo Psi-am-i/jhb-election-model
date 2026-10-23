@@ -51,7 +51,7 @@ export const PUBLISHED_STAMP = "The model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
-export const CHAMBER_NOTE = "Each party at its middle seat count; grey seats are too close to call.";
+export const CHAMBER_NOTE = "Each party at its middle seat count; grey is the seats the middles leave over.";
 export const FORECAST_NAME = "whysoserious.city forecast";
 
 // A by-election cell's name: the published weight, none, or full.
@@ -156,9 +156,10 @@ export function footText() {
 
 // The council graphic of the model's card, as share-card.js's council
 // graphic takes it: each party at its middle seat count, the figure the table
-// beside it shows, and the seats the middles leave over as one grey block,
-// "too close to call" (owner, 2026-10-06: the graphic must not disagree with
-// the forecast). The middles come from different simulations, so they need
+// beside it shows, and the seats the middles leave over as one grey block
+// (owner, 2026-10-06: the graphic must not disagree with the forecast). Its
+// note said "too close to call" until 2026-10-23; the grey is what the middles
+// leave over, not a set of close seats. The middles come from different simulations, so they need
 // not fill the council; a withheld middle seats nothing, and a middle that
 // falls between two seat counts is drawn at the nearer whole seat. Every seat
 // is drawn solid: a middle has no ward and list split. Refuses middles that

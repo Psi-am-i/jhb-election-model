@@ -55,9 +55,16 @@ Source grammar:
   ``history:joburg:2011:wards.called``. See :func:`history_value`.
 * ``published:small_party_surge`` — :func:`small_party_surge` over the
   published draws (``site/draws/``, the files the site's pages read).
+* ``published:list_share_median:<PARTY>`` — that party's middle share of the
+  list ballot over the published draws (:func:`published_list_share_median`).
 * ``published:run_date`` — when the run that exported the published draws was
   made (``export_draws.run_time``); the date the pages and our forecast's card
   both print.
+* ``judgement:<city>-<target>:<dotted path>`` — into that city-year's
+  judgements file (``judgements/<city>-<target>.toml``), the values the owner
+  set by hand and the run applied (``judgement:joburg-2026:party.ASA.support``).
+  A judgement call is written once, there; a page quoting it reads it from
+  there (:func:`judgement_value`).
 * ``run:<description>`` / ``external:<description>`` — never auto-resolved;
   legal only for ``fixed`` entries (a scenario run, or a fact from outside
   the model such as an IEC record).
@@ -440,6 +447,20 @@ def _derived(name: str, ctx: dict):
     return None
 
 
+def judgement_value(source: str):
+    """A ``judgement:<city>-<target>:<dotted path>`` source: the value in that
+    city-year's judgements file (under ``pools.JUDGEMENTS_DIR``, the directory
+    the run reads them from), or None where the file or the path is absent.
+    Added 2026-10-23 so the forecast page can state ActionSA's judged level
+    from the one place it is set, not as a typed copy."""
+    import pools
+    _, name, path = source.split(":", 2)
+    f = pools.JUDGEMENTS_DIR / f"{name}.toml"
+    if not f.is_file():
+        return None
+    return _dig(tomllib.loads(f.read_text(encoding="utf-8")), path)
+
+
 def coalition_majority(members: list[str], ctx: dict):
     """The share of simulations in which ``members`` together reach that
     simulation's threshold, over EVERY party's seats
@@ -484,12 +505,16 @@ def resolve(source: str, ctx: dict):
         return _derived(source[len("derived:"):], ctx)
     if source.startswith("history:"):
         return history_value(source, ctx)
+    if source.startswith("judgement:"):
+        return judgement_value(source)
     if source == "published:run_date":
         import build_make as _bm
         from export_draws import run_time
         return run_time(_bm._draws(ctx.get("draws_dir"))[0])
     if source == "published:small_party_surge":
         return published_small_party_surge(ctx)
+    if source.startswith("published:list_share_median:"):
+        return published_list_share_median(source.rsplit(":", 1)[1], ctx)
     return None                      # run: / external: — pinned only
 
 
@@ -534,6 +559,24 @@ def published_small_party_surge(ctx: dict):
             est = _bm.baseline(_cc.active(), cols)["list_vote"]
         ctx["_small_party_surge"] = small_party_surge(_rw.list_shares(arrays["list_vote"]), cols, est)
     return ctx["_small_party_surge"]
+
+
+def published_list_share_median(party: str, ctx: dict):
+    """``party``'s median share of the list ballot over the published draws
+    (``site/draws``' ``list_vote`` block, as shares by ``reweight.list_shares``),
+    or None when the party has no column. Added 2026-10-23 for the
+    methodology's ANC list share, which was typed ("the mid-twenties")."""
+    if "_list_shares" not in ctx:
+        import build_make as _bm
+        import reweight as _rw
+        manifest, arrays, _raw = _bm._draws(ctx.get("draws_dir"))
+        ctx["_list_shares"] = (_rw.list_shares(arrays["list_vote"]),
+                               _bm._columns(manifest, "list_vote"))
+    shares, cols = ctx["_list_shares"]
+    if party not in cols:
+        return None
+    import numpy as _np
+    return float(_np.median(shares[:, cols.index(party)]))
 
 
 def wrong_party_seats(summed_abs_error) -> int:

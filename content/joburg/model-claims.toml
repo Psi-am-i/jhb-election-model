@@ -52,7 +52,7 @@ state = "live"
 [[claim]]
 id = "four-census-pools"
 page = "docs-public/methodology.md"
-text = "Until home language by ward arrives the forecast uses the four census pools."
+text = "The forecast uses the four census pools."
 symbol = "pools.pool_counts"
 state = "live"
 probe = "ifp_pool_only_in_simulation_spec"
@@ -250,7 +250,7 @@ state = "live"
 [[claim]]
 id = "sheet-excessive-seats"
 page = "forecast-sheet.html"
-text = "The ANC keeps its ward seats and gets no list seats when they exceed its proportional share; the shortfall is taken from every other party."
+text = "The ANC keeps its ward seats and gets no list seats when they exceed its proportional share; the other parties share the list seats that remain."
 symbol = "montecarlo.allocate_with_overhang"
 state = "live"
 

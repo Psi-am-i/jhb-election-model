@@ -148,3 +148,29 @@ owner; live on the owner's yes.
 
 Estimate: editing 3-4 hours (writer agent), review 45 minutes, build and
 checks 1 hour, suite 1-2 hours.
+
+## E5. Added 23 October (owner): Zille repeats the 490,000 claim, on both ballots
+
+Source, read on News24 on 23 October 2026: CDE's Ann Bernstein interviewing
+Helen Zille, "WATCH | 'The system itself is the corruption': Zille on cleaning
+up Joburg", News24, URL dated 20 October 2026
+(https://www.news24.com/opinions/analysis/watch-the-system-itself-is-the-corruption-zille-on-cleaning-up-joburg-20261020-1090).
+Her words: "I will repeat this until I am blue in the face: 490 000 people need
+to vote DA on both ballots. That would give us 136 of the council's 270 seats."
+(The owner dated it 19 October; the page's URL carries 20 October. Use the
+published date, and say which in the report.)
+
+A dated amendment in the 490,000 card's "since" box: the quotation, its date and
+link, then This Model's test of it, every figure a token computed by the build
+from the published simulations (`site/draws` vote blocks or the run's vote
+draws, through the seat law, not by proportion):
+- the total votes on each ballot This Model expects (median);
+- what share of the vote 490,000 on both ballots is at that total, and how many
+  seats it would give the DA under the seat law;
+- the votes on each ballot the DA would need for 136 at that total;
+- in how many of the 5,000 simulations the DA reaches 490,000 on both ballots
+  (checked on 23 October: none; the DA's middle is about 272,000 ward and
+  256,000 list, its highest about 405,000 and 380,000).
+Checked by proportion on 23 October, not the seat law: about 1,014,000 votes a
+ballot, 490,000 is 48%, about 130 seats; 136 needs about 511,000. The build's
+figures replace these.

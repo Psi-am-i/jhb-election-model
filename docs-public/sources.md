@@ -18,13 +18,15 @@ the results portal; its files are on a second, older IEC site.
 
 ## The election results
 
-The model rests on six elections at voting-district level, the finest grain the
-IEC publishes:
+This Model reads the municipal elections from 2000 to 2021 and the national
+and provincial elections from 1999 to 2024 at voting-district level, the finest
+grain the IEC publishes:
 
 | Election | What it provides |
 |---|---|
 | 2011, 2016, 2021 municipal elections | Both ballots — ward and party list — for every voting district |
-| 2014, 2019, 2024 national/provincial elections | The provincial ballot, the model's between-elections baseline |
+| 2000 and 2006 municipal elections | Turnout, for the range each population group's turnout is drawn from |
+| 1999 to 2024 national/provincial elections | The provincial ballot, the model's between-elections baseline |
 
 The files were not clean. Different years arrive in different character
 encodings, one from the DOS era. A voting station with a comma in its name
@@ -51,7 +53,8 @@ current would be wrong.
 
 ## By-elections
 
-Fifteen Johannesburg wards have held by-elections since 2021. They are the only
+{{byelection_count}} by-elections have been held in {{byelection_wards}}
+Johannesburg wards since 2021. They are the only
 direct evidence of how opinion has moved between elections. The model reads them
 and moves each party's expected share up to halfway toward what they imply (see the methodology). The IEC's official download page could not supply them: its report
 links work only inside the browser session that created them. The IEC's public
@@ -64,9 +67,9 @@ model uses those.
 Statistics South Africa publishes ward-level population estimates from Census
 2022 (age, sex and population group for all 135 wards). The model uses one
 thing from them: each ward's population-group shares, which split that ward's
-registered voters into groups. The more detailed small-area data (income, dwelling type,
-employment) is not published, because at ward level it can identify households.
-Access under conditions exists, and we have not sought it.
+registered voters into groups. Census 2022 publishes home language, income,
+dwelling type and employment only down to municipality level; Stats SA confirmed
+in August 2026 that no small-area data was made for Census 2022.
 
 ## What nobody publishes
 

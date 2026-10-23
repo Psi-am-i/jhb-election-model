@@ -320,6 +320,7 @@ def test_the_tooltip_names_every_party_above_five_percent():
     """Same content as the geographic map's: winner, verdict, every party at
     >= 5% of simulations, and an ``other`` remainder."""
     import hex_cartogram as hc
+    import render_map
 
     _, probs = _inputs()
     checked = 0
@@ -329,7 +330,7 @@ def test_the_tooltip_names_every_party_above_five_percent():
         tip = hc.classify(row)["tip"]
         assert tip.startswith(f"Ward {ward} · ")
         for party, share in entries:
-            named = hc.NAMES.get(party, party.title())
+            named = render_map.party_label(party)
             if share >= hc.TIP_FLOOR:
                 # never "100%" (owner, 2026-09-17): a certain-looking ward has lost before
                 shown = "over 99%" if share > 0.99 else f"{share:.0%}"

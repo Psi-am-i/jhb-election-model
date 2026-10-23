@@ -114,7 +114,7 @@ SHEET_NAME = ('<label class="namefield">Your name on the image <span class="stub
 SHEET_SEAL = ('<p class="stubnote shseal yf-slot" role="status"></p>\n'
               '    <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking\n'
               '      against the result, under the name above, and a new name or a changed forecast is another entry.\n'
-              '      The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>\n'
+              '      If a leaderboard is published after the count, it shows names. <a href="../privacy">How entries are kept</a></p>\n'
               '    <label class="shimgpick">Image <select class="shimg">\n'
               '      <option value="link">Link preview</option>\n'
               '      <option value="story">Story, for a phone</option></select></label>')

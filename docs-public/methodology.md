@@ -23,15 +23,18 @@ overflow: the party receives **no list seats**, and the other parties' list
 seats are recalculated over the seats that remain. The council does not grow.
 The Electoral Commission's own published calculation applies exactly this in
 Laingsburg in 2021, where the DA won {{hist_laingsburg_da_wards}} of {{hist_laingsburg_wards}} wards on {{hist_laingsburg_da_share}} of the vote. The
-over-winner stays slightly over-represented; the cost falls on everyone else.
+over-winner keeps every ward and can hold more seats than its vote entitles it
+to; the shortfall comes off the other parties' list seats.
 
-Two consequences shape this site. The council is always close to proportional,
-so a fragmented vote produces a fragmented council. The excessive-seats clause
-catches the ANC in {{p_excessive_anc}} of simulations: a citywide vote in the
-mid-twenties, with stronghold wards that still win. Where it fires, the party's
-ward count is a floor, its list seats go to zero, and the squeeze lands on
-every other party's list seats, inside a council fixed at {{council_size}} with
-the majority at {{majority}}.
+Two consequences shape this site. Outside the over-winner's surplus, seats
+follow the combined vote, so a fragmented vote produces a fragmented council.
+The excessive-seats clause applies to the ANC in {{p_excessive_anc}} of
+simulations, counting those where its wards exactly equal its entitlement and
+the clause takes nothing from anyone: a citywide list vote of about
+{{anc_list_share_median}}, with stronghold wards that still win. Where it
+applies, the party's ward count is a floor, its list seats go to zero, and the
+other parties share the list seats that remain, inside a council fixed at
+{{council_size}} with the majority at {{majority}}.
 
 ## The model, step by step
 
@@ -65,15 +68,14 @@ group of voters from another, and the parties' results follow it. Al Jama-ah
 takes about a fifth of one pool and almost nothing elsewhere. The Patriotic
 Alliance takes about two-fifths of another and nothing in the other three.
 
-**These categories are too coarse.** Population group is the only ward-level
-characteristic Stats SA publishes, and it does not describe how voters group:
-the ANC and the IFP draw overwhelmingly from the same population group and
-stand on separate ground, a linguistic and regional division rather than a
-racial one. The better input is
-**home language by ward**, which Stats SA holds but does not publish in the
-ward product; we have requested it. Income, employment and dwelling type would
-also help, and are also request-only, since at ward level they can identify
-households. Until those arrive the forecast uses the four census pools.
+**These categories are too coarse.** By ward, Stats SA publishes population
+group, age and sex. Of the three, population group is the one that separates
+groups of voters, and it does not describe how voters group: the ANC and the IFP
+draw overwhelmingly from the same population group and stand on separate
+ground, a linguistic and regional division rather than a racial one. Census 2022
+publishes home language, income, employment and dwelling type only down to
+municipality level; Stats SA confirmed in August 2026 that none of them exists
+by ward. The forecast uses the four census pools.
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
 census population shares, summed across all 135 wards. The census gives the
@@ -116,8 +118,8 @@ Two things are drawn:
   the shares still add up, and ActionSA keeps This Model's usual uncertainty
   for a party of that size. It cannot be changed on [your
   forecast](your-forecast/).
-- **Turnout, per pool.** It is the one unknown quantity, and it is drawn from
-  what turnout has done in that city before. Turnout fell in every group in
+- **Turnout, per pool.** It is drawn from what turnout has done in that city
+  before. Turnout fell in every group in
   2021, so the range allows falls as well as rises.
 
 Recent by-elections tilt parties' expected shares before the simulations (see *The
@@ -146,8 +148,8 @@ electorate. Separating the two fixed it.
 How much a split takes depends overwhelmingly on **whether the leader's own
 following is in this city**, not on how famous the leader is. Patricia de Lille was at
 least as well known nationally in 2019 as Julius Malema was in 2014; her party
-took about one-eighteenth as much of the DA's vote in Johannesburg as it did in
-Cape Town.
+took about one-sixth as much of the DA's vote in Johannesburg as it did in Cape
+Town.
 
 ### 6. Paint the result back onto the map
 
@@ -225,8 +227,8 @@ gives to the wrong party (lower is better in every column):
 | Buffalo City | {{val_buffalocity_crps}} | {{val_buffalocity_best_crps}} | {{val_buffalocity_best}} | {{val_buffalocity_wrong}} | {{val_buffalocity_best_wrong}} |
 | all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{backtest_seat_err_model}} | {{backtest_seat_err_baseline}} |
 
-The seat columns judge only the single most likely outcome, so their margins
-are smaller. It calls the winner in **{{backtest_wards_called}} of {{backtest_wards}}**
+The seat columns judge each party's middle forecast, not its range, so their
+margins are smaller. It calls the winner in **{{backtest_wards_called}} of {{backtest_wards}}**
 wards.
 
 <!-- __VALIDATION__ -->
@@ -243,7 +245,7 @@ These are choices about how This Model works that the data did not make for us. 
 
 **The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement This Model has had. The smallest parties are now forecast slightly too high. It cannot be changed on [your forecast](your-forecast/).
 
-**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far This Model's expected shares missed in the past elections before this one. Part of each simulation's move is shared by all parties. It cannot be changed on [your forecast](your-forecast/).
+**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far This Model's expected shares missed in the past elections before this one. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your forecast](your-forecast/).
 
 **How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Tested on the 2021 election in the eight metros, equal weight gave the smallest error in the party-list vote, with weights a little either side close behind; that is one election's test. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your forecast](your-forecast/) you can make by-elections count not at all or fully.
 
@@ -251,7 +253,7 @@ These are choices about how This Model works that the data did not make for us. 
 
 **Turnout moves together across population groups.** In each simulation, turnout in the four population groups rises and falls together, to one degree for every pair: the average of how closely each pair's turnout moved between past local elections in the metros. Black African, Coloured and White turnout have moved closely together, and Indian/Asian turnout much less. Separate figures for each pair have not been tried. Removing the link was tested and changed the forecast's spread very little, and why it matters so little is not yet explained. It cannot be changed on [your forecast](your-forecast/).
 
-**The excessive-seats clause.** The clause is applied as amended in 2021, with the arithmetic the Commission used in Laingsburg in 2021 (see *How Johannesburg's council elections work*). No court has ruled on it. [Your forecast](your-forecast/) applies three versions of Germany's seat law instead; two of them enlarge the council and move the majority line.
+**The excessive-seats clause.** The clause is applied as amended in 2021, with the arithmetic the Commission used in Laingsburg in 2021 (see *How Johannesburg's council elections work*). No court has ruled on it. [Your prediction](your-forecast/) seats every council under South African law, and shows three versions of Germany's seat law beside it for comparison; two of them enlarge the council and move the majority line.
 
 **Expected turnout starts at 2021.** Each population group's expected turnout is its turnout at the 2021 local election. Its range is as wide as that group's turnout has swung across Johannesburg's local elections since 2000. How turnout differs between voting districts is set about half by each district's own 2021 turnout and half by a projection from how far its turnout fell from the national to the local election in 2016 and 2021, with 2021 counting for 70%. That weight comes from This Model's original plan and has never been tested. On [your forecast](your-forecast/) you can move the turnout of any or all four population groups at once. A group you leave alone stays at the forecast's turnout.
 
@@ -264,8 +266,8 @@ These are choices about how This Model works that the data did not make for us. 
 - **A party that does not exist yet is the hardest case.** Splits and entrants
   are sized separately from the record, but a new formation with a popular
   leader remains the largest single source of error.
-- **Overhang's legal fine print is untested in court.** The Commission has never
-  published a worked metro overhang example. We put the question to it on 5
+- **The excessive-seats clause is untested in court.** The Commission has never
+  published a worked metro example of it. We put the question to it on 5
   August 2026 and have no answer yet. A 2021 amendment and the Commission's own
   handling of Laingsburg 2021 settle the arithmetic, and the forecast applies
   it.
@@ -323,10 +325,13 @@ published forecast uses no poll.
 ### Why polls are read with caution
 
 The polls that exist disagree with each other by more than the quantity being
-forecast: one house had the DA on {{poll_srf_q2_da}} and the ANC on {{poll_srf_q2_anc}} in the same year
-another had the ANC on {{poll_ipsos_w2_anc}} and the DA on {{poll_ipsos_w2_da}}. Metro-level polling has little
-track record here to weight it by; pre-2021 polling missed ActionSA in this
-city by about ten points. Every poll we hold is listed, with its caveats, and
+forecast: in the same year one house's poll of the city had the DA on
+{{poll_srf_q2_da}} and the ANC on {{poll_srf_q2_anc}}, while another house's
+subsample of all the metros had the ANC on {{poll_ipsos_w2_anc}} and the DA on
+{{poll_ipsos_w2_da}}. Metro-level polling has little track record here to
+weight it by. Before 2021 the only independent poll was national; scaled to
+the areas ActionSA contested, it implied about {{poll_asa_2021_scaled}} for
+ActionSA, which took {{hist_asa_pr_2021}} of the city's list vote. Every poll we hold is listed, with its caveats, and
 This Model is read against them as an outside check. They are not, at present,
 an input.
 

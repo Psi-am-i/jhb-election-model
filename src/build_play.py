@@ -88,7 +88,8 @@ DRAWS = REPO_ROOT / "site" / "draws"
 DRAWS_LINE = ('const DRAWS = "../../site/draws/";', 'const DRAWS = "../../draws/";')
 #: The markers model.html carries, each filled by one function below.
 FILL = ("banner", "oneline", "map", "seats", "turnout", "composition", "refused",
-        "bye", "newparties", "maxse", "election", "seatscale", "seatticks", "seathead")
+        "bye", "newparties", "maxse", "largeparties", "election", "seatscale", "seatticks",
+        "seathead")
 #: How many parties the banner names, in the published order.
 BANNER_PARTIES = 6
 #: The share of a party's votes below which its bar segment carries no label.
@@ -239,44 +240,10 @@ def roster() -> dict:
     return out
 
 
-# A reader-facing name for a party the pages do not name by hand: acronyms as
-# the parties write them, and an apostrophe the derived code lost ("PEOPLE_S"
-# is "People's"). `parties.display_name`'s plain `.title()` printed "Aic",
-# "Move Sa" and "People S Consent Party" on /make/ (review 2026-10-02). Kept
-# HERE, not in parties.py: build_crosswalk writes display_name into a data
-# artefact, and parties.py is shipped as seat code to the seat Worker and both
-# pages (interactive/tools/sync_py.mjs), whose hashes a name must not move.
-READER_NAMES: dict[str, str] = {
-    "AHC": "AHC", "AIC": "AIC", "APC": "APC", "ATM": "ATM", "AZAPO": "AZAPO",
-    "COPE": "COPE", "NCC": "NCC", "NFP": "NFP", "OKM": "OKM", "PAC": "PAC",
-    "UDM": "UDM", "UIM": "UIM", "GOOD": "GOOD", "AGANG": "Agang SA",
-    "DUDULA": "Operation Dudula", "IMSTAYING": "ImStaying",
-}
-_KEEP_UPPER = {"SA"}
-_SMALL = {"OF", "AND", "THE", "FOR", "IN"}
-
-
-def reader_name(code: str) -> str:
-    """The name a reader sees for ``code``: :data:`parties.PARTIES`, then
-    :data:`READER_NAMES`, then the code's words in title case, with "SA"
-    kept upper, small words lower after the first, and a lone "S" rejoined
-    to the word before it as "'s"."""
-    import parties as _parties
-    if code in _parties.PARTIES:
-        return _parties.PARTIES[code][0]
-    if code in READER_NAMES:
-        return READER_NAMES[code]
-    words: list[str] = []
-    for w in code.split("_"):
-        if w == "S" and words:
-            words[-1] += "'s"
-        elif w in _KEEP_UPPER:
-            words.append(w)
-        elif w in _SMALL and words:
-            words.append(w.lower())
-        else:
-            words.append(w.capitalize())
-    return " ".join(words)
+# The reader-facing name of a party the pages do not name by hand: one
+# definition, in `render_map` (which the browser also runs), re-exported here
+# for the callers that have always found it here.
+from render_map import READER_NAMES, reader_name  # noqa: E402,F401
 
 
 # ==========================================================================
@@ -626,6 +593,9 @@ def fills(processed: Path) -> dict[str, str]:
         "newparties": new_parties_note(processed, rows, names),
         "maxse": _tok("play.max_figure_se", R.MAX_FIGURE_SE_SEATS, "one_dp",
                       "reweight.MAX_FIGURE_SE_SEATS, the owner's precision rule (JUDGEMENT-CALLS §N2)"),
+        "largeparties": _tok("play.closeness_large_parties", R.CLOSENESS_LARGE_PARTIES, "int",
+                             "reweight.CLOSENESS_LARGE_PARTIES, the parties that make the badge's "
+                             "large-party mean (JUDGEMENT-CALLS §N10)"),
         # attribute values on two LIVE regions, read by js/model.js: the
         # election day (for the share image), and the seat table's axis, ticks
         # and header words (src/seat_table.py, the one definition)

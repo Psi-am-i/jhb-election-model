@@ -5,7 +5,7 @@ Every result in this section comes from the run of This Model described at its e
 
 ### How it was tested
 
-Each forecast used what a forecaster had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It also used the 2022 census, taken after the election; *What this does not prove* says why that cannot leak a result.
+Each forecast used the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It also used the 2022 census, taken after the election, and settings chosen on records that include the elections scored; *What this does not prove* says which.
 
 It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted on its own wards, registration and history. The narrowest range a population group's turnout is given, and how closely the groups' turnouts move together, are measured across the eight metros, Johannesburg included.
 
@@ -16,7 +16,7 @@ The same scoring is applied to three baselines that need no model:
 | baseline | what it does |
 |---|---|
 | **last result repeats** | assume the previous local election happens again, unchanged |
-| **uniform swing** | take the national swing since the last election and apply it equally everywhere |
+| **uniform swing** | take the previous local election and add each party's change between the city's two national elections before the one forecast, equally in every voting district |
 | **last result plus noise** | the previous result, with uncertainty added around it |
 
 Uniform swing is the usual standard for judging election models, and it is hard to beat. **Best baseline** below means whichever of the three did best in that city.
@@ -53,7 +53,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | ACDP | 3 | 1 | -2 |
 | Al Jama-ah | 3 | 1 | -2 |
 | AIC | 2 | 0 | -2 |
-| African Heart Congress | 1 | 0 | -1 |
+| AHC | 1 | 0 | -1 |
 | APC | 1 | 0 | -1 |
 | ATM | 1 | 0 | -1 |
 | COPE | 1 | 0 | -1 |
@@ -62,7 +62,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | UDM | 1 | 0 | -1 |
 | UIM | 1 | 0 | -1 |
 
-*96 seats out in total — across every party that stood, not only the 18 shown above.*
+*48 seats given to the wrong party in total, across every party that stood, not only the 18 shown above.*
 
 #### Tshwane — 214 seats
 
@@ -77,14 +77,14 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | AIC | 1 | 1 | +0 |
 | ATM | 1 | 0 | -1 |
 | COPE | 1 | 0 | -1 |
-| Dop | 1 | 0 | -1 |
+| Defenders of the People | 1 | 0 | -1 |
 | GOOD | 1 | 0 | -1 |
 | IFP | 1 | 0 | -1 |
 | PA | 1 | 0 | -1 |
 | PAC | 1 | 0 | -1 |
-| Rct | 1 | 0 | -1 |
+| Republican Conference of Tshwane | 1 | 0 | -1 |
 
-*36 seats out in total — across every party that stood, not only the 15 shown above.*
+*18 seats given to the wrong party in total, across every party that stood, not only the 15 shown above.*
 
 #### Ekurhuleni — 224 seats
 
@@ -101,13 +101,13 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | ACDP | 2 | 1 | -1 |
 | ATM | 1 | 0 | -1 |
 | COPE | 1 | 0 | -1 |
-| Independent  | 1 | 0 | -1 |
-| Independent  | 1 | 0 | -1 |
+| Independent Citizens Movement | 1 | 0 | -1 |
+| Independent Ratepayers Association of SA | 1 | 0 | -1 |
 | NFP | 1 | 0 | -1 |
 | PAC | 1 | 0 | -1 |
 | UDM | 1 | 0 | -1 |
 
-*38 seats out in total — across every party that stood, not only the 16 shown above.*
+*19 seats given to the wrong party in total, across every party that stood, not only the 16 shown above.*
 
 #### eThekwini — 222 seats
 
@@ -118,27 +118,27 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | EFF | 24 | 22 | -2 |
 | IFP | 16 | 10 | -6 |
 | ActionSA | 4 | 2 | -2 |
-| Abantu Batho | 2 | 0 | -2 |
+| Abantu Batho Congress | 2 | 0 | -2 |
 | ACDP | 2 | 1 | -1 |
-| Active Citiz | 2 | 0 | -2 |
+| Active Citizens Coalition | 2 | 0 | -2 |
 | AIC | 2 | 0 | -2 |
-| African Demo | 1 | 0 | -1 |
-| African Peop | 1 | 0 | -1 |
+| African Democratic Change | 1 | 0 | -1 |
+| African People First | 1 | 0 | -1 |
 | Al Jama-ah | 1 | 0 | -1 |
 | ATM | 1 | 0 | -1 |
-| Democratic L | 1 | 1 | +0 |
-| Justice And  | 1 | 0 | -1 |
-| Kzn Independ | 1 | 0 | -1 |
-| Minorities O | 1 | 0 | -1 |
-| Minority Fro | 1 | 1 | +0 |
+| Democratic Liberal Congress | 1 | 1 | +0 |
+| Justice and Employment Party | 1 | 0 | -1 |
+| KZN Independence | 1 | 0 | -1 |
+| Minorities of South Africa | 1 | 0 | -1 |
+| Minority Front | 1 | 1 | +0 |
 | NFP | 1 | 0 | -1 |
-| People S Fre | 1 | 0 | -1 |
-| People S Rev | 1 | 0 | -1 |
-| Truly Allian | 1 | 0 | -1 |
+| People's Freedom Party | 1 | 0 | -1 |
+| People's Revolutionary Movement | 1 | 0 | -1 |
+| Truly Alliance | 1 | 0 | -1 |
 | UIM | 1 | 0 | -1 |
 | VF+ | 1 | 0 | -1 |
 
-*41 seats out in total — across every party that stood, not only the 24 shown above.*
+*21 seats given to the wrong party in total, across every party that stood, not only the 24 shown above.*
 
 #### Cape Town — 231 seats
 
@@ -148,21 +148,21 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | ANC | 43 | 53 | +10 |
 | EFF | 10 | 11 | +1 |
 | GOOD | 9 | 7 | -2 |
-| Cape Coloure | 7 | 0 | -7 |
+| Cape Coloured Congress | 7 | 0 | -7 |
 | ACDP | 6 | 5 | -1 |
 | PA | 4 | 0 | -4 |
 | VF+ | 4 | 2 | -2 |
 | Al Jama-ah | 3 | 2 | -1 |
-| Africa Resto | 2 | 0 | -2 |
-| Cape Indepen | 2 | 0 | -2 |
+| Africa Restoration Alliance | 2 | 0 | -2 |
+| Cape Independence Party Kaapse Onafhanklikheids Party | 2 | 0 | -2 |
 | AIC | 1 | 0 | -1 |
-| Cape Muslim  | 1 | 0 | -1 |
-| Democratic I | 1 | 0 | -1 |
+| Cape Muslim Congress | 1 | 0 | -1 |
+| Democratic Independent Party | 1 | 0 | -1 |
 | PAC | 1 | 0 | -1 |
 | UDM | 1 | 0 | -1 |
 | UIM | 1 | 0 | -1 |
 
-*44 seats out in total — across every party that stood, not only the 17 shown above.*
+*22 seats given to the wrong party in total, across every party that stood, not only the 17 shown above.*
 
 #### Mangaung — 101 seats
 
@@ -172,13 +172,13 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | DA | 26 | 25 | -1 |
 | EFF | 12 | 11 | -1 |
 | VF+ | 5 | 4 | -1 |
-| Afrikan Alli | 2 | 0 | -2 |
+| Afrikan Alliance of Social Democrats | 2 | 0 | -2 |
 | PA | 2 | 1 | -1 |
 | ACDP | 1 | 0 | -1 |
 | AIC | 1 | 1 | +0 |
 | ATM | 1 | 0 | -1 |
 
-*8 seats out in total — across every party that stood, not only the 9 shown above.*
+*4 seats given to the wrong party in total, across every party that stood, not only the 9 shown above.*
 
 #### Nelson Mandela Bay — 120 seats
 
@@ -187,18 +187,18 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | ANC | 48 | 46 | -2 |
 | DA | 48 | 54 | +6 |
 | EFF | 8 | 9 | +1 |
-| Northern All | 3 | 0 | -3 |
+| Northern Alliance | 3 | 0 | -3 |
 | ACDP | 2 | 1 | -1 |
-| Dop | 2 | 0 | -2 |
+| Defenders of the People | 2 | 0 | -2 |
 | PA | 2 | 0 | -2 |
 | VF+ | 2 | 2 | +0 |
-| Abantu Integ | 1 | 0 | -1 |
+| Abantu Integrity Movement | 1 | 0 | -1 |
 | AIC | 1 | 0 | -1 |
 | GOOD | 1 | 1 | +0 |
 | PAC | 1 | 0 | -1 |
 | UDM | 1 | 0 | -1 |
 
-*22 seats out in total — across every party that stood, not only the 13 shown above.*
+*11 seats given to the wrong party in total, across every party that stood, not only the 13 shown above.*
 
 #### Buffalo City — 100 seats
 
@@ -214,33 +214,34 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 | UDM | 1 | 1 | +0 |
 | VF+ | 1 | 0 | -1 |
 
-*12 seats out in total — across every party that stood, not only the 9 shown above.*
+*6 seats given to the wrong party in total, across every party that stood, not only the 9 shown above.*
 
 ### The technical measures, in plain language
 
 Three measures appear above, and they measure different things.
 
-**Seats out** adds up how many seats the forecast got wrong for each party. It is easy to read, and it ignores most of what a forecast says: it looks only at the single most likely outcome, not the range around it.
+**Seats given to the wrong party** counts the seats the forecast placed with a party that did not win them, from each party's middle forecast. It is easy to read, and it ignores most of what a forecast says: it looks only at each party's middle figure, not the range around it.
 
 **CRPS** (the continuous ranked probability score) is the number in the comparison table. It scores the *whole range* a forecast gives, not just its midpoint. Saying "between 85 and 95 seats" and being right scores better than saying "exactly 90" and being right, and a confident wrong answer is punished more than a hedged one. Lower is better; zero is perfect. It is in seats: a CRPS of 45 across a 270-seat council is a small error.
 
 **Calling the ward** is the hardest and most direct test: 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.
 
-Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in This Model's favour.
+Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats given to the wrong party are the like-for-like comparison; their margin is smaller, and still in This Model's favour.
 
 ### What this does not prove
 
-**These are not fully out-of-sample scores, and every run says so.** At least one input could not be confined to the period before the election; the run prints the full list above its results:
+**These are not fully out-of-sample scores, and every run says so.** Two kinds of input could not be confined to the period before the election:
 
+* **Settings.** Several of This Model's settings were chosen on records that include the elections scored here, so they have seen the results they are tested against.
 * **The census.** Ward-level population-group shares come from the 2022 census, taken after the 2021 election; it is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result. It is still information from after the fact, and is declared as such.
 
-**How much a breakaway party takes was a leak until 14 August 2026.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows depends mostly on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021. This Model used to fill that gap with splits from after 2021, including MK's three years later, which flattered these scores. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg's figure is worse for it.
+**How much a breakaway party takes was a leak until 14 August 2026.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows depends mostly on whether that figure's support is in *this* city. Before 2021 the record held two such splits measured in the leader's own city: GOOD in Cape Town and the NFP in eThekwini. This Model used to add splits from after 2021, including MK's three years later, which flattered these scores. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg's figure is worse for it.
 
 Read the scores as an estimate of what the machinery is worth, not as a sealed prediction made in 2021.
 
-**In one city the model loses.** Uniform swing beats it in Mangaung, the smallest council in the set.
+**Where This Model loses.** On the range score its best baseline beats This Model in Mangaung. On seats given to the wrong party it loses in eThekwini and Cape Town and ties in Mangaung and Nelson Mandela Bay.
 
-**The past is not the future.** Scoring well against 2021 does not guarantee 2026. Every party in this table existed in 2021. A party that has never stood before is the hardest thing to forecast, and the model's weakest area.
+**The past is not the future.** Scoring well against 2021 does not guarantee 2026. ActionSA first stood in Johannesburg in 2021, and its seats there are This Model's largest miss in the tables above: 15 forecast, 44 won. A party that has never stood before is the hardest thing to forecast, and This Model's weakest area.
 
 ---
 

@@ -10,20 +10,20 @@ since.
 
 The review of the first version found **six implementation errors**, one of which made the
 forecast's original headline claim outright false. Every error was fixed the
-same day, the forecast changed materially, and the full technical audit is
-published, warts and all, in
-[`model-review.html` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html).
+same day, and the forecast changed materially.
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.
 
 <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
-<p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
+<p>The figures below describe the model as it stood on 6 August 2026: the first version, and
+the version after its fixes.
 The largest party today: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance
 it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. The ANC
 triggers the excessive-seats clause: {{p_excessive_anc}} chance. A chance is the share of the
 {{n_draws}} simulations in which the outcome happens. No
-poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
-of how the errors were found and fixed.</p></aside>
+poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is a record of how the
+errors were found and fixed. Errors in the page itself are corrected in place and listed on the
+<a href="corrections">corrections page</a>.</p></aside>
 
 <span data-asof="2026-08-06">
 
@@ -59,9 +59,11 @@ had forbidden.
   noticed.
 - **Ward winners were never actually counted.** The forecast allocated seats
   from vote totals but skipped predicting who *wins each ward* — which is
-  the step that detects overhang, the council growing beyond 270. The plan
-  had flagged overhang as a live risk. It turned out to be the modal outcome,
-  and the first forecast simply could not see it.
+  the step that detects excessive seats: a party winning more wards than its
+  vote entitles it to. It keeps those wards and gets no list seats, and the
+  other parties share the remaining seats of the fixed 270-seat council. The
+  plan had flagged this as a live risk. It happened in most simulations, and
+  the first forecast could not see it.
 - **Real evidence was collected and then ignored.** Fifteen by-elections and
   the published polls had been gathered — and influenced nothing. The
   forecast cited them as sources while its numbers rested entirely on
@@ -77,7 +79,7 @@ had forbidden.
   history.
 
 There were also data bugs found along the way — including {{rev0806_overvote_records}} district-year
-records where more people had voted than were registered, a sign of broken
+records where turnout was above 105% of registered voters, a sign of broken
 registration counts that had quietly poisoned the turnout projections.
 
 </span>
@@ -88,7 +90,7 @@ registration counts that had quietly poisoned the turnout projections.
 The corrected forecast is meaningfully different from the one first computed:
 
 - **The excessive-seats clause went from invisible to the headline.** In
-  roughly six of seven simulations, the ANC wins more wards than its shrunken
+  most simulations, the ANC wins more wards than its shrunken
   vote entitles it to — and (as we later confirmed from the statute and a real
   2021 precedent) it keeps them all, gets zero list seats, and the shortfall
   comes out of everyone else's list seats, inside a fixed 270.
@@ -108,9 +110,10 @@ The corrected forecast is meaningfully different from the one first computed:
 ## What the review could not fix
 
 Honesty about the repairs requires honesty about the remainder. A party that
-does not yet exist cannot be forecast, only allowed for. The legal fine print
-of overhang has never been demonstrated in a published calculation by the
-electoral commission — we put the question to the Commission on 5 August 2026 and are awaiting its answer. And the range of possible 2026 outcomes
+does not yet exist cannot be forecast, only allowed for. The excessive-seats
+clause has never been tested in court. The Electoral Commission's own published
+calculation for Laingsburg in 2021 applies it; we put our reading to the
+Commission on 5 August 2026 and are awaiting its answer. And the range of possible 2026 outcomes
 is judgement that no amount of testing can turn into fact: bounded by twenty
 years of observed swings, tilted by current evidence, and fully exposed as
 adjustable dials on the interactive page.

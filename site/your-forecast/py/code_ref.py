@@ -1,2 +1,2 @@
 # Written by worker-api/tools/sync_seats_py.mjs. Do not edit.
-CODE_REF = "95592362d72b56eadf180cef99574ea9fefa56dca0d0e659bd9a87d923ef2444"
+CODE_REF = "edf68f7696551fede1e003cf31dba77ac57f0708442adacef5b1a2955915ebbb"

@@ -69,19 +69,19 @@ review of the very first version; the same process is applied to each revision
 since.</p>
 <p>The review of the first version found <strong>six implementation errors</strong>, one of which made the
 forecast&rsquo;s original headline claim outright false. Every error was fixed the
-same day, the forecast changed materially, and the full technical audit is
-published, warts and all, in
-<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html"><code>model-review.html</code> on GitHub</a>.
+same day, and the forecast changed materially.
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.</p>
-<aside class="since"><div class="since-h"><span class="mstat" data-mode="free" data-token="generated_date" data-when="2026-09-17" data-current="21 October 2026" data-prov="21 October 2026.&#10;SOURCE: This Model. The date of This Model&#x27;s current simulations of the election." tabindex="0">21 October 2026</span><span class="arrow mstat-move changed" data-prov="Was 21 October 2026.">◆</span>: what the model says now</div>
-<p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
+<aside class="since"><div class="since-h"><span class="mstat" data-mode="free" data-token="generated_date" data-when="2026-09-17" data-current="21 October 2026" data-prov="21 October 2026.&#10;SOURCE: This Model. The date of This Model&#x27;s current simulations of the election." tabindex="0">21 October 2026</span>: what the model says now</div>
+<p>The figures below describe the model as it stood on 6 August 2026: the first version, and
+the version after its fixes.
 The largest party today: <span class="mstat" data-mode="free" data-token="p_anc_largest" data-when="2026-08-07" data-current="58%" data-prov="58% chance since 21 October.&#10;SOURCE: This Model. The % of 5,000 simulations where the ANC was the largest party." tabindex="0">58%</span> chance it's the ANC alone and <span class="mstat" data-mode="free" data-token="p_da_largest" data-when="2026-08-07" data-current="34%" data-prov="34% chance since 21 October.&#10;SOURCE: This Model. The % of 5,000 simulations where the DA was the largest party." tabindex="0">34%</span> chance
 it's the DA alone. Two or more parties tie for the most seats: <span class="mstat" data-mode="free" data-token="p_largest_tied" data-when="2026-10-02" data-current="3.6%" data-prov="3.6% chance since 21 October.&#10;SOURCE: This Model. The % of 5,000 simulations where two or more parties tied for the most seats." tabindex="0">3.6%</span> chance. The ANC
 triggers the excessive-seats clause: <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="90%" data-prov="90% chance since 21 October.&#10;SOURCE: This Model. The % of 5,000 simulations where the excessive-seats clause applied to the ANC: it won as many wards as its votes entitle it to in seats, or more, so it got no list seats." tabindex="0">90%</span> chance. A chance is the share of the
 <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000 since 26 September.&#10;SOURCE: This Model. The number of times This Model simulated the election." tabindex="0">5,000</span> simulations in which the outcome happens. No
-poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
-of how the errors were found and fixed.</p></aside>
+poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is a record of how the
+errors were found and fixed. Errors in the page itself are corrected in place and listed on the
+<a href="corrections">corrections page</a>.</p></aside>
 
 <p><span data-asof="2026-08-06"></p>
 <h2 id="the-error-that-mattered-most">The error that mattered most</h2>
@@ -112,9 +112,11 @@ had forbidden.</p>
   noticed.</li>
 <li><strong>Ward winners were never actually counted.</strong> The forecast allocated seats
   from vote totals but skipped predicting who <em>wins each ward</em> — which is
-  the step that detects overhang, the council growing beyond 270. The plan
-  had flagged overhang as a live risk. It turned out to be the modal outcome,
-  and the first forecast simply could not see it.</li>
+  the step that detects excessive seats: a party winning more wards than its
+  vote entitles it to. It keeps those wards and gets no list seats, and the
+  other parties share the remaining seats of the fixed 270-seat council. The
+  plan had flagged this as a live risk. It happened in most simulations, and
+  the first forecast could not see it.</li>
 <li><strong>Real evidence was collected and then ignored.</strong> Fifteen by-elections and
   the published polls had been gathered — and influenced nothing. The
   forecast cited them as sources while its numbers rested entirely on
@@ -129,8 +131,8 @@ had forbidden.</p>
   them. They now move independently, with ranges set from their actual
   history.</li>
 </ul>
-<p>There were also data bugs found along the way — including <span class="mstat" data-mode="fixed" data-token="rev0806_overvote_records" data-when="2026-08-06" data-prov="87 on 6 August.&#10;SOURCE: IEC past results. The voting-district results, one per district and election, with more votes than registered voters." tabindex="0">87</span> district-year
-records where more people had voted than were registered, a sign of broken
+<p>There were also data bugs found along the way — including <span class="mstat" data-mode="fixed" data-token="rev0806_overvote_records" data-when="2026-08-06" data-prov="87 on 6 August.&#10;SOURCE: IEC past results. The voting-district results, one per district and election, whose turnout was above the ceiling the review set, a little over the registered voters." tabindex="0">87</span> district-year
+records where turnout was above 105% of registered voters, a sign of broken
 registration counts that had quietly poisoned the turnout projections.</p>
 <p></span>
 <span data-asof="2026-08-06"></p>
@@ -138,17 +140,17 @@ registration counts that had quietly poisoned the turnout projections.</p>
 <p>The corrected forecast is meaningfully different from the one first computed:</p>
 <ul>
 <li><strong>The excessive-seats clause went from invisible to the headline.</strong> In
-  roughly six of seven simulations, the ANC wins more wards than its shrunken
+  most simulations, the ANC wins more wards than its shrunken
   vote entitles it to — and (as we later confirmed from the statute and a real
   2021 precedent) it keeps them all, gets zero list seats, and the shortfall
   comes out of everyone else&rsquo;s list seats, inside a fixed 270.</li>
-<li><strong>The DA&rsquo;s dominance shrank.</strong> Largest party in <span class="mstat" data-mode="fixed" data-token="rev0806_da_largest_fixed" data-when="2026-08-06" data-prov="63% chance on 6 August.&#10;SOURCE: This Model. The % of simulations where the DA was the largest party, in the forecast after the fixes the review describes." tabindex="0">63%</span> of simulations, not
+<li><strong>The DA&rsquo;s dominance shrank.</strong> Largest party in <span class="mstat" data-mode="fixed" data-token="rev0806_da_largest_fixed" data-when="2026-08-06" data-prov="61% chance on 6 August.&#10;SOURCE: This Model. The % of simulations where the DA was the largest party, in the forecast after the fixes the review describes." tabindex="0">61%</span><span class="arrow mstat-move down" data-prov="Was 63%.">▼</span> of simulations, not
   <span class="mstat" data-mode="fixed" data-token="rev0806_da_largest_first" data-when="2026-08-06" data-prov="86% chance on 6 August.&#10;SOURCE: This Model. The % of simulations where the DA was the largest party, in the first forecast the review describes." tabindex="0">86%</span> — the ANC&rsquo;s overhang seats close the gap.</li>
 <li><strong>A kingmaker verdict flipped.</strong> The first sheet asserted the Patriotic
   Alliance mattered more to coalition-building than ActionSA. Computed
   properly, it is the other way around.</li>
 <li><strong>The realistic outcomes clarified into three:</strong> a grand coalition, a
-  DA-led minority government resting on abstention (viable in <span class="mstat" data-mode="fixed" data-token="rev0806_da_minority_viable" data-when="2026-08-06" data-prov="61% chance on 6 August.&#10;SOURCE: This Model. The % of simulations where a DA minority government had the numbers, in the forecast the review describes." tabindex="0">61%</span> of
+  DA-led minority government resting on abstention (viable in <span class="mstat" data-mode="fixed" data-token="rev0806_da_minority_viable" data-when="2026-08-06" data-prov="53% chance on 6 August.&#10;SOURCE: This Model. The % of simulations where a DA minority government had the numbers, in the forecast the review describes." tabindex="0">53%</span><span class="arrow mstat-move down" data-prov="Was 61%.">▼</span> of
   simulations), or a DA arrangement with one of the parties it has publicly
   ruled out.</li>
 </ul>
@@ -156,9 +158,10 @@ registration counts that had quietly poisoned the turnout projections.</p>
 <span data-asof="2026-08-06"></p>
 <h2 id="what-the-review-could-not-fix">What the review could not fix</h2>
 <p>Honesty about the repairs requires honesty about the remainder. A party that
-does not yet exist cannot be forecast, only allowed for. The legal fine print
-of overhang has never been demonstrated in a published calculation by the
-electoral commission — we put the question to the Commission on 5 August 2026 and are awaiting its answer. And the range of possible 2026 outcomes
+does not yet exist cannot be forecast, only allowed for. The excessive-seats
+clause has never been tested in court. The Electoral Commission&rsquo;s own published
+calculation for Laingsburg in 2021 applies it; we put our reading to the
+Commission on 5 August 2026 and are awaiting its answer. And the range of possible 2026 outcomes
 is judgement that no amount of testing can turn into fact: bounded by twenty
 years of observed swings, tilted by current evidence, and fully exposed as
 adjustable dials on the interactive page.</p>
@@ -173,7 +176,7 @@ that shows you its repair history is one you can calibrate your trust
 against. One that doesn&rsquo;t is asking you to take it on faith.</p>
 <p></span></p>
 <div class="colophon">
-  Reader edition, generated from docs-public/review.md on 2026-10-22. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html">model-review.html on GitHub</a>.
+  Reader edition, generated from docs-public/review.md on 2026-10-23. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md">MODEL-LOG.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div class="foot-text">
