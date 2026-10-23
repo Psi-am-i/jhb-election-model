@@ -1,5 +1,7 @@
 # Pollster on the record: backtest settings and out-of-sample scores
 
+> ⛔ **Every backtest figure dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy.** Several of the model's settings were chosen on records that include the elections scored (this note). The scores were withdrawn from the site on that day (MODEL-LOG §1.333).
+
 **Date:** 2026-10-23
 **Reviewer standpoint:** election forecaster and survey methodologist (the `pollster` skill). Read-only review; nothing in the model was run for this note.
 

@@ -1,5 +1,7 @@
 # Judgement calls — what in these results is not from the record
 
+> ⛔ **Every backtest figure dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy.** Several of the model's settings were chosen on records that include the elections scored (`rounds/2026-10-23-out-of-sample/POLLSTER-ON-RECORD.md`). The scores were withdrawn from the site on that day (MODEL-LOG §1.333).
+
 Every number in this model is meant to be measured or declared. This is the list
 of the **declared** ones: choices a person made that the data did not force. It
 exists so that "the model measures its constants" can be audited rather than

@@ -78,6 +78,9 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            # Added 2026-10-03 with lane N: the dates on a figure's tooltip, a
            # dated passage's figures, and a registered fact's page.
            "test_provenance_dates",
+           # Added 2026-10-23 with the withdrawal of the in-sample scores: no
+           # tree names the quarantine; no backtest score without its label.
+           "test_quarantine",
            # Added 2026-10-22 with the tooltips brief: the one tooltip writer
            # and the plain-sentence table, both ways round.
            "test_tooltip_says",

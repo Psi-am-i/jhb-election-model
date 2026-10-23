@@ -943,14 +943,6 @@ reviewed = "2026-09-17"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "six"
-context = "one of them by six seats against the change"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
-kind = "history"
-source = "MODEL-LOG 1.244 — the poll-removal comparison"
-reviewed = "2026-09-17"
-page = "methodology.html"
-
-[[audit.fixed]]
 value = "two"
 context = "of the vote, a share entitling it to only two seats"  # re-keyed 2026-10-03: the share is a token now
 kind = "history"

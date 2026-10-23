@@ -1662,7 +1662,7 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
     is one line and would have stopped both.
     """
     import compare_history as ch
-    rows = ch.load_history(ROOT / "data/processed/history.json")[1]
+    rows = _artefact()    # skips when history.json is absent (quarantined 2026-10-23)
     band = ch.pooled_by_band(rows, "reference")["4-12"]
 
     for field in ("by_cycle", "leverage", "by_p_any", "pit_saturated",

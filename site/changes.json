@@ -6632,9 +6632,9 @@
     "draws": 5000,
     "forecast_content_sha256": "f74c0c2c74e92e32ac5ed21b875d6472f650790a584a5088d16e87cd1ca2a898",
     "forecast_summary_sha256": "a0f5c20167d2fb3090a3ed671c39f0aefe9ba1272471a149eee69de5186d2eea",
-    "git_commit": "4bf5b94a02d82843df092681983a5eebd9b825b7",
+    "git_commit": "dfdb334d94c104356ca5900eef20da037958b81e",
     "git_dirty": true,
-    "model_run_id": "r-f74c0c2c74e9-4bf5b94a-dirty",
+    "model_run_id": "r-f74c0c2c74e9-dfdb334d-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
