@@ -31272,3 +31272,93 @@ size line gives 0.720 and P gives 0.854. By the arithmetic in `SPEC.md`,
 interpolated between its 0.72 and 0.93 rows, P would put ActionSA's centre near
 14.0%, against the model's 12.64%. That figure is interpolated, not run.
 Effective sample: four parties scored at 2016 and two at 2021.
+
+## 1.335 The freeze settings run: pooled γ, the placeholder fix, the ActionSA call withdrawn (2026-10-23)
+
+Owner, item 33. Pre-registration `prereg/2026-10-23-freeze-settings.md` (78513fb;
+amendment 88495e8 before any run). Code db1402f, reviewed.
+
+**Re-emit.** Done on 3f2cd51, after `backup_ignored.py` (backups/2026-10-23T205010Z).
+- **Fold files.** All 27 fold files of the eight metros now carry `fit_status`.
+  Every value column is byte-identical to before, checked file by file (K2,
+  including a scratch refit of every city first). `fold5_parameters.csv`
+  cannot be refitted under the defaults and has no reader; it is left as it was
+  (TODO, legacy files).
+- **Pooled γ.** `gamma_pooled_fold1-2.csv` is byte-identical to the GP arm's
+  (§1.333).
+- **Pool specs.** In `pools_2026.json` and `pools_2026_simulation.json` only
+  `artefact_key.judgements_sha` moved.
+- **Width record.** `width_record.json` was re-emitted. The shipped variant
+  (level_shrink 0.35, scale 0.04) is unchanged in all 1,158 fields. The file no
+  longer carries the two variants built for earlier arms, which remain in the
+  backup.
+- **Canonical run.** `montecarlo.py --city joburg --target 2026 --draws 5000
+  --seed 20261104` on a clean tree, then `overhang_regimes.py`. The run in arm
+  format (`arms.run_city_year`, same seed) reproduces the published
+  `seat_draws.csv` draw for draw.
+
+**Checks.**
+- **K1:** `inputs_preflight --strict` flagged the roll by age (26 September
+  snapshot). On 2026-10-23 the IEC page's Johannesburg ward table, now labelled
+  29 September, is identical ward by ward
+  (`archive/iec-registration-2026-09-29/README.md`).
+- **K2:** passed.
+- **K3:** the γ sources print `ASA=recent, MK=default 1.0, PA=recent`, and no
+  placeholder is read.
+- **K4:** `declares --verify` after the run: the fold files and the pooled file pass. 8 of 180 artefacts fail:
+  - the three site draw manifests (`~`, until `export_draws.py` is re-run for the new forecast);
+  - `history.json` (`~`, withdrawn in-sample, failing before this round);
+  - `fold5_parameters.csv` (`✗`, dead);
+  - three undeclared files that were already undeclared.
+- **K5:** every city's fold files have placeholder rows, so the fix reaches
+  Tshwane's forecast and every past target. No Tshwane forecast is published.
+- **K6:** `judgements_applied` is empty. ActionSA's centre before the shrink is
+  14.70% and after it 14.48%, as the arithmetic in
+  `rounds/2026-10-23-out-of-sample/retention/SPEC.md` gives.
+- **K7:** the council is 270 in every draw; mean seats sum to 270.0 and mean
+  list shares to 1.000000.
+
+**Measured** (5,000 draws), against B (the site, §1.333):
+
+| | B (site) | GP (§1.333) | frozen settings |
+|---|---|---|---|
+| P(ANC largest alone) | 58.1% | 59.1% | 45.1% |
+| P(DA largest alone) | 33.8% | 32.9% | 46.7% |
+| tied for most seats | 3.6% | 3.4% | 4.0% |
+| ActionSA mean list share | 17.64% | 17.64% | 12.67% (90% range 8.4–17.9%) |
+| median seats: DA / ANC / ASA / EFF / MK / PA | 67 / 72 / 40 / 25 / 17 / 14 | 67 / 72 / 40 / 25 / 17 / 14 | 71 / 72 / 29 / 26 / 19 / 15 |
+| P(ANC wins more wards than its entitlement) | 89.6% | | 86.6% |
+
+Ward favourites changed against B:
+- 9 (DA → Al Jama-ah) and 10 (ANC → Al Jama-ah);
+- 17, 18, 68 and 82 (PA → DA);
+- 124 (MK → ANC).
+
+Al Jama-ah won ward 9 in 2021 with 49% and took 21% of ward 10
+(`lge2021_JHB_vd_party_clean.csv`, ward ballot; wards were redrawn for 2026).
+
+**Scored.**
+- **F1 held** (12.67%; band 11.5–14). **F2 held** (29; band 24–33). Both are
+  tripwires.
+- **F3 held.** List-share factors: DA 1.0604, ANC 1.0605, EFF 1.0601, MK 1.0605,
+  PA 1.0594 (band 1.03–1.09).
+- **F4a held.** ANC 45.1% (band 42–54), DA 46.7% (band 38–50).
+- **F4b falsified.** The DA, not the ANC, is the narrow favourite.
+- **F4c held.** The ANC's median seats move +0 against a proportional
+  +4.4 (72 × 1.0605), less than half.
+- **F5 held.** The shipped width variant is unchanged.
+- **F6 held.** ActionSA is the favourite in no ward. The six GP wards keep
+  GP's favourites; ward 124, a close MK–ANC ward, moves MK → ANC.
+- **F7 held** (0.04%).
+
+**What it means.**
+- The withdrawal is a change of input, not new evidence. ActionSA's own centre
+  (12.64%) was the model's figure throughout; 17.6% was the owner's.
+- Moving ActionSA's 5 points of list vote to the other parties in proportion
+  hands the DA its seats: the ANC already wins more wards than its list vote
+  entitles it to, so its extra list vote adds no seats.
+- The largest-party race is now within 2 points, a near-tie. Most of it moves
+  with the ActionSA withdrawal: ANC 59.1 → 45.1, DA 32.9 → 46.7, against GP.
+  The γ changes alone moved it about 1 point.
+- ActionSA's level depends on the borrowed retention 0.72 (§1.334;
+  OWNER-DECISIONS item 34).
