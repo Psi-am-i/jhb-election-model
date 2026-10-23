@@ -31229,3 +31229,46 @@ Limits:
 - the site's interactive reads fold 1 (`export_interactive.py:158`);
 - ActionSA, PA (other than its `gamma_recent` value) and MK have no fold γ in
   any arm.
+
+## 1.334 Second-election retention, scored out of sample (2026-10-23)
+
+Owner, item 28. Pre-registration `prereg/2026-10-23-second-election-retention.md`
+(00383da). Script `rounds/2026-10-23-out-of-sample/retention/score.py` (24ea22a),
+which reuses `levels.local_record`, `_held_back` and `size_centre`, and checks
+that its pairs equal the live record at 2016, 2021 and 2026. Results in
+`results.md` beside it. The descriptive record was known before the
+pre-registration (`SPEC.md`), and the pre-registration says so.
+
+Two rules for a party at its second local election, each fitted only on pairs
+whose later election precedes the target:
+- **S** is the size line the model uses now.
+- **P** is the median over parties of each party's median first → second ratio.
+
+The score is the mean absolute log error, metros averaged within a party, then
+parties averaged.
+
+| target | scored on | S | P |
+|---|---|---|---|
+| 2016 | COPE, APC, Al Jama-ah, AIC (Buffalo City); 18 party-metros | 0.731 | 0.721 |
+| 2021 | EFF, AIC (per-metro first); 14 party-metros | 0.526 | 0.608 |
+
+- **R1 held.** Neither rule beats the other by more than 0.2 at either target:
+  the gap is 0.010 at 2016 and 0.082 at 2021. The gap stays under 0.2 under
+  every alternative reading of "first election" the script tried. The narrowest
+  is EFF alone at 2021: 0.670 against 0.859.
+- **R2 held.** Both rules predict EFF below 0.9 in all eight metros (S 0.64–0.71,
+  P 0.563). EFF's realised ratios run from 0.90 to 2.98.
+- **R3 held.** P for use at 2026 is 0.854 (76 pairs, 43 parties). It is 0.850
+  without PA and 0.884 without AIC's per-metro pairs.
+
+P rose with each cycle: 0.449 fitted for 2016, 0.563 for 2021, 0.854 for 2026.
+The parties that grew (EFF, AIC, Al Jama-ah, PA) all enter the record late.
+S's slope changes sign across the refits (+0.17, +0.07, −0.03).
+
+**What it means.** Neither the size line nor second-election parties' own
+record predicted the next second election better than the other; both missed
+EFF's growth. The record does not pick a retention for ActionSA. At 2026 the
+size line gives 0.720 and P gives 0.854. By the arithmetic in `SPEC.md`,
+interpolated between its 0.72 and 0.93 rows, P would put ActionSA's centre near
+14.0%, against the model's 12.64%. That figure is interpolated, not run.
+Effective sample: four parties scored at 2016 and two at 2021.

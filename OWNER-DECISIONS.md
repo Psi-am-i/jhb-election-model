@@ -15,6 +15,40 @@ Last updated: 2026-10-23.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
+### 34. ActionSA's level in the frozen forecast: which retention?
+
+**Context.** With your 17.6% call withdrawn (item 33), ActionSA's level comes
+from its 2021 list vote (18.1%) times a retention, how much of its first result
+a party keeps at its second local election. The model uses 0.72, the typical
+value for a party of its size, fitted mostly on established parties between
+0.5% and 10%. You commissioned a measurement on second-election parties up to
+2021 (MODEL-LOG §1.334; `rounds/2026-10-23-out-of-sample/retention/`).
+- **The record splits:** COPE kept about 0.2 and APC about 0.4; UDM about 0.7;
+  EFF 0.9–3.0, Al Jama-ah 1.2–1.6 and AIC 1.1 grew. No party was near
+  ActionSA's 18% at its first local election.
+- **The test.** Tried before 2016 and before 2021 on earlier elections only,
+  neither the size line nor second-election parties' own median predicted the
+  next second election better than the other, and both forecast EFF too low.
+- **At 2026** the size line gives 0.72 and second-election parties' median
+  gives 0.85. ActionSA's starting level would be 12.6% (as now) or about 14.0%
+  (interpolated, not run).
+
+**Options.**
+1. Keep 0.72, the model's existing rule. No new judgement. The page says
+   ActionSA's level rests on a typical retention and that second-election
+   parties have kept from 0.2 to 1.5 of their first result.
+2. Use 0.85, second-election parties' median. A measured value with no better
+   record out of sample, so in practice a choice between two equal rules.
+3. Keep 0.72 and widen ActionSA's range to cover both groups. That is a new
+   judgement call.
+
+**Recommendation.** Option 1. The evidence prefers neither number. Keeping
+the existing rule adds nothing to argue about, and the page states the spread
+plainly. Option 3 is the honest alternative if you want the range to show it,
+but it is a judgement call of the kind you asked to avoid.
+
+**Blocks.** The freeze, by 31 October. If no answer by then: option 1.
+
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
