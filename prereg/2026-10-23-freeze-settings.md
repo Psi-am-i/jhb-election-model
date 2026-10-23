@@ -75,3 +75,68 @@ width record, so it is not compared with GP.
 
 An old-vs-new report (B against the canonical run) in `reports/model-changes/`.
 Then a UAT build. Going live needs the owner's yes.
+
+---
+
+## Amendment, 2026-10-23, before any code is reviewed or any run (after blind pollster review)
+
+**F1, F2 and F4's direction are tripwires.** They reproduce §1.330's "without
+the call" run on an earlier tree, which was known when this was written. They
+check that the withdrawal does what it did then; they are not predictions about
+the world.
+
+**F3** is scored on unrounded mean list shares. It tests the rescaling.
+
+**F4 replaced** (one definition throughout: largest alone, a tie counted for
+neither):
+- **F4a.** P(ANC largest alone) is 42–54% and P(DA largest alone) is 38–50%.
+- **F4b.** The ANC is still the favourite: its chance is above the DA's.
+- **F4c, the mechanism.** Two explanations give the same direction:
+  - **Overhang:** the ANC already wins more wards than its list vote entitles it
+    to, so extra list vote does not add ANC seats.
+  - **Plain rescaling:** the DA is larger, so it gains more.
+
+  To separate them, the ANC's median-seat change is compared with its
+  proportional expectation (B's ANC median × its list-share factor), and the
+  share of draws in which the ANC wins more wards than its entitlement is
+  reported for both runs. Overhang predicts an ANC seat gain under half the
+  proportional one.
+
+**F6 replaced.** ActionSA is the favourite in no ward in B. In B it wins wards
+34, 135, 67, 124, 59, 61, 25, 38 and 123, each in under 6% of draws; numbers
+are ward index + 1 in the model's ward order. In the canonical run:
+- ActionSA is the favourite in no ward;
+- the six wards GP changed (9 and 10 to ALJAMAAH; 17, 18, 68 and 82 PA → DA)
+  keep the favourites GP gave them.
+
+**Re-emit list, added:**
+- `pools_2026.json` and `pools_2026_simulation.json`, because removing
+  `[party.ASA]` changes their `judgements_sha`. Check that only that field
+  moves.
+- Every intermediate that change 1 reaches through a past target
+  (`bye_value.json`, `group_share_record`, `theta_residual` and the rest the
+  writer lists) is regenerated, not checked by modification time.
+- `backup_ignored.py` runs first.
+
+**Checks, added:**
+- **K5.** Tshwane's fold files are checked for placeholder rows. If they have
+  any, "Tshwane is not changed" is false for its past targets, and that is
+  reported.
+- **K6.** The run's `judgements_applied` names no ActionSA entry, and no
+  centre carries the ×0.9432 rescale.
+- **K7.** The canonical run records `git_dirty` false. Seats add to 270 in
+  every draw, and list shares add to 100%.
+
+**The old-vs-new report must say:**
+- The 17.6% shown since 21 October was the owner's own figure, not one the
+  model estimated. The model's own figure was 12.6% throughout.
+- Withdrawing the figure is a change of input. It is not new evidence and not a
+  correction.
+- The movement split by cause: the γ changes (§1.333's BF and GP) and the
+  withdrawal.
+- ActionSA's level is a fall from its 2021 18.1%. Most of that fall comes from
+  the typical retention value 0.72, which is not ActionSA's own record; the
+  second-election retention round the owner commissioned (item 28) may replace
+  it. The report states the 90% range.
+- If the largest-party favourite flips or the race becomes a near-tie, the
+  report leads with it.
