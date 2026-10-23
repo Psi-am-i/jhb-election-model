@@ -642,7 +642,7 @@ REDEFINED: dict[str, tuple[str, str]] = {
 MAP_PAGES = ("forecast-sheet.html",)
 
 
-def maps_are_current(processed: Path, pages=MAP_PAGES) -> list[str]:
+def maps_are_current(processed: Path, pages=None) -> list[str]:
     """Every reason the ward maps on ``pages`` are not drawn from the run in
     ``processed``, which is the run the headline figures beside them are read
     from. Each page must carry both maps (``__MAP_`` and ``__HEXMAP_``), each
@@ -650,6 +650,7 @@ def maps_are_current(processed: Path, pages=MAP_PAGES) -> list[str]:
     29 September run under a headline quoting the 21 October one."""
     import hex_cartogram
     import render_map
+    pages = MAP_PAGES if pages is None else pages
     problems = []
     for name in pages:
         page = (REPO_ROOT / name).read_text(encoding="utf-8")

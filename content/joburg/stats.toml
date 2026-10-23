@@ -1081,14 +1081,6 @@ reviewed = "2026-09-17"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "-2021"
-context = "pre-2021 polling missed actionsa in this city"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
-kind = "history"
-source = "POLLING.md — metro polling before 2021 missed ActionSA"
-reviewed = "2026-09-17"
-page = "methodology.html"
-
-[[audit.fixed]]
 value = "two"
 context = "of the vote, a share entitling it to only two seats"  # re-keyed 2026-10-03: the share is a token now
 kind = "history"

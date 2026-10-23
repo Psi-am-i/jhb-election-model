@@ -162,7 +162,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            # deleted one and blinding `test_register_matches_code`.
            "test_judgement_sheet", "test_number_scan", "test_site_headers", "test_your_forecast_page",
            "test_worker_routing",
-           "test_map_stripes", "test_scenarios",
+           "test_map_stripes", "test_map_run", "test_scenarios",
            # The browser engine's stand-in for 65 election files, kept an
            # OUTPUT of `levels._citywide_and_roster` by regenerating it, and
            # refused when stale, late, short or built for another target.
