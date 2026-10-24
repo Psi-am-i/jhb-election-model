@@ -297,6 +297,50 @@ def coalition_key(members) -> str:
                            key=lambda p: (rank.get(p, len(rank)), p)))
 
 
+# THE WHO-CAN-GOVERN TABLE'S CUTS. One simulation in twenty, and at most five
+# parties: at 1% there were 1,049 rows (191 even capped at four parties) —
+# unreadable, and a ledger row for every figure in each. At 5% the list is 90
+# rows and still carries every DA-without-the-ANC option that is ever a
+# smallest majority that often. Presentation, set 2026-09-17; the owner can
+# move it.
+MIN_SMALLEST, MAX_SIZE = 0.05, 5
+# A combination is listed only if it governs (reaches a majority) in at least
+# this share of the simulations, as well as the smallest-majority and
+# no-passenger rules. Owner, 2026-10-24 (OWNER-DECISIONS-ANSWERED.md item 35):
+# "showing MK distorts their real chances, even if we say it. We need to show
+# things that are more likely to be informational. The cut off for showing all
+# coalitions should be 10% or even showing it there is a distortion." The
+# single-party rows are cut at the same share.
+MIN_GOVERNS = 0.10
+
+
+def coalition_cuts(tot, member_seats, thr) -> dict:
+    """The table's rules for one combination: ``tot`` its seats per
+    simulation, ``member_seats`` each member's, ``thr`` the majority line.
+    ``governs`` is the share of simulations it reaches a majority in,
+    ``smallest`` the share in which it is a smallest majority (any one member
+    leaving loses it), ``carried`` that no member is a passenger, ``listed``
+    that the table prints it (all three cuts)."""
+    win = tot >= thr
+    small = win.copy()
+    for s in member_seats:
+        small &= (tot - s) < thr
+    # No passengers (owner, 2026-09-17: "if a coalition can survive the
+    # exit of a party, remove the party"). A member whose exit the
+    # majority survives in most of the simulations where it governs is
+    # a passenger, and the combination without it is the one to show.
+    # JUDGED ON THE PRINTED FIGURE (owner, 2026-09-30: "keep as is,
+    # just round all numbers, so 49.86 is 50%"). Two rows at 49.86%
+    # and 49.95% survival printed "50%" beside a note saying the
+    # coalition usually loses them; rounding to the displayed
+    # precision first makes the cut agree with what a reader sees.
+    carried = bool(win.any()) and all(
+        round(float(((tot - s) >= thr)[win].mean()), 2) < 0.5 for s in member_seats)
+    governs, smallest = float(win.mean()), float(small.mean())
+    return {"governs": governs, "smallest": smallest, "carried": carried,
+            "listed": smallest >= MIN_SMALLEST and carried and governs >= MIN_GOVERNS}
+
+
 
 
 ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
@@ -635,48 +679,15 @@ def main(argv: list[str] | None = None) -> int:
     def members_of(m):
         return [top[k] for k in range(nT) if m & (1 << k)]
 
-    def smallest(m, tot):
-        ok = tot >= thr
-        for p in members_of(m):
-            ok &= (tot - S[p]) < thr
-        return ok
-
     from itertools import combinations
-    # One simulation in twenty, and at most five parties: at 1% there were 1,049
-    # rows (191 even capped at four parties) — unreadable, and a ledger row for
-    # every figure in each. At 5% the list is 90 rows and still carries every
-    # DA-without-the-ANC option that is ever a smallest majority that often.
-    # Presentation, set 2026-09-17; the owner can move it.
-    MIN_SMALLEST, MAX_SIZE = 0.05, 5
-    # A combination is listed only if it governs (reaches a majority) in at
-    # least this share of the simulations, as well as the two rules above and
-    # below. Owner, 2026-10-24 (OWNER-DECISIONS-ANSWERED.md item 35): "showing
-    # MK distorts their real chances, even if we say it. We need to show
-    # things that are more likely to be informational. The cut off for showing
-    # all coalitions should be 10% or even showing it there is a distortion."
-    # The single-party rows below are cut at the same share.
-    MIN_GOVERNS = 0.10
     cands = {}
     for k in range(2, MAX_SIZE + 1):
         for combo in combinations(range(nT), k):
             m = sum(1 << i for i in combo)
             tot = msum(m)
-            s = float(smallest(m, tot).mean())
-            win = tot >= thr
-            # No passengers (owner, 2026-09-17: "if a coalition can survive the
-            # exit of a party, remove the party"). A member whose exit the
-            # majority survives in most of the simulations where it governs is
-            # a passenger, and the combination without it is the one to show.
-            # JUDGED ON THE PRINTED FIGURE (owner, 2026-09-30: "keep as is,
-            # just round all numbers, so 49.86 is 50%"). Two rows at 49.86%
-            # and 49.95% survival printed "50%" beside a note saying the
-            # coalition usually loses them; rounding to the displayed
-            # precision first makes the cut agree with what a reader sees.
-            carried = win.any() and all(
-                round(float(((tot - S[p_]) >= thr)[win].mean()), 2) < 0.5
-                for p_ in members_of(m))
-            if s >= MIN_SMALLEST and carried and float(win.mean()) >= MIN_GOVERNS:
-                cands[m] = s
+            cut_ = coalition_cuts(tot, [S[p_] for p_ in members_of(m)], thr)
+            if cut_["listed"]:
+                cands[m] = cut_["smallest"]
             else:
                 _sum_cache.pop(m, None)
 
@@ -744,9 +755,11 @@ def main(argv: list[str] | None = None) -> int:
     # since they are the two largest parties").
     chance_of = {tuple(mem): pm for pm, mem, _ in rows_out if mem}
 
+    # combinations of two or more parties: the tooltips count "the coalitions
+    # in the table", and a single-party row is not one
     def routes(party, other, strong=False):
         return sum(1 for mem in listed
-                   if party in mem and other not in mem
+                   if len(mem) >= 2 and party in mem and other not in mem
                    and (not strong or chance_of[tuple(mem)] > 0.5))
     govern_lede = (
         f'<p class="lede">The ANC without the DA has '
