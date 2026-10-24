@@ -1462,10 +1462,18 @@ def test_ours_is_one_on_every_party_and_a_safe_bet_on_the_published_draws():
 #: record (model 7ea27c28) had mild a Safe bet, moderate and the screenshot
 #: Steady as she goes. The same seat move scores lower because the 21 October
 #: simulations are about half as wide (MODEL-LOG 1.332); the bands are unchanged.
-BRIEF_TABLE_MODEL = "336d666d"
-BRIEF_TABLE = {"ours": (1.000, "Safe bet"), "fixture A": (0.725, "Long shot"), "fixture B": (0.637, "Wild call"),
-               "screenshot": (0.755, "Long shot"), "mild": (0.871, "Steady as she goes"),
-               "moderate": (0.745, "Long shot"), "wild": (0.736, "Long shot")}
+#: Re-recorded 2026-10-24 for the frozen forecast's published draws (model
+#: 62933f2c, the freeze release, MODEL-LOG 1.336), deliberately: the test
+#: pins the model and failed on the new one. Measured on site/draws with this
+#: test's own constructions. Against 336d666d: fixture A 0.725 Long shot ->
+#: 0.809 Steady as she goes; fixture B 0.637 -> 0.631, the screenshot 0.755 ->
+#: 0.759, mild 0.871 -> 0.875, moderate 0.745 -> 0.752, wild 0.736 -> 0.739,
+#: each badge unchanged; ours 1.000 Safe bet. The bands are unchanged.
+BRIEF_TABLE_MODEL = "62933f2c"
+BRIEF_TABLE = {"ours": (1.000, "Safe bet"), "fixture A": (0.809, "Steady as she goes"),
+               "fixture B": (0.631, "Wild call"), "screenshot": (0.759, "Long shot"),
+               "mild": (0.875, "Steady as she goes"), "moderate": (0.752, "Long shot"),
+               "wild": (0.739, "Long shot")}
 #: The owner's screenshot forecast: seats and list percent for 14 parties;
 #: every other party at our prediction.
 SCREENSHOT = {"ANC": (75, 23.3), "DA": (65, 25.8), "ASA": (33, 14.4), "MK": (26, 10.6), "EFF": (25, 9.5),
@@ -1475,8 +1483,8 @@ SCREENSHOT = {"ANC": (75, 23.3), "DA": (65, 25.8), "ASA": (33, 14.4), "MK": (26,
 
 def test_the_briefs_test_forecasts_take_the_owners_bands():
     """The seven forecasts the brief names, on the published draws, take the
-    badges BRIEF_TABLE records for that model (on 336d666d: mild Steady as
-    she goes; moderate, wild, the screenshot and fixture A Long shots;
+    badges BRIEF_TABLE records for that model (on 62933f2c: mild and fixture
+    A Steady as she goes; moderate, wild and the screenshot Long shots;
     fixture B a Wild call). On any other published model this fails and says
     to re-measure."""
     model = json.loads((ROOT / "site" / "draws" / "manifest.json").read_bytes())["artefact_key"]["model_sha256"]
