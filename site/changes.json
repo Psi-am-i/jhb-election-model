@@ -3690,7 +3690,9 @@
         "claims/anc-absolute-authority.html",
         "claims/mk-biggest-party.html",
         "claims/da-coalition-red-lines.html",
-        "claims/actionsa-soweto.html"
+        "claims/actionsa-soweto.html",
+        "minority-administrations.html",
+        "your-forecast/index.html"
       ],
       "previous": "21 October 2026",
       "previous_published_at": "2026-10-23T16:17:48Z",
@@ -7553,9 +7555,9 @@
     "draws": 5000,
     "forecast_content_sha256": "ad6ca1dd1e526113e4b991f4e2359552156773a351d4b88bb33cdd98520858e9",
     "forecast_summary_sha256": "4492e81cb9008ab8e5ce85d60b6f287f4ac469954c3285932772a4c6d550176c",
-    "git_commit": "330d9e1373111ed008fb9066491a19f21015c199",
+    "git_commit": "b3f2660119c628a7baac518985da6213d042f1e3",
     "git_dirty": true,
-    "model_run_id": "r-ad6ca1dd1e52-330d9e13-dirty",
+    "model_run_id": "r-ad6ca1dd1e52-b3f26601-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
