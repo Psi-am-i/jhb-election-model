@@ -169,7 +169,7 @@ Electoral Commission uses, allocates every seat, excessive seats included.
 
 ### 8. Do it {{n_draws}} times
 
-Each run draws fresh values within every bound. The output is a distribution:
+Each simulation draws fresh values within every bound. The output is a distribution:
 how often each seat count happens, and how often each coalition clears the
 line. Every combination of parties is checked against that run's own majority
 line, with no judgement about who would work with whom.

@@ -86,7 +86,7 @@ EXEMPT = {
     # the verb, not the simulations
     ("methodology.html", "draw", "the ANC and the IFP draw overwhelmingly"): 1,
     ("methodology.html", "draw", "This Model draws thousands of answers"): 1,
-    ("methodology.html", "draw", "Each run draws fresh values"): 1,
+    ("methodology.html", "draw", "Each simulation draws fresh values"): 1,
     ("sources.html", "draw", "The IEC draws these"): 1,
     ("privacy.html", "draw", "the server draws from the link"): 1,
     ("your-forecast/index.html", "draw", "map draws it as"): 1,
