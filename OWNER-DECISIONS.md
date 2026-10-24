@@ -15,25 +15,6 @@ Last updated: 2026-10-24.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
-### 36. Three tooltip sentences for the new who-can-govern figures
-
-**Context.** Item 35's changes put three new figures on the forecast page:
-the DA's workable majorities without the ANC, how many of those are better
-than even, and the 10% cut-off. Every figure on the site carries a tooltip
-sentence, and the build refuses a figure without one. Proposed, mirroring the
-live ANC sentences ("The coalitions in the table that include the ANC and not
-the DA." and "...and hold a majority in more than half of 5,000 simulations."):
-1. DA's count: "The coalitions in the table that include the DA and not the ANC."
-2. DA's better-than-even count: "The coalitions in the table that include the
-   DA and not the ANC and hold a majority in more than half of 5,000
-   simulations."
-3. The cut-off: "The share of 5,000 simulations below which a combination is
-   left out of the table."
-Each tooltip also carries the standard "SOURCE: This Model." line. [Yes to all
-three]
-
-**Blocks.** The publish build and UAT.
-
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
