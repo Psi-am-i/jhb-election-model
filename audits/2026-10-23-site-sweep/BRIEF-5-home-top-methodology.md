@@ -1,8 +1,8 @@
 # Brief 5: the home page's top, and the methodology page
 
 Owner's answers, 2026-10-25: `OWNER-DECISIONS-ANSWERED.md` item 38 (part A)
-and `OWNER-DECISIONS.md` item 39 (part B, **not yet answered: do not start
-part B until this file says it is**). Branch `site-sweep-1`. A writer makes
+and `OWNER-DECISIONS.md` item 39 (part B, answered 2026-10-25 "1 and 2 are both fine and keep the one line": Part B as
+recommended, and item 5's tooltip approved). Branch `site-sweep-1`. A writer makes
 the edits; I review the diff; then the publish build and UAT. Every
 reader-facing word below is the owner's or approved by them; **add no other
 words** (memory `no-unapproved-reader-words`). If an edit seems to need a word

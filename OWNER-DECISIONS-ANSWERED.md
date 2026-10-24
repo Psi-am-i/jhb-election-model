@@ -5,6 +5,41 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 39. What leaves the methodology page — answered 2026-10-25
+
+**Context.** Owner, 2026-10-25: the methodology "is now a corrections page. It
+is mean to say what the methadology is. We can put in a note to say that we
+have current withrawn our scores for previous electsions while they are rerun".
+The passages on the page now that describe errors, withdrawals or history,
+and what each would become:
+
+1. **How accurate is it?** The scores notice ("This Model's past scores were
+   withdrawn on 23 October. Several of its settings had been chosen on the
+   elections they were scored against. Re-scored figures, from earlier
+   elections only, will be published here.") becomes "We have withdrawn our
+   scores for previous elections while they are re-run." The paragraph on the
+   seat law reproducing published councils stays.
+2. **The judgement calls.** Delete the three sentences "Those tests' settings
+   had been chosen on the same elections, so …" (the cut, the widths, the
+   by-election weight), and in the cut's paragraph the sentence on what those
+   tests showed ("without the cut those tests gave the largest parties too
+   much …"), which reports an in-sample result.
+3. **ActionSA.** Delete "From 21 to 23 October ActionSA's level was set by our
+   judgement at 17.6%; that judgement was withdrawn on 23 October."
+4. **Where polls fit.** Delete the subsection "What they were worth, measured"
+   (it says only that the measurement is withdrawn).
+5. **What this does not cover.** "The ranges are likely too narrow. They are
+   fitted on This Model's errors in past tests whose settings had seen those
+   elections." Keep, or delete.
+6. **Corrections and review.** Your text, with "This Model" (item 38).
+
+**Recommendation.** 1 to 4 and 6 as stated; 5 keep: it is a limit of the
+forecast now, and the forecast page says the same.
+
+**Blocks.** Brief 5, then a new UAT version and the release going live.
+
+**Answered 2026-10-25.** Owner, on this item and the tooltip on the home page's 23% ("SOURCE: This Model. The middle share of the votes, ward and party-list together, …"): "1 and 2 are both fine and keep the one line." Recorded: 1 to 4 and 6 as stated, 5 kept; `audits/2026-10-23-site-sweep/BRIEF-5-home-top-methodology.md` Part B.
+
 ### 38. Your new home-page top and methodology section: five wording points — answered 2026-10-25
 
 **Context.** On 2026-10-25 you sent new text for the top of the home page (the
