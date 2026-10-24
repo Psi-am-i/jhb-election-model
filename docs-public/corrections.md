@@ -2,17 +2,23 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
-## <span data-asof="2026-10-23">"The whole model beats simple baselines"</span> — published 6 October 2026, corrected 23 October 2026
+## <span data-asof="RELEASE_DATE">"The whole model beats simple baselines"</span> — published 6 October 2026, corrected RELEASE_DATE
 
-<span data-asof="2026-10-23">**What was wrong.** The methodology's scoring section, and the pages quoting it, presented This Model's scores against past elections as a test of forecasting each election from earlier ones. Several of its settings had been chosen on records that include the elections scored.
+<span data-asof="RELEASE_DATE">**What was wrong.** The methodology's scoring section, and the pages quoting it, presented This Model's scores against past elections as a test of forecasting each election from earlier ones. Several of its settings had been chosen on records that include the elections scored.
 
 **What is right.** The scores are withdrawn. Re-scored figures, from earlier elections only, will be published on the methodology page.</span>
+
+## <span data-asof="RELEASE_DATE">"The model uses only what was known before each election it is tested on"</span> — published 2 October 2026, corrected RELEASE_DATE
+
+<span data-asof="RELEASE_DATE">**What was wrong.** That overclaimed, because several scores on previous elections had been inadvertently using data that included those same elections.
+
+**What is right.** This Model's 2026 forecast uses only what was known before the 2026 election. Its scores on past elections are withdrawn; re-scored figures, for earlier elections, will be published on the methodology page.</span>
 
 ## <span data-asof="2026-10-23">"forecasting that election from earlier ones"</span> — published 22 October 2026, corrected 23 October 2026
 
 <span data-asof="2026-10-23">**What was wrong.** The tooltips on the home page's ward counts said This Model called each past election's ward winners "forecasting that election from earlier ones". Several of its settings were chosen on records that include those elections.
 
-**What is right.** The tooltips say the ward winners were called in This Model's test against each election, and that several of its settings were chosen on records that include it. The home page and the methodology say so too.</span>
+**What is right.** The ward counts are withdrawn with This Model's other scores on past elections.</span>
 
 ## <span data-asof="2026-10-23">"which adds a ward to Soweto"</span> — published 21 October 2026, corrected 23 October 2026
 
@@ -28,7 +34,7 @@ This page lists errors on published pages. Nothing is removed from it.
 
 ## <span data-asof="2026-10-23">"Parties that compete for the same voters trade support"</span> — published 21 October 2026, corrected 23 October 2026
 
-<span data-asof="2026-10-23">**What was wrong.** The forecast page said parties that compete for the same voters trade support, so when one rises the others tend to fall. The model published on 21 October draws no such trade: the DA and ActionSA rise and fall together across its simulations.
+<span data-asof="2026-10-23">**What was wrong.** The forecast page and the methodology said parties that compete for the same voters trade support, so when one rises the others tend to fall. The model published on 21 October draws no such trade: the DA and ActionSA rise and fall together across its simulations.
 
 **What is right.** The sentence is removed.</span>
 
@@ -312,7 +318,7 @@ This page lists errors on published pages. Nothing is removed from it.
 
 <span data-asof="2026-10-02">**What was wrong.** The about page reported how accurate This Model was on the 2021 election, but This Model had used party splits that happened after 2021. A forecast made before that election could not have known them. The page called this a deliberate choice.
 
-**What is right.** This Model uses only what was known before each election it is tested on.</span>
+**What is right.** This Model no longer uses party splits that happened after the election it is tested on.</span>
 
 ## Four figures on "Nobody will win Johannesburg" labelled "published 31 August 2026" — published 26 September 2026, corrected 27 September 2026
 

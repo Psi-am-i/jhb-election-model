@@ -1104,16 +1104,52 @@ def typed_generated_markers(text: str) -> list[str]:
     return sorted({m.group(0) for m in _GENERATED_MARKER.finditer(text)})
 
 
+#: Where a corrections entry of the release being built writes its corrected
+#: date (audits/2026-10-23-site-sweep/BRIEF-3-item35.md, item 9). The entry
+#: types this mark, in its heading's "corrected …" and in its `data-asof`
+#: values, and the build writes the one date `release_date` gives, so every
+#: entry of a release carries the same date and none is typed per entry. Once
+#: the release is published, replace the mark in its entries with the date the
+#: publication carries: a later release's build would otherwise write its own
+#: date into them.
+RELEASE_DATE_MARK = "RELEASE_DATE"
+
+
+def release_date(as_published: bool = False, city: str | None = None,
+                 ledger_root: Path | None = None) -> str:
+    """The date ``RELEASE_DATE_MARK`` is written as, ``YYYY-MM-DD``: the UTC
+    day of this build, which is the day a ``--publish`` stamps
+    (`publication.utc_now`); under ``--as-published``, the newest
+    publication's own day, since that build rebuilds the pages it served."""
+    if as_published:
+        _, newest = publication.before_latest_publication(
+            publication.history(city or cityconfig.active().slug, root=ledger_root))
+        if newest is not None:
+            return str(newest.published_at)[:10]
+    return publication.utc_now()[:10]
+
+
+def fill_release_date(text: str, release: str) -> str:
+    """``text`` with ``RELEASE_DATE_MARK`` written as ``release``: the ISO date
+    inside a ``data-asof`` value, "24 October 2026" everywhere else."""
+    day = date.fromisoformat(release)
+    text = text.replace(f'data-asof="{RELEASE_DATE_MARK}"', f'data-asof="{day.isoformat()}"')
+    return text.replace(RELEASE_DATE_MARK, f"{day.day} {day:%B %Y}")
+
+
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
                tech: str | None | bool = None, og: str | None = None,
-               token: str | None = None) -> str:
+               token: str | None = None, release: str | None = None) -> str:
     """`tech` names the technical record on GitHub that a reader edition is
     drawn from; None derives it from the file name, False says there is none
     (a page about the site, not the model). `og` is the page's own share-card
     description; None keeps the site-wide one. `token` is the Web Analytics
     token that picks the document's analytics blocks; None reads the
-    module's."""
+    module's. `release` is the date ``RELEASE_DATE_MARK`` is written as
+    (`release_date`); None takes `release_date()`."""
     raw = source.read_text(encoding="utf-8")
+    if RELEASE_DATE_MARK in raw:
+        raw = fill_release_date(raw, release or release_date())
     typed = typed_generated_markers(raw)
     if typed:
         raise SystemExit(f"{source} types the script-made region marker(s) "
@@ -1682,6 +1718,18 @@ def main(argv: list[str] | None = None) -> int:
         print("  refreshed docs-public/methodology.md 'The judgement calls' "
               "from JUDGEMENT-CALLS.md")
 
+    city = cityconfig.active().slug
+    # ROOT IS ANCHORED TO THE REPOSITORY, NOT THE WORKING DIRECTORY. `latest`
+    # defaults to a relative `publications/`, so a build run from anywhere but
+    # the repo root would read an EMPTY ledger, classify every token as `new`,
+    # and let `dated_context_violations` return [] — the refusal failing OPEN
+    # and silently, which is the exact failure the declared-dating design was
+    # chosen to avoid.
+    ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
+    # The corrected date of this release's corrections entries (item 9 of
+    # audits/2026-10-23-site-sweep/BRIEF-3-item35.md): one date per build.
+    release = release_date(args.as_published, city, ledger_root)
+
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None
@@ -1689,7 +1737,8 @@ def main(argv: list[str] | None = None) -> int:
         if not og:
             raise SystemExit(f"DOCS gives {source} neither a share-card description nor a "
                              "standfirst: it would carry the home page's card and address")
-        page = render_doc(Path(source), kicker, standfirst, output, tech, og)
+        page = render_doc(Path(source), kicker, standfirst, output, tech, og,
+                          release=release)
         seen: list[dict] = []
         page, drift, unresolved = statlib.render(page, registry, ctx,
                                                  record=seen)
@@ -1936,14 +1985,7 @@ def main(argv: list[str] | None = None) -> int:
     # The prose DECLARES its own dating by enclosing the sentence in an element
     # carrying `data-asof`; see `stats.DATED_REGION` for why it is declared per
     # occurrence rather than sniffed for a nearby date.
-    city = cityconfig.active().slug
-    # ROOT IS ANCHORED TO THE REPOSITORY, NOT THE WORKING DIRECTORY. `latest`
-    # defaults to a relative `publications/`, so a build run from anywhere but
-    # the repo root would read an EMPTY ledger, classify every token as `new`,
-    # and let `dated_context_violations` return [] — the refusal failing OPEN
-    # and silently, which is the exact failure the declared-dating design was
-    # chosen to avoid.
-    ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
+    # (`city` and `ledger_root` are set before the documents are rendered.)
     rows_read = publication.history(city, root=ledger_root)
     # The refusals below (a retired figure in present tense, a published
     # figure gone unretired) read the WHOLE ledger in every mode. Only the
