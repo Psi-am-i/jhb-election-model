@@ -230,9 +230,14 @@ def overhang_word(p: float) -> str:
 
 
 def article_for(printed: str) -> str:
-    """"a" or "an" before a printed chance, as the figure is spoken: "an" for
-    8, 11 and 18, and 80 to 89 ("an 8%", "an 11.5%", "an 87%"); "a"
-    otherwise, including "under 0.1%" and "over 99%"."""
+    """"a" or "an" before a printed chance, by its first sound. A figure
+    takes "an" for 8, 11 and 18, and 80 to 89 ("an 8%", "an 11.5%", "an
+    87%"), "a" otherwise ("a 23%"); a word takes "an" when it starts with a
+    vowel sound, as the end bands' words do ("an under 0.1%", "an over
+    99%")."""
+    first = printed.strip()[:1]
+    if first.isalpha():
+        return "an" if first.lower() in "aeiou" else "a"
     head = printed.split("%")[0].split(".")[0]
     if not head.isdigit():
         return "a"

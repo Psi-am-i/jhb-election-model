@@ -668,11 +668,13 @@ def test_the_headline_word_is_the_claims_scale_and_stops_below_quite_likely():
 
 
 def test_a_or_an_follows_how_the_printed_chance_is_spoken():
-    """"an 8%", "an 11%", "an 18%", "an 80%" to "an 89%"; "a" otherwise,
-    including the edges either side and the end bands' words."""
-    an = ["8%", "8.5%", "11%", "11.4%", "18%", "18.9%", "80%", "87%", "89%", "89.9%"]
+    """"an 8%", "an 11%", "an 18%", "an 80%" to "an 89%", and "an" before the
+    end bands' words ("an under 0.1%", "an over 99%"); "a" otherwise,
+    including the edges either side."""
+    an = ["8%", "8.5%", "11%", "11.4%", "18%", "18.9%", "80%", "87%", "89%", "89.9%",
+          "under 0.1%", "over 99%"]
     a = ["1%", "7%", "9%", "10%", "12%", "17%", "19%", "79%", "90%", "100%",
-         "0.5%", "1.8%", "under 0.1%", "over 99%", "28%"]
+         "0.5%", "1.8%", "28%"]
     assert [RH.article_for(s) for s in an] == ["an"] * len(an), an
     assert [RH.article_for(s) for s in a] == ["a"] * len(a), a
 

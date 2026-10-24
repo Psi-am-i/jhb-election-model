@@ -8,12 +8,14 @@
 # placeholders, what each says and where it comes from, is
 # `render_home.LEDE_PLACEHOLDERS`; a placeholder not in it stops the build.
 #
-# `head` is the headline (<em> marks the emphasised opening). `sub`, `sub2`
+# `head` is the headline (<em> marks the emphasised opening, on a line of its own;
+# <br> starts the next sentence on its own line). `sub`, `sub2`
 # and `sub3` are the three paragraphs under it (owner, 2026-10-25).
 
 [[lede]]
-head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}. It is
-{{lede_overhang_word}} that the council will not match the vote proportionally."""
+head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}.<br>
+It is {{lede_overhang_word}} that the council will not match the vote
+proportionally."""
 sub = """{{lede_wards_open}} is ahead in {{lede_wards_first}} wards,
 {{lede_wards_in}}{{lede_close_first}} of them {{lede_wards_lead}}{{lede_not_safe}}.
 {{lede_second_cap}} is ahead in {{lede_wards_second}} wards{{lede_wards_only}}
