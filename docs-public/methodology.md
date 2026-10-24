@@ -115,9 +115,7 @@ Two things are drawn:
   by-elections lift it part of the way back. Of the parties on record at their
   second local election, COPE kept about {{record_cope_second_lge_kept}} of its
   first result and the EFF grew. The record does not say which ActionSA will
-  be. <span data-asof="2026-10-21">From 21 to 23 October ActionSA's level was set
-  by our judgement at {{pub1021_asa_support}}</span>; that judgement was
-  withdrawn on 23 October.
+  be.
 - **Turnout, per population group.** It is drawn from what turnout has done in that city
   before. Turnout fell in every group in
   2021, so the range allows falls as well as rises.
@@ -210,11 +208,11 @@ These are choices about how This Model works that the data did not make for us. 
 
 **No poll is used.** There is no designed rule yet for how several polls combine. With polls in, the forecast moves toward the polls the rules admit; what that was worth when measured is under *Where polls fit*, below. On [your prediction](your-forecast/) you can pick one poll at a time and choose how far to believe it.
 
-**The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. The cut and its size were chosen on tests of This Model against past elections: without the cut those tests gave the largest parties too much and the middle-sized parties too little, and with it the smallest parties slightly too much. Those tests' settings had been chosen on the same elections, so they do not show whether the cut makes a forecast more accurate. It cannot be changed on [your prediction](your-forecast/).
+**The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. It cannot be changed on [your prediction](your-forecast/).
 
-**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is fitted on how far This Model's expected shares missed in tests on the past elections before this one. Those tests' settings had been chosen on the same elections, so the misses, and the widths fitted on them, are likely too small. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your prediction](your-forecast/).
+**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is fitted on how far This Model's expected shares missed in tests on the past elections before this one. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your prediction](your-forecast/).
 
-**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Halfway is our choice, made because no weight had been measured, and kept after a test on the 2021 election in the eight metros. That test's settings had been chosen on the same election, so it does not show which weight forecasts best. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make by-elections count not at all or fully.
+**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Halfway is our choice, made because no weight had been measured, and kept after a test on the 2021 election in the eight metros. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make by-elections count not at all or fully.
 
 **New parties and by-elections.** A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on [your prediction](your-forecast/) does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.
 
@@ -270,12 +268,6 @@ was defensible one poll at a time and improvised across several. The channel is
 off until that is designed. Removing polls is not a judgement that they are
 worthless.
 
-### What they were worth, measured
-
-Their worth was measured against past elections, with settings chosen on
-those elections. The measurement is withdrawn with This Model's other past
-scores (*How accurate is it?*, above).
-
 ### What we intend
 
 We intend to use every poll received and to put the weighting in the
@@ -299,11 +291,9 @@ an input.
 
 ## Corrections and review
 
-After the first version of this forecast was built, a review found six
-implementation errors, one of which made its main claim false. All six were
-fixed, and the forecast changed materially. The errors and the repairs are on
-the [review page](review). Errors that reached readers since are on the
-[corrections page](corrections).
+This Model is constantly reviewed, errors found and fixed. We have given an
+example of this process on the [Review page](review). Errors that reached
+readers are on the [corrections page](corrections).
 
 ## Going deeper
 

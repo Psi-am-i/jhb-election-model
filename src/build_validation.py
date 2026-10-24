@@ -477,11 +477,10 @@ def _long_date(iso: str) -> str:
 #: :func:`main` writes :data:`NOTICE` and no score.
 WITHDRAWN = "2026-10-23"
 
-#: The section while the scores are withdrawn (STYLE.md: what is, once).
-NOTICE = ("This Model's past scores were withdrawn on {day}. Several of its "
-          "settings had been chosen on the elections they were scored against. "
-          "Re-scored figures, from earlier elections only, will be published "
-          "here.\n")
+#: The section while the scores are withdrawn, in the owner's words
+#: (2026-10-25, OWNER-DECISIONS-ANSWERED.md item 39). It names no date, so
+#: `notice` formats nothing into it.
+NOTICE = "We have withdrawn our scores for previous elections while they are re-run.\n"
 
 #: The first line of every file this module writes: `build_site.validation_html`
 #: refuses a source without it.

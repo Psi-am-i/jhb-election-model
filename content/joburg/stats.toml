@@ -1140,7 +1140,7 @@ value = 0.176
 format = "pct1"
 source = "external:JUDGEMENT-CALLS.md §SJ2, the owner's call of 2026-10-21 (judgements/joburg-2026.toml [party.ASA] support = 0.176), withdrawn 2026-10-23"
 captured = "2026-10-21"
-used_in = "forecast — Limits; methodology — how each party's support moves"
+used_in = "forecast — Limits (the methodology's sentence was deleted 2026-10-25, owner item 39)"
 unverifiable = "a judgement call that has been withdrawn; nothing in the model produces it"
 historical = "the owner's call, applied 21 October 2026 and withdrawn 23 October 2026; kept as history, and the prose must date it"
 
@@ -1155,17 +1155,6 @@ source = "external:rounds/2026-10-23-out-of-sample/retention/SPEC.md, the retent
 captured = "2026-10-23"
 used_in = "forecast — Limits; methodology — how each party's support moves"
 unverifiable = "a ratio of past IEC results read from the retention record on 2026-10-23; a measurement of the past, not a model output"
-
-# The date the ActionSA call was withdrawn, typed in /methodology's sentence
-# after the dated passage (that passage's own "21" and "23" are cleared by its
-# data-asof). Added 2026-10-24.
-[[audit.fixed]]
-value = "23"
-context = "that judgement was withdrawn on 23 October"
-kind = "history"
-source = "the date the owner withdrew the ActionSA call: JUDGEMENT-CALLS.md §SJ2 ('Withdrawn 2026-10-23'), MODEL-LOG §1.335, OWNER-DECISIONS-ANSWERED 33"
-reviewed = "2026-10-24"
-page = "methodology.html"
 
 # The ANC's middle list-ballot share over the published simulations, for the
 # methodology's seat-law section (it read "a citywide vote in the
