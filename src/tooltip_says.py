@@ -155,10 +155,6 @@ SAYS: tuple[Say, ...] = (
         "chance", M,
         "The % of " + _SIMS + " where {cand} has more seats than {opp}, so it can govern as a minority if every other party abstains."),
     # --- the who-can-govern lede ---------------------------------------------
-    Say(r"govern\.da_best_without", "chance", M,
-        "The best chance, across " + _SIMS + ", of any coalition in the table that includes the DA and not the ANC, the EFF or MK Party."),
-    Say(r"govern\.da_with_small_without", "chance", M,
-        "The % of " + _SIMS + " where every party except the ANC, the EFF and MK Party together held a majority of the council."),
     Say(r"govern\.anc_routes", "", M,
         "The coalitions in the table that include the ANC and not the DA."),
     Say(r"govern\.anc_routes_strong", "", M,

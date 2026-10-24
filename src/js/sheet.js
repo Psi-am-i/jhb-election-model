@@ -7,6 +7,9 @@
   var gw = Array.prototype.slice.call(document.querySelectorAll(".govfilter .gw"));
   var gx = Array.prototype.slice.call(document.querySelectorAll(".govfilter .gx"));
   var more = document.getElementById("govMore");
+  // The line the "Single party majority" preset shows when no party wins a
+  // majority alone often enough to be listed (the build writes it, hidden).
+  var none = document.querySelector("#coalitions tr.govnone");
   var first = gw[0];
   if (first) {
     var opts = Array.prototype.slice.call(first.options).slice(1);
@@ -31,6 +34,7 @@
       r.hidden = !ok;
     });
     if (more) more.hidden = filtered;
+    if (none) none.hidden = !(size === 1 && shown === 0);
   }
   function set(sel, vals) { sel.forEach(function (s, i) { s.value = vals[i] || ""; }); }
   if (rows.length) apply([], [], false);
