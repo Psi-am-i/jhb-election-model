@@ -1088,10 +1088,10 @@
  },
  "artefact_key": {
   "git": {
-   "commit": "f187460f5c7d7786bcfc1824f0b202099438beb8",
-   "dirty": false
+   "commit": "aee861d4fb52b4425709d5616cf13f615cd46550",
+   "dirty": true
   },
-  "code_sha256": "375501de667cb7d3e9db2305060154d2376b96e2170d0236e60fa7789fde4395",
+  "code_sha256": "96d5069d515c33b8a41deadd546cc82f1fe4706bf63f0535fcdccee8d04938c4",
   "model_sha256": "62933f2cfa9293df019f74cc1a3cf7c3cfeacb6558e82d5af558983425f8e793",
   "model_modules": [
    "backtest.py",
@@ -1379,6 +1379,6 @@
   },
   "judgements_applied_sha": "4f53cda18c2baa0c",
   "overrides": [],
-  "time": "2026-10-24T11:28:58Z"
+  "time": "2026-10-23T22:01:09Z"
  }
 }

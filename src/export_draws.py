@@ -519,8 +519,9 @@ def run_time(manifest: dict) -> str:
     pages print (``stats`` source ``published:run_date``) and what the
     forecast's own card prints (``forecast.json`` ``forecast_date``). It is
     not the ledger's newest row (``published_run``), which a new forecast can
-    enter only after the build that prints its date. Refuses a manifest with
-    no time."""
+    enter only after the build that prints its date. It is when the draws were
+    made: a re-export that writes identical draws keeps the cell's time
+    (:func:`draws_time`). Refuses a manifest with no time."""
     t = (manifest.get("artefact_key") or {}).get("time")
     if not isinstance(t, str) or len(t) < 10:
         raise SystemExit("the draws manifest records no run time (artefact_key.time); "
@@ -551,6 +552,26 @@ def published_run(city_slug: str, inputs: dict, root: Path | None = None) -> dic
             "inputs_match_ledger": keys == inputs,
             "source": f"publications/{city_slug}/ledger.jsonl, newest "
                       f"published_at"}
+
+
+def draws_time(out: Path, blob: bytes, now: str | None = None) -> str:
+    """``artefact_key.time`` for draws ``blob`` about to be written to ``out``:
+    WHEN THE DRAWS WERE MADE, not when a manifest was relabelled. A re-export
+    whose ``base.bin`` is byte-identical to the one already in ``out`` keeps
+    that cell's recorded time (re-labelling the manifests against a new
+    publication does not make the draws new, and :func:`run_time` prints this
+    time as the forecast's date); draws that differ, or a cell with no
+    manifest time, take ``now`` (the current UTC instant when None)."""
+    stamp = now or _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    old_bin, old_man = out / "base.bin", out / "manifest.json"
+    if old_bin.is_file() and old_man.is_file() and old_bin.read_bytes() == blob:
+        try:
+            kept = (json.loads(old_man.read_text(encoding="utf-8")).get("artefact_key") or {}).get("time")
+        except (ValueError, OSError):
+            kept = None
+        if isinstance(kept, str) and len(kept) >= 10:
+            return kept
+    return stamp
 
 
 def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
@@ -607,7 +628,7 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
         "config": {law: runs[law]["config"] for law in laws},
         "judgements_applied_sha": judgements_declaration(runs),
         "overrides": list(overrides),
-        "time": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "time": draws_time(out, blob),
     }
     out.mkdir(parents=True, exist_ok=True)
     (out / "base.bin").write_bytes(blob)
