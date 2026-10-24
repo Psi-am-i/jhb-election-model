@@ -15,47 +15,38 @@ Last updated: 2026-10-25.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
-### 38. Your new home-page top and methodology section: five wording points
+### 39. What leaves the methodology page
 
-**Context.** On 2026-10-25 you sent new text for the top of the home page (the
-headline and the paragraph under it) and for the methodology section
-"Corrections and review". It goes into the release now on UAT, before it goes
-live. Five points in it need your call before a writer applies it.
+**Context.** Owner, 2026-10-25: the methodology "is now a corrections page. It
+is mean to say what the methadology is. We can put in a note to say that we
+have current withrawn our scores for previous electsions while they are rerun".
+The passages on the page now that describe errors, withdrawals or history,
+and what each would become:
 
-Figures today, from the frozen 23 October forecast: the clause applies to the
-ANC in 87% of simulations and to some party in 91%; where it applies to the
-ANC, its median is 27% of the seats on 23% of the party-list vote.
+1. **How accurate is it?** The scores notice ("This Model's past scores were
+   withdrawn on 23 October. Several of its settings had been chosen on the
+   elections they were scored against. Re-scored figures, from earlier
+   elections only, will be published here.") becomes "We have withdrawn our
+   scores for previous elections while they are re-run." The paragraph on the
+   seat law reproducing published councils stays.
+2. **The judgement calls.** Delete the three sentences "Those tests' settings
+   had been chosen on the same elections, so …" (the cut, the widths, the
+   by-election weight), and in the cut's paragraph the sentence on what those
+   tests showed ("without the cut those tests gave the largest parties too
+   much …"), which reports an in-sample result.
+3. **ActionSA.** Delete "From 21 to 23 October ActionSA's level was set by our
+   judgement at 17.6%; that judgement was withdrawn on 23 October."
+4. **Where polls fit.** Delete the subsection "What they were worth, measured"
+   (it says only that the measurement is withdrawn).
+5. **What this does not cover.** "The ranges are likely too narrow. They are
+   fitted on This Model's errors in past tests whose settings had seen those
+   elections." Keep, or delete.
+6. **Corrections and review.** Your text, with "This Model" (item 38).
 
-**Decisions.**
-1. **"We give an 87% chance" and "We predict they will hold".** Your rule on
-   forecast and prediction (STYLE rule 11) keeps "predict" for a reader's one
-   complete scenario, and the site's own sentences say "This Model". (a) "This
-   Model gives an 87% chance of this happening with the ANC this year. It
-   forecasts that they will hold about 27% of the seats with only 23% of the
-   party-list vote."; or (b) your words as written.
-2. **"23% of the vote".** The 23% is the party-list vote; the ANC's ward vote
-   differs. (a) "of the party-list vote", as in 1(a); or (b) "of the vote".
-3. **What leaves the top of the page.** Your text drops the ward counts (DA
-   ahead in 48 wards, 7 not safe; ANC in 77, 29 not safe) and "Chance of one
-   party winning outright: under 0.1%". The ward counts stay on the forecast
-   map below. (a) both go, as your text has it; or (b) keep one or both.
-4. **The third headline line, "It is likely that the council will not match
-   the vote proportionally."** The site picks the other two headline phrases
-   from the figures, so they change if the figures do. Recommendation: "likely"
-   is printed while the chance that the clause applies to any party is 50% or
-   more (91% today), and the build stops below that until you give words for
-   it. "The ANC" in the paragraph is picked the same way (the party the clause
-   applies to most often), as now.
-5. **"The model is constantly reviewed".** The site says "This Model" for this
-   model. (a) "This Model is constantly reviewed, errors found and fixed."; or
-   (b) as written.
+**Recommendation.** 1 to 4 and 6 as stated; 5 keep: it is a limit of the
+forecast now, and the forecast page says the same.
 
-Spelling fixed without asking: "specific", "councillors", "Methodology".
-
-**Recommendation.** 1 (a); 2 (a); 3 (a); 4 as stated; 5 (a).
-
-**Blocks.** The writer's brief for these changes, then a new UAT version and
-the release going live.
+**Blocks.** Brief 5, then a new UAT version and the release going live.
 
 ### 21. Outreach: the drafts, the X posts and the X ads
 
