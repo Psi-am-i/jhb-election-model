@@ -33,9 +33,14 @@ Extended again 2026-10-24 for owner item 35
 
 * :data:`ITEM35_RETIRE` names the who-can-govern lede's two DA figures, which
   the lede no longer prints; each must be reported by the probe;
-* every ``coal.*`` token the probe lists is a combination the table no longer
-  prints, under the 10% cut (render_sheet ``MIN_GOVERNS``), retired with
-  :data:`COAL_CUT`. The set is the probe's, not typed here.
+* a ``coal.*`` token the probe lists is retired with :data:`COAL_CUT` only
+  when its combination governs in fewer than render_sheet ``MIN_GOVERNS`` of
+  the frozen forecast's simulations (`coalition_shares`, by
+  `render_sheet.coalition_cuts`); the set is the probe's, not typed here.
+  A revived ``coal.*`` token gets :data:`COAL_BACK` only for a combination of
+  two or more parties that passes both cuts. Any other is NOT handled.
+
+A token NOT handled stops ``--apply``.
 
 Anything else the probe lists is printed and left for a human.
 
@@ -64,6 +69,8 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "src"))
 
 import publication as P  # noqa: E402
+import cityconfig  # noqa: E402
+import render_sheet as RS  # noqa: E402
 
 CITY = "joburg"
 
@@ -112,11 +119,54 @@ COAL_CUT = ("This coalition governs in fewer than the share of simulations the "
             "so the table no longer prints it.")
 
 
-def classify_vanished(vanished: list[str], latest: dict
+def coal_members(token: str) -> list[str]:
+    """``coal.DA+ASA+PA.majority`` -> ``["DA", "ASA", "PA"]``."""
+    return token.split(".")[1].split("+")
+
+
+def load_seats(processed: Path | None = None):
+    """``(seats per party, majority line)`` per simulation, from the frozen
+    forecast's seat_draws.csv, read as render_sheet reads it."""
+    import csv
+    import numpy as np
+    if processed is None:
+        cityconfig.use(CITY)
+        processed = Path(cityconfig.use_target(None).processed)
+        processed = processed if processed.is_absolute() else REPO / processed
+    with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    parties = [k for k in rows[0] if k not in ("draw", "threshold", "council_size")]
+    seats = {p: np.array([int(r[p]) for r in rows]) for p in parties}
+    return seats, np.array([int(r["threshold"]) for r in rows])
+
+
+def coalition_shares(token: str, seats, thr) -> dict | None:
+    """`render_sheet.coalition_cuts` for a ``coal.*`` token's combination;
+    None when a member has no seat column."""
+    members = coal_members(token)
+    if any(p not in seats for p in members):
+        return None
+    tot = sum(seats[p] for p in members)
+    return RS.coalition_cuts(tot, [seats[p] for p in members], thr)
+
+
+def under_the_cut(token: str, seats, thr) -> bool:
+    got = coalition_shares(token, seats, thr)
+    return got is not None and got["governs"] < RS.MIN_GOVERNS
+
+
+def back_in_the_table(token: str, seats, thr) -> bool:
+    got = coalition_shares(token, seats, thr)
+    return (len(coal_members(token)) >= 2 and got is not None
+            and got["smallest"] >= RS.MIN_SMALLEST and got["governs"] >= RS.MIN_GOVERNS)
+
+
+def classify_vanished(vanished: list[str], latest: dict, seats=None, thr=None
                       ) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
     """``vanished`` split into (step 0's, :data:`SWEEP_RETIRE`'s,
     :data:`ITEM35_RETIRE`'s, the ``coal.*`` tokens under the 10% cut, the
-    rest), leaving out the tokens :data:`RETIRE` handles."""
+    rest), leaving out the tokens :data:`RETIRE` handles. ``seats``/``thr``
+    are `load_seats`'s; without them no ``coal.*`` token is under the cut."""
     step0, sweep, item35, cut, rest = [], [], [], [], []
     for t in vanished:
         if t in RETIRE:
@@ -126,7 +176,7 @@ def classify_vanished(vanished: list[str], latest: dict
             sweep.append(t)
         elif t in ITEM35_RETIRE:
             item35.append(t)
-        elif t.startswith("coal."):
+        elif t.startswith("coal.") and seats is not None and under_the_cut(t, seats, thr):
             cut.append(t)
         elif t in STEP0_NAMED or (row is not None and str(row.source).startswith(SCORE_PREFIXES)):
             step0.append(t)
@@ -227,11 +277,15 @@ def main(argv=None) -> int:
 
     latest = P.latest(CITY, root=root)
     found = probe(root)
-    revive = found["live_retired"]
-    wrong = [t for t in revive if not (latest.get(t) and latest[t].superseded_at)]
+    seats, thr = load_seats()
+    revive_all = found["live_retired"]
+    revive = [t for t in revive_all
+              if not t.startswith("coal.") or back_in_the_table(t, seats, thr)]
+    revive_unhandled = [t for t in revive_all if t not in revive]
+    wrong = [t for t in revive_all if not (latest.get(t) and latest[t].superseded_at)]
     if wrong:
         raise SystemExit(f"the probe flagged tokens whose latest row is not a retirement: {wrong}")
-    clash = sorted(set(revive) & set(RETIRE))
+    clash = sorted(set(revive_all) & set(RETIRE))
     if clash:
         raise SystemExit(f"tokens both printed live and due for retirement: {clash}")
     retire = []
@@ -246,7 +300,7 @@ def main(argv=None) -> int:
             raise SystemExit(f"{token}: the probe build did not report it as left "
                              f"the registry unretired; it may still be printed")
         retire.append(token)
-    step0, sweep, item35, cut, others = classify_vanished(found["vanished"], latest)
+    step0, sweep, item35, cut, others = classify_vanished(found["vanished"], latest, seats, thr)
     for named, got in ((SWEEP_RETIRE, sweep), (ITEM35_RETIRE, item35)):
         for t in named:
             row = latest.get(t)
@@ -289,9 +343,17 @@ def main(argv=None) -> int:
         for t in others:
             print(f"  ? {t}")
 
+    if revive_unhandled:
+        print(f"printed live, latest row a retirement, NOT handled here ({len(revive_unhandled)}):")
+        for t in revive_unhandled:
+            print(f"  ? {t}")
+
     if not args.apply:
         print("dry run: nothing written. Pass --apply to write these rows.")
         return 0
+    if others or revive_unhandled:
+        raise SystemExit(f"--apply refused: {len(others) + len(revive_unhandled)} token(s) "
+                         "NOT handled here (listed above); nothing written")
 
     when = P._utc()
     for t in revive:
