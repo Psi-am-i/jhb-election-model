@@ -82,6 +82,15 @@ the page.
 
 ## Open, in the order I would take them
 
+**Code review of site-sweep-1, 2026-10-24: follow-ups not needed for the freeze release.**
+- `src/fold.py` `fit_status`: a γ of 0.0 from Σw·x² = 0 is labelled fitted. Folds 1-4 and the pooled file hold none today (checked 2026-10-24); fold5 is legacy.
+- `src/declares.py` pooled-file check runs one direction only (pooled→fold); add fold→pooled.
+- `src/montecarlo.py` `resolve_gamma` labels γ_recent as bare "recent"; restore the cycle in the label.
+- `revive_retire.py` `_vanished` parses build_site's printed English; capture the list in process instead.
+- `src/fold.py` `write_pooled` ignores an explicit `--fold`; `refuse_data_out` runs twice.
+- `src/montecarlo.py` run banner calls `gamma_folds_for` twice; compute once.
+- Release step: after publish, replace `RELEASE_DATE` in `docs-public/corrections.md` with the publication's date.
+
 **Owner item 35 (2026-10-24): the release wording.** Brief `audits/2026-10-23-site-sweep/BRIEF-3-item35.md`: a new corrections entry for the overclaim, two corrections entries reworded, the methodology offset sentences removed, the home stamp, the 10% coalition cut and single-party line, the lede with both parties' counts. Writer, then my diff review, then the release steps.
 
 **The out-of-sample round (`rounds/2026-10-23-out-of-sample/PLAN.md`).** Owner
