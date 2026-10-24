@@ -241,5 +241,21 @@ def test_a_planted_unbannered_report_is_caught_and_its_revert_clears():
         assert unbannered(scored_reports(base)) == []
 
 
+def test_the_template_prints_the_banner_only_for_a_report_with_scores():
+    """build_report keeps the template's banner when its backtest holds scores
+    and cuts it when the backtest is null (brief 3 item 10). Both directions,
+    on the real template."""
+    sys.path.insert(0, str(REPORTS))
+    import build_report
+    page = (REPORTS / "template.html").read_text(encoding="utf-8")
+    scored = build_report.in_sample_banner(page, [{"panel": 1}])
+    empty = build_report.in_sample_banner(page, None)
+    assert BANNER in scored and BANNER not in empty
+    assert "__IN_SAMPLE_" not in scored and "__IN_SAMPLE_" not in empty
+    # the rest of the page is the same either way: only the banner's line differs
+    banner_line = next(ln for ln in scored.splitlines(keepends=True) if BANNER in ln)
+    assert scored.replace(banner_line, "", 1) == empty
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

@@ -106,6 +106,22 @@ def backtest(old, new):
             for r in new["records"]]
 
 
+IN_SAMPLE_START, IN_SAMPLE_END = "<!-- __IN_SAMPLE_START__ -->", "<!-- __IN_SAMPLE_END__ -->"
+
+
+def in_sample_banner(page, backtest):
+    """``page`` with the in-sample banner kept when ``backtest`` holds scores
+    and cut, markers and all, when it is ``None`` (no backtest panel, so no
+    score for the banner to describe). The banner's words stay in
+    ``template.html``; ``tests/test_quarantine.py`` checks every scored
+    report carries them."""
+    a, z = page.index(IN_SAMPLE_START), page.index(IN_SAMPLE_END) + len(IN_SAMPLE_END)
+    if backtest is None:
+        return page[:a].rstrip(" ") + page[z:].lstrip("\n")
+    return (page[:a].rstrip(" ") + page[a + len(IN_SAMPLE_START):z - len(IN_SAMPLE_END)].strip("\n").rstrip()
+            + "\n" + page[z:].lstrip("\n"))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--old-arm", required=True)
@@ -124,7 +140,7 @@ def main():
          else backtest(read_history(a.old_history), read_history(a.new_history)))
     (a.round / "f2026.json").write_text(json.dumps(f))
     (a.round / "backtest.json").write_text(json.dumps(b))
-    page = (HERE / "template.html").read_text()
+    page = in_sample_banner((HERE / "template.html").read_text(), b)
     for k, v in {"__LEDE__": (a.round / "lede.html").read_text(),
                  "__WHY__": (a.round / "why.html").read_text(),
                  "__F2026__": json.dumps(f), "__BACKTEST__": json.dumps(b),
