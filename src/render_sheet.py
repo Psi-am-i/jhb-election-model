@@ -303,7 +303,8 @@ def coalition_key(members) -> str:
 # rows and still carries every DA-without-the-ANC option that is ever a
 # smallest majority that often. Presentation, set 2026-09-17; the owner can
 # move it.
-MIN_SMALLEST, MAX_SIZE = 0.05, 5
+MIN_SMALLEST = 0.05
+MAX_SIZE = 5
 # A combination is listed only if it governs (reaches a majority) in at least
 # this share of the simulations, as well as the smallest-majority and
 # no-passenger rules. Owner, 2026-10-24 (OWNER-DECISIONS-ANSWERED.md item 35):

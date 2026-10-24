@@ -83,6 +83,9 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            # scoring section is the notice; no backtest score without its
            # label; every scored model-change report says it is in-sample.
            "test_quarantine",
+           # Added 2026-10-24 with brief 3 item 9: a release's corrections
+           # entries take their corrected date from build_site.release_date.
+           "test_release_date",
            # Added 2026-10-22 with the tooltips brief: the one tooltip writer
            # and the plain-sentence table, both ways round.
            "test_tooltip_says",
