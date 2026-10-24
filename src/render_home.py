@@ -256,7 +256,8 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
     `seats.eligible_parties`, the one definition of the statute's tally: a
     party's ward and list votes over the same sum for every party the statute
     counts (no independent, and no party without a list; the forecast's draws
-    carry no independent column at all). Until 2026-10-25 the page compared
+    carry no independent column at all): `scenarios.combined_vote_shares`, the
+    one definition. Until 2026-10-25 the page compared
     seats with the party-list vote alone.
 
     Seats and the clause come from the run's `seat_detail_draws.csv` (its
@@ -269,7 +270,6 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
     """
     import csv as _csv
     import numpy as _np
-    import seats as _seats_law
 
     with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
         size = {int(r["draw"]): int(r["council_size"]) for r in _csv.DictReader(fh)}
@@ -281,9 +281,6 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
                 seats[d], applies[d] = int(r["seats"]), r["excessive"] == "1"
     blocks, cols = _scenarios.published_draw_blocks(ROOT)
     statute = blocks["seats/deduct"][:, cols["seats/deduct"].index(party)]
-    if cols["ward_vote"] != cols["list_vote"]:
-        raise SystemExit("site/draws: the ward_vote and list_vote blocks name different parties")
-    names = cols["ward_vote"]
     order = sorted(seats)
     if order != list(range(len(statute))) or any(seats[d] != int(statute[d]) for d in order):
         raise SystemExit(
@@ -294,13 +291,10 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
     if not hit:
         return 0.0, 0.0, 0
 
-    def combined_share(d):
-        tally = _seats_law.eligible_parties(
-            {c: int(v) for c, v in zip(names, blocks["ward_vote"][d])},
-            {c: int(v) for c, v in zip(names, blocks["list_vote"][d])})
-        return tally.get(party, 0) / sum(tally.values())
+    shares, names = _scenarios.combined_vote_shares(blocks, cols)
+    combined = shares[:, names.index(party)]
     return (float(_np.median([seats[d] / size[d] for d in hit])),
-            float(_np.median([combined_share(d) for d in hit])), len(hit))
+            float(_np.median([combined[d] for d in hit])), len(hit))
 
 
 def race_figures(processed: Path) -> tuple[float, float, float, int]:

@@ -568,25 +568,16 @@ def published_vote_share_median(party: str, ctx: dict):
     statute counts (`seats.eligible_parties`, Schedule 1 items 12-13 and 16:
     no independent, no party without a list), per simulation, from
     ``site/draws``' ``ward_vote`` and ``list_vote`` blocks; None when the
-    party has no column. Replaced the list-ballot median for the methodology's
+    party has no column (`scenarios.combined_vote_shares`, the one
+    definition). Replaced the list-ballot median for the methodology's
     ANC vote on 2026-10-25 (owner, BRIEF-5 item 12: the page compared seats
     with the party-list vote alone)."""
     if "_vote_shares" not in ctx:
         import build_make as _bm
-        import numpy as _np
-        import seats as _seats_law
+        import scenarios as _sc
         manifest, arrays, _raw = _bm._draws(ctx.get("draws_dir"))
-        cols = _bm._columns(manifest, "list_vote")
-        if _bm._columns(manifest, "ward_vote") != cols:
-            raise SystemExit("site/draws: the ward_vote and list_vote blocks name different parties")
-        out = _np.zeros((len(arrays["list_vote"]), len(cols)))
-        for d, (w, l) in enumerate(zip(arrays["ward_vote"], arrays["list_vote"])):
-            tally = _seats_law.eligible_parties({c: int(v) for c, v in zip(cols, w)},
-                                                {c: int(v) for c, v in zip(cols, l)})
-            total = sum(tally.values())
-            for i, c in enumerate(cols):
-                out[d, i] = tally.get(c, 0) / total
-        ctx["_vote_shares"] = (out, cols)
+        ctx["_vote_shares"] = _sc.combined_vote_shares(
+            arrays, {b: _bm._columns(manifest, b) for b in ("ward_vote", "list_vote")})
     shares, cols = ctx["_vote_shares"]
     if party not in cols:
         return None
