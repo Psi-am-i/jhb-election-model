@@ -15,6 +15,46 @@ Last updated: 2026-10-23.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
+### 35. Five wording questions before the freeze release
+
+**Context.** The release (frozen forecast, tone sweep, withdrawal of the
+in-sample scores) is built on `site-sweep-1`, not published. These five need
+your words or a judgement. My recommendation is in brackets.
+
+1. **A live corrections entry that is no longer true** (the "deliberate
+   choice" entry). Its "What is right" says "This Model uses only what was known
+   before each election it is tested on." Proposed: "Several of This Model's
+   settings had been chosen on records that include the elections it is tested
+   on; the test scores were withdrawn on 23 October 2026." [Yes]
+2. **A live corrections entry describing tooltips that are being removed**
+   ("forecasting that election from earlier ones"). Its "What is right" says the
+   home tooltips now explain the settings; the withdrawal removes those
+   tooltips. Proposed: "The ward counts are removed with This Model's other past
+   scores, withdrawn on 23 October 2026." [Yes]
+3. **The methodology repeats a claim already corrected.** It says the DA and
+   ActionSA "drawing from the same population group means that when one rises
+   in a simulation the other tends to fall… a mild offset". The correction of
+   23 October removed that claim from the forecast page because This Model
+   draws no such trade (the two rise and fall together). Remove the two
+   sentences from the methodology, and add "and the methodology" to that
+   correction's "What was wrong". [Yes]
+4. **"simulations" twice in the home stamp:** "This Model's simulations as of
+   23 October · 5,000 simulations". Proposed: "5,000 of This Model's
+   simulations as of 23 October". [Yes]
+5. **The "Single party majority" preset shows an empty table**, because the
+   coalition table lists combinations of two parties or more. Proposed: the
+   preset shows one row per party that ever wins a majority alone, with its
+   chance (today: MK, 2 of 5,000 simulations), and "No party wins a majority
+   alone in any simulation." when none does. [Yes]
+
+Two more need a word:
+- The who-can-govern lede keeps "The ANC without the DA has N workable
+  majorities", one party singled out. Remove it, as with the DA preset? [Yes]
+- The methodology says "Halfway is the owner's choice" (by-election weight).
+  Proposed: "Halfway is our choice." [Yes]
+
+**Blocks.** The publish build and UAT.
+
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
