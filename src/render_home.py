@@ -382,10 +382,9 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
     head = fill_lede(lede["head"], values, where + " head")
     sub = fill_lede(lede["sub"], values, where + " sub")
     # `date_long` is the registry's only date format; there is no "date".
-    stamp = (f"This Model's simulations as of "
-             f'{tok("home.generated", summary["_generated"], "date_long")} '
-             f'· {tok("home.n_draws", int(summary["_draws"]), "comma")} '
-             f'simulations')
+    stamp = (f'{tok("home.n_draws", int(summary["_draws"]), "comma")} '
+             f"of This Model's simulations as of "
+             f'{tok("home.generated", summary["_generated"], "date_long")}')
     return (f'  <h1 class="state">{head}</h1>\n'
             f'  <p class="sub">{sub}</p>\n'
             f'  <div class="stamp">{stamp}</div>')
