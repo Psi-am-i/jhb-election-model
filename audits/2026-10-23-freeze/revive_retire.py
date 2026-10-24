@@ -1,4 +1,4 @@
-"""Revive the retired tokens the frozen forecast prints again; retire two it does not.
+"""Revive the retired tokens the frozen forecast prints again; retire those the release no longer prints.
 
 The frozen forecast (MODEL-LOG §1.335-1.336) puts back in the live pages
 figures that `audits/2026-10-21-actionsa-call/retire.py` retired, and
@@ -14,6 +14,21 @@ retired; any other token it names is printed and left for a human.
     .venv/bin/python audits/2026-10-23-freeze/revive_retire.py                       # dry run, real ledger
     .venv/bin/python audits/2026-10-23-freeze/revive_retire.py --ledger-root DIR     # dry run, a copy
     .venv/bin/python audits/2026-10-23-freeze/revive_retire.py --ledger-root DIR --apply
+
+Extended 2026-10-24 for the release that also withdraws the in-sample
+backtest scores (`audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-scores.md`,
+re-applied on `site-sweep-1`; MODEL-LOG §1.337) and carries the tone sweep
+(`audits/2026-10-23-site-sweep/BRIEF-2-tone.md`). The same probe's "left the
+registry unretired" list is classified, not typed:
+
+* **step 0's retirements** are the listed tokens whose latest ledger row has a
+  backtest source (:data:`SCORE_PREFIXES`, the prefixes
+  `tests/test_quarantine.py` guards), plus :data:`STEP0_NAMED`, the three
+  step 0 retired by name whose source is not a backtest prefix;
+* :data:`SWEEP_RETIRE` names two more the owner listed (2026-10-24), each of
+  which the probe must also report as left unretired.
+
+Anything else the probe lists is printed and left for a human.
 
 Dry run by default; `--apply` writes, then probes again and fails unless both
 refusals are empty. Run it immediately before the `build_site.py --publish`
@@ -51,6 +66,44 @@ BYE = ("In the frozen forecast's draws the ANC's middle seat count at full "
        "sampling noise (reweight.beyond_noise), so the line under the by-election "
        "control does not list it.")
 RETIRE = {"tile.p_excessive.mk": TILE, "play.bye.w_bye_1.ANC": BYE}
+
+#: Sources that state a backtest result (tests/test_quarantine.SCORE_PREFIXES).
+SCORE_PREFIXES = ("validation:", "history:", "compare_history:")
+#: Step 0 retired these by name (dfdb334): the fold-2 blind test's pair and
+#: the panel's target size, whose sources are not backtest prefixes.
+STEP0_NAMED = ("blind_test_called", "blind_test_of", "backtest_target")
+#: Step 0's own reason and class, as dfdb334 wrote them.
+STEP0_REASON = ("Withdrawn: an in-sample backtest score, scored with settings "
+                "chosen on the election scored or a later one (owner, 2026-10-23, "
+                "OWNER-DECISIONS-ANSWERED.md item 29; "
+                "audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-scores.md).")
+STEP0_CLASS = "bugfix"
+SWEEP_RETIRE = {
+    "ballots.typical.draw": (
+        "The forecast page no longer names which simulation its typical ballot "
+        "is (tone sweep, audits/2026-10-23-site-sweep/BRIEF-2-tone.md, work A)."),
+    "judgement_asa_support": (
+        "The ActionSA support judgement was withdrawn on 23 October 2026 "
+        "(MODEL-LOG §1.335); the methodology states it as history under its "
+        "own token."),
+}
+
+
+def classify_vanished(vanished: list[str], latest: dict) -> tuple[list[str], list[str], list[str]]:
+    """``vanished`` split into (step 0's, :data:`SWEEP_RETIRE`'s, the rest),
+    leaving out the tokens :data:`RETIRE` handles."""
+    step0, sweep, rest = [], [], []
+    for t in vanished:
+        if t in RETIRE:
+            continue
+        row = latest.get(t)
+        if t in SWEEP_RETIRE:
+            sweep.append(t)
+        elif t in STEP0_NAMED or (row is not None and str(row.source).startswith(SCORE_PREFIXES)):
+            step0.append(t)
+        else:
+            rest.append(t)
+    return sorted(step0), sorted(sweep), sorted(rest)
 
 COAL_BACK = ("In the frozen forecast this coalition is again a smallest majority "
              "in at least the share of simulations the who-can-govern table "
@@ -163,7 +216,21 @@ def main(argv=None) -> int:
             raise SystemExit(f"{token}: the probe build did not report it as left "
                              f"the registry unretired; it may still be printed")
         retire.append(token)
-    others = [t for t in found["vanished"] if t not in RETIRE]
+    step0, sweep, others = classify_vanished(found["vanished"], latest)
+    for t in SWEEP_RETIRE:
+        row = latest.get(t)
+        if row is None:
+            raise SystemExit(f"{t}: not in the ledger at {root}")
+        if row.superseded_at:
+            print(f"  - {t}: already retired {row.superseded_at}")
+        elif t not in sweep:
+            raise SystemExit(f"{t}: the probe build did not report it as left "
+                             f"the registry unretired; it may still be printed")
+    missing0 = [t for t in STEP0_NAMED
+                if latest.get(t) and not latest[t].superseded_at and t not in step0]
+    if missing0:
+        raise SystemExit(f"step 0 names {missing0}, which the probe did not report as "
+                         f"left the registry unretired; they may still be printed")
 
     print(f"ledger: {root}/{CITY}/ledger.jsonl")
     print(f"revive ({len(revive)}): printed live by this build, latest row a retirement")
@@ -172,6 +239,14 @@ def main(argv=None) -> int:
     print(f"retire ({len(retire)}):")
     for t in retire:
         print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display})")
+    print(f"retire, step 0 ({len(step0)}): withdrawn in-sample scores")
+    for t in step0:
+        print(f"  - {t}  (source {latest[t].source}; last published "
+              f"{latest[t].published_at}, {latest[t].display})")
+    print(f"retire, owner's list ({len(sweep)}):")
+    for t in sweep:
+        print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display}): "
+              f"{SWEEP_RETIRE[t]}")
     if others:
         print(f"also left the registry unretired, NOT handled here ({len(others)}):")
         for t in others:
@@ -188,11 +263,19 @@ def main(argv=None) -> int:
     for t in retire:
         P.retire(CITY, t, reason=RETIRE[t], change_class="mechanism",
                  when=when, root=root)
-    print(f"wrote {len(revive)} revival(s) and {len(retire)} retirement(s) at {when}")
+    for t in step0:
+        P.retire(CITY, t, reason=STEP0_REASON, change_class=STEP0_CLASS,
+                 when=when, root=root)
+    for t in sweep:
+        P.retire(CITY, t, reason=SWEEP_RETIRE[t], change_class="mechanism",
+                 when=when, root=root)
+    n_retired = len(retire) + len(step0) + len(sweep)
+    print(f"wrote {len(revive)} revival(s) and {n_retired} retirement(s) at {when}")
     after = probe(root)
     print(f"after: {len(after['live_retired'])} retired token(s) printed live, "
           f"{len(after['vanished'])} left the registry unretired")
-    if after["live_retired"] or set(after["vanished"]) & set(RETIRE):
+    handled = set(RETIRE) | set(step0) | set(sweep)
+    if after["live_retired"] or set(after["vanished"]) & handled:
         raise SystemExit("the rows did not clear the refusals they were written for:\n"
                          + after["stdout_tail"])
     return 0
