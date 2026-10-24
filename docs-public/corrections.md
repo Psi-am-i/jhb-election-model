@@ -2,6 +2,12 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## <span data-asof="2026-10-23">"The whole model beats simple baselines"</span> — published 6 October 2026, corrected 23 October 2026
+
+<span data-asof="2026-10-23">**What was wrong.** The methodology's scoring section, and the pages quoting it, presented This Model's scores against past elections as a test of forecasting each election from earlier ones. Several of its settings had been chosen on records that include the elections scored.
+
+**What is right.** The scores are withdrawn. Re-scored figures, from earlier elections only, will be published on the methodology page.</span>
+
 ## <span data-asof="2026-10-23">"forecasting that election from earlier ones"</span> — published 22 October 2026, corrected 23 October 2026
 
 <span data-asof="2026-10-23">**What was wrong.** The tooltips on the home page's ward counts said This Model called each past election's ward winners "forecasting that election from earlier ones". Several of its settings were chosen on records that include those elections.

@@ -194,41 +194,12 @@ to explain a voter's reasoning is overreach, and we would like to hear about it.
 
 ## How accurate is it?
 
-There are three checks, in increasing order of difficulty.
-
 **The seat law is exact.** The implementation reproduces the published councils
 to the seat (quota, vote totals, every party) for eight municipalities across
 three elections, from the raw voting-district files. One exception is
 documented: the Commission publishes every independent candidate under a single
 name, so where several stand in one ward they cannot be told apart, and we take
 the Commission's own count of independent ward councillors.
-
-**The geography transfers.** <span data-asof="2026-08-04">Given only citywide
-totals for 2021, This Model placed the votes well enough to call
-{{blind_test_called}} of {{blind_test_of}} ward winners. That test was run on 4
-August 2026 and has not been re-run on the current model.</span>
-
-**The whole model beats simple baselines.** It is run on the 2021 election in
-{{backtest_cities}} metros and wins in **{{backtest_wins}}** of them on the measure that
-scores a forecast's whole range (CRPS), with **{{backtest_crps_better}}** less error in
-total. Each metro against its best baseline by that measure, and the seats each
-gives to the wrong party (lower is better in every column):
-
-| metro | model's error (CRPS) | best baseline's error (CRPS) | best baseline | seats given to the wrong party: model | seats given to the wrong party: best baseline |
-|---|---|---|---|---|---|
-| Johannesburg | {{val_joburg_crps}} | {{val_joburg_best_crps}} | {{val_joburg_best}} | {{val_joburg_wrong}} | {{val_joburg_best_wrong}} |
-| Tshwane | {{val_tshwane_crps}} | {{val_tshwane_best_crps}} | {{val_tshwane_best}} | {{val_tshwane_wrong}} | {{val_tshwane_best_wrong}} |
-| Ekurhuleni | {{val_ekurhuleni_crps}} | {{val_ekurhuleni_best_crps}} | {{val_ekurhuleni_best}} | {{val_ekurhuleni_wrong}} | {{val_ekurhuleni_best_wrong}} |
-| eThekwini | {{val_ethekwini_crps}} | {{val_ethekwini_best_crps}} | {{val_ethekwini_best}} | {{val_ethekwini_wrong}} | {{val_ethekwini_best_wrong}} |
-| Cape Town | {{val_capetown_crps}} | {{val_capetown_best_crps}} | {{val_capetown_best}} | {{val_capetown_wrong}} | {{val_capetown_best_wrong}} |
-| Mangaung | {{val_mangaung_crps}} | {{val_mangaung_best_crps}} | {{val_mangaung_best}} | {{val_mangaung_wrong}} | {{val_mangaung_best_wrong}} |
-| Nelson Mandela Bay | {{val_nelsonmandelabay_crps}} | {{val_nelsonmandelabay_best_crps}} | {{val_nelsonmandelabay_best}} | {{val_nelsonmandelabay_wrong}} | {{val_nelsonmandelabay_best_wrong}} |
-| Buffalo City | {{val_buffalocity_crps}} | {{val_buffalocity_best_crps}} | {{val_buffalocity_best}} | {{val_buffalocity_wrong}} | {{val_buffalocity_best_wrong}} |
-| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{backtest_seat_err_model}} | {{backtest_seat_err_baseline}} |
-
-The seat columns judge each party's middle forecast, not its range, so their
-margins are smaller. It calls the winner in **{{backtest_wards_called}} of {{backtest_wards}}**
-wards.
 
 <!-- __VALIDATION__ -->
 
@@ -242,11 +213,11 @@ These are choices about how This Model works that the data did not make for us. 
 
 **No poll is used.** There is no designed rule yet for how several polls combine. With polls in, the forecast moves toward the polls the rules admit; what that was worth when measured is under *Where polls fit*, below. On [your prediction](your-forecast/) you can pick one poll at a time and choose how far to believe it.
 
-**The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement This Model has had. The smallest parties are now forecast slightly too high. It cannot be changed on [your prediction](your-forecast/).
+**The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. The cut and its size were chosen on tests of This Model against past elections: without the cut those tests gave the largest parties too much and the middle-sized parties too little, and with it the smallest parties slightly too much. Those tests' settings had been chosen on the same elections, so they do not show whether the cut makes a forecast more accurate. It cannot be changed on [your prediction](your-forecast/).
 
-**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far This Model's expected shares missed in the past elections before this one. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your prediction](your-forecast/).
+**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is fitted on how far This Model's expected shares missed in tests on the past elections before this one. Those tests' settings had been chosen on the same elections, so the misses, and the widths fitted on them, are likely too small. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your prediction](your-forecast/).
 
-**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Tested on the 2021 election in the eight metros, equal weight gave the smallest error in the party-list vote, with weights a little either side close behind; that is one election's test. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make by-elections count not at all or fully.
+**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Halfway is the owner's choice, made because no weight had been measured, and kept after a test on the 2021 election in the eight metros. That test's settings had been chosen on the same election, so it does not show which weight forecasts best. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make by-elections count not at all or fully.
 
 **New parties and by-elections.** A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on [your prediction](your-forecast/) does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.
 
@@ -271,8 +242,8 @@ These are choices about how This Model works that the data did not make for us. 
   handling of Laingsburg 2021 settle the arithmetic, and the forecast applies
   it.
 - **No poll is used in the forecast.** Polls were an input until 12 September
-  2026 and are not one now. Why they were taken out, what they were worth, and
-  what is planned are under *Where polls fit*, below.
+  2026 and are not one now. Why they were taken out and what is planned are
+  under *Where polls fit*, below.
 - **Small parties' range is wider than the record.** In the simulations, a
   party that is established but small sometimes reaches a share no such party
   has reached in the record. In the eight metros' consecutive local elections
@@ -280,6 +251,8 @@ These are choices about how This Model works that the data did not make for us. 
   one election, and none reached {{small_party_surge_share}} at the next.
   In this forecast, {{small_party_surge}} of the simulations give at least one such
   party more than {{small_party_surge_share}}. A fix is in progress.
+- **The ranges are likely too narrow.** They are fitted on This Model's errors
+  in past tests whose settings had seen those elections.
 - **Arithmetic is not politics.** This Model says which governments are
   numerically possible, not which will form.
 
@@ -302,16 +275,9 @@ worthless.
 
 ### What they were worth, measured
 
-The aim is to score {{backtest_target}} past city elections across the country,
-eight metros with three elections each; how many are in the panel on a given
-day depends on which have been prepared. Against the panel as it stood,
-removing polls changed the total seat error from
-{{polls_off_seat_err_before}} to {{polls_off_seat_err_after}} and the
-distributional score (CRPS) from {{polls_off_crps_before}} to
-{{polls_off_crps_after}}. Both moved the right way and neither by much: seven
-elections moved at all, one of them by six seats *against* the change. **The
-polls' contribution cannot be distinguished from zero.** That is a
-reason not to let it move a published headline while its design is unsettled.
+Their worth was measured against past elections, with settings chosen on
+those elections. The measurement is withdrawn with This Model's other past
+scores (*How accurate is it?*, above).
 
 ### What we intend
 

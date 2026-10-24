@@ -1,5 +1,7 @@
 # Johannesburg Election Model
 
+> ⛔ **Every backtest figure dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy** (§1.337).
+
 A voting-district model of the City of Johannesburg — 5,000 simulations over 865 voting districts, both ballots, the statutory seat formula, and the coalition arithmetic it permits. The forecast, the machinery, and the full warts-and-all record of how it was built, reviewed, broken and corrected.
 
 # Log — findings, obstacles, decisions, mitigations
@@ -31384,3 +31386,16 @@ Committed in 024f873.
 The site draw manifests and the freeze pass. Not yet on the site: the text
 brief (`audits/2026-10-23-freeze/BRIEF-site-text.md`) waits on the owner, and
 no UAT build has been made.
+
+## 1.337 The in-sample backtest scores are withdrawn: every backtest figure dated before 2026-10-23 is in-sample (2026-10-24)
+
+Owner, 2026-10-23 (`OWNER-DECISIONS-ANSWERED.md` item 29): delete any contaminated scores or results. Every backtest score on disk was produced with settings chosen on the election scored or a later one (`rounds/2026-10-23-out-of-sample/POLLSTER-ON-RECORD.md`). **Every backtest figure in this log, in `JUDGEMENT-CALLS.md` and in any other committed document dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy.** Earlier entries are not edited; this entry and the one-line pointer at the top of this file say so once. Brief: `audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-scores.md`; plan: `rounds/2026-10-23-out-of-sample/PLAN.md` step 0.
+
+The work was done on 2026-10-23 (dfdb334, 0b6bf6a, 8eb94c9), held off that day's release (b6469c3, kept on branch `step0-withdraw`) and re-applied on `site-sweep-1` on 2026-10-24, owner: "1 yes", to publish with this release.
+
+- **The published scores.** 62 tokens removed from `content/joburg/stats.toml` and every page: the 55 with a `validation:` or `history:` source, the four `compare_history:` poll-removal scores, the fold-2 blind test's pair (`blind_test_called`, `blind_test_of`) and `backtest_target`. Their ledger retirements are written at publish, by `audits/2026-10-23-freeze/revive_retire.py`, which computes them from a probe build. The methodology's scoring section is a withdrawal notice; `src/build_validation.py` writes only that notice while `WITHDRAWN` is set. A corrections entry records the error.
+- **The files.** On 2026-10-23 copies were made outside the repository; the owner had them deleted the same day ("if the files in quarrantine are copies - they can be deleted for now"). The originals stay in the project: `history.json`/`.md`, `validation_2021.json`, the past targets' draws and tables, and the seven scored `reports/model-changes/*/backtest.json`, each of whose `report.html` carries an in-sample banner.
+- **The guard.** `tests/test_quarantine.py`: the scoring section is the notice `build_validation` writes; no token with a backtest source is held or printed without `label = "in-sample"` or `"forward-chained"`; every model-change report whose `backtest.json` holds scores carries the banner. It does not forbid `compare_history` writing a new `history.json`.
+- **The ranges.** The forecast page and the methodology say the ranges are fitted on errors from past tests whose settings had seen those elections, so they are likely too narrow (`width_record.json`, PLAN step 0.7).
+
+Committed text that quotes in-sample figures, not edited: 117 tracked `.md` files outside `site/` on 2026-10-24, by `git grep -lE '[0-9][^|]{0,40}(coherent|city-years|beats uniform swing|CRPS|seat error)|(coherent|city-years|beats uniform swing|CRPS|seat error)[^|]{0,40}[0-9]' -- '*.md' ':!site' | wc -l`. An upper bound: the pattern also matches a digit beside the term that is not a score.

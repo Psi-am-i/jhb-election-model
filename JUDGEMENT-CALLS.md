@@ -1,5 +1,7 @@
 # Judgement calls — what in these results is not from the record
 
+> ⛔ **Every backtest figure dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy.** Several of the model's settings were chosen on records that include the elections scored (`rounds/2026-10-23-out-of-sample/POLLSTER-ON-RECORD.md`). The scores are withdrawn from the site by the change recorded in MODEL-LOG §1.337.
+
 Every number in this model is meant to be measured or declared. This is the list
 of the **declared** ones: choices a person made that the data did not force. It
 exists so that "the model measures its constants" can be audited rather than
@@ -561,10 +563,12 @@ machinery cannot rot while it is switched off.
 **Plain — The largest parties are pulled down.** Before the simulations are
 drawn, each party's expected share is cut by an amount that grows with its size,
 and the vote freed is returned to all parties in proportion to their share.
-Without the cut, forecasts of past elections gave the largest parties too much
-and the middle-sized parties too little; adding it was the largest single
-improvement This Model has had. The smallest parties are now forecast slightly
-too high. It cannot be changed on [your prediction](your-forecast/).
+The cut and its size were chosen on tests of This Model against past
+elections: without the cut those tests gave the largest parties too much and
+the middle-sized parties too little, and with it the smallest parties slightly
+too much. Those tests' settings had been chosen on the same elections, so they
+do not show whether the cut makes a forecast more accurate. It cannot be
+changed on [your prediction](your-forecast/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
 
@@ -1058,8 +1062,10 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 **Plain — How far each party's support can move.** Each party's simulated
 support is drawn from a bell curve on a log scale, so its share is multiplied
 up or down. The curve is wider for a smaller party and for a party new to the
-city. Its width is measured from how far This Model's expected shares missed in
-the past elections before this one. Parties below a fifth of the vote share part
+city. Its width is fitted on how far This Model's expected shares missed in
+tests on the past elections before this one. Those tests' settings had been
+chosen on the same elections, so the misses, and the widths fitted on them,
+are likely too small. Parties below a fifth of the vote share part
 of each simulation's move; a party with a fifth or more moves on its own. It
 cannot be changed on [your prediction](your-forecast/).
 
@@ -1133,9 +1139,10 @@ picked it, did not.
 
 **Plain — How much recent by-elections count.** Each party's expected share is
 set halfway between what This Model expects from earlier elections and what the
-by-elections since 2021 imply for it. Tested on the 2021 election in the eight
-metros, equal weight gave the smallest error in the party-list vote, with
-weights a little either side close behind; that is one election's test. A party
+by-elections since 2021 imply for it. Halfway is the owner's choice, made
+because no weight had been measured, and kept after a test on the 2021
+election in the eight metros. That test's settings had been chosen on the same
+election, so it does not show which weight forecasts best. A party
 that had a vote in the 2024 national election cannot be moved by its
 by-elections further than This Model's usual range for it allows,
 so a party whose by-elections imply a very large swing moves less than halfway.
