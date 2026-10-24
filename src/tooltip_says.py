@@ -163,7 +163,7 @@ SAYS: tuple[Say, ...] = (
         "The coalitions in the table that include the DA and not the ANC."),
     Say(r"govern\.da_routes_strong", "", M,
         "The coalitions in the table that include the DA and not the ANC and hold a majority in more than half of " + _SIMS + "."),
-    Say(r"govern\.min_governs", "chance", M,
+    Say(r"govern\.min_governs", "", M,
         "The share of " + _SIMS + " below which a combination is left out of the table."),
     # --- the claims ----------------------------------------------------------
     Say(r"claim\.anc_alone\.count", "", M,
