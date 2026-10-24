@@ -28,6 +28,15 @@ registry unretired" list is classified, not typed:
 * :data:`SWEEP_RETIRE` names two more the owner listed (2026-10-24), each of
   which the probe must also report as left unretired.
 
+Extended again 2026-10-24 for owner item 35
+(`audits/2026-10-23-site-sweep/BRIEF-3-item35.md`, items 7-8):
+
+* :data:`ITEM35_RETIRE` names the who-can-govern lede's two DA figures, which
+  the lede no longer prints; each must be reported by the probe;
+* every ``coal.*`` token the probe lists is a combination the table no longer
+  prints, under the 10% cut (render_sheet ``MIN_GOVERNS``), retired with
+  :data:`COAL_CUT`. The set is the probe's, not typed here.
+
 Anything else the probe lists is printed and left for a human.
 
 Dry run by default; `--apply` writes, then probes again and fails unless both
@@ -89,26 +98,47 @@ SWEEP_RETIRE = {
 }
 
 
-def classify_vanished(vanished: list[str], latest: dict) -> tuple[list[str], list[str], list[str]]:
-    """``vanished`` split into (step 0's, :data:`SWEEP_RETIRE`'s, the rest),
-    leaving out the tokens :data:`RETIRE` handles."""
-    step0, sweep, rest = [], [], []
+#: Owner item 35 (2026-10-24): the lede's two DA figures, no longer printed.
+ITEM35_REASON = ("The who-can-govern lede no longer states the DA's routes without "
+                 "the ANC, the EFF and MK; it gives the ANC's and the DA's workable "
+                 "majorities without each other (owner, 2026-10-24, "
+                 "OWNER-DECISIONS-ANSWERED.md item 35).")
+ITEM35_RETIRE = {"govern.da_best_without": ITEM35_REASON,
+                 "govern.da_with_small_without": ITEM35_REASON}
+#: Owner item 35: a combination under the 10% cut is no longer printed.
+COAL_CUT = ("This coalition governs in fewer than the share of simulations the "
+            "who-can-govern table lists a combination at (render_sheet "
+            "MIN_GOVERNS; owner, 2026-10-24, OWNER-DECISIONS-ANSWERED.md item 35), "
+            "so the table no longer prints it.")
+
+
+def classify_vanished(vanished: list[str], latest: dict
+                      ) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
+    """``vanished`` split into (step 0's, :data:`SWEEP_RETIRE`'s,
+    :data:`ITEM35_RETIRE`'s, the ``coal.*`` tokens under the 10% cut, the
+    rest), leaving out the tokens :data:`RETIRE` handles."""
+    step0, sweep, item35, cut, rest = [], [], [], [], []
     for t in vanished:
         if t in RETIRE:
             continue
         row = latest.get(t)
         if t in SWEEP_RETIRE:
             sweep.append(t)
+        elif t in ITEM35_RETIRE:
+            item35.append(t)
+        elif t.startswith("coal."):
+            cut.append(t)
         elif t in STEP0_NAMED or (row is not None and str(row.source).startswith(SCORE_PREFIXES)):
             step0.append(t)
         else:
             rest.append(t)
-    return sorted(step0), sorted(sweep), sorted(rest)
+    return sorted(step0), sorted(sweep), sorted(item35), sorted(cut), sorted(rest)
 
 COAL_BACK = ("In the frozen forecast this coalition is again a smallest majority "
              "in at least the share of simulations the who-can-govern table "
-             "lists a coalition at (render_sheet MIN_SMALLEST), so the table "
-             "prints it as current.")
+             "lists a coalition at (render_sheet MIN_SMALLEST), and governs in at "
+             "least the share it lists a combination at (render_sheet "
+             "MIN_GOVERNS), so the table prints it as current.")
 BYE_BACK = ("In the frozen forecast's draws this party's middle seat count at "
             "this by-election weight differs from the published weight by more "
             "than sampling noise (reweight.beyond_noise), so the line under the "
@@ -216,16 +246,17 @@ def main(argv=None) -> int:
             raise SystemExit(f"{token}: the probe build did not report it as left "
                              f"the registry unretired; it may still be printed")
         retire.append(token)
-    step0, sweep, others = classify_vanished(found["vanished"], latest)
-    for t in SWEEP_RETIRE:
-        row = latest.get(t)
-        if row is None:
-            raise SystemExit(f"{t}: not in the ledger at {root}")
-        if row.superseded_at:
-            print(f"  - {t}: already retired {row.superseded_at}")
-        elif t not in sweep:
-            raise SystemExit(f"{t}: the probe build did not report it as left "
-                             f"the registry unretired; it may still be printed")
+    step0, sweep, item35, cut, others = classify_vanished(found["vanished"], latest)
+    for named, got in ((SWEEP_RETIRE, sweep), (ITEM35_RETIRE, item35)):
+        for t in named:
+            row = latest.get(t)
+            if row is None:
+                raise SystemExit(f"{t}: not in the ledger at {root}")
+            if row.superseded_at:
+                print(f"  - {t}: already retired {row.superseded_at}")
+            elif t not in got:
+                raise SystemExit(f"{t}: the probe build did not report it as left "
+                                 f"the registry unretired; it may still be printed")
     missing0 = [t for t in STEP0_NAMED
                 if latest.get(t) and not latest[t].superseded_at and t not in step0]
     if missing0:
@@ -247,6 +278,12 @@ def main(argv=None) -> int:
     for t in sweep:
         print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display}): "
               f"{SWEEP_RETIRE[t]}")
+    print(f"retire, owner item 35's lede ({len(item35)}):")
+    for t in item35:
+        print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display})")
+    print(f"retire, under the 10% cut ({len(cut)}):")
+    for t in cut:
+        print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display})")
     if others:
         print(f"also left the registry unretired, NOT handled here ({len(others)}):")
         for t in others:
@@ -269,12 +306,18 @@ def main(argv=None) -> int:
     for t in sweep:
         P.retire(CITY, t, reason=SWEEP_RETIRE[t], change_class="mechanism",
                  when=when, root=root)
-    n_retired = len(retire) + len(step0) + len(sweep)
+    for t in item35:
+        P.retire(CITY, t, reason=ITEM35_RETIRE[t], change_class="mechanism",
+                 when=when, root=root)
+    for t in cut:
+        P.retire(CITY, t, reason=COAL_CUT, change_class="mechanism",
+                 when=when, root=root)
+    n_retired = len(retire) + len(step0) + len(sweep) + len(item35) + len(cut)
     print(f"wrote {len(revive)} revival(s) and {n_retired} retirement(s) at {when}")
     after = probe(root)
     print(f"after: {len(after['live_retired'])} retired token(s) printed live, "
           f"{len(after['vanished'])} left the registry unretired")
-    handled = set(RETIRE) | set(step0) | set(sweep)
+    handled = set(RETIRE) | set(step0) | set(sweep) | set(item35) | set(cut)
     if after["live_retired"] or set(after["vanished"]) & handled:
         raise SystemExit("the rows did not clear the refusals they were written for:\n"
                          + after["stdout_tail"])
