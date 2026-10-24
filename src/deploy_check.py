@@ -6,7 +6,9 @@ Wired as `[build] command` in `wrangler.toml`, so wrangler runs it before every
 ships `site/` whatever the ledger says (blind review, 2026-09-17).
 
 It checks that every file wrangler would upload from the repository's own
-`site/` is committed (`untracked`; the files in `SHIPPED_UNCOMMITTED` excepted), that no page carries inline CSS or JS
+`site/` is committed (`untracked`; the files in `SHIPPED_UNCOMMITTED` excepted),
+that every share image git has ever held under `site/og-page/` is still there
+(`missing_share_images`), that no page carries inline CSS or JS
 (`site_assets.scan_site`), that nothing of the local edit mode is in it
 (`edit_mode.shipped`), and two things against
 `content/<city>/NUMBERS-REVIEW.md`:
@@ -69,6 +71,26 @@ def untracked(site: Path, root: Path | None = None) -> list[str]:
                   if Path(f).name != ".DS_Store" and f not in SHIPPED_UNCOMMITTED)
 
 
+def missing_share_images(site: Path, root: Path | None = None) -> list[str]:
+    """Every share image git has ever held under ``site/og-page/`` that is not
+    in ``site`` now, as paths relative to it.
+
+    ⛔ A SHARE IMAGE IS KEPT FOREVER (owner, 2026-10-24: "all our social share
+    cards have had their images deleted. That cannot happen in future"). A post
+    shared on any day names that day's image; `og_pages.render_all` deletes
+    nothing, and this refuses a site from which one went missing another way.
+    Raises if git cannot be asked: a gate that cannot look must not pass."""
+    root = ROOT if root is None else root
+    site, root = site.resolve(), root.resolve()
+    rel = site.relative_to(root).as_posix()
+    ever = subprocess.run(["git", "-C", str(root), "log", "--all", "--full-history",
+                           "--diff-filter=A", "--name-only", "--format=", "--",
+                           f"{rel}/og-page/*.png"],
+                          check=True, capture_output=True, text=True).stdout.split()
+    return sorted({Path(f).relative_to(rel).as_posix() for f in ever if f}
+                  - {f.relative_to(site).as_posix() for f in (site / "og-page").glob("*.png")})
+
+
 def check(city: str, site: Path, preview: bool, review: Path | None = None) -> list[str]:
     review = review or ROOT / "content" / city / "NUMBERS-REVIEW.md"
     if not review.is_file():
@@ -93,6 +115,16 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
                     f"{len(stray)} file(s) under {site}/ are not committed, and wrangler "
                     f"uploads the directory: {', '.join(stray[:10])}"
                     f"{' …' if len(stray) > 10 else ''}. Commit them or delete them.")
+        try:
+            gone = missing_share_images(site)
+        except (OSError, subprocess.CalledProcessError) as exc:
+            problems.append(f"cannot ask git which share images {site} has held ({exc!r})")
+        else:
+            if gone:
+                problems.append(
+                    f"{len(gone)} share image(s) git has held are missing from {site}/: "
+                    f"{', '.join(gone[:10])}{' …' if len(gone) > 10 else ''}. A shared "
+                    f"post names its image forever; restore them from git history.")
     for pair in head.group(1).split():
         page, sha = pair.split("=", 1)
         f = site / page

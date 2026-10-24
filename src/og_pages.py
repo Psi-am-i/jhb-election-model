@@ -237,6 +237,15 @@ def _long(iso: str) -> str:
     return statlib._fmt(iso, "date_long")
 
 
+def as_of(pool: dict, figures: dict) -> str:
+    """"As of 23 October 2026.": the date the card's figures were published,
+    the date the pages print (``generated_date``), on every card's small line
+    (owner, 2026-10-24: the cards "should be dated 'as of [date]' and left
+    alone"). Carried as a figure, so the card prints the page's own string."""
+    figures["generated_date"] = _fig(pool, "generated_date")
+    return f"As of {pool['generated_date']}."
+
+
 def _vote_line(election: dict, pool: dict, figures: dict) -> str:
     figures["council_size"] = _fig(pool, "council_size")
     return (f"{election['city']} council, {pool['council_size']} seats, vote on "
@@ -333,7 +342,7 @@ def claim_party(claim: dict) -> str:
     return claim["party_name"]
 
 
-def claims_spec(html: str, claims: list[dict], *, headline: str) -> dict:
+def claims_spec(html: str, claims: list[dict], *, headline: str, pool: dict) -> dict:
     """/claims: one badge per party, the first claim per party in claims.toml
     order. Each verdict is the one the page prints (checked against it)."""
     import build_play
@@ -356,22 +365,14 @@ def claims_spec(html: str, claims: list[dict], *, headline: str) -> dict:
     latest = max((c["published"] for c in claims),
                  key=lambda d: datetime.strptime(d, "%d %B %Y"))
     alt = (f"{headline}. " + "; ".join(f"{i['party']}: {i['verdict']} ({i['speaker']})" for i in items) + ".")
+    figures: dict = {}
     return {"layout": "claims", "headline": headline,
-            "date_line": f"One claim per party, each tested against the forecast. Latest tested {latest}.",
-            "items": items, "figures": {}, "alt": alt}
+            "date_line": (f"One claim per party, each tested against the forecast. Latest tested {latest}. "
+                          + as_of(pool, figures)),
+            "items": items, "figures": figures, "alt": alt}
 
 
-def run_date() -> str:
-    """The run the pages are built on, as "21 October 2026"
-    (forecast_summary.json ``_generated``)."""
-    import cityconfig
-    from datetime import date
-    g = json.loads((cityconfig.active().processed / "forecast_summary.json").read_text(encoding="utf-8"))["_generated"]
-    y, m, d = (int(x) for x in str(g)[:10].split("-"))
-    return f"{d} {date(y, m, d):%B %Y}"
-
-
-def claim_spec(html: str, claim: dict) -> dict:
+def claim_spec(html: str, claim: dict, pool: dict) -> dict:
     """A claim's own page: its quote, its verdict badge, its party's logo and
     name, and who said it. The verdict is the one the page prints (checked
     against it); the image draws no figure, so the page's tokens stay the
@@ -384,6 +385,9 @@ def claim_spec(html: str, claim: dict) -> dict:
                       f"claims.toml has {word!r}")
     party, speaker = claim_party(claim), speaker_name(claim)
     quote = " ".join(claim["quote"].split())
+    figures: dict = {}
+    as_of(pool, figures)
+    stands = pool["generated_date"]
     # The tested statement only where the badge needs it to make sense
     # (claims.toml `card_test = true`); otherwise one reason and a pointer to
     # the page (owner, 2026-10-22). A settled verdict's reason is its
@@ -414,12 +418,13 @@ def claim_spec(html: str, claim: dict) -> dict:
             # was tested, which the page dates; it still stands on the current
             # run, so both dates (review 2026-10-22, owner: the card said only
             # the first test's date)
-            "date_line": (f"Tested on {claim['published']}; the verdict stands on the forecast of {run_date()}."
+            # (owner, 2026-10-24: dated "as of", the date the pages print)
+            "date_line": (f"Tested on {claim['published']}; the verdict stands on the forecast as of {stands}."
                           if claim["verdict"] in render_sheet.SETTLED_VERDICTS else
-                          f"Tested against the whysoserious.city forecast of {run_date()}."),
+                          f"Tested against the whysoserious.city forecast as of {stands}."),
             # the top bar takes the party's colour from the roster, like its chip
             "kind_colour": roster[claim["party"]]["colour"],
-            "figures": {},
+            "figures": figures,
             "alt": f"\u201c{quote}\u201d {speaker}, {party}. Verdict: {claim['verdict']}."}
 
 
@@ -458,6 +463,8 @@ def article_spec(art: dict, pool: dict, *, rows: list[dict]) -> dict:
         date += f" Figures as of {pool['generated_date']}."
         alt += (" Seats, middle and range: " + ", ".join(f"{o['name']} {o['m']} ({o['p5']} to {o['p95']})" for o in out) +
                 f". {pool['majority']} for a majority. One party majority: {pool[FORECAST_ALONE]}.")
+    else:
+        date += " " + as_of(pool, figures)
     spec["date_line"] = date
     spec["alt"] = alt
     return spec
@@ -486,7 +493,7 @@ def interactive_spec(forecast_json: dict, pool: dict, *, election: dict, site: s
     if len(calls) != len(geom["wards"]):
         raise OgError(f"forecast.json: {len(calls)} ward calls for {len(geom['wards'])} wards")
     figures: dict = {}
-    date = _vote_line(election, pool, figures)
+    date = _vote_line(election, pool, figures) + " " + as_of(pool, figures)
     wards = [{"path": w["path"], "colour": roster[c]["colour"]} for w, c in zip(geom["wards"], calls)]
     return {"layout": "interactive", "headline": INTERACTIVE_HEAD, "body": INTERACTIVE_BODY,
             "cta": INTERACTIVE_CTA, "site": site, "date_line": date,
@@ -518,27 +525,43 @@ def check(spec: dict) -> dict:
 
 def render_all(specs: list[dict], out_dir: Path) -> dict[str, str]:
     """Draw every spec with ``src/og-pages.mjs`` (one node process, one wasm
-    initialisation) into ``out_dir``; returns ``{slug: file name}``. Every
-    other file in ``out_dir`` is deleted, so it holds exactly what pages name;
-    a directory there is refused, never removed. Any failure stops the build."""
+    initialisation) into ``out_dir``; returns ``{slug: file name}``.
+
+    ⛔ A SHARE IMAGE IS KEPT FOREVER (owner, 2026-10-24: "all our social share
+    cards have had their images deleted. That cannot happen in future"). A
+    post shared on any day names that day's image, so nothing here deletes a
+    file: each build adds the images it names beside every earlier one. The
+    images are drawn into a scratch directory and copied in; a file already
+    in ``out_dir`` under the same name must hold the same bytes, or the build
+    is refused rather than overwrite it. A directory there is refused, never
+    removed. Any failure stops the build."""
+    import shutil
+    import tempfile
     out_dir.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(specs, ensure_ascii=False)
-    try:
-        run = subprocess.run(["node", str(RENDERER), "-", str(out_dir)], input=payload,
-                             capture_output=True, text=True, cwd=REPO_ROOT)
-    except FileNotFoundError:
-        raise OgError("og_pages: node is not installed, so no share image can be drawn") from None
-    if run.returncode:
-        raise OgError(f"og_pages: src/og-pages.mjs failed (is `npm ci` done in worker-api/?):\n{run.stderr}")
-    manifest = json.loads(run.stdout)
-    want = {s["slug"] for s in specs}
-    if set(manifest) != want:
-        raise OgError(f"og_pages: drew {sorted(manifest)}, asked for {sorted(want)}")
-    keep = set(manifest.values())
     for f in out_dir.iterdir():
         if f.is_dir():
             raise OgError(f"og_pages: {f} is a directory; {out_dir.name}/ holds the share "
                           "images only, and nothing here removes a directory")
-        if f.name not in keep:
-            f.unlink()
+    payload = json.dumps(specs, ensure_ascii=False)
+    with tempfile.TemporaryDirectory(prefix="og-pages-") as tmp:
+        drawn = Path(tmp)
+        try:
+            run = subprocess.run(["node", str(RENDERER), "-", str(drawn)], input=payload,
+                                 capture_output=True, text=True, cwd=REPO_ROOT)
+        except FileNotFoundError:
+            raise OgError("og_pages: node is not installed, so no share image can be drawn") from None
+        if run.returncode:
+            raise OgError(f"og_pages: src/og-pages.mjs failed (is `npm ci` done in worker-api/?):\n{run.stderr}")
+        manifest = json.loads(run.stdout)
+        want = {s["slug"] for s in specs}
+        if set(manifest) != want:
+            raise OgError(f"og_pages: drew {sorted(manifest)}, asked for {sorted(want)}")
+        clash = [n for n in sorted(set(manifest.values()))
+                 if (out_dir / n).exists() and (out_dir / n).read_bytes() != (drawn / n).read_bytes()]
+        if clash:
+            raise OgError(f"og_pages: {clash} already in {out_dir.name}/ with other bytes; a "
+                          "published share image is never overwritten")
+        for n in sorted(set(manifest.values())):
+            if not (out_dir / n).exists():
+                shutil.copyfile(drawn / n, out_dir / n)
     return manifest

@@ -3027,8 +3027,8 @@ design; this is what runs.
   is rendered, `build_site.share_images` builds the specs from the figures
   the pages printed (`og_pages.figure_pool`; a figure printed two ways is
   refused where an image draws it), draws them all in one node process into
-  `<out>/og-page/` (`og_pages.render_all`, which deletes every other file
-  there and refuses a directory), fills each held page (`og_pages.fill`),
+  `<out>/og-page/` (`og_pages.render_all`, which refuses a directory), fills
+  each held page (`og_pages.fill`),
   and only then audits, scans and writes it. Every figure an image prints is
   appended to the publication record under that page
   (`og_pages.ledger_records`). A node failure stops the build; there is no
@@ -3036,6 +3036,14 @@ design; this is what runs.
 * **Names.** `<slug>-<12 letters>.png`: sha256 of the SVG, the card faces and
   resvg's version, written a-p, so the address changes with any figure, word,
   layout, badge or face, and the number scan finds no digit in it.
+* **Images are kept forever** (owner, 2026-10-24: "all our social share cards
+  have had their images deleted. That cannot happen in future"). A post shared
+  on any day names that day's image, so `render_all` deletes nothing: it draws
+  into a scratch directory and copies in the images the build names, beside
+  every earlier one, and refuses an existing name with other bytes rather than
+  overwrite it. The images deleted before 2026-10-24 were restored from git
+  history, byte for byte; `src/deploy_check.py` refuses a `site/` missing any
+  `site/og-page/*.png` git has ever held.
 * **The forecast image's coalitions** are `og_pages.FORECAST_COALITIONS`
   (JUDGEMENT-CALLS §S1): each set's figure is `coal.<key>.majority`, /forecast's
   own token where its coalition table prints one, else computed over every

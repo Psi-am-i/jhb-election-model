@@ -1924,7 +1924,17 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
         layout_end = page.rindex('class="pl-resultscol"', 0, s1) if s1 > 0 and 'class="pl-resultscol"' in page[:s1] else -1
         if not (0 < layout_end < s1 < at('id="break"')):
             out.append("section 1's share row is not after the levers and results")
-        if s1 > 0 and at('class="pl-controls"') < s1 < at('class="pl-resultscol"'):
+        # the levers' column runs to its own closing tag (the results column
+        # comes before it in the markup since 2026-10-24, so a phone shows
+        # the map and the party table first)
+        c0 = page.rindex("<div", 0, at('class="pl-controls"')) if at('class="pl-controls"') > 0 else -1
+        c1, depth = c0, 0
+        for m in re.finditer(r"<div\b|</div>", page[c0:]) if c0 >= 0 else ():
+            depth += 1 if m.group(0) == "<div" else -1
+            if depth == 0:
+                c1 = c0 + m.end()
+                break
+        if s1 > 0 and c0 < s1 < c1:
             out.append("section 1's share row is inside the levers' column")
         if not (at('class="yf-analysis"') < s2 < notes):
             out.append("section 2's share row is not between the analysis and the notes")

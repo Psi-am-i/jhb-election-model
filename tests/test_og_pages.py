@@ -199,11 +199,11 @@ def _rebuild_specs(out: Path) -> list[dict]:
         if layout == "forecast":
             s = og_pages.forecast_spec(pool, yfd=yfd, out=out, election=el, headline=build_site.OG_TITLE)
         elif layout == "claims":
-            s = og_pages.claims_spec(page, claims, headline=build_site.ARTEFACTS["claims.html"][2])
+            s = og_pages.claims_spec(page, claims, headline=build_site.ARTEFACTS["claims.html"][2], pool=pool)
         elif layout == "article":
             s = og_pages.article_spec(arts[p], pool, rows=og_pages.seat_rows(fc))
         elif layout == "claim":
-            s = og_pages.claim_spec(page, next(c for c in claims if p == f"{og_pages.CLAIM_DIR}/{c['slug']}.html"))
+            s = og_pages.claim_spec(page, next(c for c in claims if p == f"{og_pages.CLAIM_DIR}/{c['slug']}.html"), pool)
         else:
             s = og_pages.interactive_spec(yfd, pool, election=el, site=build_site.SITE_NAME)
         s["slug"] = slug
@@ -224,13 +224,14 @@ def expected_figures(spec: dict, forecast_html: str) -> set[str]:
     import seat_table  # noqa: F401
     if spec["layout"] == "forecast":
         return {t for _c, t in og_pages.FORECAST_LARGEST} | {"generated_date", "council_size"}
+    # every card is dated "as of" the pages' date (owner, 2026-10-24)
     if spec["layout"] == "interactive":
-        return {"council_size"}
+        return {"council_size", "generated_date"}
     if spec["layout"] in ("claims", "claim"):
-        return set()
+        return {"generated_date"}
     arts = __import__("build_site").article_meta()
     if arts[spec["page"]].get("og_visual") != "seat-ranges":
-        return set()
+        return {"generated_date"}
     rows = og_pages.seat_rows(forecast_html)[:og_pages.SEAT_RANGE_ROWS]
     return ({f"seats.{r['code']}.{q}" for r in rows for q in ("median", "p5", "p95")}
             | {"majority", og_pages.FORECAST_ALONE, "seats.band", "generated_date"})
@@ -338,7 +339,7 @@ def claim_card_faults(spec: dict, svg: str, W: int = 1200, H: int = 630) -> list
         out.append(f"the order is not quote ({quote_last}), party ({party}), text beside the stamp ({beside})")
     elif party - quote_last > 80:
         out.append(f"the party is {party - quote_last:.0f}px under the quote's last line, not directly under it")
-    if spec["date_line"] not in flat or "forecast of" not in flat:
+    if spec["date_line"] not in flat or "forecast as of" not in flat:
         out.append("the foot line does not name the forecast's date")
     for x, y, anchor, t in texts:
         if y > H * 0.85 and not anchor and x < W / 2:
@@ -348,7 +349,7 @@ def claim_card_faults(spec: dict, svg: str, W: int = 1200, H: int = 630) -> list
 
 def test_a_claim_card_prints_its_statement_beside_a_large_stamp_and_keeps_the_foot_clear():
     out = built()
-    specs, _pool = _rebuild_specs(out)
+    specs, pool = _rebuild_specs(out)
     claims = [s for s in specs if s["layout"] == "claim"]
     toml = tomllib.loads((ROOT / "content/joburg/claims.toml").read_text(encoding="utf-8"))["claim"]
     assert len(claims) == len(toml) >= 4
@@ -358,9 +359,9 @@ def test_a_claim_card_prints_its_statement_beside_a_large_stamp_and_keeps_the_fo
         assert (spec["statement"] == " ".join(c["label"].split())) if c.get("card_test") else \
             (spec["statement"] is None and spec["reason"]), (spec["slug"], spec["statement"], spec.get("reason"))
         assert spec["date_line"] == (
-            f"Tested on {c['published']}; the verdict stands on the forecast of {og_pages.run_date()}."
+            f"Tested on {c['published']}; the verdict stands on the forecast as of {pool['generated_date']}."
             if c["verdict"] in ("FALSE", "TRUE") else
-            f"Tested against the whysoserious.city forecast of {og_pages.run_date()}.")
+            f"Tested against the whysoserious.city forecast as of {pool['generated_date']}.")
         assert claim_card_faults(spec, d["svg"]) == [], (spec["slug"], claim_card_faults(spec, d["svg"]))
         # the page's og:title is not the statement the card prints
         page = (out / og_pages.CLAIM_DIR / f"{c['slug']}.html").read_text(encoding="utf-8")
@@ -391,7 +392,7 @@ def test_the_renderer_types_no_figure_list():
 
 def test_the_forecast_image_is_the_one_card_with_the_forecasts_own_figures_and_date():
     """/forecast's share image is the card the share sheet draws (play-card.js):
-    the whysoserious.city logo, "Forecast, <date>", no "Shared by" and no "Made"
+    the whysoserious.city logo, "Forecast as of <date>", no "Shared by" and no "Made"
     line, "Make your own prediction at ..." in the foot; its chances are the
     page's and its date is forecast.json's. forecast_spec refuses a page that
     prints another chance or date."""
@@ -403,7 +404,7 @@ def test_the_forecast_image_is_the_one_card_with_the_forecasts_own_figures_and_d
     yfd = json.loads((out / "your-forecast" / build_make.DATA).read_text(encoding="utf-8"))
     flat = " ".join(htmllib.unescape(t) for t in re.findall(r"<text\b[^>]*>([^<]*)</text>", d))
     date = og_pages._long(yfd["forecast_date"])
-    assert f"Forecast, {date}" in flat and date == pool["generated_date"]
+    assert f"Forecast as of {date}" in flat and date == pool["generated_date"]
     assert 'viewBox="0 0 1969 1002"' in d, "the whysoserious.city logo is not on the card"
     assert "Make your own prediction at joburg.whysoserious.city/your-forecast." in flat
     assert not re.search(r"shared by|try your own|made \d", flat, re.I), flat
@@ -441,10 +442,28 @@ def test_the_image_name_moves_with_the_content_and_only_with_it():
         m2 = og_pages.render_all([a], Path(t2))
         assert m1 == m2 == {"toy": f"toy-{na}.png"}
         assert (Path(t1) / m1["toy"]).read_bytes() == (Path(t2) / m2["toy"]).read_bytes()
-        # render_all leaves exactly what it drew
-        (Path(t1) / "old-aaaaaaaaaaaa.png").write_bytes(b"x")
+        # an earlier image stays, byte for byte (owner, 2026-10-24: share
+        # images are kept forever), and a drawn image beside it is unchanged
+        old = Path(t1) / "old-aaaaaaaaaaaa.png"
+        old.write_bytes(b"an image shared in an earlier post")
         og_pages.render_all([a], Path(t1))
-        assert sorted(f.name for f in Path(t1).iterdir()) == [m1["toy"]]
+        assert sorted(f.name for f in Path(t1).iterdir()) == sorted([m1["toy"], old.name])
+        assert old.read_bytes() == b"an image shared in an earlier post"
+        assert (Path(t1) / m1["toy"]).read_bytes() == (Path(t2) / m2["toy"]).read_bytes()
+        # a file under a drawn name with other bytes is refused, never overwritten
+        clash = Path(t1) / m1["toy"]
+        good = clash.read_bytes()
+        clash.write_bytes(b"other bytes")
+        try:
+            og_pages.render_all([a], Path(t1))
+        except SystemExit as e:
+            assert "never overwritten" in str(e)
+        else:
+            raise AssertionError("an image of the same name with other bytes was overwritten")
+        assert clash.read_bytes() == b"other bytes"
+        clash.write_bytes(good)
+        og_pages.render_all([a], Path(t1))
+        assert clash.read_bytes() == good
         # and refuses, rather than removes, a directory it finds there
         (Path(t1) / "sub").mkdir()
         try:
@@ -456,6 +475,40 @@ def test_the_image_name_moves_with_the_content_and_only_with_it():
         assert (Path(t1) / "sub").is_dir()
         (Path(t1) / "sub").rmdir()
         og_pages.render_all([a], Path(t1))
+
+
+def test_deploy_check_refuses_a_site_missing_a_share_image_git_has_held():
+    """`deploy_check.missing_share_images`, on a throwaway repository: an
+    image committed and later deleted is reported, on another branch too, and
+    the report clears when it is restored. Then on the real tree: every image
+    git has held is present."""
+    import subprocess
+    import deploy_check
+    with tempfile.TemporaryDirectory() as t:
+        repo = Path(t)
+        og = repo / "site" / "og-page"
+        og.mkdir(parents=True)
+        git = lambda *a: subprocess.run(["git", "-C", str(repo), *a], check=True, capture_output=True)
+        git("init", "-q")
+        commit = lambda m: git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", m)
+        (og / "a-aaaaaaaaaaaa.png").write_bytes(b"a")
+        git("add", "-A"); commit("a")
+        assert deploy_check.missing_share_images(repo / "site", root=repo) == []
+        git("rm", "-q", "site/og-page/a-aaaaaaaaaaaa.png"); commit("a deleted")
+        assert deploy_check.missing_share_images(repo / "site", root=repo) == ["og-page/a-aaaaaaaaaaaa.png"]
+        # an image held only on another branch counts too
+        git("checkout", "-qb", "other")
+        og.mkdir(parents=True, exist_ok=True)     # git removed the emptied directory
+        (og / "b-bbbbbbbbbbbb.png").write_bytes(b"b")
+        git("add", "-A"); commit("b")
+        git("checkout", "-q", "-")
+        assert deploy_check.missing_share_images(repo / "site", root=repo) == [
+            "og-page/a-aaaaaaaaaaaa.png", "og-page/b-bbbbbbbbbbbb.png"]
+        og.mkdir(parents=True, exist_ok=True)
+        (og / "a-aaaaaaaaaaaa.png").write_bytes(b"a")
+        (og / "b-bbbbbbbbbbbb.png").write_bytes(b"b")
+        assert deploy_check.missing_share_images(repo / "site", root=repo) == []
+    assert deploy_check.missing_share_images(ROOT / "site") == []
 
 
 # ---------------------------------------------------------------------------
@@ -489,13 +542,14 @@ def test_a_claim_whose_verdict_has_no_badge_is_refused():
     claim = {"party": "DA", "verdict": "PROBABLY", "speaker": "Someone, DA", "published": "1 October 2026"}
     page = '<span class="verdict v-open">PROBABLY</span>'
     try:
-        og_pages.claims_spec(page, [claim], headline="H")
+        og_pages.claims_spec(page, [claim], headline="H", pool={"generated_date": "1 October 2026"})
     except SystemExit as e:
         assert "no badge" in str(e)
     else:
         raise AssertionError("a verdict with no badge was drawn")
     good = {**claim, "verdict": "TRUE"}
-    assert og_pages.claims_spec('<span class="verdict v-true">TRUE</span>', [good], headline="H")["items"]
+    assert og_pages.claims_spec('<span class="verdict v-true">TRUE</span>', [good], headline="H",
+                                pool={"generated_date": "1 October 2026"})["items"]
 
 
 # ---------------------------------------------------------------------------

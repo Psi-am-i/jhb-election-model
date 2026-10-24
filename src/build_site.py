@@ -113,34 +113,21 @@ def nav_items(leaderboard: bool | None = None) -> list[tuple[str, str]]:
     return items
 
 
-#: The nav's first group ends at this item; the second group, the record and
-#: the method, starts after it. The groups sit beside the logo's "Johannesburg"
-#: on one line where there is room, and the second drops to a row of its own
-#: as a whole where there is not (owner, 2026-10-05).
-NAV_FIRST_GROUP_ENDS = "claims"
-
-
 def nav_for(active_href: str, leaderboard: bool | None = None) -> str:
-    """The site nav with the current page held in the accent colour, in two
-    groups split after :data:`NAV_FIRST_GROUP_ENDS`, and the owner's
-    strapline (:data:`STRAPLINE`) directly under it."""
+    """The site nav with the current page held in the accent colour, one row
+    of items that wraps only where the width makes it (owner, 2026-10-24:
+    "remove the forced break in our menu items"), and the owner's strapline
+    (:data:`STRAPLINE`) directly under it."""
     items = nav_items(leaderboard)
-    cut = [h for h, _l in items].index(NAV_FIRST_GROUP_ENDS) + 1
-
-    def group(part):
-        return ('  <span class="navgroup">'
-                + "".join(f'<a{" class=\"active\"" if href == active_href else ""} '
-                          f'href="{href}">{label}</a>' for href, label in part)
-                + "</span>\n")
+    links = "".join(f'<a{" class=\"active\"" if href == active_href else ""} '
+                    f'href="{href}">{label}</a>' for href, label in items)
     return ('<nav class="topnav">\n'
             # the owner's logo (src/brand/logo.svg, site_assets.LOGO): one
             # file, drawn in the text colour; the link keeps the site's name
             f'  <a class="home" href="./" aria-label="{LOGO_NAME}">'
             f'<svg class="logo" viewBox="{site_assets.LOGO_VIEWBOX}" aria-hidden="true" focusable="false">'
             f'<use href="{site_assets.LOGO}#logo"></use></svg></a>\n'
-            '  <div class="navlinks">\n'
-            + group(items[:cut]) + group(items[cut:]) +
-            '  </div>\n'
+            f'  <div class="navlinks">{links}</div>\n'
             # js/theme.js wires the toggle; the page carries no handler
             '  <button class="themetoggle" type="button" '
             'aria-label="Switch between dark and light" title="Light or dark">'
@@ -954,10 +941,10 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
         elif layout == "claims":
             claims = tomllib.loads((REPO_ROOT / "content" / city.slug / "claims.toml")
                                    .read_text(encoding="utf-8"))["claim"]
-            spec = og_pages.claims_spec(html, claims, headline=ARTEFACTS["claims.html"][2])
+            spec = og_pages.claims_spec(html, claims, headline=ARTEFACTS["claims.html"][2], pool=pool)
         elif layout == "claim":
             by_page = {f"{og_pages.CLAIM_DIR}/{c['slug']}.html": c for c in load_claims(city.slug)}
-            spec = og_pages.claim_spec(html, by_page[output])
+            spec = og_pages.claim_spec(html, by_page[output], pool)
         elif layout == "article":
             rows = og_pages.seat_rows(forecast_html) if forecast_html else []
             spec = og_pages.article_spec(articles[output], pool, rows=rows)
