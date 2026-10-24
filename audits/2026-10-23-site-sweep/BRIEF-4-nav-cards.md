@@ -57,6 +57,17 @@ sticky covers the results at phone width, and that tab order still follows
 what the reader sees (if `order` alone would break it, move the markup).
 Show me screenshots at 390 px and at desktop width.
 
+## 5. The council bar's words (owner item 37)
+
+In `src/render_map.py`, the bar label "The full council — {council} seats, the
+most typical simulation" becomes "The full council, {council} seats: the
+simulation closest to every party's median" ({council} stays computed), and
+the caption sentence "The bar shows the whole council, ward and list seats
+together, in the most typical simulation." becomes "The bar shows the whole
+council, ward and list seats together, in the simulation closest to every
+party's median seat count." Owner's words, 2026-10-24; nothing else changes.
+Re-render the map region of `forecast-sheet.html`.
+
 ## Limits
 
 No forecast number changes; no writes under `data/`. Targeted tests

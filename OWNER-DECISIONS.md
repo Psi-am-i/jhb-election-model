@@ -15,36 +15,6 @@ Last updated: 2026-10-24.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
-### 37. The council bar's caption on the forecast map
-
-**Context.** Owner, 2026-10-24, on "The full council — 270 seats, one typical
-simulation": "We are not showing a typical simulation. Makes it sound like
-this is not our forecast and it doesn't say what it is at all."
-
-What the bar is: one of This Model's 5,000 simulations, the one closest to
-every party's median seat count (`scenarios.typical`, each party's distance
-scaled by its 5-95% range). A real simulation is used because the parties'
-medians do not add up to the council: a bar of medians would show more or
-fewer than 270 seats. The "two ballots" bars on the forecast page show the
-same simulation.
-
-**Options.**
-1. Keep the simulation and say what it is. Bar label: "The full council,
-   270 seats: the simulation closest to every party's median". The caption's
-   sentence: "The bar shows the whole council, ward and list seats together,
-   in the simulation closest to every party's median seat count."
-2. Show each party's median seats, with the gap to 270 drawn as a grey
-   "unallocated" band and the label "The full council, 270 seats: each
-   party's median". Every band then is a forecast figure, but the bar no
-   longer adds up to a council that could happen.
-3. Remove the bar; the seats chart above already gives each party's seats.
-
-**Recommendation.** Option 1: the bar stays a council that could happen,
-and the words say which one.
-
-**Blocks.** Nothing else in the release; the bar keeps its current words
-until answered.
-
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
