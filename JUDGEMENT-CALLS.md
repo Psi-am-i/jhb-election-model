@@ -1139,7 +1139,7 @@ picked it, did not.
 
 **Plain — How much recent by-elections count.** Each party's expected share is
 set halfway between what This Model expects from earlier elections and what the
-by-elections since 2021 imply for it. Halfway is the owner's choice, made
+by-elections since 2021 imply for it. Halfway is our choice, made
 because no weight had been measured, and kept after a test on the 2021
 election in the eight metros. That test's settings had been chosen on the same
 election, so it does not show which weight forecasts best. A party

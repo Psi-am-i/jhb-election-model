@@ -183,10 +183,7 @@ show.
 
 A population group is **not** an alliance, a coalition, or a prediction about who will
 govern with whom. It describes voters, not parties: a set of parties competing
-for the same people. The DA and ActionSA drawing from the same population group means that
-when one rises in a simulation the other tends to fall in the same places. The
-effect is a mild offset (together they vary less than they would independently),
-not a rule that one gains exactly what the other loses.
+for the same people.
 
 It is also not a claim about why anyone votes as they do. Aggregate data can
 show that a population group of voters moved, not why. A sentence on this site that appears
@@ -217,7 +214,7 @@ These are choices about how This Model works that the data did not make for us. 
 
 **How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is fitted on how far This Model's expected shares missed in tests on the past elections before this one. Those tests' settings had been chosen on the same elections, so the misses, and the widths fitted on them, are likely too small. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your prediction](your-forecast/).
 
-**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Halfway is the owner's choice, made because no weight had been measured, and kept after a test on the 2021 election in the eight metros. That test's settings had been chosen on the same election, so it does not show which weight forecasts best. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make by-elections count not at all or fully.
+**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Halfway is our choice, made because no weight had been measured, and kept after a test on the 2021 election in the eight metros. That test's settings had been chosen on the same election, so it does not show which weight forecasts best. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make by-elections count not at all or fully.
 
 **New parties and by-elections.** A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on [your prediction](your-forecast/) does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.
 
