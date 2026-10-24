@@ -165,6 +165,9 @@ function ask(settings) {
 // superseded; rejected if the engine did not load.
 const calls = new Map();
 let callSeq = 0, engineFailed = null;
+// What the reader sees when the re-weighting cannot load (owner, 2026-10-24).
+// The cause goes to the console, not the page.
+const LOAD_FAILED = "This part of the page did not load. Reload the page to try again.";
 let readyResolve;
 const engineReady = new Promise(ok => { readyResolve = ok; });
 export async function engineCall(fn, payload) {
@@ -191,9 +194,10 @@ worker.onmessage = e => {
   const m = e.data;
   if (m.type === "stage") R.engine.textContent = m.label + "…";
   else if (m.type === "failed") {
-    R.engine.textContent = m.missing ? m.message : "The re-weighting code did not load: " + m.message + ". The published forecast is shown.";
+    console.error("re-weighting did not load:", m.message);
+    R.engine.textContent = LOAD_FAILED;
     R.engine.classList.add("pl-low");
-    engineFailed = "the re-weighting code did not load";
+    engineFailed = LOAD_FAILED;
     readyResolve();
   } else if (m.type === "ready") ready(m);
   else if (m.type === "answer" || m.type === "callerror") {
@@ -238,7 +242,7 @@ async function ready(m) {
     buildControls();
     R.engineRegion.setAttribute("data-ready", "");
     update();
-  }, e => { R.engine.textContent = "The re-weighting code refused the published setting: " + e.message; });
+  }, e => { R.engine.textContent = engineFailed ? LOAD_FAILED : "The re-weighting code refused the published setting: " + e.message; });
 }
 
 const pct = x => Math.round(x * 100) + "%";
@@ -505,7 +509,7 @@ async function compute() {
   const asked = copyState(st);
   let m;
   try { m = await ask(PS.engineSettings(asked)); }
-  catch (e) { if (e.message !== "superseded") R.engine.textContent = "The re-weighting code refused: " + e.message; return; }
+  catch (e) { if (e.message !== "superseded") R.engine.textContent = engineFailed ? LOAD_FAILED : "The re-weighting code refused: " + e.message; return; }
   if (PS.serialize(st, ctx) !== PS.serialize(asked, ctx)) return;
   const r = m.result;
   const bad = whyNot(r);

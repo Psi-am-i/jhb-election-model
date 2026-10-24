@@ -49,11 +49,11 @@ Commission's totals, and shares each ward's total among its voting districts in 
 to their registration when the wards were drawn. That roll is This Model's
 foundation.
 
-### 2. Sort those voters into pools
+### 2. Sort those voters into population groups
 
-A **pool** is a group of voters choosing between the same parties.
+A **population group** is a group of voters choosing between the same parties.
 
-**Where the categories come from.** Johannesburg has four pools. They are
+**Where the categories come from.** Johannesburg has four population groups. They are
 Statistics South Africa's population group categories, in Stats SA's own words
 (*Black African, Coloured, Indian/Asian, White*), taken per ward from the
 Census 2022 Ward Statistical Product. We use their terms so that anyone can
@@ -65,7 +65,7 @@ This is not a claim that people vote by race, or that anyone should. South
 African cities are still laid out by apartheid planning, so a voting district's
 population group is one of the few things in the data that distinguishes one
 group of voters from another, and the parties' results follow it. Al Jama-ah
-takes about a fifth of one pool and almost nothing elsewhere. The Patriotic
+takes about a fifth of one population group and almost nothing elsewhere. The Patriotic
 Alliance takes about two-fifths of another and nothing in the other three.
 
 **These categories are too coarse.** By ward, Stats SA publishes population
@@ -75,25 +75,25 @@ draw overwhelmingly from the same population group and stand on separate
 ground, a linguistic and regional division rather than a racial one. Census 2022
 publishes home language, income, employment and dwelling type only down to
 municipality level; Stats SA confirmed in August 2026 that none of them exists
-by ward. The forecast uses the four census pools.
+by ward. The forecast uses the four census population groups.
 
-**How big is each pool?** Each ward's registered voters, split by that ward's
+**How big is each population group?** Each ward's registered voters, split by that ward's
 census population shares, summed across all 135 wards. The census gives the
 *proportions* within a ward; the roll gives the *number*. The voters' roll does
 not record population group, so the split assumes every group in a ward
 registers at the same rate.
 
-### 3. Measure how each party does in each pool
+### 3. Measure how each party does in each population group
 
 This step is This Model's statistics. We know how every ward voted and roughly what
 each ward is made of. From 135 wards at once This Model works back to how each
-party performs in each pool, as you can work out the price of apples and
+party performs in each population group, as you can work out the price of apples and
 oranges from a stack of receipts without seeing inside a bag.
 
 It does this for every party at once, under two rules: no party can win a
-negative number of votes, and the votes in a pool must add up to that pool's
+negative number of votes, and the votes in a population group must add up to that population group's
 voters. Fitting parties one at a time breaks both; an early version had a party
-winning a *negative* share of one pool.
+winning a *negative* share of one population group.
 
 ### 4. Work out what might change
 
@@ -118,7 +118,7 @@ Two things are drawn:
   be. <span data-asof="2026-10-21">From 21 to 23 October ActionSA's level was set
   by our judgement at {{pub1021_asa_support}}</span>; that judgement was
   withdrawn on 23 October.
-- **Turnout, per pool.** It is drawn from what turnout has done in that city
+- **Turnout, per population group.** It is drawn from what turnout has done in that city
   before. Turnout fell in every group in
   2021, so the range allows falls as well as rises.
 
@@ -179,17 +179,17 @@ Johannesburg's politics runs on thresholds: a coalition either reaches
 large, lopsided consequences that a single number with an error bar cannot
 show.
 
-## What a pool is, and what it is not
+## What a population group is, and what it is not
 
-A pool is **not** an alliance, a coalition, or a prediction about who will
+A population group is **not** an alliance, a coalition, or a prediction about who will
 govern with whom. It describes voters, not parties: a set of parties competing
-for the same people. The DA and ActionSA drawing from the same pool means that
+for the same people. The DA and ActionSA drawing from the same population group means that
 when one rises in a simulation the other tends to fall in the same places. The
 effect is a mild offset (together they vary less than they would independently),
 not a rule that one gains exactly what the other loses.
 
 It is also not a claim about why anyone votes as they do. Aggregate data can
-show that a pool of voters moved, not why. A sentence on this site that appears
+show that a population group of voters moved, not why. A sentence on this site that appears
 to explain a voter's reasoning is overreach, and we would like to hear about it.
 
 ## How accurate is it?

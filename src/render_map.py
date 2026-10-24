@@ -500,7 +500,7 @@ def main(argv: list[str] | None = None) -> int:
     <figure>
       <div class="mapbox">
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap" class="mapsvg"
-           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party">
+           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by the likeliest winning party">
         <defs>{patterns}</defs>
         {paths}{hatches}{''.join(labels)}{inset}
       </svg>

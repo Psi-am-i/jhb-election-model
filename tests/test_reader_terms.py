@@ -90,9 +90,6 @@ EXEMPT = {
     ("sources.html", "draw", "The IEC draws these"): 1,
     ("privacy.html", "draw", "the server draws from the link"): 1,
     ("your-forecast/index.html", "draw", "map draws it as"): 1,
-    # held for the owner: methodology names its population groups "pools" and
-    # explains the word where it appears (brief 2 report, not written)
-    ("methodology.html", "pool", "*"): None,
 }
 #: (lo, hi) shares: scanned pages of built pages; scanned characters of the
 #: scanned pages' bytes.

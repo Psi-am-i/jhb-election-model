@@ -449,10 +449,21 @@ def new_parties_note(processed: Path, rows: list[dict], names: dict) -> str:
     who = [names[c]["name"] for c in codes if c in new or c in fitted]
     lst = who[0] if len(who) == 1 else ", ".join(who[:-1]) + " and " + who[-1]
     out = [f"{_esc(lst)} did not stand in 2021."]
+    # One sentence per election for the fitted parties (owner, 2026-10-24):
+    # "A, B and C's splits are estimated from their 2024 national results by
+    # ward." A lone party keeps the singular.
+    by_election: dict[str, list[str]] = {}
     for c in codes:
         if c in fitted:
-            out.append(f"{_esc(names[c]['name'])}'s split is estimated from its "
-                       f"{_esc(str(fitted[c]['election']))} national result by ward.")
+            by_election.setdefault(str(fitted[c]["election"]), []).append(names[c]["name"])
+    for election, group in by_election.items():
+        if len(group) == 1:
+            out.append(f"{_esc(group[0])}'s split is estimated from its "
+                       f"{_esc(election)} national result by ward.")
+        else:
+            joined = ", ".join(group[:-1]) + " and " + group[-1]
+            out.append(f"{_esc(joined)}'s splits are estimated from their "
+                       f"{_esc(election)} national results by ward.")
     for c, (kind, parent, share) in new.items():
         src = f"{fname} no_measured_vector[{c}]"
         if kind == "splinter":

@@ -15,13 +15,17 @@
     });
   }
   var LIMIT = 15;
-  function apply(withs, withouts, all) {
+  // `size`, when given, keeps only the combinations of exactly that many
+  // parties: the presets filter by count alone, so every party is treated
+  // alike (STYLE.md rule 12).
+  function apply(withs, withouts, all, size) {
     withs = withs.filter(Boolean); withouts = withouts.filter(Boolean);
-    var filtered = withs.length > 0 || withouts.length > 0 || all, shown = 0;
+    var filtered = withs.length > 0 || withouts.length > 0 || all || size > 0, shown = 0;
     rows.forEach(function (r) {
       var ps = r.getAttribute("data-parties").split(" ");
       var ok = withs.every(function (w) { return ps.indexOf(w) >= 0; }) &&
-               withouts.every(function (x) { return ps.indexOf(x) < 0; });
+               withouts.every(function (x) { return ps.indexOf(x) < 0; }) &&
+               (!(size > 0) || ps.length === size);
       if (ok && !filtered && shown >= LIMIT) ok = false;
       if (ok) shown++;
       r.hidden = !ok;
@@ -34,12 +38,12 @@
   if (go) go.addEventListener("click", function () {
     apply(gw.map(function (s) { return s.value; }), gx.map(function (s) { return s.value; }), false);
   });
-  document.querySelectorAll(".govfilter button[data-with]").forEach(function (b) {
+  document.querySelectorAll(".govfilter button[data-size]").forEach(function (b) {
     b.addEventListener("click", function () {
-      var w = b.getAttribute("data-with").split(" ").filter(Boolean);
-      var x = b.getAttribute("data-without").split(" ").filter(Boolean);
-      set(gw, w); set(gx, x);
-      apply(w, x, b.hasAttribute("data-all"));
+      var size = b.getAttribute("data-size");
+      set(gw, []); set(gx, []);
+      if (size === "all") apply([], [], true);
+      else apply([], [], false, parseInt(size, 10));
     });
   });
   if (more) more.addEventListener("click", function () { apply([], [], true); });

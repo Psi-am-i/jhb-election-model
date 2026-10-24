@@ -1162,8 +1162,8 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
                 "This Model or its record.")
     elif str(source).startswith("docs-public/"):
         tech = tech or source.name.replace(".md", "").upper() + ".md"
-        note = (f"Reader edition, generated from {source} on "
-                f"{date.today().isoformat()}. The full technical record, with "
+        note = (f"Reader edition, {date.today().isoformat()}. The full "
+                f"technical record, with "
                 f"every URL, identifier and workaround, is "
                 f'<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/{tech}">'
                 f"{tech} on GitHub</a>.")
