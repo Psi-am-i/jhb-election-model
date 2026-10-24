@@ -1018,9 +1018,9 @@
   "combined": "seats.eligible_parties(ward_vote, list_vote) per draw; not stored"
  },
  "published_run": {
-  "model_run_id": "r-f74c0c2c74e9-a1df7b62-dirty",
-  "published_at": "2026-10-23T16:17:48Z",
-  "run_at": "2026-10-21T10:03:00Z",
+  "model_run_id": "r-ad6ca1dd1e52-330d9e13-dirty",
+  "published_at": "2026-10-24T09:47:22Z",
+  "run_at": "2026-10-23T21:24:27Z",
   "pool_artefact_keys": {
    "pools_2011.json": {
     "cities_sha": "9328df1260c85faf",
@@ -1064,7 +1064,7 @@
     "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
-    "judgements_sha": "3851439df49e04fb",
+    "judgements_sha": "9317b4262a4bbe09",
     "pools_sha": "e532c3005e0524b8",
     "roll_sha": "db831def8e100fbd",
     "schema": 2,
@@ -1076,22 +1076,22 @@
     "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
-    "judgements_sha": "3851439df49e04fb",
+    "judgements_sha": "9317b4262a4bbe09",
     "pools_sha": "e532c3005e0524b8",
     "roll_sha": "db831def8e100fbd",
     "schema": 2,
     "target": "2026"
    }
   },
-  "inputs_match_ledger": false,
+  "inputs_match_ledger": true,
   "source": "publications/joburg/ledger.jsonl, newest published_at"
  },
  "artefact_key": {
   "git": {
-   "commit": "3fdc419d96dffb0a68cadeb985523c6acfc4cb57",
+   "commit": "f187460f5c7d7786bcfc1824f0b202099438beb8",
    "dirty": false
   },
-  "code_sha256": "951cfd96bbd0cc616ad8410637e6851c5b2d8bee1d2bccb6be1485bece767765",
+  "code_sha256": "375501de667cb7d3e9db2305060154d2376b96e2170d0236e60fa7789fde4395",
   "model_sha256": "62933f2cfa9293df019f74cc1a3cf7c3cfeacb6558e82d5af558983425f8e793",
   "model_modules": [
    "backtest.py",
@@ -1379,6 +1379,6 @@
   },
   "judgements_applied_sha": "4f53cda18c2baa0c",
   "overrides": [],
-  "time": "2026-10-23T22:01:09Z"
+  "time": "2026-10-24T11:28:58Z"
  }
 }
