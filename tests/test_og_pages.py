@@ -231,7 +231,7 @@ def expected_figures(spec: dict, forecast_html: str) -> set[str]:
         return {"generated_date"}
     arts = __import__("build_site").article_meta()
     if arts[spec["page"]].get("og_visual") != "seat-ranges":
-        return {"generated_date"}
+        return set()                      # an article with no figures: its date only
     rows = og_pages.seat_rows(forecast_html)[:og_pages.SEAT_RANGE_ROWS]
     return ({f"seats.{r['code']}.{q}" for r in rows for q in ("median", "p5", "p95")}
             | {"majority", og_pages.FORECAST_ALONE, "seats.band", "generated_date"})

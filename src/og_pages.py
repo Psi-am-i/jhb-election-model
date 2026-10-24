@@ -239,7 +239,7 @@ def _long(iso: str) -> str:
 
 def as_of(pool: dict, figures: dict) -> str:
     """"As of 23 October 2026.": the date the card's figures were published,
-    the date the pages print (``generated_date``), on every card's small line
+    the date the pages print (``generated_date``), on the small line of every card that prints figures
     (owner, 2026-10-24: the cards "should be dated 'as of [date]' and left
     alone"). Carried as a figure, so the card prints the page's own string."""
     figures["generated_date"] = _fig(pool, "generated_date")
@@ -463,8 +463,8 @@ def article_spec(art: dict, pool: dict, *, rows: list[dict]) -> dict:
         date += f" Figures as of {pool['generated_date']}."
         alt += (" Seats, middle and range: " + ", ".join(f"{o['name']} {o['m']} ({o['p5']} to {o['p95']})" for o in out) +
                 f". {pool['majority']} for a majority. One party majority: {pool[FORECAST_ALONE]}.")
-    else:
-        date += " " + as_of(pool, figures)
+    # An article with no figures keeps only its published date, so its image
+    # never changes with the forecast (owner, 2026-10-24: cards "left alone").
     spec["date_line"] = date
     spec["alt"] = alt
     return spec

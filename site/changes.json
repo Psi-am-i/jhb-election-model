@@ -3691,7 +3691,6 @@
         "claims/mk-biggest-party.html",
         "claims/da-coalition-red-lines.html",
         "claims/actionsa-soweto.html",
-        "minority-administrations.html",
         "your-forecast/index.html"
       ],
       "previous": "21 October 2026",
@@ -7555,9 +7554,9 @@
     "draws": 5000,
     "forecast_content_sha256": "ad6ca1dd1e526113e4b991f4e2359552156773a351d4b88bb33cdd98520858e9",
     "forecast_summary_sha256": "4492e81cb9008ab8e5ce85d60b6f287f4ac469954c3285932772a4c6d550176c",
-    "git_commit": "b3f2660119c628a7baac518985da6213d042f1e3",
+    "git_commit": "cd587d582cd5f0d033e44bc0e8356abaf624aa1d",
     "git_dirty": true,
-    "model_run_id": "r-ad6ca1dd1e52-b3f26601-dirty",
+    "model_run_id": "r-ad6ca1dd1e52-cd587d58-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",
