@@ -108,7 +108,7 @@ export function loadAssets(codes, party, badges = []) {
 // name is also stored with the entry (docs-public/privacy.md, "Forecasts
 // entered").
 export function nameNote(value, label, entered) {
-  if (nameBlocked(value)) return "This name cannot go on the image or in the link: it could pass for the site, the model or the IEC." +
+  if (nameBlocked(value)) return "This name cannot go on the image or in the link: it could pass for the site, This Model or the IEC." +
     (label ? " The image says " + label + "." : "");
   return "Left empty, the image says " + label + "." + (entered
     ? " The name goes on the image, in the link and with the entry this sheet seals."

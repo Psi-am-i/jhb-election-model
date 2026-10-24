@@ -47,7 +47,8 @@ This is a rewrite of the first implementation, fixing the review findings:
   pattern and the 2021-LGE-level pattern (the two candidates from MODEL-LOG
   1.2), plus VD-level noise. The citywide level cancels in seats (MODEL-LOG
   1.10); this varies the *differential* pattern, which does not.
-* **A4** — γ falls back to the 2021→2024 fit (`gamma_recent.py`) before 1.0.
+* **A4** — γ falls back to the 2021→2024 fit (`gamma_recent.py`) before 1.0
+  (`resolve_gamma`: the fold or pool's fitted rows, then recent, then 1.0).
   ActionSA's fitted γ is 0.49, not the 1.0 the first build assumed.
 * **A6** — an optional generic-entrant slot: with some probability a party
   absent from every baseline appears at a drawn citywide share, spatially
@@ -1173,14 +1174,23 @@ def months_before_election(stamp: str, election_day: date) -> float:
 # Which fold's fitted γ each target may read. γ is fitted once and transferred
 # across cycles (MODEL-LOG 1.7), and the fold it comes from must have finished
 # strictly before the target or the forecast has read its own answer —
-# ``gamma_fold_for`` asserts exactly that rather than trusting this table.
+# ``gamma_folds_for`` asserts exactly that rather than trusting this table.
 #
 # The table exists because for 2026 the constraint alone does not pick one.
-# Both fold 1 (2014→2016) and fold 2 (2019→2021) precede 2026, and the
-# published forecast uses fold 1: §4.1's discipline is fit on fold 1, validate
-# on fold 2, and a forecast fitted on both has nothing left to validate it.
+# Both fold 1 (2014→2016) and fold 2 (2019→2021) precede 2026; the entry
+# here (fold 1, which leaves fold 2 to validate it, plan §4.1) is Tshwane's.
 # For every other target the entry is simply the most recent qualifying fold.
 GAMMA_FOLD = {"2026": 1, "2021": 1, "2016": 3, "2011": 4}
+
+# Targets whose γ is fitted over several folds TOGETHER (``fold.py --pool``:
+# one through-origin fit over every listed fold's VD rows, each fold
+# contributing only where its row is a real fit), keyed ``"<city slug>|<year>"``.
+# It takes precedence over ``GAMMA_FOLD`` for that city-year only, and is read
+# from ``gamma_pooled_fold<N>-<M>.csv`` in the city's processed directory.
+# Johannesburg 2026: folds 1 and 2, owner 2026-10-23 (OWNER-DECISIONS-ANSWERED
+# item 33; JUDGEMENT-CALLS §V2). Tshwane 2026 and every past target keep
+# their ``GAMMA_FOLD`` fold.
+GAMMA_POOL = {"joburg|2026": (1, 2)}
 
 
 def fold_target_year(fold: int) -> str:
@@ -1188,18 +1198,105 @@ def fold_target_year(fold: int) -> str:
     return FOLDS[fold]["target"][0][3:7]
 
 
+def gamma_folds_for(target) -> tuple[int, ...]:
+    """The folds supplying γ for this target — one, or a ``GAMMA_POOL`` —
+    each checked to precede it. ONE DEFINITION of the source and of the
+    precedence check."""
+    pooled = GAMMA_POOL.get(f"{target.city.slug}|{target.year}")
+    if pooled is not None:
+        folds = tuple(pooled)
+    else:
+        fold = GAMMA_FOLD.get(target.year)
+        if fold is None:
+            raise SystemExit(
+                f"no γ fold recorded for target {target.year}; add one to "
+                f"montecarlo.GAMMA_FOLD (have: {', '.join(sorted(GAMMA_FOLD))})")
+        folds = (fold,)
+    for fold in folds:
+        if fold_target_year(fold) >= target.year:
+            raise SystemExit(
+                f"fold {fold} targets {fold_target_year(fold)}, which does not "
+                f"precede {target.year}: its γ has seen the answer")
+    return folds
+
+
 def gamma_fold_for(target) -> int:
-    """The fold supplying γ for this target, checked to precede it."""
-    fold = GAMMA_FOLD.get(target.year)
-    if fold is None:
+    """The single fold supplying γ for this target, checked to precede it
+    (``gamma_folds_for``). REFUSES a target whose γ is pooled: a caller that
+    names one fold (``backtest``) would otherwise describe a source the run
+    does not use."""
+    folds = gamma_folds_for(target)
+    if len(folds) != 1:
         raise SystemExit(
-            f"no γ fold recorded for target {target.year}; add one to "
-            f"montecarlo.GAMMA_FOLD (have: {', '.join(sorted(GAMMA_FOLD))})")
-    if fold_target_year(fold) >= target.year:
-        raise SystemExit(
-            f"fold {fold} targets {fold_target_year(fold)}, which does not "
-            f"precede {target.year}: its γ has seen the answer")
-    return fold
+            f"{target.city.slug} {target.year} takes γ from folds "
+            f"{'+'.join(str(f) for f in folds)} pooled (montecarlo.GAMMA_POOL); "
+            f"ask gamma_folds_for, not gamma_fold_for")
+    return folds[0]
+
+
+def _gamma_rank(source: str) -> int:
+    """``resolve_gamma``'s order as a number: fold or pool 0, recent 1,
+    default 2."""
+    return {"recent": 1, "default 1.0": 2}.get(source, 0)
+
+
+def resolve_gamma(target, processed: Path, parties) -> dict[str, dict[str, tuple[float, str]]]:
+    """``{ballot: {party: (γ, source)}}`` for every party in ``parties``.
+
+    ONE CHAIN, read by ``run_model`` and ``export_interactive``: the fold
+    source (``gamma_folds_for``), then ``gamma_recent.csv`` in the target's
+    ``processed`` directory, then 1.0 (A4; JUDGEMENT-CALLS §A48).
+
+    * One fold: ``fold<N>_parameters.csv`` in the city's processed directory,
+      fitted rows only (``fold.load_parameters`` skips placeholders and
+      refuses a file without ``fit_status``). Source ``fold<N>``.
+    * A pool: ``gamma_pooled_fold<N>-<M>.csv`` (``fold.read_pooled``) in the
+      same directory; a party with no contributing fold has no row. Source
+      ``pooled `` plus the folds that contributed, e.g. ``pooled 1+2`` or
+      ``pooled 2``. REFUSES a missing pooled file rather than falling back.
+    * ``recent``: the ``gamma_recent.csv`` value.
+    * ``default 1.0``: nothing else had the party.
+
+    A placeholder row is never labelled as a fold: it is not read."""
+    import fold as _fold
+    city_processed = cityconfig.active().processed
+    folds = gamma_folds_for(target)
+    fitted: dict[str, dict[str, tuple[float, str]]] = {"PR": {}, "Ward": {}}
+    if len(folds) == 1:
+        params = load_parameters(city_processed / f"fold{folds[0]}_parameters.csv")
+        for ballot in fitted:
+            for p, g in params.get(ballot, {}).get("gamma", {}).items():
+                fitted[ballot][p] = (g, f"fold{folds[0]}")
+    else:
+        path = _fold.pooled_path(city_processed, list(folds))
+        if not path.exists():
+            raise SystemExit(
+                f"{target.city.slug} {target.year} takes γ from folds "
+                f"{'+'.join(str(f) for f in folds)} pooled (montecarlo.GAMMA_POOL) "
+                f"and {path} does not exist. Write it: `.venv/bin/python "
+                f"src/fold.py --pool {','.join(str(f) for f in folds)} --city "
+                f"{target.city.slug}` (a re-emit window, POOLS-REEMIT-QUEUE.md).")
+        for ballot, rows in _fold.read_pooled(path).items():
+            for p, row in rows.items():
+                if row["gamma"] is not None and ballot in fitted:
+                    fitted[ballot][p] = (row["gamma"], "pooled " + "+".join(
+                        str(f) for f in row["contributing"]))
+    recent: dict[str, float] = {}
+    recent_path = Path(processed) / "gamma_recent.csv"
+    if recent_path.exists():
+        with recent_path.open(encoding="utf-8", newline="") as fh:
+            recent = {r["party"]: float(r["gamma"]) for r in csv.DictReader(fh)}
+    out: dict[str, dict[str, tuple[float, str]]] = {}
+    for ballot in ("PR", "Ward"):
+        out[ballot] = {}
+        for p in parties:
+            if p in fitted[ballot]:
+                out[ballot][p] = fitted[ballot][p]
+            elif p in recent:
+                out[ballot][p] = (recent[p], "recent")
+            else:
+                out[ballot][p] = (1.0, "default 1.0")
+    return out
 
 
 def read_ward_crosswalk(path: Path, year: str, ward_column: str | None = None
@@ -2114,7 +2211,7 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
                    "TURNOUT_DRAW_CEILING", "LEVEL_DF", "BYE_MIN_WEIGHT",
                    "WARD_PR_RATIO_MIN", "WARD_PR_RATIO_MAX", "COUNCIL",
                    "TURNOUT_CORRELATION", "PLAN_BOUNDS",
-                   "POOL_CAPACITY_MARGIN", "GAMMA_FOLD",
+                   "POOL_CAPACITY_MARGIN", "GAMMA_FOLD", "GAMMA_POOL",
                    "PARTIAL_BALANCE_PASSES", "HASH_SEED", "FOLDS",
                    "GROUP_SHARE_TRIPWIRE_DRAWS"),
     # FOLDS is declared HERE and not under `fold` on purpose: `montecarlo.py`
@@ -6646,35 +6743,28 @@ def run_model(target, scenario: dict,
                       f"to {moved} voting districts (ward w={w_ward}, PR "
                       f"w={w_pr}, cap {cap} logit, τ {tau}m)")
 
-    # --- γ: the fold, then the previous LGE→NPE fit, then 1.0 (A4) -----------
-    # Fold parameters are a CITY-level artefact -- fold 3 is the 2009→2011
+    # --- γ: the fold or pool, then the previous LGE→NPE fit, then 1.0 (A4) ---
+    # `resolve_gamma` is the chain; placeholder fold rows are not read
+    # (DATA-QUALITY 21). Fold parameters are a CITY-level artefact -- fold 3 is the 2009→2011
     # transition whichever election is being built -- so they are read from the
     # city's processed root, where fold.py writes them, not from the target's
     # own directory. Everything else here (turnout, γ_recent, by-elections, the
     # ward crosswalk) is per-target and comes from `processed`. For Johannesburg
     # 2026 the two are the same directory, which is why this looks redundant.
-    fold = gamma_fold_for(target)
-    params = load_parameters(
-        cityconfig.active().processed / f"fold{fold}_parameters.csv")
-    recent: dict[str, float] = {}
-    recent_path = processed / "gamma_recent.csv"
-    if recent_path.exists():
-        with recent_path.open(encoding="utf-8", newline="") as fh:
-            recent = {r["party"]: float(r["gamma"]) for r in csv.DictReader(fh)}
-    recent_label = f"{target.previous_lge}→{target.previous_npe}"
+    resolved = resolve_gamma(target, processed, list(index))
     gamma = {}
     gamma_source = {}
     for ballot in ("PR", "Ward"):
         values = np.ones(npar)
         for p, i in index.items():
-            if p in params[ballot]["gamma"]:
-                values[i] = params[ballot]["gamma"][p]
-                gamma_source[p] = f"fold{fold}"
-            elif p in recent:
-                values[i] = recent[p]
-                gamma_source.setdefault(p, recent_label)
-            else:
-                gamma_source.setdefault(p, "default 1.0")
+            values[i], src = resolved[ballot][p]
+            # One label per party over both ballots, the strongest source
+            # either ballot used: a fold or pool, then recent, then the
+            # default -- so `gamma.default_1.0` lists the parties that took
+            # 1.0 on both.
+            if p not in gamma_source or (_gamma_rank(src)
+                                         < _gamma_rank(gamma_source[p])):
+                gamma_source[p] = src
         gamma[ballot] = values
     # A PARTY WITH NO FOLD γ AND NO RECENT γ GETS 1.0: its share deviates from
     # the city mean exactly as the baseline's pattern does. A typed default,
@@ -6682,7 +6772,8 @@ def run_model(target, scenario: dict,
     note_value(scenario, "gamma.default_1.0",
                sorted(p for p, src in gamma_source.items()
                       if src == "default 1.0"),
-               where="montecarlo:run_model (γ: fold, then recent, then 1.0)")
+               where="montecarlo:run_model (γ: resolve_gamma — the fold or "
+                     "pool, then recent, then 1.0)")
 
     # --- ward parts and registration ----------------------------------------
     # F15: the crosswalk lives at CITY level — `build_concordance` is
@@ -7332,7 +7423,9 @@ def run_model(target, scenario: dict,
               f"{npar} parties, {len(wards)} wards")
         print(f"target {target.year} ({target.date}), council {target.council}, "
               f"base {cityconfig.resolve_path(target.results(target.previous_npe)).name}, "
-              f"γ fold {fold}, wards from {parts_source}")
+              f"γ folds {'+'.join(str(f) for f in gamma_folds_for(target))}"
+              f"{' pooled' if len(gamma_folds_for(target)) > 1 else ''}, "
+              f"wards from {parts_source}")
         print(f"w_bye {scenario['w_bye'] if scenario['w_bye'] is not None else 'derived (bye_value.json)'}, "
               f"turnout blend {scenario['turnout_pattern_blend']} "
               f"± {scenario['turnout_blend_jitter']} (σ {scenario['turnout_noise_sd']}), "

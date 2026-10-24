@@ -7,7 +7,7 @@
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Johannesburg 2026 — Where the data comes from">
-<meta property="og:description" content="The model is built from election results, boundary maps, by-election returns and census tables. This page traces each to its origin and records the state it was in when we found it.">
+<meta property="og:description" content="This Model is built from election results, boundary maps, by-election returns and census tables. This page traces each to its origin and records the state it was in when we found it.">
 <meta property="og:url" content="https://joburg.whysoserious.city/sources">
 <link rel="canonical" href="https://joburg.whysoserious.city/sources">
 <meta property="og:image" content="https://joburg.whysoserious.city/og.png">
@@ -60,14 +60,14 @@
   </dialog>
   <script type="module" src="js/page-share.js"></script>
 </div>
-  <p class="standfirst">The model is built from election results, boundary maps, by-election returns and census tables. This page traces each to its origin and records the state it was in when we found it.</p>
+  <p class="standfirst">This Model is built from election results, boundary maps, by-election returns and census tables. This page traces each to its origin and records the state it was in when we found it.</p>
 </header>
 <p>The technical recipes, file by file, are in
 <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md"><code>SOURCES.md</code> on GitHub</a>.</p>
 <h2 id="public-records-that-are-hard-to-reach">Public records that are hard to reach</h2>
 <p>The IEC&rsquo;s results sites, <code>results.elections.org.za</code> and <code>www.elections.org.za</code>,
 refuse automated requests. Election results are public records, and no reason
-for the restriction is given. Most of the raw data behind this model was
+for the restriction is given. Most of the raw data behind This Model was
 collected through an ordinary browser session, one file at a time.</p>
 <p>The portal identifies each election by an internal code, not by its year, and
 the national and provincial halves of the same election day have different
@@ -96,7 +96,7 @@ grain the IEC publishes:</p>
 </tr>
 <tr>
 <td>1999 to 2024 national/provincial elections</td>
-<td>The provincial ballot, the model&rsquo;s between-elections baseline</td>
+<td>The provincial ballot, This Model&rsquo;s between-elections baseline</td>
 </tr>
 </tbody>
 </table></div>
@@ -107,7 +107,7 @@ contain what its name says. None of these raises an error; each was caught by
 cross-checking totals against the IEC&rsquo;s own published reports. The full list,
 and the code that handles each, is on GitHub.</p>
 <h2 id="the-maps">The maps</h2>
-<p>Council seats follow geography, so the model needs the boundaries of every ward
+<p>Council seats follow geography, so This Model needs the boundaries of every ward
 and voting district across four boundary revisions: Johannesburg&rsquo;s wards have
 been redrawn before every election. The Municipal Demarcation Board publishes
 the recent layers through its mapping portal; the two older ward sets survive
@@ -121,15 +121,15 @@ current would be wrong.</p>
 <h2 id="by-elections">By-elections</h2>
 <p><span class="mstat" data-mode="fixed" data-token="byelection_count" data-when="2026-08-05" data-prov="15 on 8 August.&#10;SOURCE: IEC by-election results. The Johannesburg ward by-elections held since the 2021 election." tabindex="0">15</span> by-elections have been held in <span class="mstat" data-mode="fixed" data-token="byelection_wards" data-when="2026-10-23" data-prov="14 wards on 23 October.&#10;SOURCE: IEC by-election results. The Johannesburg wards that have held a by-election since the 2021 election; one ward held two." tabindex="0">14</span>
 Johannesburg wards since 2021. They are the only
-direct evidence of how opinion has moved between elections. The model reads them
+direct evidence of how opinion has moved between elections. This Model reads them
 and moves each party&rsquo;s expected share up to halfway toward what they imply (see the methodology). The IEC&rsquo;s official download page could not supply them: its report
 links work only inside the browser session that created them. The IEC&rsquo;s public
 dashboard is fed by plain data files that anyone can read, with more detail than
-the reports, down to voting-district level with every party and candidate. The
-model uses those.</p>
+the reports, down to voting-district level with every party and candidate. This
+Model uses those.</p>
 <h2 id="people">People</h2>
 <p>Statistics South Africa publishes ward-level population estimates from Census
-2022 (age, sex and population group for all 135 wards). The model uses one
+2022 (age, sex and population group for all 135 wards). This Model uses one
 thing from them: each ward&rsquo;s population-group shares, which split that ward&rsquo;s
 registered voters into groups. Census 2022 publishes home language, income,
 dwelling type and employment only down to municipality level; Stats SA confirmed
@@ -139,7 +139,7 @@ in August 2026 that no small-area data was made for Census 2022.</p>
 <li><strong>Historic voting-district boundaries.</strong> The IEC draws these with its own
   mapping systems and appears never to have published them. Five archives and
   catalogues were searched; a request to the IEC&rsquo;s Delimitation Directorate is
-  the remaining route. The model works around the gap and tests that the
+  the remaining route. This Model works around the gap and tests that the
   workaround does not change its conclusions.</li>
 <li><strong>The voters&rsquo; roll by age and sex below municipality level</strong>, and the
   registration figures from the 2026 sign-up weekends, which are not released
@@ -155,7 +155,7 @@ large to publish. Anyone who downloads the same sources can confirm they hold
 exactly the data this forecast was computed from, and a file altered or
 withdrawn upstream shows up as a mismatch.</p>
 <div class="colophon">
-  Reader edition, generated from docs-public/sources.md on 2026-10-23. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
+  Reader edition, 2026-10-24. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div class="foot-text">
