@@ -55,8 +55,9 @@ Source grammar:
   ``history:joburg:2011:wards.called``. See :func:`history_value`.
 * ``published:small_party_surge`` — :func:`small_party_surge` over the
   published draws (``site/draws/``, the files the site's pages read).
-* ``published:list_share_median:<PARTY>`` — that party's middle share of the
-  list ballot over the published draws (:func:`published_list_share_median`).
+* ``published:vote_share_median:<PARTY>`` — that party's middle share of the
+  combined vote, ward and list ballots together as the statute tallies them,
+  over the published draws (:func:`published_vote_share_median`).
 * ``published:run_date`` — when the run that exported the published draws was
   made (``export_draws.run_time``); the date the pages and our forecast's card
   both print.
@@ -513,8 +514,8 @@ def resolve(source: str, ctx: dict):
         return run_time(_bm._draws(ctx.get("draws_dir"))[0])
     if source == "published:small_party_surge":
         return published_small_party_surge(ctx)
-    if source.startswith("published:list_share_median:"):
-        return published_list_share_median(source.rsplit(":", 1)[1], ctx)
+    if source.startswith("published:vote_share_median:"):
+        return published_vote_share_median(source.rsplit(":", 1)[1], ctx)
     return None                      # run: / external: — pinned only
 
 
@@ -561,18 +562,32 @@ def published_small_party_surge(ctx: dict):
     return ctx["_small_party_surge"]
 
 
-def published_list_share_median(party: str, ctx: dict):
-    """``party``'s median share of the list ballot over the published draws
-    (``site/draws``' ``list_vote`` block, as shares by ``reweight.list_shares``),
-    or None when the party has no column. Added 2026-10-23 for the
-    methodology's ANC list share, which was typed ("the mid-twenties")."""
-    if "_list_shares" not in ctx:
+def published_vote_share_median(party: str, ctx: dict):
+    """``party``'s median share of the COMBINED vote over the published draws:
+    its ward and list votes together over the same tally for every party the
+    statute counts (`seats.eligible_parties`, Schedule 1 items 12-13 and 16:
+    no independent, no party without a list), per simulation, from
+    ``site/draws``' ``ward_vote`` and ``list_vote`` blocks; None when the
+    party has no column. Replaced the list-ballot median for the methodology's
+    ANC vote on 2026-10-25 (owner, BRIEF-5 item 12: the page compared seats
+    with the party-list vote alone)."""
+    if "_vote_shares" not in ctx:
         import build_make as _bm
-        import reweight as _rw
+        import numpy as _np
+        import seats as _seats_law
         manifest, arrays, _raw = _bm._draws(ctx.get("draws_dir"))
-        ctx["_list_shares"] = (_rw.list_shares(arrays["list_vote"]),
-                               _bm._columns(manifest, "list_vote"))
-    shares, cols = ctx["_list_shares"]
+        cols = _bm._columns(manifest, "list_vote")
+        if _bm._columns(manifest, "ward_vote") != cols:
+            raise SystemExit("site/draws: the ward_vote and list_vote blocks name different parties")
+        out = _np.zeros((len(arrays["list_vote"]), len(cols)))
+        for d, (w, l) in enumerate(zip(arrays["ward_vote"], arrays["list_vote"])):
+            tally = _seats_law.eligible_parties({c: int(v) for c, v in zip(cols, w)},
+                                                {c: int(v) for c, v in zip(cols, l)})
+            total = sum(tally.values())
+            for i, c in enumerate(cols):
+                out[d, i] = tally.get(c, 0) / total
+        ctx["_vote_shares"] = (out, cols)
+    shares, cols = ctx["_vote_shares"]
     if party not in cols:
         return None
     import numpy as _np

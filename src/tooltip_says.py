@@ -278,7 +278,7 @@ SAYS: tuple[Say, ...] = (
     Say(r"anc_entitlement", "seats", M,
         "The ANC's middle seat count across " + _SIMS + " if every party's seats matched its votes exactly."),
     Say(r"anc_ward_median", "wards", M, "The ANC's average ward wins across " + _SIMS + "."),
-    Say(r"anc_list_share_median", "", M, "The ANC's middle share of the list vote across " + _SIMS + "."),
+    Say(r"anc_vote_share_median", "", M, "The ANC's middle share of the votes, ward and party-list together, across " + _SIMS + "."),
     Say(r"pub1021_asa_support", "", "Owner's call",
         "ActionSA's expected share of the list vote as set by hand in place of This Model's own estimate, from 21 October 2026 until the call was withdrawn on 23 October."),
     Say(r"record_cope_second_lge_kept", "", "IEC local election results",

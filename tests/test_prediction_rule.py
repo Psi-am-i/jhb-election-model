@@ -136,13 +136,10 @@ EXEMPT = {
         "the median TOTAL votes on each ballot over the simulations, the "
         "expected total a quoted claim (Helen Zille, News24, 20 October 2026) "
         "is set against: a forecast statistic, not a ward call."),
-    ("stats.py", "published_list_share_median"): (
-        "a party's median list-vote SHARE over the published simulations for "
-        "the methodology (`published:list_share_median:`): a forecast "
+    ("stats.py", "published_vote_share_median"): (
+        "a party's median combined-vote SHARE over the published simulations "
+        "for the methodology (`published:vote_share_median:`): a forecast "
         "statistic, like render_home._overhang's, not a prediction."),
-    ("render_home.py", "_overhang"): (
-        "the median list share over the simulations in which item 16 applies: "
-        "a published forecast statistic, not a prediction."),
     ("reweight.py", "ward_win_probability"): (
         "the weighted share of draws each party wins a ward: a probability "
         "(the forecast map), not a call."),

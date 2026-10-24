@@ -34,7 +34,7 @@ Extended again 2026-10-24 for owner item 35
 * :data:`ITEM35_RETIRE` names the who-can-govern lede's two DA figures, which
   the lede no longer prints, and (owner item 38, 2026-10-25) the home page's
   party-list share, replaced by the combined vote; each must be reported by
-  the probe;
+  the probe; the methodology's ANC list share likewise (2026-10-25, item 12);
 * a ``coal.*`` token the probe lists is retired with :data:`COAL_CUT` only
   when its combination governs in fewer than render_sheet ``MIN_GOVERNS`` of
   the frozen forecast's simulations (`coalition_shares`, by
@@ -121,7 +121,15 @@ ITEM35_RETIRE = {"govern.da_best_without": ITEM35_REASON,
                      "of the seats with its share of the combined vote, ward "
                      "and party-list together, as Schedule 1 counts it "
                      "(home.overhang_vote_share), not the party-list vote alone "
-                     "(owner, 2026-10-25, OWNER-DECISIONS-ANSWERED.md item 38).")}
+                     "(owner, 2026-10-25, OWNER-DECISIONS-ANSWERED.md item 38)."),
+                 # Owner, 2026-10-25 (BRIEF-5-home-top-methodology.md item 12):
+                 # the methodology's ANC vote is the combined vote too
+                 "anc_list_share_median": (
+                     "The methodology gives the ANC's citywide vote as its share "
+                     "of the combined vote, ward and party-list together, as "
+                     "Schedule 1 counts it (anc_vote_share_median), not the "
+                     "party-list vote alone (owner, 2026-10-25, "
+                     "BRIEF-5-home-top-methodology.md item 12).")}
 #: Owner item 35: a combination under the 10% cut is no longer printed.
 COAL_CUT = ("This coalition governs in fewer than the share of simulations the "
             "who-can-govern table lists a combination at (render_sheet "

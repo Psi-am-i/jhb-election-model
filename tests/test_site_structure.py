@@ -44,7 +44,8 @@ FOOTER_CREDITS = (
     "and Ward-level Small Area Population Estimates 2022 data from Stats SA. "
     "Ward and voting-district boundaries from the Municipal Demarcation Board. "
     "Raw election results from the IEC. Code on GitHub (MIT licence) · Privacy "
-    "Policy · Model design by Psi · © 2026 whysoserious.city is part of picnic labs.")
+    "Policy · Follow us on X · Model design by Psi · © 2026 whysoserious.city is "
+    "part of picnic labs.")
 FOOTER_INDEPENDENCE = (
     "This site is politically independent and unaligned. We do not accept "
     "donations, money or in-kind support from any political party, any "

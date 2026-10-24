@@ -30,8 +30,8 @@ Two consequences shape this site. Outside the over-winner's surplus, seats
 follow the combined vote, so a fragmented vote produces a fragmented council.
 The excessive-seats clause applies to the ANC in {{p_excessive_anc}} of
 simulations, counting those where its wards exactly equal its entitlement and
-the clause takes nothing from anyone: a citywide list vote of about
-{{anc_list_share_median}}, with stronghold wards that still win. Where it
+the clause takes nothing from anyone: a citywide vote of about
+{{anc_vote_share_median}}, with stronghold wards that still win. Where it
 applies, the party's ward count is a floor, its list seats go to zero, and the
 other parties share the list seats that remain, inside a council fixed at
 {{council_size}} with the majority at {{majority}}.

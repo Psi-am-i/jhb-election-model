@@ -1159,12 +1159,12 @@ unverifiable = "a ratio of past IEC results read from the retention record on 20
 # The ANC's middle list-ballot share over the published simulations, for the
 # methodology's seat-law section (it read "a citywide vote in the
 # mid-twenties", typed).
-[anc_list_share_median]
+[anc_vote_share_median]
 mode = "free"
-source = "published:list_share_median:ANC"
+source = "published:vote_share_median:ANC"
 format = "pct0"
-inserted = "2026-10-23"
-used_in = "methodology — the seat law"
+inserted = "2026-10-25"
+used_in = "methodology — the seat law (replaced anc_list_share_median, the list ballot alone; owner, 2026-10-25, BRIEF-5 item 12)"
 
 # The one independent poll before 2021 (Ipsos, national, August 2021, 1.5% for
 # ActionSA), scaled to the areas ActionSA contested: POLLING.md "Feeding the
