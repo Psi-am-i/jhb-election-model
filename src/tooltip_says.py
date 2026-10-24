@@ -134,8 +134,8 @@ SAYS: tuple[Say, ...] = (
         "The highest chance, across " + _SIMS + ", that the excessive-seats clause applies to any one party not named beside it."),
     Say(r"home\.overhang_seat_share", "", M,
         "The middle share of the council's seats held by the party the excessive-seats clause applies to most often, in the simulations where it applies."),
-    Say(r"home\.overhang_list_share", "", M,
-        "The middle share of the party-list vote won by the party the excessive-seats clause applies to most often, in the simulations where it applies."),
+    Say(r"home\.overhang_vote_share", "", M,
+        "The middle share of the votes, ward and party-list together, won by the party the excessive-seats clause applies to most often, in the simulations where it applies."),
     # --- the home page's run stamp and ward counts ---------------------------
     Say(r"home\.generated|generated_date", "", M,
         "The date of This Model's current simulations of the election."),

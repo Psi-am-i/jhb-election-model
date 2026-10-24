@@ -642,6 +642,41 @@ def test_an_article_lists_the_others_but_not_itself():
         assert _listing_faults(reverted, own, others, BS.SHEET_END) == []
 
 
+def test_the_headline_word_is_the_claims_scale_and_stops_below_quite_likely():
+    """Owner item 38 (2026-10-25): "It is {word} that the council will not
+    match the vote proportionally", {word} the claims scale's verdict on the
+    printed chance, lower-cased; below QUITE LIKELY the build stops. Each
+    band, its edges by the scale's edge rule, and the stop."""
+    import render_sheet as RS
+    assert RH.overhang_word(0.866) == "very likely"
+    assert RH.overhang_word(0.95) == "near certain"
+    assert RH.overhang_word(0.60) == "quite likely"
+    # the edges, judged on the printed chance: 90% is VERY LIKELY, 75% QUITE
+    assert RH.overhang_word(0.9004) == "very likely"
+    assert RH.overhang_word(0.7496) == "quite likely"
+    # the same word the scale gives, for every chance printed above 55% (a
+    # printed 55% is a COIN FLIP by the edge rule, below the owner's words)
+    for p in [x / 1000 for x in range(556, 1001)]:
+        assert RH.overhang_word(p) == RS.scale_verdict(p).lower(), p
+    for low in (0.55, 0.50, 0.30, 0.0):
+        try:
+            RH.overhang_word(low)
+        except SystemExit as e:
+            assert "has not" in str(e) and "given words" in str(e), str(e)
+        else:
+            raise AssertionError(f"{low} chose a word the owner has not given")
+
+
+def test_a_or_an_follows_how_the_printed_chance_is_spoken():
+    """"an 8%", "an 11%", "an 18%", "an 80%" to "an 89%"; "a" otherwise,
+    including the edges either side and the end bands' words."""
+    an = ["8%", "8.5%", "11%", "11.4%", "18%", "18.9%", "80%", "87%", "89%", "89.9%"]
+    a = ["1%", "7%", "9%", "10%", "12%", "17%", "19%", "79%", "90%", "100%",
+         "0.5%", "1.8%", "under 0.1%", "over 99%", "28%"]
+    assert [RH.article_for(s) for s in an] == ["an"] * len(an), an
+    assert [RH.article_for(s) for s in a] == ["a"] * len(a), a
+
+
 if __name__ == "__main__":
     from _support import run_module
     raise SystemExit(run_module(sys.modules[__name__]))

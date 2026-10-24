@@ -32,7 +32,9 @@ Extended again 2026-10-24 for owner item 35
 (`audits/2026-10-23-site-sweep/BRIEF-3-item35.md`, items 7-8):
 
 * :data:`ITEM35_RETIRE` names the who-can-govern lede's two DA figures, which
-  the lede no longer prints; each must be reported by the probe;
+  the lede no longer prints, and (owner item 38, 2026-10-25) the home page's
+  party-list share, replaced by the combined vote; each must be reported by
+  the probe;
 * a ``coal.*`` token the probe lists is retired with :data:`COAL_CUT` only
   when its combination governs in fewer than render_sheet ``MIN_GOVERNS`` of
   the frozen forecast's simulations (`coalition_shares`, by
@@ -111,7 +113,15 @@ ITEM35_REASON = ("The who-can-govern lede no longer states the DA's routes witho
                  "majorities without each other (owner, 2026-10-24, "
                  "OWNER-DECISIONS-ANSWERED.md item 35).")
 ITEM35_RETIRE = {"govern.da_best_without": ITEM35_REASON,
-                 "govern.da_with_small_without": ITEM35_REASON}
+                 "govern.da_with_small_without": ITEM35_REASON,
+                 # Owner item 38 (2026-10-25, BRIEF-5-home-top-methodology.md
+                 # item 5): the home page compares seats with the combined vote
+                 "home.overhang_list_share": (
+                     "The home page compares the excessive-seats party's share "
+                     "of the seats with its share of the combined vote, ward "
+                     "and party-list together, as Schedule 1 counts it "
+                     "(home.overhang_vote_share), not the party-list vote alone "
+                     "(owner, 2026-10-25, OWNER-DECISIONS-ANSWERED.md item 38).")}
 #: Owner item 35: a combination under the 10% cut is no longer printed.
 COAL_CUT = ("This coalition governs in fewer than the share of simulations the "
             "who-can-govern table lists a combination at (render_sheet "
@@ -332,7 +342,7 @@ def main(argv=None) -> int:
     for t in sweep:
         print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display}): "
               f"{SWEEP_RETIRE[t]}")
-    print(f"retire, owner item 35's lede ({len(item35)}):")
+    print(f"retire, owner items 35 and 38 ({len(item35)}):")
     for t in item35:
         print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display})")
     print(f"retire, under the 10% cut ({len(cut)}):")

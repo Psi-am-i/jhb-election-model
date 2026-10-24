@@ -69,6 +69,8 @@ def region(page: str, name: str, body: str) -> str:
 LEDE_PLACEHOLDERS = {
     "lede_coalition": "phrase: how certain a coalition is, chosen by lede_p_alone",
     "lede_race": "phrase: the race for largest party, chosen by the two chances",
+    "lede_overhang_word": "phrase: the claims scale's verdict on lede_p_overhang, lower-cased (overhang_word)",
+    "lede_overhang_article": "phrase: \"a\" or \"an\", as lede_p_overhang's printed figure is spoken (article_for)",
     "lede_first": "phrase: the party with the higher chance of the most seats alone",
     "lede_second": "phrase: the other of the two",
     "lede_p_first": "figure: chance lede_first alone has the most seats",
@@ -77,7 +79,7 @@ LEDE_PLACEHOLDERS = {
     "lede_overhang_party": "phrase: the party the excessive-seats clause applies to most often",
     "lede_p_overhang": "figure: chance the clause applies to that party",
     "lede_overhang_seats": "figure: that party's share of the council, median where the clause applies to it",
-    "lede_overhang_votes": "figure: its share of the party-list vote, median in the same simulations",
+    "lede_overhang_votes": "figure: its share of the combined vote, ward and party-list together over every party the statute counts (Schedule 1 items 12-13, 16; seats.eligible_parties), median in the same simulations",
     "lede_first_cap": "phrase: lede_first at the start of a sentence",
     "lede_second_cap": "phrase: lede_second at the start of a sentence",
     # The ward sentence's joins (ward_phrases): its contrast ("While", "only")
@@ -150,13 +152,16 @@ def not_safe_word() -> str:
 
 def load_lede(city_dir: Path) -> dict:
     """content/<city>/home.toml's one ``[[lede]]``: the owner's headline and
-    paragraph, with placeholders. The one reader of that file."""
+    the three paragraphs under it (``sub``, ``sub2``, ``sub3``; owner,
+    2026-10-25), with placeholders. The one reader of that file."""
     path = city_dir / "home.toml"
     if not path.exists():
         raise SystemExit(f"no {path}: the home page's headline is written there.")
     items = tomllib.loads(path.read_text(encoding="utf-8")).get("lede", [])
-    if len(items) != 1 or not all(isinstance(items[0].get(k), str) for k in ("head", "sub")):
-        raise SystemExit(f"{path} must hold exactly one [[lede]] with `head` and `sub`.")
+    if len(items) != 1 or not all(isinstance(items[0].get(k), str)
+                                  for k in ("head", "sub", "sub2", "sub3")):
+        raise SystemExit(f"{path} must hold exactly one [[lede]] with `head`, `sub`, "
+                         "`sub2` and `sub3`.")
     return items[0]
 
 
@@ -201,23 +206,65 @@ def _word(name: str, text: str) -> str:
     return f'<span data-word="{name}">{html.escape(text)}</span>'
 
 
+#: The verdicts the headline's third sentence can say: "It is {word} that the
+#: council will not match the vote proportionally" (owner, 2026-10-25,
+#: OWNER-DECISIONS-ANSWERED item 38). Below QUITE LIKELY the owner has given
+#: no words, so the build stops.
+OVERHANG_WORDS = ("QUITE LIKELY", "VERY LIKELY", "NEAR CERTAIN")
+
+
+def overhang_word(p: float) -> str:
+    """The claims scale's verdict (`render_sheet.scale_verdict`: its bands,
+    its edge rule, judged on the printed chance) for the chance ``p`` that the
+    excessive-seats clause applies to the party it applies to most often,
+    lower-cased: "very likely". One definition: the scale is called, never
+    copied. Refuses a verdict outside :data:`OVERHANG_WORDS`."""
+    word = _sheet.scale_verdict(p)
+    if word not in OVERHANG_WORDS:
+        raise SystemExit(
+            f"home headline: the chance the excessive-seats clause applies is "
+            f"{p:.4f}, which the claims scale calls {word}. The owner has not "
+            f"given words for the headline's third sentence in that case "
+            f"(only {', '.join(OVERHANG_WORDS)}); ask before building.")
+    return word.lower()
+
+
+def article_for(printed: str) -> str:
+    """"a" or "an" before a printed chance, as the figure is spoken: "an" for
+    8, 11 and 18, and 80 to 89 ("an 8%", "an 11.5%", "an 87%"); "a"
+    otherwise, including "under 0.1%" and "over 99%"."""
+    head = printed.split("%")[0].split(".")[0]
+    if not head.isdigit():
+        return "a"
+    n = int(head)
+    return "an" if n in (8, 11, 18) or 80 <= n <= 89 else "a"
+
+
 def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
-    """``party``'s median share of the council's seats and of the party-list
+    """``party``'s median share of the council's seats and of the COMBINED
     vote, over the simulations in which the excessive-seats clause applies to
     it, and how many those are.
 
+    THE COMBINED VOTE, NOT THE PARTY-LIST VOTE (owner, 2026-10-25,
+    OWNER-DECISIONS-ANSWERED item 38). Schedule 1 items 12-13 and 16 count a
+    party's party-list and ward-candidate votes together, and so does
+    `seats.eligible_parties`, the one definition of the statute's tally: a
+    party's ward and list votes over the same sum for every party the statute
+    counts (no independent, and no party without a list; the forecast's draws
+    carry no independent column at all). Until 2026-10-25 the page compared
+    seats with the party-list vote alone.
+
     Seats and the clause come from the run's `seat_detail_draws.csv` (its
     `excessive` flag counts a party exactly at its quota, as the statute does);
-    the list vote from the published draw export (`site/draws`, block
-    `list_vote`, whole votes, as a share by `reweight.list_shares`), the only
-    place the run's per-simulation list votes are kept. The
-    two are joined by simulation number, and refused unless they hold the same
-    seats for ``party`` in every simulation: two different runs would join
-    silently otherwise.
+    the votes from the published draw export (`site/draws`, blocks `ward_vote`
+    and `list_vote`, whole votes), the only place the run's per-simulation
+    votes are kept. The two are joined by simulation number, and refused
+    unless they hold the same seats for ``party`` in every simulation: two
+    different runs would join silently otherwise.
     """
     import csv as _csv
     import numpy as _np
-    import reweight as _rw
+    import seats as _seats_law
 
     with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
         size = {int(r["draw"]): int(r["council_size"]) for r in _csv.DictReader(fh)}
@@ -229,7 +276,9 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
                 seats[d], applies[d] = int(r["seats"]), r["excessive"] == "1"
     blocks, cols = _scenarios.published_draw_blocks(ROOT)
     statute = blocks["seats/deduct"][:, cols["seats/deduct"].index(party)]
-    share = _rw.list_shares(blocks["list_vote"])[:, cols["list_vote"].index(party)]
+    if cols["ward_vote"] != cols["list_vote"]:
+        raise SystemExit("site/draws: the ward_vote and list_vote blocks name different parties")
+    names = cols["ward_vote"]
     order = sorted(seats)
     if order != list(range(len(statute))) or any(seats[d] != int(statute[d]) for d in order):
         raise SystemExit(
@@ -239,8 +288,14 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
     hit = [d for d in order if applies[d]]
     if not hit:
         return 0.0, 0.0, 0
+
+    def combined_share(d):
+        tally = _seats_law.eligible_parties(
+            {c: int(v) for c, v in zip(names, blocks["ward_vote"][d])},
+            {c: int(v) for c, v in zip(names, blocks["list_vote"][d])})
+        return tally.get(party, 0) / sum(tally.values())
     return (float(_np.median([seats[d] / size[d] for d in hit])),
-            float(_np.median([share[d] for d in hit])), len(hit))
+            float(_np.median([combined_share(d) for d in hit])), len(hit))
 
 
 def race_figures(processed: Path) -> tuple[float, float, float, int]:
@@ -321,6 +376,7 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
     did. So the adjective is a placeholder the number fills, and the owner's
     words go round it.
     """
+    from stats import _fmt as _stats_fmt
     alone, anc, da, n = race_figures(Path(processed))
     _src = f"seat_draws.csv, {n:,} simulations, the party alone with the most seats"
     coalition, race, first, second = phrases(alone, anc, da)
@@ -345,6 +401,9 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
     values = {
         "lede_coalition": _word("lede_coalition", coalition),
         "lede_race": _word("lede_race", race),
+        "lede_overhang_word": _word("lede_overhang_word", overhang_word(by_party[over])),
+        "lede_overhang_article": _word("lede_overhang_article",
+                                       article_for(_stats_fmt(by_party[over], "chance"))),
         "lede_first": _word("lede_first", party(first)),
         "lede_second": _word("lede_second", party(second)),
         "lede_p_first": chance(f"home.p_{first.lower()}_largest", value[first], _src),
@@ -357,8 +416,9 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
         "lede_overhang_seats": tok("home.overhang_seat_share", f"{o_seats:.6f}", "pct0",
                                    f"seat_detail_draws.csv seats over seat_draws.csv "
                                    f"council_size, median {o_src}"),
-        "lede_overhang_votes": tok("home.overhang_list_share", f"{o_votes:.6f}", "pct0",
-                                   f"site/draws list_vote, median {o_src}"),
+        "lede_overhang_votes": tok("home.overhang_vote_share", f"{o_votes:.6f}", "pct0",
+                                   f"site/draws ward_vote + list_vote over every party "
+                                   f"seats.eligible_parties counts, median {o_src}"),
     }
     races = ward_races(Path(processed))
     w_src = "ward_winner_probs.csv, the likeliest winner of each ward"
@@ -380,13 +440,13 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
     lede = load_lede(city_dir)
     where = str(city_dir / "home.toml")
     head = fill_lede(lede["head"], values, where + " head")
-    sub = fill_lede(lede["sub"], values, where + " sub")
+    subs = [fill_lede(lede[k], values, f"{where} {k}") for k in ("sub", "sub2", "sub3")]
     # `date_long` is the registry's only date format; there is no "date".
     stamp = (f'{tok("home.n_draws", int(summary["_draws"]), "comma")} '
              f"of This Model's simulations as of "
              f'{tok("home.generated", summary["_generated"], "date_long")}')
     return (f'  <h1 class="state">{head}</h1>\n'
-            f'  <p class="sub">{sub}</p>\n'
+            + "".join(f'  <p class="sub">{s}</p>\n' for s in subs) +
             f'  <div class="stamp">{stamp}</div>')
 
 
