@@ -1116,17 +1116,19 @@ RELEASE_DATE_MARK = "RELEASE_DATE"
 
 
 def release_date(as_published: bool = False, city: str | None = None,
-                 ledger_root: Path | None = None) -> str:
+                 ledger_root: Path | None = None, stamp: str | None = None) -> str:
     """The date ``RELEASE_DATE_MARK`` is written as, ``YYYY-MM-DD``: the UTC
-    day of this build, which is the day a ``--publish`` stamps
-    (`publication.utc_now`); under ``--as-published``, the newest
-    publication's own day, since that build rebuilds the pages it served."""
+    day of ``stamp``, the instant `main` stamps the ledger rows with
+    (`publication.utc_now` when None), so the corrected date and a
+    ``--publish``'s rows cannot fall either side of midnight; under
+    ``--as-published``, the newest publication's own day, since that build
+    rebuilds the pages it served."""
     if as_published:
         _, newest = publication.before_latest_publication(
             publication.history(city or cityconfig.active().slug, root=ledger_root))
         if newest is not None:
             return str(newest.published_at)[:10]
-    return publication.utc_now()[:10]
+    return (stamp or publication.utc_now())[:10]
 
 
 def fill_release_date(text: str, release: str) -> str:
@@ -1728,7 +1730,9 @@ def main(argv: list[str] | None = None) -> int:
     ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
     # The corrected date of this release's corrections entries (item 9 of
     # audits/2026-10-23-site-sweep/BRIEF-3-item35.md): one date per build.
-    release = release_date(args.as_published, city, ledger_root)
+    # The build's one instant: the ledger rows below are stamped with it too.
+    stamp = publication.utc_now()
+    release = release_date(args.as_published, city, ledger_root, stamp)
 
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
@@ -2308,7 +2312,7 @@ def main(argv: list[str] | None = None) -> int:
     # an experimental build can never be taken back, and this script is run
     # many times a day during a rewrite.
     ident = publication.run_identity(args.processed)
-    now = as_of_publication or publication.utc_now()
+    now = as_of_publication or stamp
     rows, changes = _ledger_candidates(published, classified, ident, now,
                                        reason=args.reason,
                                        change_class=args.change_class,
