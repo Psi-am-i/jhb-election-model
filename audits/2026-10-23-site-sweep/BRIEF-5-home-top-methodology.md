@@ -96,3 +96,20 @@ Apply item 39's answer as given. As recommended, which may change:
 - Do not sub-delegate. Report: each change with before and after text, the
   new token's value, any other page that compares seats with the party-list
   vote (list them, change nothing), test output, commits.
+
+## Part C. Two more (owner, 2026-10-25)
+
+12. **The methodology's ANC vote.** Owner: "yes on the citwide vote number".
+    The sentence "… a citywide list vote of about {{anc_list_share_median}}, …"
+    compares seats with the party-list vote alone. It becomes the combined
+    vote, as in item 5: a token for the ANC's median share of ward and
+    party-list votes together (statute tally, `seats.eligible_parties`), in
+    the simulations the sentence's own figure describes (read what
+    `anc_list_share_median` is a median over and keep that population), and
+    the words "a citywide list vote of about" become "a citywide vote of
+    about". Report both values. The old token is retired by
+    `revive_retire.py` (extend it as for `home.overhang_list_share`).
+13. **Footer.** Owner: "Follow us on X in footer?" with the link
+    https://x.com/whyseriouscity. Add the link "Follow us on X" to the site
+    footer on every page, in the footer's existing link style, opening the
+    link as the footer's other outside links do. No other words.
