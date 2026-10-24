@@ -15,58 +15,6 @@ Last updated: 2026-10-24.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
-### 35. Five wording questions before the freeze release
-
-**Context.** The release (frozen forecast, tone sweep, withdrawal of the
-in-sample scores) is built on `site-sweep-1`, not published. These five need
-your words or a judgement. My recommendation is in brackets.
-
-1. **A live corrections entry that is no longer true** (the "deliberate
-   choice" entry). Its "What is right" says "This Model uses only what was known
-   before each election it is tested on." Proposed: "Several of This Model's
-   settings had been chosen on records that include the elections it is tested
-   on; the test scores were withdrawn on 23 October 2026." [Yes]
-2. **A live corrections entry describing tooltips that are being removed**
-   ("forecasting that election from earlier ones"). Its "What is right" says the
-   home tooltips now explain the settings; the withdrawal removes those
-   tooltips. Proposed: "The ward counts are removed with This Model's other past
-   scores, withdrawn on 23 October 2026." [Yes]
-3. **The methodology repeats a claim already corrected.** It says the DA and
-   ActionSA "drawing from the same population group means that when one rises
-   in a simulation the other tends to fall… a mild offset". The correction of
-   23 October removed that claim from the forecast page because This Model
-   draws no such trade (the two rise and fall together). Remove the two
-   sentences from the methodology, and add "and the methodology" to that
-   correction's "What was wrong". [Yes]
-4. **"simulations" twice in the home stamp:** "This Model's simulations as of
-   23 October · 5,000 simulations". Proposed: "5,000 of This Model's
-   simulations as of 23 October". [Yes]
-5. **The "Single party majority" preset shows an empty table**, because the
-   coalition table lists combinations of two parties or more. Proposed: the
-   preset shows one row per party that ever wins a majority alone, with its
-   chance (today: MK, 2 of 5,000 simulations), and "No party wins a majority
-   alone in any simulation." when none does. [Yes]
-
-Two more need a word:
-- The who-can-govern lede keeps "The ANC without the DA has N workable
-  majorities", one party singled out. Remove it, as with the DA preset? [Yes]
-- The methodology says "Halfway is the owner's choice" (by-election weight).
-  Proposed: "Halfway is our choice." [Yes]
-
-**Partly answered 2026-10-24.** Owner: on 1 and 2, "These don't make any sense because the model now does not use information from before elections or what have we been doing? If we no longer use contaminated data, then say the model overclaimed this before today." On 5: "showing MK distorts their real chances, even if we say it. We need to show things that are more likely to be informational. The cut off for showing all coalitions should be 10% or even showing it there is a distortion." On the lede: "Put both the DA and the ANC's workable majorities since they are the two largest parties. The rest are fine." So 3, 4 and "Halfway is our choice" are approved as proposed.
-
-**The facts behind 1 and 2.** The 2026 forecast uses only what was known before the 2026 election: its settings were chosen on elections up to 2021 (PLAN step 5.1), and its other inputs (by-elections, the September 2026 roll, nominations, Census 2022) all predate polling day. The tests on past elections did not: their settings were chosen on results that include the elections tested (MODEL-LOG §1.337). Re-testing each past election from earlier ones only is PLAN steps 3 and 4, not yet run.
-
-**Revised proposals, for your yes:**
-- **1a. A new corrections entry** for the overclaim. Heading: "The model uses only what was known before each election it is tested on" — published 2 October 2026 (the date the entry's text carries), corrected on the release date. What was wrong: "A correction on this page said This Model uses only what was known before each election it is tested on, and that the about page's accuracy figures came from that version. That overclaimed: several of its settings had been chosen on results that include those elections." What is right: "This Model's 2026 forecast uses only what was known before the 2026 election. Its scores on past elections are withdrawn; re-scored figures, from earlier elections only, will be published on the methodology page."
-- **1b. The "deliberate choice" entry's What is right** becomes "This Model no longer uses party splits that happened after the election it is tested on." (Its What was wrong is about those splits, and that fix stands.)
-- **2.** "The ward counts are withdrawn with This Model's other scores on past elections."
-- **5. The 10% cut-off.** A combination is listed only if it governs in at least 10% of simulations (today the cut is a smallest majority in at least 5%). On the frozen forecast's page this takes the table from 21 rows to 16; the five dropped are DA+ActionSA+PA 8.6%, ANC+ActionSA+PA 8.5%, DA+MK+PA 8.1%, DA+EFF+PA 7.2%, ANC+EFF+PA 5.7% (`forecast-sheet.html`, `data-p`). The "How to read it" note gains: "Combinations that govern in fewer than 10% of the simulations are left out." The "Single party majority" preset shows the line "No party wins a majority alone in 10% or more of the simulations." while none does, and otherwise one row per party at or above 10%.
-- **6. The lede's last sentence** becomes "The ANC without the DA has N workable majorities, n of them with a better than even chance of reaching {majority} seats; the DA without the ANC has M, m of them with a better than even chance." At the 10% cut: ANC 8 and 4, DA 7 and 4 (counted from the same page).
-- **6b. Question.** The lede opens "If the DA rules out the ANC, the EFF and MK, ActionSA and the PA give it the numbers: 8.6% chance. With the smaller parties as well: 87.7% chance." That is one party's red lines, and the 8.6% route falls under the new cut. Remove those two sentences, so the lede is only the two-party sentence? [Yes]
-
-**Blocks.** The publish build and UAT.
-
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in

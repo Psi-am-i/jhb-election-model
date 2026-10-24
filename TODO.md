@@ -82,6 +82,8 @@ the page.
 
 ## Open, in the order I would take them
 
+**Owner item 35 (2026-10-24): the release wording.** Brief `audits/2026-10-23-site-sweep/BRIEF-3-item35.md`: a new corrections entry for the overclaim, two corrections entries reworded, the methodology offset sentences removed, the home stamp, the 10% coalition cut and single-party line, the lede with both parties' counts. Writer, then my diff review, then the release steps.
+
 **The out-of-sample round (`rounds/2026-10-23-out-of-sample/PLAN.md`).** Owner
 items 28 and 29 (2026-10-23). Step 0 is built and held unpublished on branch
 `step0-withdraw` (cb08153; reverted off `site-sweep-1` in b6469c3, whose 62
