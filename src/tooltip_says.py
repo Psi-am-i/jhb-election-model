@@ -146,8 +146,6 @@ SAYS: tuple[Say, ...] = (
     Say(rf"home\.wards_close\.{_p}", "wards", M,
         "The wards where {party} is the likeliest winner but wins in fewer than {safe} of " + _SIMS + "."),
     # --- the two-ballots strip: one typical simulation -----------------------
-    Say(r"ballots\.typical\.draw", "", M,
-        "The number given to the one simulation, of the {n}, closest to the middle of every party's range."),
     Say(r"ballots\.typical\.anc_wards", "wards", M,
         "The wards the ANC wins in the most typical of " + _SIMS + ", the one closest to the middle of every party's range."),
     Say(r"ballots\.typical\.anc_list", "seats", M,

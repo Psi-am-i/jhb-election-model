@@ -14,8 +14,8 @@ same day, and the forecast changed materially.
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.
 
-<aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
-<p>The figures below describe the model as it stood on 6 August 2026: the first version, and
+<aside class="since"><div class="since-h">{{generated_date}}: what This Model says now</div>
+<p>The figures below describe This Model as it stood on 6 August 2026: the first version, and
 the version after its fixes.
 The largest party today: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance
 it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. The ANC

@@ -313,8 +313,8 @@ def markdown(target: str, results: dict) -> str:
     add("| **uniform swing** | take the previous local election and add each party's change between the city's two national elections before the one forecast, equally in every voting district |")
     add("| **last result plus noise** | the previous result, with uncertainty added around it |")
     add("")
-    add("Uniform swing is the usual standard for judging election models, and "
-        "it is hard to beat. **Best baseline** below means whichever of the "
+    add("Uniform swing is the usual standard for judging election models. "
+        "**Best baseline** below means whichever of the "
         "three did best in that city.")
     add("")
     add("### The result, city by city")
@@ -361,7 +361,7 @@ def markdown(target: str, results: dict) -> str:
         m = r["model"]
         add(f"#### {r['name']} — {m['council']} seats")
         add("")
-        add("| party | actually won | our forecast | out by |")
+        add("| party | won | our forecast | out by |")
         add("|---|---|---|---|")
         shown = [p for p in m["parties"]
                  if not (p["actual"] == 0 and p["forecast"] == 0)]
@@ -397,7 +397,7 @@ def markdown(target: str, results: dict) -> str:
         "better; zero is perfect. It is in seats: a CRPS of 45 across a "
         "270-seat council is a small error.")
     add("")
-    add("**Calling the ward** is the hardest and most direct test: 135 "
+    add("**Calling the ward** is 135 "
         "separate first-past-the-post contests in Johannesburg alone. A "
         "forecast that got the council roughly right while misreading which "
         "streets vote which way would show up here.")

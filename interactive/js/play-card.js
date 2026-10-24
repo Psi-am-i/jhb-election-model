@@ -47,7 +47,7 @@ import { compose } from "./yf-url.js";
 export const SIZES = { link: CARD_SIZES.link, story: CARD_SIZES.story };
 export { SITE, STORY_TEXT_BOTTOM };
 export const INVITE = "Make your own prediction at " + SITE + "/your-forecast";
-export const PUBLISHED_STAMP = "The model's published forecast.";
+export const PUBLISHED_STAMP = "This Model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";

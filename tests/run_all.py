@@ -82,6 +82,9 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            # Added 2026-10-22 with the tooltips brief: the one tooltip writer
            # and the plain-sentence table, both ways round.
            "test_tooltip_says",
+           # Added 2026-10-24 with the tone sweep (BRIEF-2-tone.md, F): live
+           # reader text says "This Model" and names no internal term.
+           "test_reader_terms",
            # Added 2026-10-03 with the site-structure lane (items 9-15): the
            # nav, the pages cut from the sheet, the old anchors, the footer.
            "test_site_structure",

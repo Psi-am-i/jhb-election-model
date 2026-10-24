@@ -104,7 +104,7 @@ def render(cards: list[dict]) -> str:
                       # metros. What is missing is a 2026 FORECAST, and the
                       # card has to say which of the two it means.
                       f'<div class="pc-sub">{c["wards"]} wards in 2021. No 2026 '
-                      f'forecast yet — its 2021 backtest is on the '
+                      f'forecast yet. Its 2021 backtest is on the '
                       f'<a href="https://joburg.whysoserious.city/about">'
                       f'scoring page</a>.</div>')
             cta = "In preparation"

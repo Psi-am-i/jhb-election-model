@@ -741,8 +741,7 @@ def main(argv: list[str] | None = None) -> int:
         f' chance. The ANC without the DA has '
         f'{tok("govern.anc_routes", anc_routes, "int")} workable majorities, '
         f'{tok("govern.anc_routes_strong", anc_strong, "int")} of them with a better than '
-        f'even chance of reaching {{{{majority}}}} seats. This is arithmetic, not a '
-        f'judgement of which deal is likely.</p>')
+        f'even chance of reaching {{{{majority}}}} seats.</p>')
 
     govern_note = (
         f"<b>How to read it.</b> Each row is a smallest workable majority: it has the numbers, "
@@ -949,8 +948,8 @@ def main(argv: list[str] | None = None) -> int:
         for c in claims:
             since_html = ""
             if c.get("since"):
-                since_html = ('<aside class="since"><div class="since-h">{{generated_date}}: what the '
-                              'model says now</div><p>' + _md(_since(c["since"])) + "</p></aside>")
+                since_html = ('<aside class="since"><div class="since-h">{{generated_date}}: what This '
+                              'Model says now</div><p>' + _md(_since(c["since"])) + "</p></aside>")
             steps = "".join(
                 f'<li><div class="stepbody">{_md(_fill(with_holds(c, step)))}</div></li>'
                 for step in c.get("steps", []))
@@ -1060,9 +1059,8 @@ def main(argv: list[str] | None = None) -> int:
                 + chance("ballots.p_anc_excessive", p_excessive,
                          "forecast_summary.json p_excessive_by_party")
                 + " of the simulations")
-    ballots_caption = (f"The most typical result: of the {{{{n_draws}}}} simulations, the one "
-                       f"closest to the middle of every party's range (simulation "
-                       f"{tok('ballots.typical.draw', typical, 'int', 'seat_detail_draws.csv')}). "
+    ballots_caption = (f"The most typical simulation: of the {{{{n_draws}}}} simulations, the one "
+                       f"closest to the middle of every party's range. "
                        f"It is a single simulation, so its ward and list seats add up to the "
                        f"council exactly. Hover a segment for its seats. {anc_note}. ActionSA, "
                        "with broad support and no stronghold wards, takes almost all its seats "

@@ -54,7 +54,7 @@ which deletes it after three months.
 
 ## Shared predictions
 
-A prediction you make on [your prediction](your-forecast/) lives in its link. When
+A prediction you make on [Your prediction](your-forecast/) lives in its link. When
 you share it, three things happen on the site's server.
 
 - **The seal.** The page sends the prediction and its name to the server, which
@@ -89,7 +89,7 @@ seal, in a database at Cloudflare:
 - the name you typed on it, if any;
 - the time of the seal;
 - the seal's id, the part of the link's `s=` after the dot;
-- the model's version when it was sealed, and the version of the entry.
+- This Model's version when it was sealed, and the version of the entry.
 
 No IP address, browser details, cookie or account is stored with it. To limit
 how often one connection can seal, the server counts seals per connection for

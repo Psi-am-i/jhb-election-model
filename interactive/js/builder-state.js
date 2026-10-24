@@ -537,13 +537,13 @@ export function stateFromPrediction(ctx, pred) {
 // `detail` the developer's message, for the console only. Nothing is filled
 // in: a hand-off missing a ballot, a party or a ward is a failure.
 export function handoffResult(h, ctx) {
-  if (h && h.threw) return { ok: false, text: "the model did not answer", detail: String(h.threw.message || h.threw) };
-  if (h && h.refused) return { ok: false, text: "the model cannot use these settings, and says why beside them", detail: String(h.refused) };
+  if (h && h.threw) return { ok: false, text: "This Model did not answer", detail: String(h.threw.message || h.threw) };
+  if (h && h.refused) return { ok: false, text: "This Model cannot use these settings, and says why beside them", detail: String(h.refused) };
   try {
     return { ok: true, state: stateFromPrediction(ctx, h) };
   } catch (e) {
     const m = /has no (ward|list)_votes/.exec(String(e.message));
-    return { ok: false, text: m ? "the model's answer had no " + m[1] + " vote" : "the model's answer was incomplete",
+    return { ok: false, text: m ? "This Model's answer had no " + m[1] + " vote" : "This Model's answer was incomplete",
              detail: String(e.message || e) };
   }
 }

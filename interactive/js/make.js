@@ -232,7 +232,7 @@ async function handoffState(settings) {
 // Section 2 could not open at section 1's settings: say so in a plain
 // sentence, keep the developer's detail for the console, and stay where it is.
 function followFailed(res) {
-  one.followText.textContent = "Your changes to the model could not be opened here: " + res.text + ".";
+  one.followText.textContent = "Your changes to This Model could not be opened here: " + res.text + ".";
   console.warn("hand-off refused:", res.detail);
   waiting = null;
   one.reseed.hidden = true;
@@ -273,8 +273,8 @@ async function follow() {
   } else {
     waiting = next;
     one.followText.textContent = next.adjusted
-      ? "Your changes to the model have moved since this section opened from them."
-      : "Your changes to the model are undone since this section opened from them.";
+      ? "Your changes to This Model have moved since this section opened from them."
+      : "Your changes to This Model are undone since this section opened from them.";
     one.follow.hidden = false;
   }
 }
@@ -882,7 +882,7 @@ function afterEdit(active = null) {
   paintBrush();
   one.undo.disabled = !engineReady || locked || !history.size;
   const changed = state.calls.filter((c, i) => c !== from.calls[i]).length;
-  const whose = adjusted ? "your adjusted forecast's" : "the model's";
+  const whose = adjusted ? "your adjusted forecast's" : "This Model's";
   one.nchanged.textContent = changed ? changed + (changed === 1 ? " changed from " + whose + " call" : " changed from " + whose + " calls")
     : "as " + whose.replace(/'s$/, "") + " calls them";
   writeURL();

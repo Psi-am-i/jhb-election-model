@@ -7,7 +7,7 @@ The technical recipes, file by file, are in
 
 The IEC's results sites, `results.elections.org.za` and `www.elections.org.za`,
 refuse automated requests. Election results are public records, and no reason
-for the restriction is given. Most of the raw data behind this model was
+for the restriction is given. Most of the raw data behind This Model was
 collected through an ordinary browser session, one file at a time.
 
 The portal identifies each election by an internal code, not by its year, and
@@ -26,7 +26,7 @@ grain the IEC publishes:
 |---|---|
 | 2011, 2016, 2021 municipal elections | Both ballots — ward and party list — for every voting district |
 | 2000 and 2006 municipal elections | Turnout, for the range each population group's turnout is drawn from |
-| 1999 to 2024 national/provincial elections | The provincial ballot, the model's between-elections baseline |
+| 1999 to 2024 national/provincial elections | The provincial ballot, This Model's between-elections baseline |
 
 The files were not clean. Different years arrive in different character
 encodings, one from the DOS era. A voting station with a comma in its name
@@ -37,7 +37,7 @@ and the code that handles each, is on GitHub.
 
 ## The maps
 
-Council seats follow geography, so the model needs the boundaries of every ward
+Council seats follow geography, so This Model needs the boundaries of every ward
 and voting district across four boundary revisions: Johannesburg's wards have
 been redrawn before every election. The Municipal Demarcation Board publishes
 the recent layers through its mapping portal; the two older ward sets survive
@@ -55,17 +55,17 @@ current would be wrong.
 
 {{byelection_count}} by-elections have been held in {{byelection_wards}}
 Johannesburg wards since 2021. They are the only
-direct evidence of how opinion has moved between elections. The model reads them
+direct evidence of how opinion has moved between elections. This Model reads them
 and moves each party's expected share up to halfway toward what they imply (see the methodology). The IEC's official download page could not supply them: its report
 links work only inside the browser session that created them. The IEC's public
 dashboard is fed by plain data files that anyone can read, with more detail than
-the reports, down to voting-district level with every party and candidate. The
-model uses those.
+the reports, down to voting-district level with every party and candidate. This
+Model uses those.
 
 ## People
 
 Statistics South Africa publishes ward-level population estimates from Census
-2022 (age, sex and population group for all 135 wards). The model uses one
+2022 (age, sex and population group for all 135 wards). This Model uses one
 thing from them: each ward's population-group shares, which split that ward's
 registered voters into groups. Census 2022 publishes home language, income,
 dwelling type and employment only down to municipality level; Stats SA confirmed
@@ -76,7 +76,7 @@ in August 2026 that no small-area data was made for Census 2022.
 - **Historic voting-district boundaries.** The IEC draws these with its own
   mapping systems and appears never to have published them. Five archives and
   catalogues were searched; a request to the IEC's Delimitation Directorate is
-  the remaining route. The model works around the gap and tests that the
+  the remaining route. This Model works around the gap and tests that the
   workaround does not change its conclusions.
 - **The voters' roll by age and sex below municipality level**, and the
   registration figures from the 2026 sign-up weekends, which are not released

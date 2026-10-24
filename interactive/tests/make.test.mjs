@@ -249,7 +249,7 @@ test("an invalid link opens the section at its start with a note saying why", ()
   };
   const cases = {
     "another version of this page": with_("v", "1"),
-    "another version of the model's roster": with_("c", "000000000000"),
+    "another version of This Model's roster": with_("c", "000000000000"),
     "cut short": with_("f", f.slice(0, 40)),
     // four letters, so the result is still valid base64 whatever f's length
     // ("AA" was, or was not, depending on the start: f + "AA" can be a length

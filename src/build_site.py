@@ -213,7 +213,7 @@ SITE_HEAD = site_assets.head() + analytics_head()
 OG_TITLE = "Who governs Johannesburg after 4 November 2026?"
 OG_DESCRIPTION = ("The November vote, simulated: who could govern "
                   "Johannesburg, how the seat law shapes the council, and how "
-                  "sure the model is.")
+                  "sure This Model is.")
 
 OG_META = f"""<meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
@@ -344,13 +344,13 @@ MODEL_DOCS = {
         # council-growth reading of the seat law and is archived as superseded
         # (archive/superseded-pages/); the record of the errors is the log
         "MODEL-LOG.md",
-        "How the first version of the model was reviewed against its own plan, "
+        "How the first version of This Model was reviewed against its own plan, "
         "the errors that review found, and how each was fixed.",
     ),
     "docs-public/sources.md": (
         "sources.html",
         "Data sources",
-        "The model is built from election results, boundary maps, by-election "
+        "This Model is built from election results, boundary maps, by-election "
         "returns and census tables. This page traces each to its origin and "
         "records the state it was in when we found it.",
     ),
@@ -463,7 +463,7 @@ ARTEFACTS = {
     "claims.html": ("forecast-sheet.html", "claims",
                     "The parties' claims, tested", None,
                     "Public statements by the parties about November's result, "
-                    "each tested against the model's simulations."),
+                    "each tested against This Model's simulations."),
     "commentary.html": ("forecast-sheet.html", "commentary",
                         "Commentary · Johannesburg 2026", None,
                         "Dated articles on the Johannesburg council election: "
@@ -1159,7 +1159,7 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
         masthead += f'\n  <p class="standfirst">{standfirst}</p>'
     if tech is False:
         note = ("This page describes how the site is run. It is not part of "
-                "the model or its record.")
+                "This Model or its record.")
     elif str(source).startswith("docs-public/"):
         tech = tech or source.name.replace(".md", "").upper() + ".md"
         note = (f"Reader edition, generated from {source} on "
@@ -2359,6 +2359,13 @@ def main(argv: list[str] | None = None) -> int:
                                         edition=now_date, publishing=publishing, facts=facts,
                                         first_ledgered=first_ledgered, dated_on=dated_on)
                for c in changes}
+    # A frozen figure's moved-since marker carries its live counterpart's own
+    # tooltip, the same two lines as every other figure (tone sweep, owner,
+    # 2026-10-24: audits/2026-10-23-site-sweep/BRIEF-2-tone.md, D).
+    for t, (glyph, _now, cls) in list(arrows.items()):
+        tracked = (registry_entries.get(t) or {}).get("tracks")
+        if cls == "moved-since" and tracked in history:
+            arrows[t] = (glyph, history[tracked], cls)
     if changes:
         for page in sorted({p for c in changes for p in c["pages"]}):
             f = args.out / page
@@ -2377,7 +2384,7 @@ def main(argv: list[str] | None = None) -> int:
                 token = _re.search(r'data-token="([^"]+)"', m.group(0)).group(1)
                 glyph, was, cls = arrows[token]
                 return (m.group(0) + f'<span class="arrow mstat-move {cls}" '
-                        f'data-prov="{_html.escape(was, quote=True)}">{glyph}</span>')
+                        f'data-prov="{_html.escape(was, quote=True).replace(chr(10), "&#10;")}">{glyph}</span>')
             def _prov(m):
                 span = m.group(1)
                 if m.group(2) not in history:

@@ -19,7 +19,7 @@ The same scoring is applied to three baselines that need no model:
 | **uniform swing** | take the previous local election and add each party's change between the city's two national elections before the one forecast, equally in every voting district |
 | **last result plus noise** | the previous result, with uncertainty added around it |
 
-Uniform swing is the usual standard for judging election models, and it is hard to beat. **Best baseline** below means whichever of the three did best in that city.
+Uniform swing is the usual standard for judging election models. **Best baseline** below means whichever of the three did best in that city.
 
 ### The result, city by city
 
@@ -41,7 +41,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### Johannesburg — 270 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | ANC | 91 | 105 | +14 |
 | DA | 71 | 89 | +18 |
@@ -66,7 +66,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### Tshwane — 214 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | ANC | 75 | 79 | +4 |
 | DA | 69 | 71 | +2 |
@@ -88,7 +88,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### Ekurhuleni — 224 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | ANC | 86 | 98 | +12 |
 | DA | 65 | 66 | +1 |
@@ -111,7 +111,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### eThekwini — 222 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | ANC | 96 | 103 | +7 |
 | DA | 59 | 63 | +4 |
@@ -142,7 +142,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### Cape Town — 231 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | DA | 135 | 141 | +6 |
 | ANC | 43 | 53 | +10 |
@@ -166,7 +166,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### Mangaung — 101 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | ANC | 51 | 51 | +0 |
 | DA | 26 | 25 | -1 |
@@ -182,7 +182,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### Nelson Mandela Bay — 120 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | ANC | 48 | 46 | -2 |
 | DA | 48 | 54 | +6 |
@@ -202,7 +202,7 @@ The largest parties in each city, by seats won in 2021; the note under each tabl
 
 #### Buffalo City — 100 seats
 
-| party | actually won | our forecast | out by |
+| party | won | our forecast | out by |
 |---|---|---|---|
 | ANC | 61 | 57 | -4 |
 | DA | 20 | 22 | +2 |
@@ -224,7 +224,7 @@ Three measures appear above, and they measure different things.
 
 **CRPS** (the continuous ranked probability score) is the number in the comparison table. It scores the *whole range* a forecast gives, not just its midpoint. Saying "between 85 and 95 seats" and being right scores better than saying "exactly 90" and being right, and a confident wrong answer is punished more than a hedged one. Lower is better; zero is perfect. It is in seats: a CRPS of 45 across a 270-seat council is a small error.
 
-**Calling the ward** is the hardest and most direct test: 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.
+**Calling the ward** is 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.
 
 Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats given to the wrong party are the like-for-like comparison; their margin is smaller, and still in This Model's favour.
 

@@ -391,7 +391,7 @@ neither replicated. ⚠️ Under rule 11 the effective sample is close to two ev
 **Plain — No poll is used.** There is no designed rule yet for how several polls
 combine. With polls in, the forecast moves toward the polls the rules admit;
 what that was worth when measured is under *Where polls fit*, below. On [your
-forecast](your-forecast/) you can pick one poll at a time and choose how far to
+prediction](your-forecast/) you can pick one poll at a time and choose how far to
 believe it.
 
 **Where.** `montecarlo.py`, gates both live poll paths
@@ -564,7 +564,7 @@ and the vote freed is returned to all parties in proportion to their share.
 Without the cut, forecasts of past elections gave the largest parties too much
 and the middle-sized parties too little; adding it was the largest single
 improvement This Model has had. The smallest parties are now forecast slightly
-too high. It cannot be changed on [your forecast](your-forecast/).
+too high. It cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
 
@@ -1061,7 +1061,7 @@ up or down. The curve is wider for a smaller party and for a party new to the
 city. Its width is measured from how far This Model's expected shares missed in
 the past elections before this one. Parties below a fifth of the vote share part
 of each simulation's move; a party with a fifth or more moves on its own. It
-cannot be changed on [your forecast](your-forecast/).
+cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `montecarlo.make_drawer` (the draw, the calibration pass, the composition subtraction), `montecarlo.party_width`, `width_sigma`, `width_location`, `width_rho`, `pool_spec_centres`, `mean_conservation`; `src/width_record.py` (the record); scenario key `draw_law`.
 
@@ -1143,7 +1143,7 @@ A party whose only earlier vote is the 2021 local election has no such range
 and moves halfway. A party with no earlier vote at all is covered under new
 parties and by-elections. A party that stood only for ward seats in 2021, and
 not on the party list, is not moved. In
-Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your forecast](your-forecast/) you can make
+Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make
 by-elections count not at all or fully.
 
 **Where.** `DEFAULTS["w_bye"]` in `src/montecarlo.py`, applied by `montecarlo.bye_weight` (override branch) in `montecarlo.blended_centres`: `centre = 0.5 × level + 0.5 × clamped`, where `clamped` is the previous local list share plus `byelections.delta_pr`, held inside θ's relative band around the level (`PLAN_BOUNDS`, empty by default, for a party with no θ prior, so a party with no national share is not capped). A party with no previous PR share that stood on the 2021 ward ballot is skipped (`bye.ward_only_base_skipped`). Parties below `BYE_MIN_WEIGHT` of contest weight are not moved. The level shrink and normalisation come after the blend.
@@ -1159,7 +1159,7 @@ by-elections count not at all or fully.
 **Plain — New parties and by-elections.** A party with no vote in the 2024
 national election and none in the 2021 local election, on the list or in a
 ward, is not moved by its by-elections, and the by-election setting on
-[your forecast](your-forecast/) does not move it either. A few ward contests
+[your prediction](your-forecast/) does not move it either. A few ward contests
 are not enough to size a party nobody has measured before; such a party is
 sized the way earlier new parties did in their first election.
 
@@ -1204,7 +1204,7 @@ past local elections in the metros. Black African, Coloured and White turnout
 have moved closely together, and Indian/Asian turnout much less. Separate
 figures for each pair have not been tried. Removing the link was tested and
 changed the forecast's spread very little, and why it matters so little is not
-yet explained. It cannot be changed on [your forecast](your-forecast/).
+yet explained. It cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `montecarlo.py`
 
@@ -1996,7 +1996,7 @@ turnout differs between voting districts is set about half by each district's
 own 2021 turnout and half by a projection from how far its turnout fell from
 the national to the local election in 2016 and 2021, with 2021 counting for
 70%. That weight comes from This Model's original plan and has never been
-tested. On [your forecast](your-forecast/) you can move the turnout of any or
+tested. On [your prediction](your-forecast/) you can move the turnout of any or
 all four population groups at once. A group you leave alone stays at the
 forecast's turnout.
 
@@ -3993,7 +3993,7 @@ any absent party's vote does. In 2026 ActionSA inherits from Forum 4 Service
 Delivery, and Rise Mzansi from GOOD. No merger in the record shows how much
 carries over, so the share is a judgement; a review in September that was not
 shown our reasoning recommended 50%. A lower share moves the inheriting party
-down. It cannot be changed on [your forecast](your-forecast/).
+down. It cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `pools.MERGER_RETENTION`, read at call time by `pools.apply_mergers`,
 which every function in `pools.MERGER_CONSUMERS` calls: `montecarlo.run_model`

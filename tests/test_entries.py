@@ -485,7 +485,7 @@ def test_wrangler_toml_states_the_limit_and_the_owner_commands():
 PRIVACY_MUST = (
     "## Predictions entered",
     "the prediction", "the name you typed", "the time of the seal", "the seal's id",
-    "the model's version",
+    "This Model's version",
     "each party's vote on the ward ballot and on the list ballot",
     "the version of the entry",
     "No IP address, browser details, cookie or account",

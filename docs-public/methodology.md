@@ -1,4 +1,4 @@
-# How the model works
+# How This Model works
 
 The full technical record, every file and every workaround, is in the
 [public repository](https://github.com/Psi-am-i/jhb-election-model).
@@ -36,7 +36,7 @@ applies, the party's ward count is a floor, its list seats go to zero, and the
 other parties share the list seats that remain, inside a council fixed at
 {{council_size}} with the majority at {{majority}}.
 
-## The model, step by step
+## This Model, step by step
 
 ### 1. Count who can vote, and where
 
@@ -127,7 +127,7 @@ judgement calls*, below).
 
 ### 5. Handle parties that were not there last time
 
-This is the hardest part of forecasting an election. There are two kinds of
+There are two kinds of
 new party, and they behave differently:
 
 - A **split** is a known person leaving a known party and taking some of its
@@ -154,8 +154,7 @@ Town.
 ### 6. Paint the result back onto the map
 
 Each drawn outcome is spread back across all {{n_vds}} voting districts using
-each party's own geography: where its votes were last time. This is the
-best-tested idea in This Model. *Where* a party's support sits barely moves
+each party's own geography: where its votes were last time. *Where* a party's support sits barely moves
 between elections, even when *how much* it has swings widely.
 
 ### 7. Count both ballots and apply the law
@@ -241,23 +240,23 @@ wards.
 
 These are choices about how This Model works that the data did not make for us. Each is filed, with its evidence, in the [register of judgement calls](https://github.com/Psi-am-i/jhb-election-model/blob/main/JUDGEMENT-CALLS.md).
 
-**No poll is used.** There is no designed rule yet for how several polls combine. With polls in, the forecast moves toward the polls the rules admit; what that was worth when measured is under *Where polls fit*, below. On [your forecast](your-forecast/) you can pick one poll at a time and choose how far to believe it.
+**No poll is used.** There is no designed rule yet for how several polls combine. With polls in, the forecast moves toward the polls the rules admit; what that was worth when measured is under *Where polls fit*, below. On [your prediction](your-forecast/) you can pick one poll at a time and choose how far to believe it.
 
-**The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement This Model has had. The smallest parties are now forecast slightly too high. It cannot be changed on [your forecast](your-forecast/).
+**The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement This Model has had. The smallest parties are now forecast slightly too high. It cannot be changed on [your prediction](your-forecast/).
 
-**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far This Model's expected shares missed in the past elections before this one. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your forecast](your-forecast/).
+**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far This Model's expected shares missed in the past elections before this one. Parties below a fifth of the vote share part of each simulation's move; a party with a fifth or more moves on its own. It cannot be changed on [your prediction](your-forecast/).
 
-**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Tested on the 2021 election in the eight metros, equal weight gave the smallest error in the party-list vote, with weights a little either side close behind; that is one election's test. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your forecast](your-forecast/) you can make by-elections count not at all or fully.
+**How much recent by-elections count.** Each party's expected share is set halfway between what This Model expects from earlier elections and what the by-elections since 2021 imply for it. Tested on the 2021 election in the eight metros, equal weight gave the smallest error in the party-list vote, with weights a little either side close behind; that is one election's test. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than This Model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make by-elections count not at all or fully.
 
-**New parties and by-elections.** A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on [your forecast](your-forecast/) does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.
+**New parties and by-elections.** A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on [your prediction](your-forecast/) does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.
 
-**Turnout moves together across population groups.** In each simulation, turnout in the four population groups rises and falls together, to one degree for every pair: the average of how closely each pair's turnout moved between past local elections in the metros. Black African, Coloured and White turnout have moved closely together, and Indian/Asian turnout much less. Separate figures for each pair have not been tried. Removing the link was tested and changed the forecast's spread very little, and why it matters so little is not yet explained. It cannot be changed on [your forecast](your-forecast/).
+**Turnout moves together across population groups.** In each simulation, turnout in the four population groups rises and falls together, to one degree for every pair: the average of how closely each pair's turnout moved between past local elections in the metros. Black African, Coloured and White turnout have moved closely together, and Indian/Asian turnout much less. Separate figures for each pair have not been tried. Removing the link was tested and changed the forecast's spread very little, and why it matters so little is not yet explained. It cannot be changed on [your prediction](your-forecast/).
 
 **The excessive-seats clause.** The clause is applied as amended in 2021, with the arithmetic the Commission used in Laingsburg in 2021 (see *How Johannesburg's council elections work*). No court has ruled on it. [Your prediction](your-forecast/) seats every council under South African law, and shows three versions of Germany's seat law beside it for comparison; two of them enlarge the council and move the majority line.
 
-**Expected turnout starts at 2021.** Each population group's expected turnout is its turnout at the 2021 local election. Its range is as wide as that group's turnout has swung across Johannesburg's local elections since 2000. How turnout differs between voting districts is set about half by each district's own 2021 turnout and half by a projection from how far its turnout fell from the national to the local election in 2016 and 2021, with 2021 counting for 70%. That weight comes from This Model's original plan and has never been tested. On [your forecast](your-forecast/) you can move the turnout of any or all four population groups at once. A group you leave alone stays at the forecast's turnout.
+**Expected turnout starts at 2021.** Each population group's expected turnout is its turnout at the 2021 local election. Its range is as wide as that group's turnout has swung across Johannesburg's local elections since 2000. How turnout differs between voting districts is set about half by each district's own 2021 turnout and half by a projection from how far its turnout fell from the national to the local election in 2016 and 2021, with 2021 counting for 70%. That weight comes from This Model's original plan and has never been tested. On [your prediction](your-forecast/) you can move the turnout of any or all four population groups at once. A group you leave alone stays at the forecast's turnout.
 
-**What a merger keeps.** When parties merge, or one stands down for another, and only one of them is on the ballot, it inherits 75% of the other's previous vote. The rest goes to the parties that compete for the same voters, as any absent party's vote does. In 2026 ActionSA inherits from Forum 4 Service Delivery, and Rise Mzansi from GOOD. No merger in the record shows how much carries over, so the share is a judgement; a review in September that was not shown our reasoning recommended 50%. A lower share moves the inheriting party down. It cannot be changed on [your forecast](your-forecast/).
+**What a merger keeps.** When parties merge, or one stands down for another, and only one of them is on the ballot, it inherits 75% of the other's previous vote. The rest goes to the parties that compete for the same voters, as any absent party's vote does. In 2026 ActionSA inherits from Forum 4 Service Delivery, and Rise Mzansi from GOOD. No merger in the record shows how much carries over, so the share is a judgement; a review in September that was not shown our reasoning recommended 50%. A lower share moves the inheriting party down. It cannot be changed on [your prediction](your-forecast/).
 
 <!-- __JUDGEMENTS_END__ -->
 
@@ -278,7 +277,7 @@ These are choices about how This Model works that the data did not make for us. 
   party that is established but small sometimes reaches a share no such party
   has reached in the record. In the eight metros' consecutive local elections
   from 2006 to 2021, {{small_party_record_cases}} times a party had under {{small_party_share}} of the list vote at
-  one election, and none reached {{small_party_surge_share}} at the next ([model log, §1.296](https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md)).
+  one election, and none reached {{small_party_surge_share}} at the next.
   In this forecast, {{small_party_surge}} of the simulations give at least one such
   party more than {{small_party_surge_share}}. A fix is in progress.
 - **Arithmetic is not politics.** This Model says which governments are
@@ -311,14 +310,14 @@ removing polls changed the total seat error from
 distributional score (CRPS) from {{polls_off_crps_before}} to
 {{polls_off_crps_after}}. Both moved the right way and neither by much: seven
 elections moved at all, one of them by six seats *against* the change. **The
-poll channel's contribution cannot be distinguished from zero.** That is a
+polls' contribution cannot be distinguished from zero.** That is a
 reason not to let it move a published headline while its design is unsettled.
 
 ### What we intend
 
 We intend to use every poll received and to put the weighting in the
 reader's hands.
-[Your forecast](your-forecast/) has a first version: you choose how far to trust
+[Your prediction](your-forecast/) has a first version: you choose how far to trust
 each poll, and the published simulations are re-weighted in your browser. The
 published forecast uses no poll.
 

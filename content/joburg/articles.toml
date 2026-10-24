@@ -33,7 +33,7 @@ date = "2026-08-08"
 title = "Nobody will win Johannesburg — and an obscure voting law will give the ANC more seats than expected"
 standfirst = """Johannesburg votes on two ballots at once, and they are added
 together. A party with tightly concentrated support can win more wards than its
-share entitles it to — and nobody unseats a ward winner. The other parties
+share entitles it to, and nobody unseats a ward winner. The other parties
 share the list seats that remain. The only case found in the Commission's seat
 calculations we searched is a Karoo town of seven seats."""
 href = "nobody-will-win"
@@ -45,8 +45,7 @@ date = "2026-08-08"
 title = "When the ANC falls, nobody catches the votes"
 standfirst = """The opposition captured essentially none of the {{bloc_leak_votes}} votes
 the ANC bloc shed between the 2019 national election and the 2021 local
-election. The city's collapse in ANC support did not
-become anybody else's gain — it became abstention."""
+election. The city's collapse in ANC support became abstention."""
 href = "nobody-catches-the-votes"
 
 [[article]]

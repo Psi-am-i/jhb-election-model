@@ -227,7 +227,7 @@ async function ready(m) {
   const notes = [];
   if (YU.nameRefused(location.search)) parsed.dropped.push("name: at most " + PS.NAME_MAX + " characters");
   if (parsed.dropped.length) notes.push("Some settings in this link were not applied: " + parsed.dropped.join("; ") + ".");
-  if (parsed.otherVersion) notes.push("This link was made against a different version of the model; its settings are applied to the current one.");
+  if (parsed.otherVersion) notes.push("This link was made against a different version of This Model; its settings are applied to the current one.");
   if (notes.length) { R.linknote.textContent = notes.join(" "); R.linknote.hidden = false; }
   R.engine.textContent = "";
   ask(PS.engineSettings(PS.defaults(ctx))).then(async r => {
@@ -318,7 +318,7 @@ function buildControls() {
   inputs.trustzone = sv("svg", { class: "pl-zone", "aria-hidden": "true" });
   R.trust.append(el("label", { className: "pl-tlab", htmlFor: "trust" }, el("span", {}, "How much to believe it"), inputs.trustv),
     el("div", { className: "pl-track" }, trust, inputs.trustzone),
-    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": the model's error for this poll")));
+    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": This Model's error for this poll")));
   // why the slider stops, or why a poll cannot be chosen: the page's slot
   // after the slider's block, not in it, because the block fades while no
   // poll is chosen, which is when a refused poll's reason is shown
