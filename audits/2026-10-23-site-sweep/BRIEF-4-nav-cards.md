@@ -1,4 +1,4 @@
-# Brief 4: the nav break and the share cards
+# Brief 4: the nav break, the share cards, the phone layout
 
 Owner, 2026-10-24, with screenshots: "Please remove the forced break in our
 menu items. i.e after party claims" and "it looks like all our social share
@@ -41,6 +41,21 @@ the "24 October 2026" form, from the same date the page prints (no typed
 date). Placement: the card's existing small text line; show me a rendered
 card of each layout (forecast, claims, claim, article, interactive) before
 committing. These are the only new words.
+
+## 4. Your prediction, phone layout
+
+Owner, 2026-10-24: "on mobile layout for your Prediction - In the first
+section Changing Our forecast, the first thing should be the map and party
+table. They are last. The order is right in Your Prediction." In "Adjust our
+forecast" (`#adjust`), the DOM order is `.pl-controls` then
+`.pl-resultscol`; the desktop media query in `interactive/css/play.css` sets
+them side by side, and at phone width they stack in DOM order, so the map and
+the party table come after every control. At phone width, put
+`.pl-resultscol` first, matching the "Make your own prediction" section. Keep
+the desktop layout and the sticky controls unchanged; check that nothing
+sticky covers the results at phone width, and that tab order still follows
+what the reader sees (if `order` alone would break it, move the markup).
+Show me screenshots at 390 px and at desktop width.
 
 ## Limits
 
