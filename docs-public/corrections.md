@@ -2,15 +2,15 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
-## <span data-asof="RELEASE_DATE">"The whole model beats simple baselines"</span> — published 6 October 2026, corrected RELEASE_DATE
+## <span data-asof="2026-10-25">"The whole model beats simple baselines"</span> — published 6 October 2026, corrected 25 October 2026
 
-<span data-asof="RELEASE_DATE">**What was wrong.** The methodology's scoring section, and the pages quoting it, presented This Model's scores against past elections as a test of forecasting each election from earlier ones. Several of its settings had been chosen on records that include the elections scored.
+<span data-asof="2026-10-25">**What was wrong.** The methodology's scoring section, and the pages quoting it, presented This Model's scores against past elections as a test of forecasting each election from earlier ones. Several of its settings had been chosen on records that include the elections scored.
 
 **What is right.** The scores are withdrawn. Re-scored figures, from earlier elections only, will be published on the methodology page.</span>
 
-## <span data-asof="RELEASE_DATE">"The model uses only what was known before each election it is tested on"</span> — published 2 October 2026, corrected RELEASE_DATE
+## <span data-asof="2026-10-25">"The model uses only what was known before each election it is tested on"</span> — published 2 October 2026, corrected 25 October 2026
 
-<span data-asof="RELEASE_DATE">**What was wrong.** That overclaimed, because several scores on previous elections had been inadvertently using data that included those same elections.
+<span data-asof="2026-10-25">**What was wrong.** That overclaimed, because several scores on previous elections had been inadvertently using data that included those same elections.
 
 **What is right.** This Model's 2026 forecast uses only what was known before the 2026 election. Its scores on past elections are withdrawn; re-scored figures, for earlier elections, will be published on the methodology page.</span>
 
