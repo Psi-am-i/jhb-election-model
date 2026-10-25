@@ -779,7 +779,7 @@ here first, so anything stale in this file is read as an instruction.
 >    a historical claim. **No `--allow-*` flags.**
 > 8. `src/declares.py --verify`, then `tests/run_all.py -k published_page -k
 >    stat_freshness -k publication_ledger -k build_all`.
-> 9. Freeze, `build_site.py --publish …`, commit, push `atlas`, then
+> 9. Freeze, `build_site.py --publish …`, commit, push `hub`, then
 >    `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy`. **Verified 2026-09-16:
 >    wrangler authenticates as psi@whysoserious.club via OAuth. The bare
 >    `npx wrangler whoami` FAILS** — a stale `CLOUDFLARE_API_TOKEN` placeholder
