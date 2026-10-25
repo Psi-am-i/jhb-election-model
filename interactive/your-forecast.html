@@ -86,7 +86,18 @@
          section 1's, and section 2 opens from them by its own rule -->
     <div class="pl-bannerwrap">
       <div class="pl-banner pl-pub" aria-label="Seats in the published forecast"><span class="pl-bstate">Published forecast</span><!-- __PLAY:banner__ --></div>
-      <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your changes"></div>
+      <!-- a phone's header (owner, 2026-10-25, BRIEF-6 part A): the reader's
+           ward map, small, linking to the full one (model.js draws it), and
+           "Your changes" in one block under the published row: the seats
+           and the settings line -->
+      <a class="pl-minimap" href="#ward-map" data-live="minimap" aria-labelledby="h-wards"></a>
+      <div class="pl-minebox">
+        <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your changes"></div>
+        <div data-live="status" class="pl-statusbox">
+          <div class="pl-status yf-slot" hidden><span class="pl-dot"></span><span class="pl-settings yf-clamp"></span>
+            <button class="btn pl-back" type="button">Back to the forecast</button></div>
+        </div>
+      </div>
     </div>
     <h2 id="h-adjust" class="yf-shead">Adjust our forecast</h2>
     <p class="yf-sdek yf-sub">Move turnout by population group, take a poll into account, decide how much by-election
@@ -101,15 +112,13 @@
           <div data-live="engine" data-election="<!-- __PLAY:election__ -->"><p class="pl-engine yf-slot" role="status">Loading. The published forecast is shown until it is ready.</p>
             <p class="pl-linknote" hidden></p></div>
           <div data-live="result" class="pl-result">
-            <div class="pl-status yf-slot" hidden><span class="pl-dot"></span><span class="pl-settings yf-clamp"></span>
-              <button class="btn pl-back" type="button">Back to the forecast</button></div>
             <p class="pl-oneline yf-slot"></p>
             <p class="visually-hidden pl-announce" aria-live="polite"></p>
           </div>
           <p class="pl-oneline pl-pub yf-slot"><!-- __PLAY:oneline__ --></p>
           <div class="pl-rgrid">
-            <figure class="pl-mapfig">
-              <figcaption class="pl-fhead"><h2>Who wins each ward</h2></figcaption>
+            <figure class="pl-mapfig" id="ward-map">
+              <figcaption class="pl-fhead"><h2 id="h-wards">Who wins each ward</h2></figcaption>
               <div class="pl-pub pl-maptwin"><!-- __PLAY:map__ --></div>
               <div class="pl-livemap" data-live="map"></div>
             </figure>

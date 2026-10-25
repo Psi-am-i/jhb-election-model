@@ -260,13 +260,14 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # "Your forecast" (src/build_your_forecast.py), section 1, "Adjust the
     # model" (interactive/js/model.js): the controls it builds and every figure
     # a reader's settings produce. Each results region is the LIVE twin of a
-    # build twin of tokens (DESIGN §4, 2026-10-02): banner, result (the status
-    # strip and the one-line result), map and its tooltip, flips, seats; then
+    # build twin of tokens (DESIGN §4, 2026-10-02): banner, the status strip
+    # under it and the header's small ward map (BRIEF-6, 2026-10-25), result
+    # (the one-line result), map and its tooltip, flips, seats; then
     # the controls, the line under the by-elections, the seat law's summary,
     # the note's effective count, the floating "computing" overlay and the
     # phone's change toast.
     "your-forecast/js/model.js": frozenset({
-        "engine", "busy", "banner", "result", "map", "wardtip", "flips", "seats",
+        "engine", "busy", "banner", "status", "minimap", "result", "map", "wardtip", "flips", "seats",
         "turnout", "polls", "trust", "trustwhy", "cells", "byelection", "law", "lawnow", "ess",
         "toast",
     }),

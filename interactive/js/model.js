@@ -72,9 +72,10 @@ const R = {
   linknote: document.querySelector('[data-live="engine"] .pl-linknote'),
   banner: document.querySelector('[data-live="banner"]'),
   result: document.querySelector('[data-live="result"]'),
-  status: document.querySelector('[data-live="result"] .pl-status'),
-  settings: document.querySelector('[data-live="result"] .pl-settings'),
-  back: document.querySelector('[data-live="result"] .pl-back'),
+  status: document.querySelector('[data-live="status"] .pl-status'),
+  settings: document.querySelector('[data-live="status"] .pl-settings'),
+  back: document.querySelector('[data-live="status"] .pl-back'),
+  minimap: document.querySelector('[data-live="minimap"]'),
   oneline: document.querySelector('[data-live="result"] .pl-oneline'),
   announce: document.querySelector('[data-live="result"] .pl-announce'),
   map: document.querySelector('[data-live="map"]'),
@@ -655,6 +656,7 @@ addEventListener("resize", () => { if (settingsNow.length) fitSettings(); });
 function render(r, touched, state = st) {
   offerShare(r, state);
   told(state);
+  renderMini(r);
   const moves = changes(r);
   if (touched) R.result.setAttribute("data-touched", "");
   else R.result.removeAttribute("data-touched");
@@ -734,6 +736,22 @@ function renderMap(r) {
   defs, ...fills, ...hatches, ...rings, ...places,
   sv("text", { x: Math.round(geometry.W) - 14, y: 20, "text-anchor": "end", class: "pl-north" }, "N ↗")));
   tips = Object.fromEntries(r.wards.map(w => [w.ward, w.tip]));
+}
+
+// The header's small copy of the ward map (owner, 2026-10-25, BRIEF-6 A3):
+// the same calls as the map below, published or under the reader's settings,
+// drawn from the same boundaries (ward_paths.json), fills only. It is a link
+// to the full map; css/your-forecast.css sizes it and grows it on hover.
+function renderMini(r) {
+  clear(R.minimap);
+  if (!geometry) return;
+  const fills = [];
+  for (const w of r.wards) {
+    const d = geometry.paths[w.ward];
+    if (d) fills.push(sv("path", { d, fill: w.fill }));
+  }
+  R.minimap.append(sv("svg", { class: "pl-minisvg", viewBox: "0 0 " + Math.round(geometry.W) + " " + Math.round(geometry.H),
+    "aria-hidden": "true", focusable: "false" }, ...fills));
 }
 
 let tips = {};
