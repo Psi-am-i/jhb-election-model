@@ -5,6 +5,68 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 43. Two yeses: the methodology tooltip, and promoting the current UAT version — answered 2026-10-25
+
+**Context.** UAT version d680538f (https://d680538f-joburg-whysoserious.psi-02e.workers.dev) holds the home-page top, the methodology changes, "Follow us on X" in the footer and the methodology's combined-vote "23%". Its page checks passed. Its tooltip on the methodology's 23% reads: "SOURCE: This Model. The ANC's middle share of the votes, ward and party-list together, across 5,000 simulations."
+
+**Decisions.**
+1. That tooltip text.
+2. Promote d680538f to the live site now, with Brief 6 to follow as its own UAT version.
+
+**Recommendation.** Yes to both. Promoting now keeps the publication record (dated 24 October) true; Brief 6 does not depend on it.
+
+**Blocks.** The live site's next update.
+
+**Answered 2026-10-25.** Owner: "make the changes and publish. these are so minor full UAT seems rather pointless. just check teh e[…] site" Recorded: Read as yes to both: the tooltip stands, and Brief 6 goes live with d680538f's changes in one publish, checked on the page tier (QC.md §4b) and by looking at the site; no whole suite.
+
+### 42. "Tap or drag" on a phone — answered 2026-10-25
+
+**Context.** Your instruction for the ward map is "Choose a party below, then tap or drag across wards to give them ward wins." On a computer both work. On a phone a tap gives a ward; a drag scrolls the page, by design, so a finger can scroll past the map.
+
+**Options.**
+1. Keep the one sentence everywhere.
+2. Make a drag paint on a phone too, while a party is chosen; the page then scrolls only outside the map.
+3. On phones only, "Choose a party below, then tap wards to give them ward wins."
+
+**Recommendation.** 3.
+
+**Blocks.** Nothing; Brief 6 uses your sentence until answered.
+
+**Answered 2026-10-25.** Owner: "tap only yes." Recorded: Option 3: on touch screens the instruction reads "Choose a party below, then tap wards to give them ward wins." Brief 6 Part E.
+
+### 41. The ward vote and the list vote on /your-forecast — answered 2026-10-25
+
+**Context.** Each party row has a list-vote slider and, under "Adjust ward vote", a box reading "Ward vote: points from list vote". The number in the box is the party's ward-ballot share minus its list-ballot share in the published forecast: ActionSA -2.7 means its ward vote starts 2.7 points below its list vote (9.1% against 11.8%); EFF +1.0 means 1.0 point above. Moving the slider keeps that gap. The figure is the gap, not a vote, which is why it reads as unexplained.
+
+**Options.**
+1. Show two plain figures per party, "Ward vote" and "List vote", each editable, no gap box.
+2. Keep one slider (the list vote) and show the ward vote beside it as a figure, with the gap box removed; a reader who wants a different ward vote types it.
+3. Keep the gap box and rename it.
+
+**Recommendation.** 2: one control per party, and both ballots in view as percentages. Needs your yes to these words: the column headings "List vote" and "Ward vote", and no other text.
+
+**Blocks.** That part of Brief 6.
+
+**Answered 2026-10-25.** Owner: "sliders and vote, fine." Recorded: Option 2: one list-vote slider per party, the ward vote shown beside it; headings "List vote" and "Ward vote". Brief 6 Part E.
+
+### 40. Where each party's votes come from: the chart shows a fit sitting on its limits — answered 2026-10-25
+
+**Context.** /your-forecast's chart "Where each party's votes come from" gives the ANC "over 99%" Black African and the EFF, IFP and MK 100%. You said this is impossible. Measured (MODEL-LOG §1.338): the chart prints the model's pool fit as it is, and the fit has put most parties on a corner of what the 2021 ward results allow. The ward arithmetic alone allows the ANC 0% to 71% of Indian/Asian voters and 0% to 26% of white voters; the fit chose 0% for both. The EFF, IFP and Al Jama-ah sit at the limit where every one of their votes comes from one group. The model's own record already marks the ANC's Indian/Asian and white figures as not pinned down by the data; the chart does not say so.
+
+These figures are not only on the chart. They drive the population-group turnout controls on the same page and the forecast's turnout adjustment, so changing them moves forecast numbers.
+
+**Options.**
+1. Keep the fit; on the chart, mark the figures the data does not pin down (hatched, with a note). Needs your words for the note.
+2. Re-fit (a method that does not run to the limits) as a model round after 4 November, with the usual checks.
+3. Re-fit before 4 November. It moves the forecast ten days out, and the round (pre-registration, review, backtest, full suite) would have to finish in that time.
+4. Take the chart off the page until it is re-fitted.
+
+**Recommendation.** 4 now and 2 after 4 November. Option 1 still prints 0% for the ANC among white voters as a figure.
+
+**Blocks.** Nothing else in Brief 6.
+
+**Answered 2026-10-25.** Owner: "take the chart off leave the population group sliders." Recorded: Option 4: the chart comes off /your-forecast; the population-group turnout controls stay. Re-fit (option 2) to TODO.md for after 4 November. Brief 6 Part E.
+
 ### 39. What leaves the methodology page — answered 2026-10-25
 
 **Context.** Owner, 2026-10-25: the methodology "is now a corrections page. It

@@ -109,3 +109,29 @@ the purple "Your changes" block. Owner: "optimise the space".
 - Do not sub-delegate. Report: each change with before and after, the cause
   of the gaps, every word you needed and did not write, test output, commits,
   screenshots.
+
+## Part E. Owner's answers, 2026-10-25 (items 40-42)
+
+14. **Remove the chart "Where each party's votes come from"** from
+    /your-forecast: its heading, legend, bars, intro sentence and the note
+    and footnote markers only it uses (`build_play.composition` and what only
+    it feeds). The population-group turnout controls stay. Its stats tokens
+    (`play.votes.*`, `play.roll.*`) go to `revive_retire.py` as for brief 5;
+    extend it if `--apply` would stop. Note 4 ("… did not stand in 2021")
+    stays if anything else on the page points at it; say which.
+15. **The vote table.** One list-vote slider per party as now; the "Adjust
+    ward vote" box and its "Ward vote: points from list vote" text go; each
+    row shows the party's ward vote beside it as a percentage. Column
+    headings "List vote" and "Ward vote". The engine is unchanged (the gap
+    stays as it is, just not edited by the reader). A party with no list
+    keeps its ward-vote row as now. The note `#note-vote`'s sentence
+    'its ward vote follows it, as many points above or below as "Adjust ward
+    vote" says' names a control that is gone: list it in the report with a
+    proposed replacement; do not write it.
+16. **Touch screens.** Where the pointer is coarse, the instruction reads
+    "Choose a party below, then tap wards to give them ward wins."; elsewhere
+    the Part B sentence.
+
+The whole brief then goes live in one publish (owner: "make the changes and
+publish … just check the site"). So after Part E: the interactive tests and
+the page-tier modules listed under Limits, and the screenshots.
