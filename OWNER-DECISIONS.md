@@ -15,6 +15,35 @@ Last updated: 2026-10-25.
 
 Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 
+### 44. /your-forecast: four small follow-ups from the 25 October release
+
+**Context.** Brief 6 is live (25 October). Four things it left need your words
+or your yes. Nothing is blocked by them; each is a small site change.
+
+**Decisions.**
+1. **Note 6, the ward vote.** The clause naming the removed "Adjust ward vote"
+   control was deleted, so the note no longer says how a party's ward vote is
+   set. Add: "Its ward vote follows it, the same number of points above or
+   below it as in our prediction, and is shown beside it." Or leave it out.
+2. **The small map's name for screen readers.** It currently borrows the full
+   map's name, "Who wins each ward". Proposed: "Your ward map, small: go to the
+   full map".
+3. **"Share this forecast".** The section-1 button and the share dialog's
+   heading (`src/build_your_forecast.py` line 131) and the "Share this
+   forecast" button under each forecast section (`src/build_site.py` line 787)
+   still read "Share this forecast". These share the published forecast, not
+   the reader's prediction, so "Share My Prediction" would be wrong for them.
+   Options: (a) leave as is; (b) title case to match, "Share This Forecast".
+4. **The gap under section 1's seat table on a phone.** About 100px is held
+   empty for two extra party rows, so the page does not jump when a reader's
+   change brings a new party into the table (JUDGEMENT-CALLS §N5). Options:
+   (a) keep it; (b) remove it and accept the jump; (c) keep it on wide
+   screens only.
+
+**Recommendation.** 1 add it; 2 yes; 3 (a); 4 (c).
+
+**Gates.** None.
+
 ### 21. Outreach: the drafts, the X posts and the X ads
 
 **Context.** New outreach, all in
