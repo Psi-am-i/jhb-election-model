@@ -265,6 +265,7 @@ def footer_for() -> str:
   </div>
   <div class="foot-side">{umbrella}
     <a class="foot-support" href="support">Support Our Work</a>
+    <a class="foot-support" href="{X_URL}">Follow us on X</a>
   </div>
 </footer>"""
 

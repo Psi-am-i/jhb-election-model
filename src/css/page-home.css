@@ -96,3 +96,6 @@
   /* the claims in a row of their own: two to a row on a wide screen */
   .kind-claim .feed{display:grid;grid-template-columns:minmax(0,1fr);gap:0 18px;}
   @media (min-width:900px){.kind-claim .feed{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  /* the cards' buttons (the forecast and "Your prediction"): centred in the
+     card's column, with room above them (owner, 2026-10-25, BRIEF-6 item 12) */
+  .kind > .cta-row,.kind-interactive .cta-row{display:flex;justify-content:center;margin-top:28px;}

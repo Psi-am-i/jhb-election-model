@@ -133,10 +133,13 @@
             <!-- the map's key under the seat table, so the table sits right
                  under the map in the wide layout's column -->
             <div class="pl-mapnotes">
-              <p class="pl-key"><span class="pl-ksolid"></span>Solid: one party wins the ward in nine in ten simulations or more.
-                <span class="pl-kstripe"></span>Stripes: each party winning it in at least one in ten.
-                <span class="pl-live"><span class="pl-kring"></span>Outlined: the most likely winner differs from the published forecast.</span>
-                Tap a ward for its numbers.</p>
+              <!-- each swatch beside its own sentence, the entries on separate
+                   lines where they do not fit on one, the tap line under them
+                   (owner, 2026-10-25, BRIEF-6 item 13) -->
+              <p class="pl-key"><span class="pl-kitem"><span class="pl-ksolid"></span><span>Solid: one party wins the ward in nine in ten simulations or more.</span></span>
+                <span class="pl-kitem"><span class="pl-kstripe"></span><span>Stripes: each party winning it in at least one in ten.</span></span>
+                <span class="pl-live pl-kitem"><span class="pl-kring"></span><span>Outlined: the most likely winner differs from the published forecast.</span></span>
+                <span class="pl-ktap">Tap a ward for its numbers.</span></p>
               <div data-live="flips" class="pl-flips yf-slot"></div>
             </div>
           </div>

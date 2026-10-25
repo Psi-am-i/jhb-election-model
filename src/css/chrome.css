@@ -87,16 +87,22 @@
   box-sizing:border-box;width:var(--frame);margin-left:calc((100% - var(--frame)) / 2);}
 
 /* THE COLUMN: every page's content container, one rule (tokens.css holds
-   the widths). The forecast sheet's pages (.sheet), the home page (.wrap) and
-   the rendered documents (.page) take --text-width; the home page, a map
-   page, --wide-width. The apex portal keeps its own (page-portal.css): it is
-   another site's page and carries no bar. /your-forecast/ sizes its own
-   column from the same tokens (interactive/css/). */
+   the widths). Every page's column is the bar's and the footer's width,
+   --page-width (owner, 2026-10-25, BRIEF-6 item 11: no wide side indents on a
+   large screen); the home page and /your-forecast/ (interactive/css/) take
+   --wide-width, the same width. Inside it, running text keeps a reading
+   width: paragraphs, lists, quotations and headings stay at --text-width
+   (READING, below), while charts, tables and maps take the column. The apex
+   portal keeps its own (page-portal.css): it is another site's page and
+   carries no bar. */
 body.pg-art,body.pg-doc{margin:0;}
 body.pg-art > .sheet,body.pg-art > .wrap,body.pg-doc:not(.pg-portal) > .page{
-  box-sizing:content-box;max-width:var(--text-width);margin:0 auto;
+  box-sizing:content-box;max-width:var(--page-width);margin:0 auto;
   padding:28px var(--gutter) 72px;}
 body.pg-home > .wrap{max-width:var(--wide-width);}
+/* READING: zero specificity, so any page rule that sets its own width wins */
+:where(body.pg-art > .sheet, body.pg-art > .wrap, body.pg-doc:not(.pg-portal) > .page)
+  :where(p, ul, ol, blockquote, dl, h1, h2, h3, h4){max-width:var(--text-width);}
 
 @media print{
   .topnav,.strapline{display:none;}

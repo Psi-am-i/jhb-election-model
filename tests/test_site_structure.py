@@ -498,7 +498,7 @@ def test_the_footer_check_fires_on_each_constructed_violation():
     for old, new in (("distributed", "distribute"),
                      ("independent", "indpendant"),
                      ('<hr class="foot-rule">', ""),
-                     ('class="foot-support"', 'class="x"'),
+                     ('<a class="foot-support" href="support">', '<a class="x" href="support">'),
                      ('href="privacy"', 'href="https://whysoserious.city/privacy"'),
                      ("Municipal Demarcation Board", "MDB")):
         assert f.count(old) == 1, old

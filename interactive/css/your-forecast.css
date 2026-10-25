@@ -347,10 +347,11 @@
 }
 /* the legend lines that name the reader's changes take their place whether
    or not they show */
-.yf.pl .pl-key .pl-live{display:inline;visibility:hidden;}
+.yf.pl .pl-key .pl-live{display:inline-flex;visibility:hidden;}
 .yf.pl .pl-glegend.pl-live{display:flex;visibility:hidden;}
 .yf.pl:has([data-live="result"][data-touched]) .pl-key .pl-live,
 .yf.pl:has([data-live="result"][data-touched]) .pl-glegend.pl-live{visibility:visible;}
+.yf.pl:has([data-live="result"][data-touched]) .pl-key .pl-live{display:inline-flex;}
 /* the seat table: room for --yf-spare-rows rows more than the published
    forecast's, which a lever may add (page.py shows a party the reader's
    settings lift to the row threshold); model.js marks the live table with
