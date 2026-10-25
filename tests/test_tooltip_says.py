@@ -98,7 +98,7 @@ def test_the_sentence_names_the_party_and_the_count():
     assert "1,234 simulations" in T.says("home.p_anc_largest", T.Facts(n=1234))[2]
     assert T.says("coal.ANC+ASA+EFF.majority", FACTS)[2].startswith(
         "The % of 5,000 simulations where the ANC, ActionSA and the EFF together")
-    assert "Black African voters" in T.says("play.votes.DA.black_african", FACTS)[2]
+    assert "Black African registered voters" in T.says("play.turnout.black_african", FACTS)[2]
 
 
 # --- line 2 names no part of the model ----------------------------------------

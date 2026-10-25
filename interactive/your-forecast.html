@@ -153,17 +153,11 @@
             of that group's estimated registered voters.<sup class="fn"><a href="#note-turnout">2</a></sup></p>
           <div class="pl-pub pl-turntwin"><!-- __PLAY:turnout__ --></div>
           <div data-live="turnout" class="pl-sliders"></div>
-          <details class="rollup pl-comp">
-            <summary><span class="eyebrow">Where each party's votes come from</span></summary>
-            <p class="pl-note">This Model estimates this from the ward results of 2021 and the census population groups in each
-              ward. The census reports population groups, so those are the groups This Model can measure.<sup class="fn"><a href="#note-groups">3</a></sup></p>
-            <!-- __PLAY:composition__ -->
-          </details>
         </section>
 
         <section class="pl-ctl" aria-labelledby="h-poll">
           <h3 id="h-poll">A poll</h3>
-          <p class="yf-sub">Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">5</a></sup></p>
+          <p class="yf-sub">Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">3</a></sup></p>
           <div data-live="polls" class="pl-polls" role="radiogroup" aria-labelledby="h-poll"></div>
           <div data-live="trust" class="pl-trust"></div>
           <!-- why the belief slider stops, or why a poll cannot be chosen: after
@@ -178,7 +172,7 @@
 
         <section class="pl-ctl" aria-labelledby="h-bye">
           <h3 id="h-bye">By-elections</h3>
-          <p class="yf-sub">Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">6</a></sup></p>
+          <p class="yf-sub">Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">4</a></sup></p>
           <div data-live="cells" class="pl-seg3" role="radiogroup" aria-labelledby="h-bye"></div>
           <p class="pl-note"><!-- __PLAY:bye__ --></p>
           <div data-live="byelection" class="pl-byenote yf-slot" id="bye-why" role="status"></div>
@@ -186,7 +180,7 @@
 
         <section class="pl-ctl pl-law" aria-labelledby="h-law">
           <h3 id="h-law">See how other systems would seat this vote</h3>
-          <p class="yf-sub">What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">7</a></sup>
+          <p class="yf-sub">What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">5</a></sup>
             <span class="pl-lawnow yf-slot" data-live="lawnow" id="law-why" role="status"></span></p>
           <div data-live="law" class="pl-lawopts" role="radiogroup" aria-labelledby="h-law"></div>
         </section>
@@ -330,7 +324,7 @@
          which holds no build-time digit; css/your-forecast.css hides the
          section while the region is hidden -->
     <section class="yf-analysis" aria-labelledby="h-analysis">
-      <h3 id="h-analysis">How likely is your prediction?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
+      <h3 id="h-analysis">How likely is your prediction?<sup class="fn"><a href="#note-outcome">7</a></sup></h3>
       <div data-live="b-analysis" hidden>
         <!-- the headline: what the council outcome is (share-card.js outcomeWords),
              then the badge, what it says (verdictLine) and how predictions are
@@ -382,10 +376,6 @@
         simulations towards those with the turnout you set: it shows those simulations, not what This Model forecasts if
         turnout changes. Past this range, or with groups moved far in opposite directions, the
         simulations run out and the slider stops.</li>
-      <li id="note-groups">Each bar is one party's vote split by population group, as This Model fits it to the ward results
-        of 2021. "Registered" is the voters' roll split by each ward's census population groups; the roll does not record population
-        group.</li>
-      <li id="note-new"><!-- __PLAY:newparties__ --></li>
       <li id="note-poll">Each poll is a Johannesburg subsample of a larger survey. Under a poll, the figures describe
         This Model's simulations nearest the poll; the poll does not come true. The slider stops where too few simulations
         lie near the poll.</li>

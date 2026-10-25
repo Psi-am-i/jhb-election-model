@@ -255,12 +255,8 @@ SAYS: tuple[Say, ...] = (
     # --- /your-forecast/ ------------------------------------------------------
     Say(r"play\.others_count", "", M,
         "The parties outside the named rows that win a seat in at least one of " + _SIMS + "."),
-    Say(rf"play\.roll\.{_G}", "", M,
-        "The % of Johannesburg's registered voters who are {group}, as This Model estimates the 2026 roll."),
     Say(rf"play\.turnout\.{_G}", "", M,
         "The average turnout of {group} registered voters across " + _SIMS + "."),
-    Say(rf"play\.votes\.{_P}\.{_G}", "", M,
-        "The % of {party}'s votes This Model places among {group} voters."),
     Say(rf"play\.bye\.w_bye_1\.{_P}", "seats", M,
         "How far {party}'s middle seat count moves from the forecast when the by-elections since 2021 count fully."),
     Say(rf"play\.bye\.w_bye_0\.{_P}", "seats", M,

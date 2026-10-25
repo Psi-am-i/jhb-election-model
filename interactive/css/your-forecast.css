@@ -268,9 +268,9 @@
 
 /* "Set the vote": its one line, and the footnote marker's number, drawn here
    because the step is a LIVE region with no build-time digit (the note is
-   the eighth in the page's notes) */
+   the sixth in the page's notes) */
 .yf-oneline{margin:0 0 8px;}
-.yf-fnvote::after{content:"8";}
+.yf-fnvote::after{content:"6";}
 
 /* ---------- reserved message regions: a lever moves nothing ---------- */
 /* Owner, 2026-10-03: the page must not jump when a lever moves. Every

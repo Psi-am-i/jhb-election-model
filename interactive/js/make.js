@@ -581,8 +581,15 @@ function chooseBrush(c) {
   S.brush = c;
   paintBrush();
   if (wasOn && !one.brush.contains(document.activeElement)) one.brushselect.focus();
-  one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : "Choose a party below, then tap or drag across wards to give them ward wins.";
+  one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : askHint();
 }
+// The instruction before a party is chosen: a touch screen's names only the
+// tap (owner, 2026-10-25, OWNER-DECISIONS item 42); the page's own text is the
+// other one, and a coarse pointer gets its own from the start.
+const coarse = matchMedia("(pointer: coarse)");
+const askHint = () => coarse.matches ? "Choose a party below, then tap wards to give them ward wins."
+  : "Choose a party below, then tap or drag across wards to give them ward wins.";
+if (coarse.matches) one.hint.textContent = askHint();
 function paintBrush() {
   // Each chip already drawn is kept (a keyboard user's focus stays on it);
   // only a party new to the rule gets a new one.
@@ -683,11 +690,12 @@ one.undo.addEventListener("click", () => {
 // Party | slider | percent, one identical row per party, on the LIST ballot
 // (owner, 2026-10-21: the reader has called the wards on the map, so the vote
 // they set is the list vote). Each row's ward vote follows its list vote at
-// the gap it had, and a collapsed "Adjust ward vote" under it sets the ward
-// vote as points from the list vote (STYLE.md rule 11: every vote figure names
-// its ballot). The engine is unchanged: it holds the ward vote and lets the
-// list follow at its gap (builder-state.js setWardPercent, setListGap), and
-// this page drives it from the list side. A party with no PR list has no list
+// the gap it had and is shown beside it, under "Ward vote" (owner,
+// 2026-10-25, OWNER-DECISIONS item 41: the reader no longer edits the gap;
+// STYLE.md rule 11: every vote figure names its ballot). The engine is
+// unchanged: it holds the ward vote and lets the list follow at its gap
+// (builder-state.js setWardPercent), and this page drives it from the list
+// side. A party with no PR list has no list
 // vote and keeps a ward-vote row. The parties at or above SHOWN_MIN of their
 // ballot in our prediction (the published start) come first, largest vote
 // first; every other party, alphabetical, in a collapsed "Other parties"
@@ -718,7 +726,7 @@ function buildVote() {
   const restList = el("div", { className: "prrest" });
   rest = el("details", { className: "rollup prmore" }, el("summary", {}, el("span", { className: "eyebrow" }, "Other parties")), restList);
   const head = el("div", { className: "prrow prhead", "aria-hidden": "true" },
-    el("span", {}, "Party"), el("span", {}, "List vote"), el("span", { className: "prpct" }, "List vote %"));
+    el("span", {}, "Party"), el("span", { className: "prlisthead" }, "List vote"), el("span", { className: "prpct" }, "Ward vote"));
   one.prlist.append(head);
   for (const c of [...lead, ...alpha.filter(x => !lead.includes(x))]) {
     const ballot = onList(c) ? "list" : "ward";
@@ -726,26 +734,18 @@ function buildVote() {
                               disabled: true, className: "prnum" });
     const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", " + ballot + " vote, percent" });
     const fl = el("span", { className: "fl" });
-    let gap = null, gapText = null;
-    const parts = [el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, fl];
+    // the ward vote beside the list vote: shown, not edited (item 41)
+    const wv = el("span", { className: "prward" });
+    const parts = [el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, wv, fl];
     if (!onList(c)) {
       parts.push(el("p", { className: "prgap prgap-none" }, "Ward ballot only: no list. This row is its ward vote."));
-    } else {
-      gap = el("input", { type: "text", id: "pr-g-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
-                          disabled: true, className: "prnum prgapnum" });
-      gapText = el("span", { className: "prgaptext" });
-      parts.push(el("details", { className: "prgap" }, el("summary", {}, "Adjust ward vote"),
-        el("label", { htmlFor: "pr-g-" + c }, "Ward vote: points from list vote "), gap, gapText));
-      gap.addEventListener("change", () => editGap(c, gap.value));
-      gap.addEventListener("keydown", e => { if (e.key === "Enter") editGap(c, gap.value); });
-      editables.push(gap);
     }
     const row = el("div", { className: "prrow" }, ...parts);
     num.addEventListener("change", () => { if (num.value !== shown[c]) editShare(c, num.value, true, null); });
     num.addEventListener("keydown", e => { if (e.key === "Enter") editShare(c, num.value, true, null); });
     rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
     rng.addEventListener("change", () => editShare(c, rng.value, true, null));
-    rows[c] = { row, num, rng, fl, gap, gapText, seated: lead.includes(c) };
+    rows[c] = { row, num, rng, fl, wv, seated: lead.includes(c) };
     if (!firstVote) firstVote = rng;
     editables.push(num, rng);
     (rows[c].seated ? one.prlist : restList).append(row);
@@ -760,7 +760,6 @@ one.prfind.addEventListener("input", () => {
   if (q && alpha.some(c => !rows[c].seated && !rows[c].row.hidden)) rest.open = true;
 });
 
-const signed1 = x => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(1);
 // A row's ballot: the list for a party with a PR list, else the ward.
 const rowBallot = c => (onList(c) ? "list" : "ward");
 function paintShares(except = null) {
@@ -780,10 +779,7 @@ function paintShares(except = null) {
     r.rng.setAttribute("aria-valuetext", p.toFixed(1) + " percent of the " + rowBallot(c) + " vote");
     r.fl.textContent = floor[c] && w <= floor[c] ? "At the least " + what(bind[c].floor)
       : w >= ceil[c] ? "At the most " + what(bind[c].ceil) : "";
-    if (r.gap) {
-      if (document.activeElement !== r.gap) r.gap.value = signed1(-g);
-      r.gapText.textContent = " Ward vote " + pct(w, Tw) + "%.";
-    }
+    r.wv.textContent = onList(c) ? pct(w, Tw) + "%" : "";
   }
   one.totals.textContent = "Ward ballot: " + Tw.toLocaleString("en-ZA") + " votes. List ballot: " + Tl.toLocaleString("en-ZA") + " votes.";
 }
@@ -826,30 +822,6 @@ function editShare(c, raw, final, active) {
   state = r.state;
   one.floornote.textContent = note;
   afterEdit(final ? null : active);
-}
-// Set party `c`'s ward vote as `raw` points from its list vote, the list vote
-// held: the ward vote moves to the list share plus the points (setWardPercent,
-// the list following at the old gap), then the list is put back by setting
-// the gap to minus the points (setListGap).
-function editGap(c, raw) {
-  if (!engineReady || locked) return;
-  const want = parseFloat(String(raw).replace("−", "-"));
-  if (!Number.isFinite(want)) { paintShares(); return; }
-  snapshot();
-  // the points are ward minus list, so the gap the engine bounds is minus them
-  const { gap_min, gap_max } = ctx.bounds;
-  const points = Math.max(-gap_max, Math.min(-gap_min, want));
-  const listPct = state.list[c] / B.totalOf(state, "list") * 100;
-  const r1 = B.setWardPercent(state, ctx, c, listPct + points);
-  // the points the ward reached, where its limits stopped it short
-  const reached = r1.state.ward[c] / B.totalOf(r1.state, "ward") * 100 - listPct;
-  const r = B.setListGap(r1.state, ctx, c, -reached);
-  const note = r1.clamped
-    ? name(c) + "'s ward vote cannot go " + (r1.clamped === "floor" ? "lower" : "higher") + " with the wards on your map."
-    : points !== want || r.clamped === "gap_min" || r.clamped === "gap_max"
-      ? name(c) + "'s ward vote is as far from its list vote as this page allows, past the widest gap in past results."
-      : r.clamped === "others" ? name(c) + "'s list vote moved as far as it can without taking another party's list vote out of range." : "";
-  commit(r.state, note);
 }
 one.prmodel.addEventListener("click", () => {
   if (locked) return;

@@ -130,6 +130,20 @@ ITEM35_RETIRE = {"govern.da_best_without": ITEM35_REASON,
                      "Schedule 1 counts it (anc_vote_share_median), not the "
                      "party-list vote alone (owner, 2026-10-25, "
                      "BRIEF-5-home-top-methodology.md item 12).")}
+#: Owner item 40 (2026-10-25, BRIEF-6 item 14): /your-forecast no longer draws
+#: "Where each party's votes come from"; its figures, every token under these
+#: prefixes, are retired with this reason.
+CHART_PREFIXES = ("play.votes.", "play.roll.")
+CHART_REASON = ("/your-forecast no longer draws the chart of where each party's votes "
+                "come from by population group (owner, 2026-10-25, OWNER-DECISIONS item 40; "
+                "BRIEF-6-your-forecast-phone.md item 14).")
+
+
+def owner_reason(token: str) -> str:
+    """The reason for a token in the owner items' bucket."""
+    return ITEM35_RETIRE.get(token) or CHART_REASON
+
+
 #: Owner item 35: a combination under the 10% cut is no longer printed.
 COAL_CUT = ("This coalition governs in fewer than the share of simulations the "
             "who-can-govern table lists a combination at (render_sheet "
@@ -192,7 +206,7 @@ def classify_vanished(vanished: list[str], latest: dict, seats=None, thr=None
         row = latest.get(t)
         if t in SWEEP_RETIRE:
             sweep.append(t)
-        elif t in ITEM35_RETIRE:
+        elif t in ITEM35_RETIRE or t.startswith(CHART_PREFIXES):
             item35.append(t)
         elif t.startswith("coal.") and seats is not None and under_the_cut(t, seats, thr):
             cut.append(t)
@@ -350,7 +364,7 @@ def main(argv=None) -> int:
     for t in sweep:
         print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display}): "
               f"{SWEEP_RETIRE[t]}")
-    print(f"retire, owner items 35 and 38 ({len(item35)}):")
+    print(f"retire, owner items 35, 38 and 40 ({len(item35)}):")
     for t in item35:
         print(f"  - {t}  (last published {latest[t].published_at}, {latest[t].display})")
     print(f"retire, under the 10% cut ({len(cut)}):")
@@ -387,7 +401,7 @@ def main(argv=None) -> int:
         P.retire(CITY, t, reason=SWEEP_RETIRE[t], change_class="mechanism",
                  when=when, root=root)
     for t in item35:
-        P.retire(CITY, t, reason=ITEM35_RETIRE[t], change_class="mechanism",
+        P.retire(CITY, t, reason=owner_reason(t), change_class="mechanism",
                  when=when, root=root)
     for t in cut:
         P.retire(CITY, t, reason=COAL_CUT, change_class="mechanism",

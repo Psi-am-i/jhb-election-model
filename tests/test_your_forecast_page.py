@@ -477,24 +477,29 @@ def test_every_footnote_marker_names_its_notes_position():
         bad = [(n, k) for n, k in marks if n not in notes or int(k) != notes.index(n) + 1]
         return bad + [n for n in notes if n not in {m for m, _ in marks}]
 
-    assert len(notes) >= 8, notes
+    # seven notes since 2026-10-25: the two only the population-group chart
+    # pointed at went with it (owner, item 40)
+    assert len(notes) >= 7, notes
     assert not wrong(html, css)
-    assert wrong(html, css.replace('.yf-fnvote::after{content:"8";}', '.yf-fnvote::after{content:"7";}'))
-    assert wrong(html.replace('href="#note-outcome">9<', 'href="#note-outcome">8<'), css)
+    assert wrong(html, css.replace('.yf-fnvote::after{content:"6";}', '.yf-fnvote::after{content:"5";}'))
+    assert wrong(html.replace('href="#note-outcome">7<', 'href="#note-outcome">6<'), css)
 
 
 def test_the_vote_is_a_table_with_no_spinner_and_no_inner_scroll():
     """Section 2's vote (owner, 2026-10-03): a row per party with the seat
     table's columns (party | slider | percent), the percent a text box with
     a decimal keypad (no spinner arrows), and the list never scrolls inside
-    itself; the ward list is one table per area with fixed columns."""
+    itself; the ward list is one table per area with fixed columns. Since
+    2026-10-25 (owner, item 41) a fourth column shows the ward vote beside
+    the list vote (party | slider | percent | ward vote)."""
     site = _built()
     js = (site / D / "js" / "make.js").read_text(encoding="utf-8")
     css = (site / D / "css" / "interactive.css").read_text(encoding="utf-8")
     assert 'type: "number"' not in js and 'inputMode: "decimal"' in js
     prlist = re.findall(r"\.prlist\{[^}]*\}", css)
     assert prlist and not any("max-height" in r or "overflow" in r for r in prlist), prlist
-    assert re.search(r"\.prrow\{display:grid;grid-template-columns:minmax\(0,\d+px\) minmax\(0,1fr\) \d+px;", css)
+    assert re.search(r"\.prrow\{display:grid;grid-template-columns:minmax\(0,\d+px\) minmax\(0,1fr\) \d+px \d+px;", css)
+    assert 'className: "prward"' in js and "Adjust ward vote" not in js
     assert re.search(r"\.wltable\{[^}]*table-layout:fixed", css)
     assert 'el("table", { className: k ? "wltable wlcont" : "wltable" }' in js and 'el("details", { className: "rollup prmore" }' in js
 
