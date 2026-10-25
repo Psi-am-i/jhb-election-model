@@ -31399,3 +31399,32 @@ The work was done on 2026-10-23 (dfdb334, 0b6bf6a, 8eb94c9), held off that day's
 - **The ranges.** The forecast page and the methodology say the ranges are fitted on errors from past tests whose settings had seen those elections, so they are likely too narrow (`width_record.json`, PLAN step 0.7).
 
 Committed text that quotes in-sample figures, not edited: 117 tracked `.md` files outside `site/` on 2026-10-24, by `git grep -lE '[0-9][^|]{0,40}(coherent|city-years|beats uniform swing|CRPS|seat error)|(coherent|city-years|beats uniform swing|CRPS|seat error)[^|]{0,40}[0-9]' -- '*.md' ':!site' | wc -l`. An upper bound: the pattern also matches a digit beside the term that is not a score.
+
+## 1.338 The pool fit puts most parties' votes in one population group: rates on the Duncan-Davis bounds (2026-10-25)
+
+**What prompted it.** The owner, on /your-forecast's "Where each party's votes come from": the chart gives the ANC "over 99%" Black African, and the EFF, IFP and MK 100%. "It is in fact impossible."
+
+**Measured.** `pools.fit_city(joburg, "2021", load_config())`, run in process, nothing written. Each cell is the fitted rate (the party's share of that pool's votes) and its Duncan-Davis interval (`pools.bounds`, what the ward arithmetic alone allows). HI: within 1e-4 of the upper bound; LO: within 1e-4 of the lower bound. Parties at 0.3% of the 2021 ward vote or more.
+
+| party | 2021 ward vote | Black African | Coloured | Indian/Asian | White |
+|---|---|---|---|---|---|
+| ANC | 0.332 | 0.4934 [0.368, 0.495] | 0.0235 [0.002, 0.604] | 0.0000 [0.000, 0.711] LO | 0.0000 [0.000, 0.262] LO |
+| DA | 0.255 | 0.0591 [0.027, 0.222] | 0.3375 [0.021, 0.620] | 0.4560 [0.000, 0.883] | 0.8209 [0.325, 0.936] |
+| ActionSA | 0.181 | 0.1960 [0.114, 0.260] | 0.0789 [0.000, 0.526] | 0.2946 [0.000, 0.852] | 0.1383 [0.001, 0.399] |
+| EFF | 0.101 | 0.1510 [0.095, 0.151] HI | 0.0000 [0.000, 0.324] LO | 0.0000 [0.000, 0.373] LO | 0.0000 [0.000, 0.124] LO |
+| PA | 0.030 | 0.0003 [0.000, 0.030] LO | 0.3949 [0.126, 0.395] | 0.0003 [0.000, 0.100] | 0.0003 [0.000, 0.041] |
+| IFP | 0.024 | 0.0352 [0.023, 0.035] HI | 0.0000 LO | 0.0000 LO | 0.0000 LO |
+| Al Jama-ah | 0.008 | 0.0001 LO | 0.0001 LO | 0.1486 [0.008, 0.149] HI | 0.0001 LO |
+| AHC, ATM | 0.004, 0.003 | HI | LO | LO | LO |
+
+Pool sizes (share of 2021 votes cast): Black African 0.670, Coloured 0.074, Indian/Asian 0.055, White 0.201.
+
+**What it shows.** For the EFF, IFP, Al Jama-ah, AHC and ATM the fit sits on the corner: the home pool's rate at its ceiling (the ceiling of the home pool is the rate at which every one of the party's votes comes from that pool) and every other pool at zero. The ANC is within 0.002 of its Black African ceiling and at zero among Indian/Asian and White voters, where the ward arithmetic allows up to 0.711 and 0.262. The PA is within 0.0001 of its Coloured ceiling. The 2026 spec's chart values (`pools_2026.json` `pools[group].members`) are these fits carried forward: ANC 0.9948 / 0.0052 / 0 / 0; EFF, IFP and MK 1 / 0 / 0 / 0 (MK fitted on the 2024 national result).
+
+**Why the fit can land there.** `fit_joint` is least squares under non-negativity and sum-to-one. Where pools are collinear across wards, the squared-error surface is flat along the bound interval and the constraint corner is a minimum like any other; nothing in the fit prefers an interior point. This is the known failure of ecological regression (Goodman) near the bounds. Argued, not tested: the corner is what the solver returned, and no measurement here says what the true rates are.
+
+**Two instruments that do not see it.**
+- `PartyFit.identified()` tests interval width and `rate > floor * 1.5`. A rate on its upper bound with a narrow interval passes, so the spec lists ANC, EFF and IFP as identified in the Black African pool.
+- `rates_on_a_bound` covers the registration, adult-share and turnout bounds, not the composition fit's Duncan-Davis bounds; it is empty for Johannesburg 2026.
+
+**What it reaches.** The pool rates drive the reader's turnout-by-population-group controls and the forecast's turnout reweighting. A change is forecast-moving. Not changed; to the owner as `OWNER-DECISIONS.md` "Where each party's votes come from".
