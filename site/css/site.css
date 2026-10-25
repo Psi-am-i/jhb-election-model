@@ -350,6 +350,7 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) .seatnote{margin-top:12px;}
 :where(.pg-home) .kind-claim .feed{display:grid;grid-template-columns:minmax(0,1fr);gap:0 18px;}
 @media (min-width:900px){:where(.pg-home) .kind-claim .feed{grid-template-columns:repeat(2,minmax(0,1fr));}}
+:where(.pg-home) .kind > .cta-row,:where(.pg-home) .kind-interactive .cta-row{display:flex;justify-content:center;margin-top:28px;}
 
 /* ---- src/css/page-portal.css ---- */
 :where(.pg-portal) .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
@@ -544,16 +545,22 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
   box-sizing:border-box;width:var(--frame);margin-left:calc((100% - var(--frame)) / 2);}
 
 /* THE COLUMN: every page's content container, one rule (tokens.css holds
-   the widths). The forecast sheet's pages (.sheet), the home page (.wrap) and
-   the rendered documents (.page) take --text-width; the home page, a map
-   page, --wide-width. The apex portal keeps its own (page-portal.css): it is
-   another site's page and carries no bar. /your-forecast/ sizes its own
-   column from the same tokens (interactive/css/). */
+   the widths). Every page's column is the bar's and the footer's width,
+   --page-width (owner, 2026-10-25, BRIEF-6 item 11: no wide side indents on a
+   large screen); the home page and /your-forecast/ (interactive/css/) take
+   --wide-width, the same width. Inside it, running text keeps a reading
+   width: paragraphs, lists, quotations and headings stay at --text-width
+   (READING, below), while charts, tables and maps take the column. The apex
+   portal keeps its own (page-portal.css): it is another site's page and
+   carries no bar. */
 body.pg-art,body.pg-doc{margin:0;}
 body.pg-art > .sheet,body.pg-art > .wrap,body.pg-doc:not(.pg-portal) > .page{
-  box-sizing:content-box;max-width:var(--text-width);margin:0 auto;
+  box-sizing:content-box;max-width:var(--page-width);margin:0 auto;
   padding:28px var(--gutter) 72px;}
 body.pg-home > .wrap{max-width:var(--wide-width);}
+/* READING: zero specificity, so any page rule that sets its own width wins */
+:where(body.pg-art > .sheet, body.pg-art > .wrap, body.pg-doc:not(.pg-portal) > .page)
+  :where(p, ul, ol, blockquote, dl, h1, h2, h3, h4){max-width:var(--text-width);}
 
 @media print{
   .topnav,.strapline{display:none;}
@@ -829,6 +836,13 @@ details.rollup + details.rollup{margin-top:30px;padding-top:26px;
    palettes, where the accent on --accent-soft did not in the light one */
 .cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);}
 .cta-row{margin:22px 0 0;}
+/* `cta-accent` is the same button filled in the model's accent, for a second
+   call beside a first in the reader's hue ("Analyse my prediction" beside
+   "Share My Prediction"; owner, 2026-10-25, BRIEF-6 part C) */
+.cta.cta-accent{background:var(--accent);border-color:var(--accent);
+  box-shadow:0 2px 0 color-mix(in srgb,var(--accent) 55%,var(--paper));}
+.cta.cta-accent:hover,.cta.cta-accent:focus-visible{background:color-mix(in srgb,var(--accent) 82%,var(--ink));
+  border-color:color-mix(in srgb,var(--accent) 82%,var(--ink));}
 @media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}
 
 /* the site's ordinary button (the share sheet's, src/css/share-sheet.css, and
