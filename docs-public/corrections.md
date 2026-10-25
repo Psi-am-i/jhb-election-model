@@ -2,11 +2,23 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## <span data-asof="2026-10-25">"The whole model beats simple baselines"</span> — published 6 October 2026, corrected 25 October 2026
+
+<span data-asof="2026-10-25">**What was wrong.** The methodology's scoring section, and the pages quoting it, presented This Model's scores against past elections as a test of forecasting each election from earlier ones. Several of its settings had been chosen on records that include the elections scored.
+
+**What is right.** The scores are withdrawn. Re-scored figures, from earlier elections only, will be published on the methodology page.</span>
+
+## <span data-asof="2026-10-25">"The model uses only what was known before each election it is tested on"</span> — published 2 October 2026, corrected 25 October 2026
+
+<span data-asof="2026-10-25">**What was wrong.** That overclaimed, because several scores on previous elections had been inadvertently using data that included those same elections.
+
+**What is right.** This Model's 2026 forecast uses only what was known before the 2026 election. Its scores on past elections are withdrawn; re-scored figures, for earlier elections, will be published on the methodology page.</span>
+
 ## <span data-asof="2026-10-23">"forecasting that election from earlier ones"</span> — published 22 October 2026, corrected 23 October 2026
 
 <span data-asof="2026-10-23">**What was wrong.** The tooltips on the home page's ward counts said This Model called each past election's ward winners "forecasting that election from earlier ones". Several of its settings were chosen on records that include those elections.
 
-**What is right.** The tooltips say the ward winners were called in This Model's test against each election, and that several of its settings were chosen on records that include it. The home page and the methodology say so too.</span>
+**What is right.** The ward counts are withdrawn with This Model's other scores on past elections.</span>
 
 ## <span data-asof="2026-10-23">"which adds a ward to Soweto"</span> — published 21 October 2026, corrected 23 October 2026
 
@@ -22,7 +34,7 @@ This page lists errors on published pages. Nothing is removed from it.
 
 ## <span data-asof="2026-10-23">"Parties that compete for the same voters trade support"</span> — published 21 October 2026, corrected 23 October 2026
 
-<span data-asof="2026-10-23">**What was wrong.** The forecast page said parties that compete for the same voters trade support, so when one rises the others tend to fall. The model published on 21 October draws no such trade: the DA and ActionSA rise and fall together across its simulations.
+<span data-asof="2026-10-23">**What was wrong.** The forecast page and the methodology said parties that compete for the same voters trade support, so when one rises the others tend to fall. The model published on 21 October draws no such trade: the DA and ActionSA rise and fall together across its simulations.
 
 **What is right.** The sentence is removed.</span>
 
@@ -238,15 +250,15 @@ This page lists errors on published pages. Nothing is removed from it.
 
 ## <span data-asof="2026-10-17">"the roll carries about 560,000 registered white voters"</span> — published 26 September 2026, corrected 17 October 2026
 
-<span data-asof="2026-10-17">**What was wrong.** The methodology page said the voters' roll carries about 560,000 registered white voters in Johannesburg, against about 300,000 white adults in the census. The roll does not record population group. The 560,000 was the model's own estimate, made with an adult share and a registration rate for each group fitted across the city, and it gave more registered white voters than there are white adults.
+<span data-asof="2026-10-17">**What was wrong.** The methodology page said the voters' roll carries about 560,000 registered white voters in Johannesburg, against about 300,000 white adults in the census. The roll does not record population group.
 
-**What is right.** The roll does not record population group; the model estimates each group's registered voters. The comparison is removed.</span>
+**What is right.** The comparison is removed.</span>
 
 ## <span data-asof="2026-10-09">"Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in 57%"</span> — published 26 September 2026, corrected 9 October 2026
 
 <span data-asof="2026-10-09">**What was wrong.** The card on the ANC's claim to govern alone said an ANC-led council with ActionSA, the PA and the smaller parties reaches a majority in 57% of simulations. The red-lines card gave the same 57% and concluded it was "almost exactly the same odds as the DA's route" and that "on coalition arithmetic alone, neither leader is better placed than the other". The count left out the seats of the smallest parties.
 
-**What is right.** Counting every party's seats, it reaches a majority in 78% of simulations, against 87% for a council without the ANC, the EFF and MK. The red-lines card no longer says the two are level.</span>
+**What is right.** Counting every party's seats, it reaches a majority in 78% of simulations, against 87% for a council without the ANC, the EFF and MK.</span>
 
 ## <span data-asof="2026-10-09">"Without the ANC, the red line leaves a majority in 59% of simulations"</span> — published 6 October 2026, corrected 9 October 2026
 
@@ -304,27 +316,17 @@ This page lists errors on published pages. Nothing is removed from it.
 
 ## "This is a deliberate choice, recorded, and it is the single largest reason the Johannesburg figure improves" — published 26 September 2026, corrected 27 September 2026
 
-<span data-asof="2026-10-02">**What was wrong.** The about page reported how accurate the model was on the 2021 election, but the model had used party splits that happened after 2021. A forecast made before that election could not have known them. The page called this a deliberate choice.
+<span data-asof="2026-10-02">**What was wrong.** The about page reported how accurate This Model was on the 2021 election, but This Model had used party splits that happened after 2021. A forecast made before that election could not have known them. The page called this a deliberate choice.
 
-**What is right.** The model uses only what was known before each election it is tested on, and the about page's accuracy figures come from that version.</span>
+**What is right.** This Model no longer uses party splits that happened after the election it is tested on.</span>
 
 ## Four figures on "Nobody will win Johannesburg" labelled "published 31 August 2026" — published 26 September 2026, corrected 27 September 2026
 
 <span data-asof="2026-09-27">**What was wrong.** Four figures on that piece
 were labelled as published on 31 August 2026. The piece was published on 8
-August, with different figures:
-
-| | labelled "31 August" | published 8 August |
-|---|---|---|
-| the ANC's stronghold wards | 55 | **74** |
-| its proportional entitlement | 54 | **65** |
-| how often the excessive-seats clause fires | 58% | **96%** |
-| the DA as largest party | 71% | **62%** |
-
-Three of them carried arrows saying the figure had gone up since then; each
-had gone down. A sentence beside them read "Still the ANC's usual condition,
+August, with different figures. A sentence beside them read "Still the ANC's usual condition,
 and a stronger one".
 
-**What is right.** The four figures are the ones published on 8 August, the
-arrows compare today's figures with them, and the sentence reads "Still the
+**What is right.** The four figures are the ones published on 8 August, and
+the sentence reads "Still the
 ANC's usual condition, and weaker than published".</span>

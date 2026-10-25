@@ -66,6 +66,9 @@ tr.total td { font-weight: 600; border-top: 2px solid var(--rule); }
 </style>
 
 <div class="wrap">
+  <!-- __IN_SAMPLE_START__ -->
+  <p role="note" style="border: 2px solid var(--worse); border-radius: 6px; padding: 12px 16px; margin: 0 0 20px; font-weight: 600; max-width: none;">These scores are in-sample: This Model's settings had been chosen on the elections scored. They were withdrawn on 23 October 2026 and are not evidence of forecast accuracy.</p>
+  <!-- __IN_SAMPLE_END__ -->
   <h1>Johannesburg 2026: the published model and the new one</h1>
   __LEDE__
 
@@ -90,6 +93,7 @@ tr.total td { font-weight: 600; border-top: 2px solid var(--rule); }
   <div class="scroll"><table id="changed"></table></div>
 
   <h2>Which model called past elections better</h2>
+  <div id="btsection">
   <p>Each model was run on every past election in the eight metros, using only information available before that election, and compared with the real result. Two measures: how many wards it gave to the right party, and how many council seats it gave to the wrong party. The changes were judged on 2016 and 2021, a choice made before the runs. 2011 is shown too.</p>
   <div class="summary" id="btsummary"></div>
   <div class="scroll"><table id="backtest"></table></div>
@@ -98,6 +102,7 @@ tr.total td { font-weight: 600; border-top: 2px solid var(--rule); }
   <h3>Johannesburg, party by party</h3>
   <p class="note">Real seats against each model's typical outcome (the middle simulation). These typical figures are not the rounded council above, so they don't add up exactly to the council size.</p>
   <div class="scroll"><table id="jhb"></table></div>
+  </div>
 
 __WHY__
 </div>
@@ -107,6 +112,7 @@ __WHY__
 const F = __F2026__;
 const B = __BACKTEST__;
 const M = __MAP__;
+const NO_BACKTEST = __NO_BACKTEST__;
 const COL = {"DA":"#1B5EA8","ANC":"#1B7A3D","EFF":"#B3202B","MK":"#5B6E22","ASA":"#2FA79B","PA":"#E0A419","IFP":"#C8442A","RISE":"#7A6BA8","VFPLUS":"#B0752D","ACDP":"#6B4E9E","ALJAMAAH":"#2E8B72"};
 const NAME = {"DA":"DA","ANC":"ANC","EFF":"EFF","MK":"MK Party","ASA":"ActionSA","PA":"PA","IFP":"IFP","RISE":"Rise Mzansi","VFPLUS":"FF Plus","ACDP":"ACDP","ALJAMAAH":"Al Jama-ah","AIC":"AIC","COPE":"COPE","AGANG":"Agang","UDM":"UDM","PAC":"PAC","AZAPO":"AZAPO","APC":"APC","NFP":"NFP","OKM":"OKM","AHC":"AHC","ATM":"ATM","GOOD":"GOOD","UIM":"UIM"};
 const nm = p => NAME[p] || p;
@@ -142,10 +148,11 @@ document.getElementById("summary").innerHTML = [
 
 // party table
 document.getElementById("parties").innerHTML =
-  `<thead><tr><th rowspan="2">Party</th><th class="grp" colspan="3">Average seats</th><th class="grp" colspan="2">Seat range (90%)</th><th class="grp" colspan="2">Wards won</th><th class="grp" colspan="2">Largest party</th></tr>
-   <tr><th>Old</th><th>New</th><th>Change</th><th>Old</th><th>New</th><th>Old</th><th>New</th><th>Old</th><th>New</th></tr></thead><tbody>` +
+  `<thead><tr><th rowspan="2">Party</th><th class="grp" colspan="3">Average seats</th><th class="grp" colspan="2">Median seats</th><th class="grp" colspan="2">Seat range (90%)</th><th class="grp" colspan="2">Wards won</th><th class="grp" colspan="2">Largest party</th></tr>
+   <tr><th>Old</th><th>New</th><th>Change</th><th>Old</th><th>New</th><th>Old</th><th>New</th><th>Old</th><th>New</th><th>Old</th><th>New</th></tr></thead><tbody>` +
   ORDER.map(p => { const o=P[p].old, n=P[p].new; return `<tr><td><span class="chip" style="background:${col(p)}"></span>${nm(p)}</td>
    <td class="old">${o.seats.toFixed(1)}</td><td class="new">${n.seats.toFixed(1)}</td><td>${sgn(n.seats-o.seats)}</td>
+   <td class="old">${o.median ?? "–"}</td><td class="new">${n.median ?? "–"}</td>
    <td class="old">${o.lo}–${o.hi}</td><td class="new">${n.lo}–${n.hi}</td>
    <td class="old">${o.wards.toFixed(1)}</td><td class="new">${n.wards.toFixed(1)}</td>
    <td class="old">${o.largest}%</td><td class="new">${n.largest}%</td></tr>`; }).join("") + `</tbody>`;
@@ -188,6 +195,9 @@ document.getElementById("changed").innerHTML = `<thead><tr><th>Ward</th><th>Old 
   ch.map(w => { const o=F.wards[w].old, n=F.wards[w].new; return `<tr><td>${w}</td><td class="old"><span class="chip" style="background:${col(o.fav)}"></span>${nm(o.fav)}</td><td class="old">${Math.round(o.p*100)}%</td><td class="new"><span class="chip" style="background:${col(n.fav)}"></span>${nm(n.fav)}</td><td class="new">${Math.round(n.p*100)}%</td></tr>`; }).join("") + `</tbody>`;
 
 // backtest
+if (B === null) {
+  document.getElementById("btsection").innerHTML = `<p>${NO_BACKTEST}</p>`;
+} else {
 const cmp = (o, n, lowerBetter) => { const d = n - o; if (Math.abs(d) < 1e-9) return `<span class="same">same</span>`;
   const good = lowerBetter ? d < 0 : d > 0; return `<span class="${good?'better':'worse'}">${good?'better':'worse'} (${sgn(d, Number.isInteger(d)?0:1)})</span>`; };
 const years = ["2016","2021","2011"];
@@ -217,4 +227,5 @@ for (const y of ["2016","2021"]) {
     jr += `<tr><td><span class="chip" style="background:${col(p)}"></span>${nm(p)}</td><td>${real}</td><td class="old">${o}</td><td class="new">${n}</td><td>${cmp(eo,en,true).replace(/\(.*\)/,"")}</td><td class="note">${en===0?"exact":"off by "+en}</td></tr>`; });
 }
 document.getElementById("jhb").innerHTML = `<thead><tr><th>Party</th><th>Real seats</th><th>Old model</th><th>New model</th><th>New vs old</th><th>New model</th></tr></thead><tbody>${jr}</tbody>`;
+}
 </script>

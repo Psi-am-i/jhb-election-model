@@ -1090,5 +1090,195 @@ def test_a_frozen_as_published_figure_is_sourced_to_the_LEDGER_not_to_a_build():
         + "\n  ".join(problems))
 
 
+# --------------------------------------------------------------------------
+# REVIVAL: a retirement is a fact about one forecast; a later forecast can
+# print the figure again. Every ledger here is constructed, never the real one.
+# --------------------------------------------------------------------------
+
+def _refuses(exc, fn, *a, **kw):
+    try:
+        fn(*a, **kw)
+    except exc:
+        return
+    raise AssertionError(f"{fn.__name__}{a} was accepted; expected {exc.__name__}")
+
+
+def test_only_a_retired_token_can_be_revived_and_the_row_says_so():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        P.append("joburg", [_row(token="coal.x.majority", display="70%", value=0.70)],
+                 root=root)
+        # live: nothing to revive
+        _refuses(ValueError, P.revive, "joburg", "coal.x.majority",
+                 reason="printed again", root=root)
+        _refuses(KeyError, P.revive, "joburg", "never_published",
+                 reason="printed again", root=root)
+        P.retire("joburg", "coal.x.majority", reason="below the table's threshold",
+                 when="2026-10-21T16:45:00Z", root=root)
+        _refuses(ValueError, P.revive, "joburg", "coal.x.majority", reason="", root=root)
+        _refuses(ValueError, P.revive, "joburg", "coal.x.majority",
+                 reason="x", change_class="because", root=root)
+        n_before = len(P.history("joburg", root=root))
+        row = P.revive("joburg", "coal.x.majority", reason="above the threshold again",
+                       when="2026-10-23T10:00:00Z", root=root)
+        rows = P.history("joburg", root=root)
+        assert len(rows) == n_before + 1, "a revival is exactly one appended row"
+        back = P.latest_of(rows)["coal.x.majority"]
+        assert back == row and back.revived_at == "2026-10-23T10:00:00Z", back
+        assert back.superseded_at is None and back.reason == "above the threshold again"
+        assert back.change_class == "mechanism" and back.movement == "none"
+        # it carries the value it was retired with, and the history before it is untouched
+        assert back.display == "70%" and rows[1].superseded_at == "2026-10-21T16:45:00Z"
+        # a revival is not a retirement: reviving twice refuses
+        _refuses(ValueError, P.revive, "joburg", "coal.x.majority", reason="again", root=root)
+        # retiring a revived token is a plain retirement
+        again = P.retire("joburg", "coal.x.majority", reason="below again",
+                         when="2026-10-24T10:00:00Z", root=root)
+        assert again.superseded_at and again.revived_at is None, again
+        # every row written before the field existed still parses
+        assert all(r.revived_at is None for r in rows[:2])
+
+
+def test_dated_context_passes_a_revived_token_and_still_catches_a_retired_one():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        P.append("joburg", [_row(token=t, display="9", value=9, fmt=None)
+                            for t in ("revived", "retired", "live")], root=root)
+        for t in ("revived", "retired"):
+            P.retire("joburg", t, reason="not printed", when="2026-10-21T00:00:00Z", root=root)
+        P.revive("joburg", "revived", reason="printed again",
+                 when="2026-10-23T00:00:00Z", root=root)
+        ledger = P.latest("joburg", root=root)
+        spans = [{"token": t, "dated": False} for t in ("revived", "retired", "live")]
+        bad = P.dated_context_violations(spans, ledger)
+        assert [v["token"] for v in bad] == ["retired"], bad
+        assert P.dated_context_violations(
+            [{"token": "retired", "dated": True}], ledger) == []
+
+
+def test_a_revival_with_no_live_row_after_it_is_detected_until_it_is_published():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        P.append("joburg", [_row(token=t, display="9", value=9, fmt=None)
+                            for t in ("revived", "retired", "live")], root=root)
+        for t in ("revived", "retired"):
+            P.retire("joburg", t, reason="not printed", when="2026-10-21T00:00:00Z", root=root)
+        ledger = P.latest("joburg", root=root)
+        # it can see nothing when there is nothing: a retirement and a live
+        # token are not revivals
+        assert P.unpublished_revivals(ledger) == []
+        P.revive("joburg", "revived", reason="printed again",
+                 when="2026-10-23T00:00:00Z", root=root)
+        ledger = P.latest("joburg", root=root)
+        # it looked at every token: exactly one of the three is a revival
+        assert sum(1 for r in ledger.values() if r.revived_at) == 1 and len(ledger) == 3
+        assert [r.token for r in P.unpublished_revivals(ledger)] == ["revived"]
+        assert [r.token for r in P.unpublished_revivals(ledger, {"live", "retired"})] == ["revived"]
+        # a build that prints it passes
+        assert P.unpublished_revivals(ledger, {"revived"}) == []
+        # and once a live row follows it, the ledger alone is quiet
+        P.append("joburg", [_row(token="revived", display="11", value=11, fmt=None,
+                                 published_at="2026-10-24T00:00:00Z", movement="material")],
+                 root=root)
+        assert P.unpublished_revivals(P.latest("joburg", root=root)) == []
+
+
+def test_a_revival_is_not_a_publication_for_as_published():
+    rows = [_row(token="a", published_at="2026-10-01T00:00:00Z", model_run_id="r-pub"),
+            _row(token="a", published_at="2026-10-21T00:00:00Z", model_run_id="r-pub",
+                 superseded_at="2026-10-21T00:00:00Z", movement="none"),
+            _row(token="a", published_at="2026-10-23T00:00:00Z", model_run_id="r-pub",
+                 revived_at="2026-10-23T00:00:00Z", movement="none")]
+    before, newest = P.before_latest_publication(rows)
+    assert newest is rows[0] and before == [], (newest, before)
+
+
+def _revived_tooltips(after):
+    """Line 1 of one token's tooltip in two editions after a retirement and a
+    revival: 47% from 26 September (a rounding row inside the run), retired 21
+    October, revived 23 October, then printed as ``after`` on 24 and 25
+    October, each edition appended before the next is built."""
+    import build_site as B
+    import tooltip_says as T
+    facts = T.Facts(n=5000, n_hist=1000, n_val=400, val_year="2021", groups={})
+    tok = "home.p_anc_largest"
+    ledger = [_row(token=tok, value=0.471, display="47%", fmt="pct0",
+                   published_at="2026-09-26T00:00:00Z"),
+              _row(token=tok, value=0.468, display="47%", fmt="pct0",
+                   published_at="2026-10-06T00:00:00Z", movement="rounding")]
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        P.append("joburg", ledger, root=root)
+        P.retire("joburg", tok, reason="not printed", when="2026-10-21T16:45:00Z", root=root)
+        P.revive("joburg", tok, reason="printed again", when="2026-10-23T10:00:00Z", root=root)
+        ledger = P.history("joburg", root=root)
+    ident = {"model_run_id": "r-abc-1234", "run_at": None, "as_of": None}
+    out = []
+    for now in ("2026-10-24T12:00:00Z", "2026-10-25T12:00:00Z"):
+        occ = [{"token": tok, "value": after[1], "display": after[0], "fmt": "pct0",
+                "source": "s", "mode": "free", "tolerance": None, "page": "x.html"}]
+        rows, changes = B._ledger_candidates(occ, P.latest_of(ledger), ident, now,
+                                             reason="r", change_class="mechanism",
+                                             since=P.run_starts(ledger), history=ledger)
+        if not out:
+            first = changes[0]
+        out.append(B.tooltip_text(changes[0], by_token={tok: changes[0]}, registry={},
+                                  edition=now[:10], publishing=True,
+                                  facts=facts).split("\n")[0])
+        ledger = ledger + rows
+    assert first["revived"] and first["since"] is None, first
+    assert first["previous"] == "47%", first
+    return out, ledger
+
+
+def test_a_revived_figure_is_dated_to_its_publication_and_says_what_it_was_before_retirement():
+    """"<value> since <the publish>. Was <the value before the retirement> on
+    <its date>." The retirement (21 October) and the revival (23 October) are
+    not values a reader was shown, so neither date appears."""
+    (n, n1), ledger = _revived_tooltips(("58%", 0.58))
+    want = "58% chance since 24 October. Was 47% on 26 September."
+    assert n == want and n1 == want, (n, n1)
+    assert P.prior_values(ledger) == {"home.p_anc_largest": ("47%", "2026-09-26T00:00:00Z")}
+
+
+def test_a_revived_figure_that_did_not_move_is_current_from_its_publication():
+    """The figure stopped being current on 21 October, so "since 26 September"
+    would claim it stood throughout."""
+    (n, n1), ledger = _revived_tooltips(("47%", 0.47))
+    assert n == "47% chance since 24 October." and n1 == n, (n, n1)
+    assert P.run_starts(ledger)["home.p_anc_largest"] == "2026-10-24T12:00:00Z"
+    assert "Was" not in n
+
+
+def test_a_revived_token_the_build_does_not_print_stops_the_build():
+    """Run through the real `build_site.py`. A revived token missing from every
+    page refuses, by name, under its own heading; a revived token the build
+    prints (`n_draws`) passes every refusal; retiring the unprinted one again
+    clears the build."""
+    with tempfile.TemporaryDirectory() as tmp:
+        led = Path(tmp) / "led"
+        P.append("joburg", [_row(token=t, value=39, display="39", fmt=None,
+                                 model_run_id="r-c0ffee123456-abcdef12")
+                            for t in ("claim_revived_and_not_printed", "n_draws")],
+                 root=led)
+        for t in ("claim_revived_and_not_printed", "n_draws"):
+            P.retire("joburg", t, reason="not printed", when="2026-10-21T00:00:00Z", root=led)
+            P.revive("joburg", t, reason="printed again", when="2026-10-23T00:00:00Z", root=led)
+        r = _build(Path(tmp))
+        out = r.stdout + r.stderr
+        assert r.returncode != 0, out[-1500:]
+        block = out.split("REVIVED TOKENS THIS BUILD DOES NOT PUBLISH", 1)
+        assert len(block) == 2, f"the refusal did not fire:\n{out[-1500:]}"
+        named = block[1].split("\n\n", 1)[0]
+        assert "claim_revived_and_not_printed" in named and "n_draws" not in named, named
+        assert "SUPERSEDED FIGURES IN LIVE PRESENT TENSE" not in out, out[-1500:]
+
+        P.retire("joburg", "claim_revived_and_not_printed", reason="not printed",
+                 root=led)
+        r2 = _build(Path(tmp))
+        assert r2.returncode == 0, r2.stdout[-2000:]
+        assert "REVIVED TOKENS" not in (r2.stdout + r2.stderr)
+
+
 if __name__ == "__main__":
     run_module(globals())

@@ -162,7 +162,7 @@ export function parse(search, ctx, ref, start, instead = "") {
   if (!q.has("f") && !q.has("v")) return fresh;
   const refuse = why => ({ ...fresh, note: ("The prediction in this link could not be opened: " + why + ". " + instead).trim() });
   if (q.get("v") !== FORMAT) return refuse("it was made by another version of this page");
-  if (q.get("c") !== ref) return refuse("it was made against another version of the model's roster or wards");
+  if (q.get("c") !== ref) return refuse("it was made against another version of This Model's roster or wards");
   let got;
   try { got = decode(q.get("f") || "", ctx); } catch (e) { return refuse(String(e.message || e)); }
   return { state: got.state, coalition: got.coalition, note: null };

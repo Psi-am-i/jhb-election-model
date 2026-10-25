@@ -297,6 +297,51 @@ def coalition_key(members) -> str:
                            key=lambda p: (rank.get(p, len(rank)), p)))
 
 
+# THE WHO-CAN-GOVERN TABLE'S CUTS. One simulation in twenty, and at most five
+# parties: at 1% there were 1,049 rows (191 even capped at four parties) —
+# unreadable, and a ledger row for every figure in each. At 5% the list is 90
+# rows and still carries every DA-without-the-ANC option that is ever a
+# smallest majority that often. Presentation, set 2026-09-17; the owner can
+# move it.
+MIN_SMALLEST = 0.05
+MAX_SIZE = 5
+# A combination is listed only if it governs (reaches a majority) in at least
+# this share of the simulations, as well as the smallest-majority and
+# no-passenger rules. Owner, 2026-10-24 (OWNER-DECISIONS-ANSWERED.md item 35):
+# "showing MK distorts their real chances, even if we say it. We need to show
+# things that are more likely to be informational. The cut off for showing all
+# coalitions should be 10% or even showing it there is a distortion." The
+# single-party rows are cut at the same share.
+MIN_GOVERNS = 0.10
+
+
+def coalition_cuts(tot, member_seats, thr) -> dict:
+    """The table's rules for one combination: ``tot`` its seats per
+    simulation, ``member_seats`` each member's, ``thr`` the majority line.
+    ``governs`` is the share of simulations it reaches a majority in,
+    ``smallest`` the share in which it is a smallest majority (any one member
+    leaving loses it), ``carried`` that no member is a passenger, ``listed``
+    that the table prints it (all three cuts)."""
+    win = tot >= thr
+    small = win.copy()
+    for s in member_seats:
+        small &= (tot - s) < thr
+    # No passengers (owner, 2026-09-17: "if a coalition can survive the
+    # exit of a party, remove the party"). A member whose exit the
+    # majority survives in most of the simulations where it governs is
+    # a passenger, and the combination without it is the one to show.
+    # JUDGED ON THE PRINTED FIGURE (owner, 2026-09-30: "keep as is,
+    # just round all numbers, so 49.86 is 50%"). Two rows at 49.86%
+    # and 49.95% survival printed "50%" beside a note saying the
+    # coalition usually loses them; rounding to the displayed
+    # precision first makes the cut agree with what a reader sees.
+    carried = bool(win.any()) and all(
+        round(float(((tot - s) >= thr)[win].mean()), 2) < 0.5 for s in member_seats)
+    governs, smallest = float(win.mean()), float(small.mean())
+    return {"governs": governs, "smallest": smallest, "carried": carried,
+            "listed": smallest >= MIN_SMALLEST and carried and governs >= MIN_GOVERNS}
+
+
 
 
 ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
@@ -635,40 +680,15 @@ def main(argv: list[str] | None = None) -> int:
     def members_of(m):
         return [top[k] for k in range(nT) if m & (1 << k)]
 
-    def smallest(m, tot):
-        ok = tot >= thr
-        for p in members_of(m):
-            ok &= (tot - S[p]) < thr
-        return ok
-
     from itertools import combinations
-    # One simulation in twenty, and at most five parties: at 1% there were 1,049
-    # rows (191 even capped at four parties) — unreadable, and a ledger row for
-    # every figure in each. At 5% the list is 90 rows and still carries every
-    # DA-without-the-ANC option that is ever a smallest majority that often.
-    # Presentation, set 2026-09-17; the owner can move it.
-    MIN_SMALLEST, MAX_SIZE = 0.05, 5
     cands = {}
     for k in range(2, MAX_SIZE + 1):
         for combo in combinations(range(nT), k):
             m = sum(1 << i for i in combo)
             tot = msum(m)
-            s = float(smallest(m, tot).mean())
-            win = tot >= thr
-            # No passengers (owner, 2026-09-17: "if a coalition can survive the
-            # exit of a party, remove the party"). A member whose exit the
-            # majority survives in most of the simulations where it governs is
-            # a passenger, and the combination without it is the one to show.
-            # JUDGED ON THE PRINTED FIGURE (owner, 2026-09-30: "keep as is,
-            # just round all numbers, so 49.86 is 50%"). Two rows at 49.86%
-            # and 49.95% survival printed "50%" beside a note saying the
-            # coalition usually loses them; rounding to the displayed
-            # precision first makes the cut agree with what a reader sees.
-            carried = win.any() and all(
-                round(float(((tot - S[p_]) >= thr)[win].mean()), 2) < 0.5
-                for p_ in members_of(m))
-            if s >= MIN_SMALLEST and carried:
-                cands[m] = s
+            cut_ = coalition_cuts(tot, [S[p_] for p_ in members_of(m)], thr)
+            if cut_["listed"]:
+                cands[m] = cut_["smallest"]
             else:
                 _sum_cache.pop(m, None)
 
@@ -679,7 +699,7 @@ def main(argv: list[str] | None = None) -> int:
             f'{NAMES.get(p, p)}</span> '
             for i, p in enumerate(members_of(m)))
 
-    rows_out = []
+    rows_out = []   # (governs in, members, row)
     for m, s in sorted(cands.items(), key=lambda ms: -float((msum(ms[0]) >= thr).mean())):
         tot = msum(m)
         win = tot >= thr
@@ -696,58 +716,66 @@ def main(argv: list[str] | None = None) -> int:
                                  f"{SRC}, among those where this combination wins")
                         + "</span>")
         cond = f"{SRC}, among the simulations where this combination wins"
-        rows_out.append(
+        rows_out.append((p_major, members_of(m),
             f'<tr data-parties="{" ".join(members_of(m))}" data-p="{p_major:.4f}">'
             f'<td class="combo">{label(m)}</td>'
             f'<td class="num">{chance(f"coal.{key}.majority", p_major)}</td>'
             f'<td class="num">{seats(f"coal.{key}.seats_when_wins", med_w, cond)}</td>'
             f'<td class="num">+{seats(f"coal.{key}.cushion_when_wins", cushion, cond)}</td>'
             f'<td class="num">{tok(f"coal.{key}.stability", f"{stab / 100:.4f}", "pct0", cond)}</td>'
-            f'<td class="surv">{"".join(surv)}</td></tr>')
-    govern_html = "\n".join(rows_out)
-    govern_parties = [p for p in top if any(p in members_of(m) for m in cands)]
+            f'<td class="surv">{"".join(surv)}</td></tr>'))
+    # The "Single party majority" preset's rows (owner, 2026-10-24, item 35):
+    # one per party that wins a majority alone in at least MIN_GOVERNS of the
+    # simulations, with its chance. When none does, the table carries the line
+    # the preset shows instead (src/js/sheet.js unhides it).
+    cut = chance("govern.min_governs", MIN_GOVERNS,
+                 "render_sheet MIN_GOVERNS, the share of simulations the "
+                 "who-can-govern table lists a combination at")
+    for k, p in enumerate(top):
+        alone = float((S[p] >= thr).mean())
+        if alone >= MIN_GOVERNS:
+            rows_out.append((alone, [p],
+                f'<tr data-parties="{p}" data-p="{alone:.4f}">'
+                f'<td class="combo">{label(1 << k)}</td>'
+                f'<td class="num">{chance(f"coal.{coalition_key([p])}.majority", alone)}</td>'
+                f'<td class="num"></td><td class="num"></td><td class="num"></td>'
+                f'<td class="surv"></td></tr>'))
+    rows_out.sort(key=lambda r: -r[0])
+    if not any(len(mem) == 1 for _, mem, _ in rows_out):
+        rows_out.append((0.0, [],
+            f'<tr class="govnone" hidden><td colspan="6">No party wins a majority '
+            f'alone in {cut} or more of the simulations.</td></tr>'))
+    govern_html = "\n".join(row for _, _, row in rows_out)
+    listed = [mem for _, mem, _ in rows_out if mem]
+    govern_parties = [p for p in top if any(p in mem for mem in listed)]
     filter_html = "".join(
         f'<option value="{p}">{NAMES.get(p, p)}</option>' for p in govern_parties)
-    # The lede carries the finding the table exists to show, with both figures
-    # as build-time tokens: the DA's best route without the ANC/EFF/MK, and how
-    # many routes the ANC has without the DA.
-    def _best(anchor, barred):
-        best = 0.0
-        for m in cands:
-            ps = set(members_of(m))
-            if anchor in ps and not (ps & barred):
-                best = max(best, float((msum(m) >= thr).mean()))
-        return best
-    da_best = _best("DA", {"ANC", "EFF", "MK"})
-    anc_routes = sum(1 for m in cands
-                     if "ANC" in members_of(m) and "DA" not in members_of(m))
-    anc_strong = sum(1 for m in cands
-                     if "ANC" in members_of(m) and "DA" not in members_of(m)
-                     and float((msum(m) >= thr).mean()) > 0.5)
-    # With the smaller parties as well: every party outside the ANC, the EFF
-    # and MK, over EVERY party's seats (`scenarios.all_party_seats`, the
-    # claims' one definition), the arithmetic the red-lines claim tests. The
-    # lede said "its one realistic option is ActionSA and the PA" until
-    # 2026-10-23, beside a claim card rating the larger coalition near certain.
-    _all_A, _, _ = _scq.all_party_seats(args.processed, rows)
-    _all_zero = np.zeros(len(rows), dtype=int)
-    da_with_small = float((sum((_all_A[p] for p in _all_A if p not in ("ANC", "EFF", "MK")),
-                               _all_zero) >= thr).mean())
+    # The lede: the workable majorities of each of the two largest parties
+    # without the other, counted over the rows the table lists (owner,
+    # 2026-10-24, item 35: "Put both the DA and the ANC's workable majorities
+    # since they are the two largest parties").
+    chance_of = {tuple(mem): pm for pm, mem, _ in rows_out if mem}
+
+    # combinations of two or more parties: the tooltips count "the coalitions
+    # in the table", and a single-party row is not one
+    def routes(party, other, strong=False):
+        return sum(1 for mem in listed
+                   if len(mem) >= 2 and party in mem and other not in mem
+                   and (not strong or chance_of[tuple(mem)] > 0.5))
     govern_lede = (
-        f'<p class="lede">If the DA rules out the ANC, the EFF and MK, ActionSA and the PA '
-        f'give it the numbers: {chance("govern.da_best_without", da_best)} chance. With the '
-        f'smaller parties as well: '
-        f'{chance("govern.da_with_small_without", da_with_small, "seat_detail_draws.csv, every party outside the ANC, the EFF and MK")}'
-        f' chance. The ANC without the DA has '
-        f'{tok("govern.anc_routes", anc_routes, "int")} workable majorities, '
-        f'{tok("govern.anc_routes_strong", anc_strong, "int")} of them with a better than '
-        f'even chance of reaching {{{{majority}}}} seats. This is arithmetic, not a '
-        f'judgement of which deal is likely.</p>')
+        f'<p class="lede">The ANC without the DA has '
+        f'{tok("govern.anc_routes", routes("ANC", "DA"), "int")} workable majorities, '
+        f'{tok("govern.anc_routes_strong", routes("ANC", "DA", True), "int")} of them with a better than '
+        f'even chance of reaching {{{{majority}}}} seats; the DA without the ANC has '
+        f'{tok("govern.da_routes", routes("DA", "ANC"), "int")}, '
+        f'{tok("govern.da_routes_strong", routes("DA", "ANC", True), "int")} of them with a better than '
+        f'even chance.</p>')
 
     govern_note = (
         f"<b>How to read it.</b> Each row is a smallest workable majority: it has the numbers, "
         f"and usually loses them if any one partner leaves. Combinations that a partner leaving "
-        f"usually does not break are left out. <b>Governs in</b> is the chance it reaches "
+        f"usually does not break are left out. Combinations that govern in fewer than "
+        f"{cut} of the simulations are left out. <b>Governs in</b> is the chance it reaches "
         f"{{{{majority}}}} seats: the share of the {{{{n_draws}}}} simulations in which it does. "
         f"It is not a vote share, or the chance that a deal is made. <b>Seats</b>, <b>cushion</b>, "
         f"<b>stability</b> and <b>if a partner leaves</b> are over the simulations in which it "
@@ -949,8 +977,8 @@ def main(argv: list[str] | None = None) -> int:
         for c in claims:
             since_html = ""
             if c.get("since"):
-                since_html = ('<aside class="since"><div class="since-h">{{generated_date}}: what the '
-                              'model says now</div><p>' + _md(_since(c["since"])) + "</p></aside>")
+                since_html = ('<aside class="since"><div class="since-h">{{generated_date}}: what This '
+                              'Model says now</div><p>' + _md(_since(c["since"])) + "</p></aside>")
             steps = "".join(
                 f'<li><div class="stepbody">{_md(_fill(with_holds(c, step)))}</div></li>'
                 for step in c.get("steps", []))
@@ -1060,9 +1088,8 @@ def main(argv: list[str] | None = None) -> int:
                 + chance("ballots.p_anc_excessive", p_excessive,
                          "forecast_summary.json p_excessive_by_party")
                 + " of the simulations")
-    ballots_caption = (f"The most typical result: of the {{{{n_draws}}}} simulations, the one "
-                       f"closest to the middle of every party's range (simulation "
-                       f"{tok('ballots.typical.draw', typical, 'int', 'seat_detail_draws.csv')}). "
+    ballots_caption = (f"The most typical simulation: of the {{{{n_draws}}}} simulations, the one "
+                       f"closest to the middle of every party's range. "
                        f"It is a single simulation, so its ward and list seats add up to the "
                        f"council exactly. Hover a segment for its seats. {anc_note}. ActionSA, "
                        "with broad support and no stronghold wards, takes almost all its seats "
@@ -1186,7 +1213,7 @@ def main(argv: list[str] | None = None) -> int:
                 page = page[:i] + "\n" + body + "\n" + page[j:]
         tgt.write_text(page, encoding="utf-8")
     print(f"rendered {len(regions)} regions into {args.sheet}: "
-          f"{len(rows_out)} coalitions, {len(chart)} party rows")
+          f"{len(listed)} coalitions, {len(chart)} party rows")
     return 0
 
 

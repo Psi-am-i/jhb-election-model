@@ -87,16 +87,11 @@ DRAWS = REPO_ROOT / "site" / "draws"
 #: The one line of the Worker that differs between the prototype and the site.
 DRAWS_LINE = ('const DRAWS = "../../site/draws/";', 'const DRAWS = "../../draws/";')
 #: The markers model.html carries, each filled by one function below.
-FILL = ("banner", "oneline", "map", "seats", "turnout", "composition", "refused",
-        "bye", "newparties", "maxse", "largeparties", "election", "seatscale", "seatticks",
+FILL = ("banner", "oneline", "map", "seats", "turnout", "refused",
+        "bye", "maxse", "largeparties", "election", "seatscale", "seatticks",
         "seathead")
 #: How many parties the banner names, in the published order.
 BANNER_PARTIES = 6
-#: The share of a party's votes below which its bar segment carries no label.
-SEGMENT_LABEL_MIN = 0.12
-#: The population groups' bar tones, as their classes in
-#: interactive/css/play.css (four hues at one lightness, critic S4).
-GROUP_TONE_CLASSES = ("pl-g0", "pl-g1", "pl-g2", "pl-g3")
 #: How a refused poll is described, by polling.screen's rule. A rule not here
 #: is not a reason a reader of this cycle's polls needs (another city, another
 #: election, after polling day).
@@ -343,129 +338,6 @@ def turnout() -> str:
         for g, m in zip(pools, means))
 
 
-def _spec(processed: Path) -> tuple[dict, str]:
-    """The target's pool spec and its file name, or ``SystemExit`` when it is
-    stale, unverifiable or unreadable.
-
-    Through ``montecarlo.read_pool_spec``, the check ``run_model`` applies, and
-    with its refusal text (step 8 review row 4): the composition this page
-    prints must come from a spec the forecast would accept. Until 2026-10-10
-    this read the file with no check.
-    """
-    import cityconfig
-    import montecarlo
-    target = cityconfig.target()
-    name = f"pools_{target.year}.json"
-    spec, why_not = montecarlo.read_pool_spec(processed / name, target.city, target)
-    if why_not:
-        raise montecarlo.stale_pool_spec_refusal(processed / name, why_not)
-    return spec, name
-
-
-def _new_parties(spec: dict, codes) -> dict:
-    """``{code: (kind, parent, parent_share)}`` for parties with no measured vector:
-    an ``entrant`` takes the city's own split, a ``splinter`` a blend with its parent."""
-    out = {}
-    for c in codes:
-        why = (spec.get("no_measured_vector") or {}).get(c, "")
-        m = re.match(r"splinter of ([A-Z_]+), (\d+(?:\.\d+)?)% its vector and (\d+(?:\.\d+)?)% the city average", why)
-        if m:
-            out[c] = ("splinter", m.group(1), float(m.group(2)) / 100.0)
-        elif why.startswith("entrant"):
-            out[c] = ("entrant", None, None)
-    return out
-
-
-def _fitted_parties(spec: dict, codes, new: dict) -> dict:
-    """``{code: fitted}`` for parties absent in 2021 but fitted on their own
-    national result (``pools.place_vectorless``): a measured split, so not
-    "assumed" and not hatched, but still a party that did not stand in 2021.
-    The composition chart marks them and note 4 names them, from this one set."""
-    return {c: f for c, f in (spec.get("fitted_from_national") or {}).items()
-            if c in codes and c not in new}
-
-
-def composition(processed: Path, rows: list[dict], names: dict) -> str:
-    """Where each shown party's votes come from, by population group, and the roll."""
-    spec, fname = _spec(processed)
-    groups = spec["categories"]
-    codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
-    new = _new_parties(spec, codes)
-    fitted = _fitted_parties(spec, codes, new)
-
-    # One SVG per bar, the segments placed in percent of its width (no style
-    # on the page). A label is HTML in a <foreignObject>, because a token
-    # renders as a <span>, which the parser does not allow in SVG text.
-    def bar(key, vals, src, hatch=False):
-        rects, labels, at = [], [], 0.0
-        for i, (g, v) in enumerate(zip(groups, vals)):
-            if v <= 0:
-                continue
-            x, w = f"{100.0 * at:.2f}%", f"{100.0 * v:.2f}%"
-            rects.append(f'<rect class="{GROUP_TONE_CLASSES[i % len(GROUP_TONE_CLASSES)]}" x="{x}" y="0" width="{w}" height="18"></rect>')
-            if hatch:
-                rects.append(f'<rect class="pl-hatch" x="{x}" y="0" width="{w}" height="18"></rect>')
-            # pct0_capped: a share that rounds to 100% but is not all of the
-            # party's vote prints "over 99%"
-            if v >= SEGMENT_LABEL_MIN:
-                labels.append(f'<foreignObject x="{x}" y="0" width="{w}" height="18">'
-                              f'<div class="pl-clab">'
-                              f'{_tok(f"{key}.{_slug(g)}", f"{float(v):.6f}", "pct0_capped", src)}'
-                              f'</div></foreignObject>')
-            at += v
-        return (f'<svg class="pl-cbar" width="100%" height="18" aria-hidden="true">'
-                f'{"".join(rects)}{"".join(labels)}</svg>')
-    legend = "".join(f'<span><i class="{GROUP_TONE_CLASSES[i % len(GROUP_TONE_CLASSES)]}"></i>{_esc(g)}</span>'
-                     for i, g in enumerate(groups))
-    # the hatching an assumed split is drawn with, defined once for every bar
-    out = ['<svg class="pl-defs" width="0" height="0" aria-hidden="true"><defs>'
-           '<pattern id="pl-hatch" width="6" height="6" patternUnits="userSpaceOnUse" '
-           'patternTransform="rotate(45)"><rect width="2" height="6"></rect></pattern>'
-           '</defs></svg>',
-           f'<div class="pl-clegend">{legend}</div>']
-    for c in codes:
-        # a party with no 2021 record has an ASSUMED split, not an estimate:
-        # said in the row and drawn hatched (critic S4)
-        # a party fitted on its national result did not stand in 2021 either:
-        # pointed at the same note, not called assumed
-        mark = ('<sup class="fn"><a href="#note-new">4</a></sup><span class="pl-asm">assumed</span>'
-                if c in new else '<sup class="fn"><a href="#note-new">4</a></sup>' if c in fitted else "")
-        vals = [float(spec["pools"][g]["members"].get(c, 0.0)) for g in groups]
-        out.append(f'<div class="pl-crow"><span class="pl-cname">{_esc(names[c]["name"])}{mark}</span>'
-                   f'{bar(f"play.votes.{c}", vals, f"{fname} pools[group].members[{c}]", c in new)}</div>')
-    out.append(f'<div class="pl-crow pl-roll"><span class="pl-cname">Registered</span>'
-               f'{bar("play.roll", spec["pool_shares_at_target"], f"{fname} pool_shares_at_target")}</div>')
-    return "".join(out)
-
-
-def new_parties_note(processed: Path, rows: list[dict], names: dict) -> str:
-    """Note 3: the shown parties with no 2021 record, and the split each is given."""
-    spec, fname = _spec(processed)
-    codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
-    new = _new_parties(spec, codes)
-    fitted = _fitted_parties(spec, codes, new)
-    if not new and not fitted:
-        return "Every party shown stood in 2021."
-    who = [names[c]["name"] for c in codes if c in new or c in fitted]
-    lst = who[0] if len(who) == 1 else ", ".join(who[:-1]) + " and " + who[-1]
-    out = [f"{_esc(lst)} did not stand in 2021."]
-    for c in codes:
-        if c in fitted:
-            out.append(f"{_esc(names[c]['name'])}'s split is estimated from its "
-                       f"{_esc(str(fitted[c]['election']))} national result by ward.")
-    for c, (kind, parent, share) in new.items():
-        src = f"{fname} no_measured_vector[{c}]"
-        if kind == "splinter":
-            p = names.get(parent, {"name": parent, "article": ""})
-            out.append(f"{_esc(names[c]['name'])}'s split is assumed: "
-                       f"{_tok(f'play.splinter.{c}.parent', f'{share:.6f}', 'pct0', src)} "
-                       f"{p['article']}{_esc(p['name'])}'s and "
-                       f"{_tok(f'play.splinter.{c}.city', f'{1.0 - share:.6f}', 'pct0', src)} the city average.")
-        else:
-            out.append(f"{_esc(names[c]['name'])}'s is the city average.")
-    return " ".join(out)
-
-
 def refused_polls() -> str:
     """The polls of this election the page does not offer, and why (``polling.screen``)."""
     import cityconfig
@@ -587,10 +459,8 @@ def fills(processed: Path) -> dict[str, str]:
         "map": map_twin(processed, geometry),
         "seats": seats(rows, others_count(rows)),
         "turnout": turnout(),
-        "composition": composition(processed, rows, names),
         "refused": refused_polls(),
         "bye": bye_line(names),
-        "newparties": new_parties_note(processed, rows, names),
         "maxse": _tok("play.max_figure_se", R.MAX_FIGURE_SE_SEATS, "one_dp",
                       "reweight.MAX_FIGURE_SE_SEATS, the owner's precision rule (JUDGEMENT-CALLS §N2)"),
         "largeparties": _tok("play.closeness_large_parties", R.CLOSENESS_LARGE_PARTIES, "int",

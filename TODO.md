@@ -82,15 +82,72 @@ the page.
 
 ## Open, in the order I would take them
 
+**After 4 November: re-fit the pool rates (OWNER-DECISIONS-ANSWERED item 40, MODEL-LOG §1.338).** `pools.fit_joint` lands on Duncan-Davis corners (ANC 0 among Indian/Asian and White voters; EFF, IFP, Al Jama-ah at their home-pool ceiling). A model round: pre-register, a method that does not run to the bounds, backtest, blind review. Also make `PartyFit.identified()` and `rates_on_a_bound` see a rate on a Duncan-Davis bound. The chart "Where each party's votes come from" returns only after the re-fit.
+
+**Code review of site-sweep-1, 2026-10-24: follow-ups not needed for the freeze release.**
+- `src/fold.py` `fit_status`: a γ of 0.0 from Σw·x² = 0 is labelled fitted. Folds 1-4 and the pooled file hold none today (checked 2026-10-24); fold5 is legacy.
+- `src/declares.py` pooled-file check runs one direction only (pooled→fold); add fold→pooled.
+- `src/montecarlo.py` `resolve_gamma` labels γ_recent as bare "recent"; restore the cycle in the label.
+- `revive_retire.py` `_vanished` parses build_site's printed English; capture the list in process instead.
+- `src/fold.py` `write_pooled` ignores an explicit `--fold`; `refuse_data_out` runs twice.
+- `src/montecarlo.py` run banner calls `gamma_folds_for` twice; compute once.
+- Release step: after publish, replace `RELEASE_DATE` in `docs-public/corrections.md` with the publication's date.
+
+**Owner item 35 (2026-10-24): the release wording.** Brief `audits/2026-10-23-site-sweep/BRIEF-3-item35.md`: a new corrections entry for the overclaim, two corrections entries reworded, the methodology offset sentences removed, the home stamp, the 10% coalition cut and single-party line, the lede with both parties' counts. Writer, then my diff review, then the release steps.
+
 **The out-of-sample round (`rounds/2026-10-23-out-of-sample/PLAN.md`).** Owner
 items 28 and 29 (2026-10-23). Step 0 is built and held unpublished on branch
 `step0-withdraw` (cb08153; reverted off `site-sweep-1` in b6469c3, whose 62
 ledger retirements must never be merged): the owner said on 2026-10-23
 "Nothing gets published except tooltips about what the pages used to say and
-the zille card". Which quarantined files may be deleted is OWNER-DECISIONS 32;
-`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/remove-originals.sh`
-is held until then.
+the zille card". The quarantine copies were moved to the Trash on 2026-10-23
+(owner: copies "can be deleted for now"); the in-sample originals are still in
+the project and are handled by the legacy-files plan below.
 Next: step 4 (stop gap), step 5.1 (freeze by 31 October), then steps 1-3.
+
+**Next plan: legacy and stale files and instructions across the project folder**
+(owner, 2026-10-23: "We can revist legacy files and legacy or stael fiels and
+instructions throught the project folder as the next plan"). Inventory every
+file and instruction that is legacy, stale or contradicted, including the
+in-sample score originals (`OWNER-DECISIONS-ANSWERED` 32 lists them), and
+propose for each: keep, relabel, move or delete. Owner decides the deletions.
+Known entries so far: `data/processed/fold5_parameters.csv` (no fit_status
+column, cannot be refitted under the default options, its only reader
+`--fit-from 5` now refused; `declares.py --verify` shows it ✗).
+
+**Pre-freeze arms (OWNER-DECISIONS-ANSWERED 31, 2026-10-23).** Johannesburg
+2026, paired with the current forecast: by-election terms off; γ from the
+2019→2021 fit; γ from both fits pooled. Pre-register under `prereg/`, run
+outside `data/` with the worker count capped (owner: "please leave some cpu
+available"), one old-vs-new report each in `reports/model-changes/`, then a new
+owner item for what is frozen. Before 31 October. **Run 2026-10-23**: MODEL-LOG §1.333, five reports in
+`reports/model-changes/2026-10-23-prefreeze-*`; waits on OWNER-DECISIONS 33.
+If G2 or GP is frozen, `export_interactive.py:158` (fold 1 hard-coded) must
+follow. Fix DATA-QUALITY 21 in `run_model` if BF or later is frozen.
+
+**Freeze settings (OWNER-DECISIONS-ANSWERED 33, 2026-10-23).** Pooled γ, the
+placeholder fix and the ActionSA call withdrawn, Johannesburg 2026 only.
+Pre-registration `prereg/2026-10-23-freeze-settings.md`. Sequence: writer
+(code and tests) → review → `backup_ignored.py` → `inputs_preflight --strict`
+→ fold files and pooled file → `width_record.py --emit` → canonical run →
+`overhang_regimes.py` → `freeze.py` → `export_draws.py` (three cells, `--index`)
+→ `citywide_table.py --city joburg --target 2026` → `render_map.py` and
+`hex_cartogram.py` (the build refuses maps from an older run) →
+old-vs-new report → UAT → owner's yes → freeze hash by 31 October. Whole suite
+once on the settled tree, at a time the owner chooses (CPU).
+
+**ActionSA's level, later** (owner: "we cna deal with that later"). The call
+of 21 October (§SJ2) is withdrawn; whether ActionSA's model-own level needs
+a different treatment is open.
+
+**Site text for the withdrawn ActionSA call** (needed before the freeze UAT;
+site brief under QC.md §4b, owner's approval). `content/joburg/stats.toml`
+`judgement_asa_support` (sources `judgement:joburg-2026:party.ASA.support`,
+which no longer exists) and the `[[audit.fixed]]` 17.6% entry on methodology;
+`content/joburg/model-claims.toml` claim `actionsa-judged-level`; the
+methodology and forecast Limits passages that state 17.6%; the docstring
+example at `src/stats.py:65`. Live text was true when published, so it gets
+a dated "Since then" note, not a correction (publication convention).
 Left by step 0: `reports/model-changes/build_report.py` reads the quarantined
 `history.json`, so it cannot run until a forward-chained one exists; the
 in-sample banner in `reports/model-changes/template.html` comes out then.

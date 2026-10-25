@@ -72,9 +72,10 @@ const R = {
   linknote: document.querySelector('[data-live="engine"] .pl-linknote'),
   banner: document.querySelector('[data-live="banner"]'),
   result: document.querySelector('[data-live="result"]'),
-  status: document.querySelector('[data-live="result"] .pl-status'),
-  settings: document.querySelector('[data-live="result"] .pl-settings'),
-  back: document.querySelector('[data-live="result"] .pl-back'),
+  status: document.querySelector('[data-live="status"] .pl-status'),
+  settings: document.querySelector('[data-live="status"] .pl-settings'),
+  back: document.querySelector('[data-live="status"] .pl-back'),
+  minimap: document.querySelector('[data-live="minimap"]'),
   oneline: document.querySelector('[data-live="result"] .pl-oneline'),
   announce: document.querySelector('[data-live="result"] .pl-announce'),
   map: document.querySelector('[data-live="map"]'),
@@ -165,6 +166,9 @@ function ask(settings) {
 // superseded; rejected if the engine did not load.
 const calls = new Map();
 let callSeq = 0, engineFailed = null;
+// What the reader sees when the re-weighting cannot load (owner, 2026-10-24).
+// The cause goes to the console, not the page.
+const LOAD_FAILED = "This part of the page did not load. Reload the page to try again.";
 let readyResolve;
 const engineReady = new Promise(ok => { readyResolve = ok; });
 export async function engineCall(fn, payload) {
@@ -191,9 +195,10 @@ worker.onmessage = e => {
   const m = e.data;
   if (m.type === "stage") R.engine.textContent = m.label + "…";
   else if (m.type === "failed") {
-    R.engine.textContent = m.missing ? m.message : "The re-weighting code did not load: " + m.message + ". The published forecast is shown.";
+    console.error("re-weighting did not load:", m.message);
+    R.engine.textContent = LOAD_FAILED;
     R.engine.classList.add("pl-low");
-    engineFailed = "the re-weighting code did not load";
+    engineFailed = LOAD_FAILED;
     readyResolve();
   } else if (m.type === "ready") ready(m);
   else if (m.type === "answer" || m.type === "callerror") {
@@ -227,7 +232,7 @@ async function ready(m) {
   const notes = [];
   if (YU.nameRefused(location.search)) parsed.dropped.push("name: at most " + PS.NAME_MAX + " characters");
   if (parsed.dropped.length) notes.push("Some settings in this link were not applied: " + parsed.dropped.join("; ") + ".");
-  if (parsed.otherVersion) notes.push("This link was made against a different version of the model; its settings are applied to the current one.");
+  if (parsed.otherVersion) notes.push("This link was made against a different version of This Model; its settings are applied to the current one.");
   if (notes.length) { R.linknote.textContent = notes.join(" "); R.linknote.hidden = false; }
   R.engine.textContent = "";
   ask(PS.engineSettings(PS.defaults(ctx))).then(async r => {
@@ -238,7 +243,7 @@ async function ready(m) {
     buildControls();
     R.engineRegion.setAttribute("data-ready", "");
     update();
-  }, e => { R.engine.textContent = "The re-weighting code refused the published setting: " + e.message; });
+  }, e => { R.engine.textContent = engineFailed ? LOAD_FAILED : "The re-weighting code refused the published setting: " + e.message; });
 }
 
 const pct = x => Math.round(x * 100) + "%";
@@ -318,7 +323,7 @@ function buildControls() {
   inputs.trustzone = sv("svg", { class: "pl-zone", "aria-hidden": "true" });
   R.trust.append(el("label", { className: "pl-tlab", htmlFor: "trust" }, el("span", {}, "How much to believe it"), inputs.trustv),
     el("div", { className: "pl-track" }, trust, inputs.trustzone),
-    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": the model's error for this poll")));
+    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": This Model's error for this poll")));
   // why the slider stops, or why a poll cannot be chosen: the page's slot
   // after the slider's block, not in it, because the block fades while no
   // poll is chosen, which is when a refused poll's reason is shown
@@ -505,7 +510,7 @@ async function compute() {
   const asked = copyState(st);
   let m;
   try { m = await ask(PS.engineSettings(asked)); }
-  catch (e) { if (e.message !== "superseded") R.engine.textContent = "The re-weighting code refused: " + e.message; return; }
+  catch (e) { if (e.message !== "superseded") R.engine.textContent = engineFailed ? LOAD_FAILED : "The re-weighting code refused: " + e.message; return; }
   if (PS.serialize(st, ctx) !== PS.serialize(asked, ctx)) return;
   const r = m.result;
   const bad = whyNot(r);
@@ -651,6 +656,7 @@ addEventListener("resize", () => { if (settingsNow.length) fitSettings(); });
 function render(r, touched, state = st) {
   offerShare(r, state);
   told(state);
+  renderMini(r);
   const moves = changes(r);
   if (touched) R.result.setAttribute("data-touched", "");
   else R.result.removeAttribute("data-touched");
@@ -730,6 +736,22 @@ function renderMap(r) {
   defs, ...fills, ...hatches, ...rings, ...places,
   sv("text", { x: Math.round(geometry.W) - 14, y: 20, "text-anchor": "end", class: "pl-north" }, "N ↗")));
   tips = Object.fromEntries(r.wards.map(w => [w.ward, w.tip]));
+}
+
+// The header's small copy of the ward map (owner, 2026-10-25, BRIEF-6 A3):
+// the same calls as the map below, published or under the reader's settings,
+// drawn from the same boundaries (ward_paths.json), fills only. It is a link
+// to the full map; css/your-forecast.css sizes it and grows it on hover.
+function renderMini(r) {
+  clear(R.minimap);
+  if (!geometry) return;
+  const fills = [];
+  for (const w of r.wards) {
+    const d = geometry.paths[w.ward];
+    if (d) fills.push(sv("path", { d, fill: w.fill }));
+  }
+  R.minimap.append(sv("svg", { class: "pl-minisvg", viewBox: "0 0 " + Math.round(geometry.W) + " " + Math.round(geometry.H),
+    "aria-hidden": "true", focusable: "false" }, ...fills));
 }
 
 let tips = {};

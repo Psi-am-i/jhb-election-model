@@ -783,5 +783,29 @@ def test_the_cells_order_and_compare_by_effective_weight_not_w_bye():
     else:
         raise AssertionError("w_bye ordered a cell whose w_bye is None")
 
+def test_identical_draws_keep_their_time_and_changed_draws_take_a_new_one():
+    """`draws_time` (brief 3 follow-up A, 2026-10-24): on a constructed cell, a
+    re-export with byte-identical draws keeps the cell's recorded time; one
+    whose draws differ by a byte, or into a cell with no manifest, takes the
+    new instant."""
+    with tempfile.TemporaryDirectory() as tmp:
+        cell = Path(tmp)
+        old, now = "2026-10-23T22:01:09Z", "2026-10-24T11:28:58Z"
+        blob = bytes(range(256)) * 4
+        # no cell yet: the new instant
+        assert E.draws_time(cell, blob, now) == now
+        (cell / "base.bin").write_bytes(blob)
+        (cell / "manifest.json").write_text(json.dumps({"artefact_key": {"time": old}}))
+        assert E.draws_time(cell, blob, now) == old
+        changed = bytearray(blob)
+        changed[100] ^= 1
+        assert E.draws_time(cell, bytes(changed), now) == now
+        # reverted: the old time again
+        assert E.draws_time(cell, blob, now) == old
+        # a manifest with no time cannot be kept
+        (cell / "manifest.json").write_text(json.dumps({"artefact_key": {}}))
+        assert E.draws_time(cell, blob, now) == now
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

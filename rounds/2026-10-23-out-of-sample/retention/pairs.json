@@ -1,0 +1,659 @@
+[
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "JHB",
+  "s1": 0.008060846388870831,
+  "s2": 0.005829653581817971,
+  "ratio": 0.7232061374927892
+ },
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "TSH",
+  "s1": 0.005483850688382844,
+  "s2": 0.003379223450282104,
+  "ratio": 0.6162136138098643
+ },
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "EKU",
+  "s1": 0.007997110721287793,
+  "s2": 0.00739984641105534,
+  "ratio": 0.9253149879940296
+ },
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "ETH",
+  "s1": 0.0032722397122319155,
+  "s2": 0.0032224795904063227,
+  "ratio": 0.9847932528782701
+ },
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "CPT",
+  "s1": 0.01583534958744339,
+  "s2": 0.009478234832271533,
+  "ratio": 0.5985491371650729
+ },
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "MAN",
+  "s1": 0.010242501595405233,
+  "s2": 0.0029440234987816684,
+  "ratio": 0.2874320761738862
+ },
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "NMA",
+  "s1": 0.023978285398887023,
+  "s2": 0.011637546343820882,
+  "ratio": 0.4853368850285288
+ },
+ {
+  "party": "UDM",
+  "first": "2000",
+  "second": "2006",
+  "metro": "BUF",
+  "s1": 0.015099841325447689,
+  "s2": 0.013831925579580979,
+  "ratio": 0.9160311874450033
+ },
+ {
+  "party": "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE",
+  "first": "2006",
+  "second": "2011",
+  "metro": "TSH",
+  "s1": 0.004518755964016713,
+  "s2": 0.000875012786521762,
+  "ratio": 0.1936401951089133
+ },
+ {
+  "party": "BLACK_CONSCIOUSNESS_FORUM",
+  "first": "2006",
+  "second": "2011",
+  "metro": "JHB",
+  "s1": 0.0006533732021371533,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "BLACK_CONSCIOUSNESS_FORUM",
+  "first": "2006",
+  "second": "2011",
+  "metro": "MAN",
+  "s1": 0.003297840381855202,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "CONGRESS_MOVEMENT_OF_THE_COLOURED_PEOPLE_IN_SOUTH_AFRICA",
+  "first": "2006",
+  "second": "2011",
+  "metro": "NMA",
+  "s1": 0.006593080968960664,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+  "first": "2006",
+  "second": "2011",
+  "metro": "MAN",
+  "s1": 0.005647718548683201,
+  "s2": 0.002535406556402892,
+  "ratio": 0.448925798009895
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "JHB",
+  "s1": 0.019367951971999118,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "TSH",
+  "s1": 0.009401143238310527,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "EKU",
+  "s1": 0.009776453397628755,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "ETH",
+  "s1": 0.009225203094648448,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "CPT",
+  "s1": 0.11016636930757417,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "MAN",
+  "s1": 0.007189826095664075,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "NMA",
+  "s1": 0.02570208022463745,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_DEMOCRATS",
+  "first": "2006",
+  "second": "2011",
+  "metro": "BUF",
+  "s1": 0.0065881792028086444,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+  "first": "2006",
+  "second": "2011",
+  "metro": "EKU",
+  "s1": 0.003506500719110333,
+  "s2": 0.003242685252820388,
+  "ratio": 0.9247638921469036
+ },
+ {
+  "party": "NATIONAL_DEMOCRATIC_CONVENTION",
+  "first": "2006",
+  "second": "2011",
+  "metro": "JHB",
+  "s1": 0.002329543479016724,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NATIONAL_DEMOCRATIC_CONVENTION",
+  "first": "2006",
+  "second": "2011",
+  "metro": "TSH",
+  "s1": 0.002471303236087049,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NATIONAL_DEMOCRATIC_CONVENTION",
+  "first": "2006",
+  "second": "2011",
+  "metro": "EKU",
+  "s1": 0.0024532099514911723,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NATIONAL_DEMOCRATIC_CONVENTION",
+  "first": "2006",
+  "second": "2011",
+  "metro": "ETH",
+  "s1": 0.010657045398412624,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NATIONAL_DEMOCRATIC_CONVENTION",
+  "first": "2006",
+  "second": "2011",
+  "metro": "BUF",
+  "s1": 0.0019450298797765654,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "OKM",
+  "first": "2006",
+  "second": "2011",
+  "metro": "JHB",
+  "s1": 0.004537394388234067,
+  "s2": 0.002529070087439594,
+  "ratio": 0.5573837914547907
+ },
+ {
+  "party": "SCARA_CIVIC_PARTY",
+  "first": "2006",
+  "second": "2011",
+  "metro": "ETH",
+  "s1": 0.0034160619997730414,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "TRULY_ALLIANCE",
+  "first": "2006",
+  "second": "2011",
+  "metro": "ETH",
+  "s1": 0.006997336573057334,
+  "s2": 0.006188586545729403,
+  "ratio": 0.8844203049426039
+ },
+ {
+  "party": "UNITED_INDEPENDENT_FRONT",
+  "first": "2006",
+  "second": "2011",
+  "metro": "JHB",
+  "s1": 0.0015153622382161028,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "UNITED_INDEPENDENT_FRONT",
+  "first": "2006",
+  "second": "2011",
+  "metro": "TSH",
+  "s1": 0.0020127108829987306,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "UNITED_INDEPENDENT_FRONT",
+  "first": "2006",
+  "second": "2011",
+  "metro": "EKU",
+  "s1": 0.002386182357188135,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "UNITED_INDEPENDENT_FRONT",
+  "first": "2006",
+  "second": "2011",
+  "metro": "ETH",
+  "s1": 0.002932105976356245,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "UNITED_INDEPENDENT_FRONT",
+  "first": "2006",
+  "second": "2011",
+  "metro": "CPT",
+  "s1": 0.0026438052028872117,
+  "s2": 0.00039038471697555707,
+  "ratio": 0.1476601666980725
+ },
+ {
+  "party": "UNITED_INDEPENDENT_FRONT",
+  "first": "2006",
+  "second": "2011",
+  "metro": "NMA",
+  "s1": 0.004367166527326539,
+  "s2": 0.000639753104724563,
+  "ratio": 0.14649157542343652
+ },
+ {
+  "party": "UNITED_INDEPENDENT_FRONT",
+  "first": "2006",
+  "second": "2011",
+  "metro": "BUF",
+  "s1": 0.0029852687012726672,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "AIC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "BUF",
+  "s1": 0.03583325491672156,
+  "s2": 0.03893806086788543,
+  "ratio": 1.0866459370877584
+ },
+ {
+  "party": "ALJAMAAH",
+  "first": "2011",
+  "second": "2016",
+  "metro": "JHB",
+  "s1": 0.0027171220888632854,
+  "s2": 0.003112989242343982,
+  "ratio": 1.1456935465297067
+ },
+ {
+  "party": "ALJAMAAH",
+  "first": "2011",
+  "second": "2016",
+  "metro": "CPT",
+  "s1": 0.003517043963944927,
+  "s2": 0.00552533581326738,
+  "ratio": 1.571016987535701
+ },
+ {
+  "party": "APC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "JHB",
+  "s1": 0.005271877327716847,
+  "s2": 0.0016441171433464634,
+  "ratio": 0.31186559192159735
+ },
+ {
+  "party": "APC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "TSH",
+  "s1": 0.004610059467693643,
+  "s2": 0.002433001957938814,
+  "ratio": 0.527759343450729
+ },
+ {
+  "party": "APC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "EKU",
+  "s1": 0.006816360279198117,
+  "s2": 0.0026569349562740605,
+  "ratio": 0.3897879289600321
+ },
+ {
+  "party": "APC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "ETH",
+  "s1": 0.004077113937362384,
+  "s2": 0.002645416422223671,
+  "ratio": 0.6488453506244359
+ },
+ {
+  "party": "APC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "CPT",
+  "s1": 0.0013547065981284814,
+  "s2": 0.0007263427520052592,
+  "ratio": 0.5361624081618095
+ },
+ {
+  "party": "APC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "MAN",
+  "s1": 0.005511538080618005,
+  "s2": 0.002450383921453447,
+  "ratio": 0.4445916703488851
+ },
+ {
+  "party": "APC",
+  "first": "2011",
+  "second": "2016",
+  "metro": "NMA",
+  "s1": 0.004324511330219685,
+  "s2": 0.0015532643519260742,
+  "ratio": 0.3591768487393854
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "JHB",
+  "s1": 0.011098737391342636,
+  "s2": 0.0021340066991401042,
+  "ratio": 0.19227472674546714
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "TSH",
+  "s1": 0.00889112518626852,
+  "s2": 0.0022339278786281534,
+  "ratio": 0.2512536750779573
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "EKU",
+  "s1": 0.010879545085626167,
+  "s2": 0.0027859987983711253,
+  "ratio": 0.2560767731044132
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "ETH",
+  "s1": 0.003986739623385586,
+  "s2": 0.0014177693761814746,
+  "ratio": 0.3556212620119616
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "CPT",
+  "s1": 0.011278178658312195,
+  "s2": 0.002417133992600283,
+  "ratio": 0.2143195338388098
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "MAN",
+  "s1": 0.03298504506288997,
+  "s2": 0.005635043846767088,
+  "ratio": 0.17083632403785404
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "NMA",
+  "s1": 0.04882991079150913,
+  "s2": 0.006985747288357876,
+  "ratio": 0.14306287222569744
+ },
+ {
+  "party": "COPE",
+  "first": "2011",
+  "second": "2016",
+  "metro": "BUF",
+  "s1": 0.03701420909005364,
+  "s2": 0.009913422194123948,
+  "ratio": 0.26782747592971956
+ },
+ {
+  "party": "NATIONAL_PARTY_SOUTH_AFRICA",
+  "first": "2011",
+  "second": "2016",
+  "metro": "CPT",
+  "s1": 0.0054062911034367285,
+  "s2": 0.0018407096673334162,
+  "ratio": 0.3404755001378476
+ },
+ {
+  "party": "NFP",
+  "first": "2011",
+  "second": "2016",
+  "metro": "JHB",
+  "s1": 0.008241264296538743,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NFP",
+  "first": "2011",
+  "second": "2016",
+  "metro": "TSH",
+  "s1": 0.0006787223983920776,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NFP",
+  "first": "2011",
+  "second": "2016",
+  "metro": "EKU",
+  "s1": 0.011334814544274003,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NFP",
+  "first": "2011",
+  "second": "2016",
+  "metro": "ETH",
+  "s1": 0.044782526537184925,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "NFP",
+  "first": "2011",
+  "second": "2016",
+  "metro": "CPT",
+  "s1": 0.0006849640102896816,
+  "s2": null,
+  "ratio": null
+ },
+ {
+  "party": "AGENCY_FOR_NEW_AGENDA",
+  "first": "2016",
+  "second": "2021",
+  "metro": "MAN",
+  "s1": 0.01574707338564176,
+  "s2": 0.001369115926056378,
+  "ratio": 0.08694415098774755
+ },
+ {
+  "party": "DEMOCRATIC_LIBERAL_CONGRESS",
+  "first": "2016",
+  "second": "2021",
+  "metro": "ETH",
+  "s1": 0.004346558604755593,
+  "s2": 0.004438931455360277,
+  "ratio": 1.0212519510270996
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "JHB",
+  "s1": 0.10929077533983599,
+  "s2": 0.10112544439681116,
+  "ratio": 0.9252880133969679
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "TSH",
+  "s1": 0.1163848147197184,
+  "s2": 0.10432509117378355,
+  "ratio": 0.8963806096613424
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "EKU",
+  "s1": 0.11100603039676005,
+  "s2": 0.13274032864206695,
+  "ratio": 1.1957938516279136
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "ETH",
+  "s1": 0.03629254213472974,
+  "s2": 0.10803551145164288,
+  "ratio": 2.9767964737928763
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "CPT",
+  "s1": 0.031162990191166036,
+  "s2": 0.04150555480138903,
+  "ratio": 1.3318861427217876
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "MAN",
+  "s1": 0.08841522259052574,
+  "s2": 0.11372183654687376,
+  "ratio": 1.2862246252950087
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "NMA",
+  "s1": 0.05028266257368807,
+  "s2": 0.06399049574699861,
+  "ratio": 1.2726154994919379
+ },
+ {
+  "party": "EFF",
+  "first": "2016",
+  "second": "2021",
+  "metro": "BUF",
+  "s1": 0.08206891101627943,
+  "s2": 0.12371231242892408,
+  "ratio": 1.50741993401599
+ },
+ {
+  "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+  "first": "2016",
+  "second": "2021",
+  "metro": "NMA",
+  "s1": 0.008010744068816708,
+  "s2": 0.0022204424943350247,
+  "ratio": 0.27718305256792625
+ },
+ {
+  "party": "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+  "first": "2016",
+  "second": "2021",
+  "metro": "BUF",
+  "s1": 0.0032049593453102225,
+  "s2": null,
+  "ratio": null
+ }
+]

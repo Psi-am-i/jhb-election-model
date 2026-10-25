@@ -133,7 +133,7 @@ export function showArrival(v) {
       el("p", {}, "Change any ward, the vote or who governs. The seats follow from the law. When you share yours, the link can show both predictions side by side."),
       el("div", { className: "yf-arr-btns" },
         chooseButton("friend", "Start from " + poss(name), "Every ward and vote as " + name + " set them", "btn primary"),
-        chooseButton("ours", "Start from our prediction", "The model's most likely winners", "btn"),
+        chooseButton("ours", "Start from our prediction", "This Model's most likely winners", "btn"),
         el("a", { className: "btn", href: "../forecast" }, "See our forecast", el("small", {}, "Chances for every party and ward")))),
     el("div", { className: "yf-arr-later" },
       el("div", {}, el("h3", {}, "The vote"), countdown(spec.election, now)),

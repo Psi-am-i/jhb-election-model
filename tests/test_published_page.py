@@ -87,7 +87,7 @@ ATTR = re.compile(r'([a-zA-Z-]+)="([^"]*)"')
 # byte comparison and asserted on separately, because "the page was built on a
 # different day" and "the page disagrees with the model" are different faults
 # and only one of them is about the forecast.
-BUILD_DATE = re.compile(r"(?i)(generated from [^<\n]{0,120}? on )(\d{4}-\d{2}-\d{2})")
+BUILD_DATE = re.compile(r"(?i)(generated from [^<\n]{0,120}? on |reader edition, )(\d{4}-\d{2}-\d{2})")
 
 # Pages this test module compares. Derived from `build_site` rather than
 # retyped: a hand-kept second list is the duplication that let `plan.html` be

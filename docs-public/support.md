@@ -8,11 +8,11 @@ formula that combines the two. After the count comes the coalition arithmetic.
 This site explains that system and forecasts its result.
 
 It publishes the forecast with the [method](methodology), the
-[sources](sources), the [review](review) that found the model's errors, and
+[sources](sources), the [review](review) that found This Model's errors, and
 the [corrections](corrections). It is free to read. Its text, charts and
 published figures are licensed
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): reuse them with
-attribution and a link back. The model's code is on
+attribution and a link back. This Model's code is on
 [GitHub](https://github.com/Psi-am-i/jhb-election-model) under the MIT licence.
 The raw election results are available from the
 [IEC](https://results.elections.org.za/).
@@ -45,7 +45,7 @@ under R10,000, R10,000 to R50,000, or over R50,000.
 An acknowledgement on this page: its name, whether it is a partner or a
 sponsor, and its amount band.
 
-A supporter has no say over the model, its inputs, its findings, the wording of
+A supporter has no say over This Model, its inputs, its findings, the wording of
 any page, or when anything is published.
 
 ## Current supporters

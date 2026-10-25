@@ -90,7 +90,7 @@ BLOCK_ID = re.compile(r"^<!-- block (\w+) -->$", re.M)
 
 CLAIM_FIELDS = ("quote", "speaker", "outlet", "tests", "intro", "since")
 ARTICLE_FIELDS = ("title", "standfirst")
-LEDE_FIELDS = ("head", "sub")
+LEDE_FIELDS = ("head", "sub", "sub2", "sub3")
 
 
 def placeholders(text: str) -> list[str]:

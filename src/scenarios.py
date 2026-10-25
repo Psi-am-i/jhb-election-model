@@ -129,6 +129,31 @@ def published_draw_blocks(root: Path | None = None) -> tuple[dict, dict]:
             {b["name"]: b["columns"] for b in man["blocks"]})
 
 
+def combined_vote_shares(blocks: dict, columns: dict):
+    """``(shares, parties)``: each party's share of the COMBINED vote in each
+    simulation of a draw export's ``ward_vote`` and ``list_vote`` blocks,
+    ``shares[d, i]`` for draw ``d`` and ``parties[i]``. The combined vote is
+    the statute's tally (Schedule 1 items 12-13 and 16, `seats.eligible_parties`:
+    a party's ward and list votes together, no independent, no party without a
+    list), over the same tally for every party it counts; a party it does not
+    count has share 0. THE ONE DEFINITION for every page that compares seats
+    with the vote (the home page's excessive-seats line, the methodology's ANC
+    vote; owner, 2026-10-25). Refuses blocks that name different parties."""
+    import numpy as _np
+    import seats as _seats_law
+    parties = list(columns["list_vote"])
+    if list(columns["ward_vote"]) != parties:
+        raise SystemExit("the draws' ward_vote and list_vote blocks name different parties")
+    out = _np.zeros((len(blocks["list_vote"]), len(parties)))
+    for d, (w, l) in enumerate(zip(blocks["ward_vote"], blocks["list_vote"])):
+        tally = _seats_law.eligible_parties({c: int(v) for c, v in zip(parties, w)},
+                                            {c: int(v) for c, v in zip(parties, l)})
+        total = sum(tally.values())
+        for i, c in enumerate(parties):
+            out[d, i] = tally.get(c, 0) / total
+    return out, parties
+
+
 #: seat_draws.csv columns that are not parties.
 SEAT_DRAW_META = ("draw", "threshold", "council_size")
 

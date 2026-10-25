@@ -1,0 +1,1772 @@
+{
+ "arm": "G2",
+ "bye_weight": {
+  "ACDP": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "AIC": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "ALJAMAAH": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "ALL_CITIZENS_PARTY": {
+   "class": "no record",
+   "weight": 0.0
+  },
+  "AMALGAMATED_RAINBOW_MOVEMENT": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "ANC": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "ASA": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "ATM": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "COPE": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "DA": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "DUDULA": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "EFF": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "IFP": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "IND": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "MK": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "NCC": {
+   "class": "no record",
+   "weight": 0.0
+  },
+  "PA": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "PAC": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "RISE": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "THE_ORGANIC_HUMANITY_MOVEMENT": {
+   "class": "override",
+   "weight": 0.5
+  },
+  "TRUTH_AND_SOLIDARITY_MOVEMENT": {
+   "class": "no record",
+   "weight": 0.0
+  },
+  "VUKA_SA": {
+   "class": "no record",
+   "weight": 0.0
+  }
+ },
+ "byelection_files": [
+  "byelection_contest_detail.csv",
+  "byelection_party_deltas.csv",
+  "byelection_turnout.csv"
+ ],
+ "city_year_meta": "/private/tmp/claude-501/-Users-simondavis-projects-atlas-jhb-election-model/a9daa51d-8da6-4028-a1ac-1924029d86f8/scratchpad/prefreeze/run1/G2/joburg-2026/meta.json",
+ "draws": 5000,
+ "evidence": "\u03b3 from fold 2 (2019 \u2192 2021). The 2026 \u03b3 is not tested by any backtest.",
+ "fallback": {
+  "PR": [
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT",
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION",
+   "AFRICAN_ECONOMIC_FREEDOM",
+   "AFRICAN_LABOUR_CONVENTION",
+   "AFRICAN_RENAISSANCE_UNITY",
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS",
+   "AFRICAN_UNEMPLOYED_CONGRESS",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "AFRIKA_MAYIBUYE_MOVEMENT",
+   "AFRIKA_UNITE_CONGRESS",
+   "AHC",
+   "ALLIED_INDEPENDENTS_UMBRELLA",
+   "ALL_CITIZENS_PARTY",
+   "ALL_NATIVES_OF_SOUTH_AFRICA",
+   "AMALGAMATED_RAINBOW_MOVEMENT",
+   "APC",
+   "ASA",
+   "AZANIAN_GROUND_FORCES",
+   "AZANIA_PEACEFUL_REVOLUTION",
+   "AZAPO",
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "BOSA",
+   "CHANGE",
+   "CHRIST_KINGDOM_PARTY",
+   "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS",
+   "COMBAT",
+   "COMMUNITY_FIRST_MOVEMENT",
+   "DUDULA",
+   "ECONOMIC_EMANCIPATION_FORUM",
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA",
+   "ECONOMIC_REDRESS_MOVEMENT",
+   "EKHETHU_PEOPLES_PARTY",
+   "GAP_FIXERS_OF_SOUTH_AFRICA",
+   "GAZA_DEMOCRATIC_FRONT",
+   "ILIZWE_NATHI",
+   "IMSTAYING",
+   "INDEPENDENT_CITIZENS_MOVEMENT",
+   "INTERNATIONAL_REVELATION_CONGRESS",
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY",
+   "KNOW_YOUR_POWER",
+   "LABOUR_PARTY_OF_SOUTH_AFRICA",
+   "LAND_PARTY",
+   "LEKWE_BEPE_KINGDOM_PARTY",
+   "MAWUSA_MOVEMENT_PARTY",
+   "MINORITY_FRONT",
+   "MK",
+   "MOVEMENT_OF_RESIDENTS_PARTY",
+   "MOVE_SA",
+   "NATIONAL_DEMOCRATIC_CONVENTION",
+   "NCC",
+   "NFP",
+   "PA",
+   "PEOPLE_OF_JOBURG",
+   "PEOPLE_S_CONSENT_PARTY",
+   "PEOPLE_S_MOVEMENT_FOR_CHANGE",
+   "PRO_SOUTH_AFRICA",
+   "RESIDENT_DEVELOPMENT",
+   "RISE",
+   "SERVICE_DELIVERY_PARTY",
+   "SHOSHOLOZA_PROGRESSIVE_PARTY",
+   "SOUTH_AFRICAN_COMMUNIST_PARTY",
+   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION",
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "TRUTH_AND_SOLIDARITY_MOVEMENT",
+   "UIM",
+   "UMPHAKATHI_WARONA",
+   "UNITED_AFRICANS_TRANSFORMATION",
+   "VUKA_SA"
+  ],
+  "Ward": [
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT",
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION",
+   "AFRICAN_ECONOMIC_FREEDOM",
+   "AFRICAN_LABOUR_CONVENTION",
+   "AFRICAN_RENAISSANCE_UNITY",
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS",
+   "AFRICAN_UNEMPLOYED_CONGRESS",
+   "AFRICA_RESTORATION_ALLIANCE",
+   "AFRIKA_MAYIBUYE_MOVEMENT",
+   "AFRIKA_UNITE_CONGRESS",
+   "AHC",
+   "ALLIED_INDEPENDENTS_UMBRELLA",
+   "ALL_CITIZENS_PARTY",
+   "ALL_NATIVES_OF_SOUTH_AFRICA",
+   "AMALGAMATED_RAINBOW_MOVEMENT",
+   "APC",
+   "ASA",
+   "AZANIAN_GROUND_FORCES",
+   "AZANIA_PEACEFUL_REVOLUTION",
+   "AZAPO",
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+   "BOSA",
+   "CHANGE",
+   "CHRIST_KINGDOM_PARTY",
+   "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS",
+   "COMBAT",
+   "COMMUNITY_FIRST_MOVEMENT",
+   "DUDULA",
+   "ECONOMIC_EMANCIPATION_FORUM",
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA",
+   "ECONOMIC_REDRESS_MOVEMENT",
+   "EKHETHU_PEOPLES_PARTY",
+   "GAP_FIXERS_OF_SOUTH_AFRICA",
+   "GAZA_DEMOCRATIC_FRONT",
+   "ILIZWE_NATHI",
+   "IMSTAYING",
+   "INDEPENDENT_CITIZENS_MOVEMENT",
+   "INTERNATIONAL_REVELATION_CONGRESS",
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY",
+   "KNOW_YOUR_POWER",
+   "LABOUR_PARTY_OF_SOUTH_AFRICA",
+   "LAND_PARTY",
+   "LEKWE_BEPE_KINGDOM_PARTY",
+   "MAWUSA_MOVEMENT_PARTY",
+   "MINORITY_FRONT",
+   "MK",
+   "MOVEMENT_OF_RESIDENTS_PARTY",
+   "MOVE_SA",
+   "NATIONAL_DEMOCRATIC_CONVENTION",
+   "NCC",
+   "NFP",
+   "PA",
+   "PEOPLE_OF_JOBURG",
+   "PEOPLE_S_CONSENT_PARTY",
+   "PEOPLE_S_MOVEMENT_FOR_CHANGE",
+   "PRO_SOUTH_AFRICA",
+   "RESIDENT_DEVELOPMENT",
+   "RISE",
+   "SERVICE_DELIVERY_PARTY",
+   "SHOSHOLOZA_PROGRESSIVE_PARTY",
+   "SOUTH_AFRICAN_COMMUNIST_PARTY",
+   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION",
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA",
+   "THE_ORGANIC_HUMANITY_MOVEMENT",
+   "TRUTH_AND_SOLIDARITY_MOVEMENT",
+   "UIM",
+   "UMPHAKATHI_WARONA",
+   "UNITED_AFRICANS_TRANSFORMATION",
+   "VUKA_SA"
+  ]
+ },
+ "gamma": {
+  "PR": {
+   "ACDP": {
+    "drawn": 0.744,
+    "expected": 0.744,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.6504,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_ECONOMIC_FREEDOM": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_LABOUR_CONVENTION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_RENAISSANCE_UNITY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_UNEMPLOYED_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICA_RESTORATION_ALLIANCE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRIKA_MAYIBUYE_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRIKA_UNITE_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AHC": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AIC": {
+    "drawn": 0.4155,
+    "expected": 0.4155,
+    "fold1": "base share <= 0.001",
+    "fold2": "fitted",
+    "pooled": 0.4155,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ALJAMAAH": {
+    "drawn": 1.4327,
+    "expected": 1.4327,
+    "fold1": "base share <= 0.001",
+    "fold2": "fitted",
+    "pooled": 1.4327,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ALLIED_INDEPENDENTS_UMBRELLA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ALL_CITIZENS_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ALL_NATIVES_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AMALGAMATED_RAINBOW_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ANC": {
+    "drawn": 1.0381,
+    "expected": 1.0381,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.0325,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "APC": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "fitted",
+    "fold2": "base share <= 0.001",
+    "pooled": 0.5169,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ASA": {
+    "drawn": 0.4942,
+    "expected": 0.4942,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "2021\u21922024",
+    "source": "recent"
+   },
+   "ATM": {
+    "drawn": 0.8118,
+    "expected": 0.8118,
+    "fold1": "unseen",
+    "fold2": "fitted",
+    "pooled": 0.8118,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "AZANIAN_GROUND_FORCES": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AZANIA_PEACEFUL_REVOLUTION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AZAPO": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "fitted",
+    "fold2": "base share <= 0.001",
+    "pooled": 0.4355,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "base share <= 0.001",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "BOSA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "CHANGE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "CHRIST_KINGDOM_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "COMBAT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "COMMUNITY_FIRST_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "COPE": {
+    "drawn": 0.2013,
+    "expected": 0.2013,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.181,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "DA": {
+    "drawn": 1.0518,
+    "expected": 1.0518,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.0388,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "DUDULA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ECONOMIC_EMANCIPATION_FORUM": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ECONOMIC_REDRESS_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "EFF": {
+    "drawn": 1.23,
+    "expected": 1.23,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.0567,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "EKHETHU_PEOPLES_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "GAP_FIXERS_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "GAZA_DEMOCRATIC_FRONT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "IFP": {
+    "drawn": 1.0247,
+    "expected": 1.0247,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.0838,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ILIZWE_NATHI": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "IMSTAYING": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "INDEPENDENT_CITIZENS_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "INTERNATIONAL_REVELATION_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "base share <= 0.001",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "KNOW_YOUR_POWER": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "LABOUR_PARTY_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "LAND_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "LEKWE_BEPE_KINGDOM_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MAWUSA_MOVEMENT_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MINORITY_FRONT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "no target votes",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MK": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MOVEMENT_OF_RESIDENTS_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MOVE_SA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "NATIONAL_DEMOCRATIC_CONVENTION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "NCC": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "NFP": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "no target votes",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PA": {
+    "drawn": 0.5443,
+    "expected": 0.5443,
+    "fold1": "base share <= 0.001",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "2021\u21922024",
+    "source": "recent"
+   },
+   "PAC": {
+    "drawn": 0.7533,
+    "expected": 0.7533,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.6569,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "PEOPLE_OF_JOBURG": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PEOPLE_S_CONSENT_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PRO_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "RESIDENT_DEVELOPMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "RISE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SERVICE_DELIVERY_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SHOSHOLOZA_PROGRESSIVE_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "THE_ORGANIC_HUMANITY_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "TRUTH_AND_SOLIDARITY_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "UDM": {
+    "drawn": 0.4501,
+    "expected": 0.4501,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.4039,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "UIM": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "UMPHAKATHI_WARONA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "UNITED_AFRICANS_TRANSFORMATION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "VFPLUS": {
+    "drawn": 1.0428,
+    "expected": 1.0428,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.9726,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "VUKA_SA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   }
+  },
+  "Ward": {
+   "ACDP": {
+    "drawn": 0.7016,
+    "expected": 0.7016,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.5997,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_ECONOMIC_FREEDOM": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_LABOUR_CONVENTION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_RENAISSANCE_UNITY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICAN_UNEMPLOYED_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRICA_RESTORATION_ALLIANCE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRIKA_MAYIBUYE_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AFRIKA_UNITE_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AHC": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AIC": {
+    "drawn": -0.0926,
+    "expected": -0.0926,
+    "fold1": "base share <= 0.001",
+    "fold2": "fitted",
+    "pooled": -0.0926,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ALJAMAAH": {
+    "drawn": 1.5341,
+    "expected": 1.5341,
+    "fold1": "base share <= 0.001",
+    "fold2": "fitted",
+    "pooled": 1.5341,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ALLIED_INDEPENDENTS_UMBRELLA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ALL_CITIZENS_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ALL_NATIVES_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AMALGAMATED_RAINBOW_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ANC": {
+    "drawn": 1.0471,
+    "expected": 1.0471,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.0266,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "APC": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "fitted",
+    "fold2": "base share <= 0.001",
+    "pooled": 0.1404,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ASA": {
+    "drawn": 0.4942,
+    "expected": 0.4942,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "2021\u21922024",
+    "source": "recent"
+   },
+   "ATM": {
+    "drawn": 0.7595,
+    "expected": 0.7595,
+    "fold1": "unseen",
+    "fold2": "fitted",
+    "pooled": 0.7595,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "AZANIAN_GROUND_FORCES": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AZANIA_PEACEFUL_REVOLUTION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "AZAPO": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "fitted",
+    "fold2": "base share <= 0.001",
+    "pooled": 0.5052,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "base share <= 0.001",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "BOSA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "CHANGE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "CHRIST_KINGDOM_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "COMBAT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "COMMUNITY_FIRST_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "COPE": {
+    "drawn": -0.0228,
+    "expected": -0.0228,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.0396,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "DA": {
+    "drawn": 1.0407,
+    "expected": 1.0407,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.0294,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "DUDULA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ECONOMIC_EMANCIPATION_FORUM": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "ECONOMIC_REDRESS_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "EFF": {
+    "drawn": 1.2862,
+    "expected": 1.2862,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.0996,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "EKHETHU_PEOPLES_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "GAP_FIXERS_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "GAZA_DEMOCRATIC_FRONT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "IFP": {
+    "drawn": 1.0783,
+    "expected": 1.0783,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 1.1288,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "ILIZWE_NATHI": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "IMSTAYING": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "INDEPENDENT_CITIZENS_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "INTERNATIONAL_REVELATION_CONGRESS": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "base share <= 0.001",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "KNOW_YOUR_POWER": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "LABOUR_PARTY_OF_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "LAND_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "LEKWE_BEPE_KINGDOM_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MAWUSA_MOVEMENT_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MINORITY_FRONT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "no target votes",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MK": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MOVEMENT_OF_RESIDENTS_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "MOVE_SA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "NATIONAL_DEMOCRATIC_CONVENTION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "NCC": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "NFP": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "no target votes",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PA": {
+    "drawn": 0.5443,
+    "expected": 0.5443,
+    "fold1": "base share <= 0.001",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "2021\u21922024",
+    "source": "recent"
+   },
+   "PAC": {
+    "drawn": 0.7668,
+    "expected": 0.7668,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.5073,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "PEOPLE_OF_JOBURG": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PEOPLE_S_CONSENT_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "PRO_SOUTH_AFRICA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "RESIDENT_DEVELOPMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "RISE": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SERVICE_DELIVERY_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SHOSHOLOZA_PROGRESSIVE_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "THE_ORGANIC_HUMANITY_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "TRUTH_AND_SOLIDARITY_MOVEMENT": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "UDM": {
+    "drawn": 0.416,
+    "expected": 0.416,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.4238,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "UIM": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "base share <= 0.001",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "UMPHAKATHI_WARONA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "UNITED_AFRICANS_TRANSFORMATION": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   },
+   "VFPLUS": {
+    "drawn": 1.0086,
+    "expected": 1.0086,
+    "fold1": "fitted",
+    "fold2": "fitted",
+    "pooled": 0.9513,
+    "run_model_label": "fold1",
+    "source": "fold2"
+   },
+   "VUKA_SA": {
+    "drawn": 1.0,
+    "expected": 1.0,
+    "fold1": "unseen",
+    "fold2": "unseen",
+    "pooled": null,
+    "run_model_label": "default 1.0",
+    "source": "default 1.0"
+   }
+  }
+ },
+ "gamma_mode": "fold2 real fits",
+ "git": {
+  "commit": "261b29fdf330bf61b08494fe8a0f267e6b43f6a0",
+  "dirty": false
+ },
+ "patched_fold_loads": 2,
+ "poll_levels": [],
+ "prereg": "prereg/2026-10-23-prefreeze-arms.md",
+ "processed": "data/processed",
+ "seed": 20261104,
+ "seeded": [
+  "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT",
+  "AFRICAN_ECONOMIC_FREEDOM",
+  "AFRICAN_LABOUR_CONVENTION",
+  "AFRICAN_RENAISSANCE_UNITY",
+  "AFRICAN_ROYAL_RAINBOW_CONGRESS",
+  "AFRICAN_UNEMPLOYED_CONGRESS",
+  "AFRIKA_MAYIBUYE_MOVEMENT",
+  "AFRIKA_UNITE_CONGRESS",
+  "ALLIED_INDEPENDENTS_UMBRELLA",
+  "ALL_CITIZENS_PARTY",
+  "ALL_NATIVES_OF_SOUTH_AFRICA",
+  "AZANIAN_GROUND_FORCES",
+  "CHRIST_KINGDOM_PARTY",
+  "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS",
+  "COMBAT",
+  "COMMUNITY_FIRST_MOVEMENT",
+  "ECONOMIC_REDRESS_MOVEMENT",
+  "EKHETHU_PEOPLES_PARTY",
+  "GAP_FIXERS_OF_SOUTH_AFRICA",
+  "GAZA_DEMOCRATIC_FRONT",
+  "ILIZWE_NATHI",
+  "IMSTAYING",
+  "INDEPENDENT_CITIZENS_MOVEMENT",
+  "KINGDOM_COVENANT_DEMOCRATIC_PARTY",
+  "KNOW_YOUR_POWER",
+  "LABOUR_PARTY_OF_SOUTH_AFRICA",
+  "LAND_PARTY",
+  "LEKWE_BEPE_KINGDOM_PARTY",
+  "MAWUSA_MOVEMENT_PARTY",
+  "MINORITY_FRONT",
+  "MOVEMENT_OF_RESIDENTS_PARTY",
+  "MOVE_SA",
+  "NATIONAL_DEMOCRATIC_CONVENTION",
+  "NCC",
+  "PEOPLE_OF_JOBURG",
+  "PEOPLE_S_CONSENT_PARTY",
+  "PEOPLE_S_MOVEMENT_FOR_CHANGE",
+  "PRO_SOUTH_AFRICA",
+  "RESIDENT_DEVELOPMENT",
+  "SERVICE_DELIVERY_PARTY",
+  "SOUTH_AFRICAN_COMMUNIST_PARTY",
+  "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION",
+  "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA",
+  "TRUTH_AND_SOLIDARITY_MOVEMENT",
+  "UMPHAKATHI_WARONA",
+  "VUKA_SA"
+ ],
+ "sets": {},
+ "solve_calls": 10000,
+ "solve_calls_with_other_gamma": 0,
+ "turnout_sha": "513060bed430cbb6",
+ "w_bye": 0.5
+}

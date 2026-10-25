@@ -580,7 +580,7 @@ rejected because the group total may only be fitted on the previous cycle, which
 
 | Piece | Where | Source | Saw |
 |---|---|---|---|
-| γ per party per ballot | `fold{N}_parameters.csv`, fold precedes the target (asserted) | MEASURED | prior transition ✅ |
+| γ per party per ballot | `fold{N}_parameters.csv` (`fitted` rows only), or for a `GAMMA_POOL` city-year `gamma_pooled_fold1-2.csv`; every fold precedes the target (asserted, `gamma_folds_for`) | MEASURED | prior transitions ✅ |
 | γ fallback | `gamma_recent.csv` | MEASURED | last LGE→NPE before the target ✅ |
 | γ default 1.0 | `montecarlo.py` | JUDGED (JUDGEMENT-CALLS §A48) | who took it is recorded per run as the delivery note `gamma.default_1.0` |
 | `dev` (logit deviation) | computed from the base | DERIVED | prior NPE ✅ |
@@ -607,6 +607,41 @@ because an absorbing stage must say how much it absorbed. The only lever that
 shrinks it is `level_floor` itself, which has a range and therefore faces the
 full bar. **At 1.3e-05 against a seat ~300× larger, it is a mechanism to know
 about, not a defect costing seats.**
+
+**Not every fold row is a fit.** `fold.py` writes a γ for every party in a
+fold's universe, and two kinds of row are placeholders: γ = 1.0 where the base
+citywide share is ≤ 0.001 (`FIT_MIN_BASE_SHARE`), and γ = 0.0 where the target
+has no votes for the party (every y is zero). `fold.fit_status` names which
+rows those are (`fitted`, `base share <= 0.001`, `no target votes`, `unseen`),
+and every parameters file `main` writes carries that as its last column,
+`fit_status` (a `--fit-from` file carries the source fold's status).
+`fold.load_parameters` reads γ from `fitted` rows only and θ from every row,
+and REFUSES a file without the column. So a placeholder row no longer blocks
+`gamma_recent.csv`: the party falls through to it, then to 1.0 (DATA-QUALITY
+21, fixed 2026-10-23).
+
+**One chain, `montecarlo.resolve_gamma`.** `run_model` and
+`export_interactive` both read γ through it: the source `gamma_folds_for`
+names, then `gamma_recent.csv` (target directory), then 1.0. The source is
+`GAMMA_POOL` for the city-years it lists (Johannesburg 2026: folds 1 and 2
+pooled, JUDGEMENT-CALLS §V2), else the `GAMMA_FOLD` fold for the year
+(Tshwane 2026 and every past target); every fold in either must target a year
+before the target. Each party is labelled with its source: `fold<N>`,
+`pooled ` plus the folds that contributed (`pooled 1+2`, `pooled 2`), `recent`,
+or `default 1.0`; a placeholder is never read, so it is never labelled as a
+fold. A missing pooled file is refused, not replaced by fold 1.
+
+**Pooled γ (`fold.py --pool 1,2`, or `--out DIR` to write elsewhere).** `fit_gamma` is `gamma_sums`
+(Σwxy, Σwx², n) divided by `gamma_from_sums`. The pooled fit adds each fold's
+sums, per ballot and party, over the folds whose row is a real fit, and divides
+once: the through-origin fit over every fold's VD rows together, not the mean
+of the folds' γs. Each fold is prepared as its own default fit (`fold_inputs`,
+`fold_target`, the same functions `main` fits through). It writes
+`gamma_pooled_fold1-2.csv` with the folds that contributed and each fold's
+`fit_status`. Without `--out` it writes into the city's processed directory,
+where `resolve_gamma` reads it. `--fold N --out DIR` writes
+the ordinary fit into DIR so it can be compared with the canonical file;
+`--out` under `data/` is refused.
 
 **Known:** `fit_gamma` is a no-intercept OLS of noisy y on noisy x — regression
 dilution, monotone in party size (COPE 0.17 PR / 0.074 Ward against ANC 1.03).
@@ -2992,8 +3027,8 @@ design; this is what runs.
   is rendered, `build_site.share_images` builds the specs from the figures
   the pages printed (`og_pages.figure_pool`; a figure printed two ways is
   refused where an image draws it), draws them all in one node process into
-  `<out>/og-page/` (`og_pages.render_all`, which deletes every other file
-  there and refuses a directory), fills each held page (`og_pages.fill`),
+  `<out>/og-page/` (`og_pages.render_all`, which refuses a directory), fills
+  each held page (`og_pages.fill`),
   and only then audits, scans and writes it. Every figure an image prints is
   appended to the publication record under that page
   (`og_pages.ledger_records`). A node failure stops the build; there is no
@@ -3001,6 +3036,14 @@ design; this is what runs.
 * **Names.** `<slug>-<12 letters>.png`: sha256 of the SVG, the card faces and
   resvg's version, written a-p, so the address changes with any figure, word,
   layout, badge or face, and the number scan finds no digit in it.
+* **Images are kept forever** (owner, 2026-10-24: "all our social share cards
+  have had their images deleted. That cannot happen in future"). A post shared
+  on any day names that day's image, so `render_all` deletes nothing: it draws
+  into a scratch directory and copies in the images the build names, beside
+  every earlier one, and refuses an existing name with other bytes rather than
+  overwrite it. The images deleted before 2026-10-24 were restored from git
+  history, byte for byte; `src/deploy_check.py` refuses a `site/` missing any
+  `site/og-page/*.png` git has ever held.
 * **The forecast image's coalitions** are `og_pages.FORECAST_COALITIONS`
   (JUDGEMENT-CALLS §S1): each set's figure is `coal.<key>.majority`, /forecast's
   own token where its coalition table prints one, else computed over every

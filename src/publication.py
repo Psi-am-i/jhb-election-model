@@ -188,6 +188,11 @@ class Row:
     # currently a stand-in for valid time, and a future reader needs it in the
     # ROW to tell a stand-in from a measurement.
     provenance: dict | None = None
+    # Set only by :func:`revive`: the row records that a retired token came
+    # back, not a value shown to a reader. A field with a default, so every row
+    # written before it parses unchanged and ``SCHEMA`` stays 1: no existing
+    # row's meaning moves, and a row without it is not a revival.
+    revived_at: str | None = None
 
     def as_json(self) -> dict:
         d = dataclasses.asdict(self)
@@ -311,14 +316,17 @@ def before_latest_publication(rows: Iterable[Row]) -> tuple[list[Row], Row | Non
     publication, which carries its run, time and provenance.
 
     A publication is the rows one ``build_site.py --publish`` appended: one
-    ``model_run_id`` and one ``published_at``, none superseded. A retirement
+    ``model_run_id`` and one ``published_at``, none superseded or revived. A
+    retirement or a revival
     (:func:`retire`, ``superseded_at`` set) written before it is kept, since
     the publish build read it; one written after it is not, since it did not.
     This is what ``build_site.py --as-published`` classifies against, so the
     pages a publication served (their arrows and "now <date>" tooltips
     classify each figure against the edition before) can be rebuilt after it."""
     rows = sorted(rows, key=lambda r: r.published_at)
-    pubs = [r for r in rows if not r.superseded_at]
+    # a revival (:func:`revive`) is neither superseded nor a publication: it
+    # carries the retired run's identity and was appended by no build
+    pubs = [r for r in rows if not r.superseded_at and not r.revived_at]
     if not pubs:
         return rows, None
     newest = pubs[-1]
@@ -332,9 +340,12 @@ def _runs(rows: Iterable[Row]) -> dict[str, list[dict]]:
     that show the reader the same thing (`normalise_string` of ``display``). A
     ``rounding`` row continues it: the raw value moved and the glyph did not.
     A row after a retirement (``superseded_at``) starts a new run, because the
-    figure stopped being current in between. ``since`` is the run's first
-    ``published_at``; ``live`` is whether any of its rows is unsuperseded, and
-    ``display`` is the first such row's (the first row's when none is).
+    figure stopped being current in between. A revival (:func:`revive`) starts
+    no run and is never ``live``: it shows the reader nothing, so the row after
+    it starts a new run too, dated to the publication that printed the figure
+    again. ``since`` is the run's first ``published_at``; ``live`` is whether
+    any of its rows is unsuperseded and not a revival, and ``display`` is the
+    first such row's (the first row's when none is).
 
     The one segmentation `run_starts` and `prior_values` both read, so the
     date a value was "since" while current and the date a later edition says
@@ -344,14 +355,16 @@ def _runs(rows: Iterable[Row]) -> dict[str, list[dict]]:
     last: dict[str, Row] = {}
     for row in sorted(rows, key=lambda r: r.published_at):
         prev = last.get(row.token)
-        if (prev is None or prev.superseded_at
+        last[row.token] = row
+        if row.revived_at:
+            continue
+        if (prev is None or prev.superseded_at or prev.revived_at
                 or normalise_string(prev.display) != normalise_string(row.display)):
             runs.setdefault(row.token, []).append(
                 {"display": row.display, "since": row.published_at, "live": False})
         run = runs[row.token][-1]
         if not row.superseded_at and not run["live"]:
             run["display"], run["live"] = row.display, True
-        last[row.token] = row
     return runs
 
 
@@ -848,6 +861,10 @@ def dated_context_violations(rendered: Iterable[dict],
     ``rendered`` is a sequence of ``{"token", "dated"}`` mappings; ``dated`` says
     whether the surrounding prose places the figure in time. The renderer knows
     that and this module cannot infer it, so it is declared rather than guessed.
+
+    ``ledger`` is :func:`latest_of` the rows. A token whose latest row is a
+    revival (:func:`revive`) is not superseded and passes; the build that
+    prints it must then publish it (:func:`unpublished_revivals`).
     """
     out = []
     for span in rendered:
@@ -954,11 +971,83 @@ def retire(city: str, token: str, *, reason: str,
             f"{token} was already retired on {prev.superseded_at}. Retiring "
             f"twice would put two supersession stamps in the record and make "
             f"'when did this stop being current' unanswerable.")
+    # `revived_at=None`: retiring a revived token copies the revival row, and
+    # the retirement is not a revival
     row = dataclasses.replace(prev, published_at=when, superseded_at=when,
-                              change_class=change_class, reason=reason,
-                              movement="none")
+                              revived_at=None, change_class=change_class,
+                              reason=reason, movement="none")
     append(city, [row], root=root)
     return row
+
+
+def revive(city: str, token: str, *, reason: str,
+           change_class: str = "mechanism", when: str | None = None,
+           root: Path | None = None) -> Row:
+    """Bring a retired token back: the model produces the figure again.
+
+    A retirement is a fact about one forecast: that forecast did not print the
+    figure. A later forecast can produce it again (a coalition back above the
+    who-can-govern table's threshold, a party's by-election move back above
+    sampling noise), and without this the token's latest row stays a
+    retirement, so :func:`dated_context_violations` refuses every live
+    occurrence of a figure that is current again.
+
+    Append-only, like :func:`retire`, which it mirrors: a NEW row carrying the
+    retired row's value with ``revived_at`` set and no ``superseded_at``. It
+    records the return; it is not a publication. It shows the reader nothing
+    (`_runs` starts no run with it, `before_latest_publication` does not count
+    it), and the figure is current again only when the next
+    ``build_site.py --publish`` appends a live row after it. Refused unless the
+    token's latest row is a retirement.
+
+    A revival with no live row after it is detectable:
+    :func:`unpublished_revivals` lists it, and ``build_site`` refuses a build
+    that does not print a revived token.
+    """
+    if change_class not in CHANGE_CLASSES:
+        raise ValueError(
+            f"change_class {change_class!r} is not one of {CHANGE_CLASSES}. "
+            f"A revival owes the reader a reason of a KIND, not just prose.")
+    if not reason:
+        raise ValueError(
+            f"reviving {token} without a reason. The record must say why a "
+            f"figure that stopped being current is current again.")
+    when = when or _utc()
+    prev = latest(city, root=root).get(token)
+    if prev is None:
+        raise KeyError(
+            f"{token} was never published in {city}; there is nothing to revive. "
+            f"A first publication needs no revival row.")
+    if not prev.superseded_at:
+        state = (f"was revived on {prev.revived_at}" if prev.revived_at
+                 else f"is live (last published {prev.published_at})")
+        raise ValueError(
+            f"{token} {state}, not retired. Only a retirement can be revived; "
+            f"a second return row would make 'when did this become current "
+            f"again' unanswerable.")
+    row = dataclasses.replace(prev, published_at=when, superseded_at=None,
+                              revived_at=when, change_class=change_class,
+                              reason=reason, movement="none")
+    append(city, [row], root=root)
+    return row
+
+
+def unpublished_revivals(ledger: dict[str, Row],
+                         published: Iterable[str] = ()) -> list[Row]:
+    """Revivals with no live row after them, and not about to get one.
+
+    ``ledger`` is :func:`latest_of` the rows; ``published`` the tokens a build
+    is about to print. A token whose latest row is a revival
+    (:func:`revive`) and that is not in ``published`` was brought back and is
+    not being shown, so nothing will ever append the live row that makes it
+    current: the revival would stand in the record as a return that never
+    happened. ``build_site`` refuses on any; with ``published`` empty this lists
+    every revival the ledger has not yet followed with a publication.
+    """
+    shown = set(published)
+    return sorted((row for t, row in ledger.items()
+                   if row.revived_at and t not in shown),
+                  key=lambda r: r.token)
 
 
 def summarise(rows: Iterable[Row]) -> dict:

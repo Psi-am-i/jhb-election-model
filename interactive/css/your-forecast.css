@@ -191,7 +191,15 @@
 .yf .cta[disabled]{opacity:.45;cursor:not-allowed;}
 .yf .yf-ctanote{flex:1 1 28ch;margin:0;font-size:15px;line-height:1.45;color:var(--ink-2);}
 .yf .yf-actions .yf-ctanote{margin-top:10px;}
-.yf-ctafoot{margin-top:26px;}
+/* the two calls to act, side by side under the council and the steps, each
+   in a step's box with its caption under the button; stacked on a phone
+   (owner, 2026-10-25, BRIEF-6 part C) */
+.yf-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:22px;align-items:stretch;}
+@media (max-width:640px){.yf-buttons{grid-template-columns:minmax(0,1fr);}}
+.yf-buttons > .step{display:flex;flex-direction:column;}
+.yf .yf-buttons .yf-cta{flex-direction:column;align-items:flex-start;margin:0;padding:14px;}
+.yf .yf-buttons .yf-cta .yf-ctanote,.yf .yf-buttons .yf-actions .yf-ctanote{flex:none;}
+.yf .yf-buttons .yf-entries{padding:0 14px 14px;margin:0;}
 /* "Next" scrolls a step to the top of the window: a little air above it */
 .yf-step{scroll-margin-top:12px;}
 /* step 4's region is its body: room for the step's heading above it */
@@ -260,9 +268,9 @@
 
 /* "Set the vote": its one line, and the footnote marker's number, drawn here
    because the step is a LIVE region with no build-time digit (the note is
-   the eighth in the page's notes) */
+   the sixth in the page's notes) */
 .yf-oneline{margin:0 0 8px;}
-.yf-fnvote::after{content:"8";}
+.yf-fnvote::after{content:"6";}
 
 /* ---------- reserved message regions: a lever moves nothing ---------- */
 /* Owner, 2026-10-03: the page must not jump when a lever moves. Every
@@ -317,6 +325,8 @@
 .yf .yf-expected.yf-slot{line-height:1.4;height:3lh;}
 .yf .yf-anote.yf-slot{line-height:1.4;height:2lh;}
 .yf .painthint.yf-slot{line-height:1.4;height:calc(3lh + 16px);}
+/* the instruction, large and bold at every size (owner, 2026-10-25, BRIEF-6 B5) */
+.yf .painthint{font:700 18px/1.4 var(--sans);color:var(--ink);}
 .yf [data-live="ess"].yf-slot{display:block;line-height:1.4;height:3lh;}
 @media (min-width:1100px){
   .yf .pl-engine.yf-slot{height:2lh;}
@@ -337,10 +347,11 @@
 }
 /* the legend lines that name the reader's changes take their place whether
    or not they show */
-.yf.pl .pl-key .pl-live{display:inline;visibility:hidden;}
+.yf.pl .pl-key .pl-live{display:inline-flex;visibility:hidden;}
 .yf.pl .pl-glegend.pl-live{display:flex;visibility:hidden;}
 .yf.pl:has([data-live="result"][data-touched]) .pl-key .pl-live,
 .yf.pl:has([data-live="result"][data-touched]) .pl-glegend.pl-live{visibility:visible;}
+.yf.pl:has([data-live="result"][data-touched]) .pl-key .pl-live{display:inline-flex;}
 /* the seat table: room for --yf-spare-rows rows more than the published
    forecast's, which a lever may add (page.py shows a party the reader's
    settings lift to the row threshold); model.js marks the live table with
@@ -450,3 +461,50 @@
 .sharesheet .shseal[hidden],.sharesheet .shentry[hidden]{display:none;}
 .sharesheet .shimgpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:10px 0 6px;}
 .sharesheet .shwa,.sharesheet .shx{text-decoration:none;}
+
+/* ---------- the header on a phone (owner, 2026-10-25, BRIEF-6 part A) ---------- */
+/* The status strip ("Your changes: …" and Back) sits in the header, under
+   the "Your changes" seats (it was the first slot of the results). In the
+   header it reserves no height: it is there while the reader has changed
+   something, and gone otherwise. */
+.yf .pl-bannerwrap .pl-status.yf-slot{height:auto;margin:4px 0 6px;}
+.yf .pl-bannerwrap .pl-status.yf-slot[hidden]{display:none;}
+/* the header's small ward map (model.js renderMini) shows on a phone only */
+.yf .pl-minimap{display:none;}
+#ward-map{scroll-margin-top:140px;}
+@media (max-width:640px){
+  /* the parties along the top: the label, every party and the majority flow
+     as one run of items, so no line ends early */
+  .yf .pl-banner .pl-bitems{display:contents;}
+  .yf .pl-banner{column-gap:12px;}
+  /* the published row stays when the reader changes something, and "Your
+     changes" sits under it in one block, full width: its seats with their
+     change, then the settings line */
+  .yf.pl:has([data-live="result"][data-touched]) .pl-banner.pl-pub{display:flex;}
+  .yf.pl:has([data-live="result"][data-touched]) .pl-minebox{background:var(--reader-soft);border-radius:8px;
+    padding:6px 10px 2px;margin:2px 0 6px;}
+  .yf .pl-minebox .pl-status{background:none;padding:2px 0 4px;margin:0;}
+  /* the small map, at the published row's right; it grows under a pointer and
+     a tap goes to the full map */
+  .yf .pl-banner.pl-pub{padding-right:76px;}
+  .yf .pl-minimap:not(:empty){display:block;position:absolute;top:6px;right:0;width:68px;z-index:2;
+    transform-origin:top right;transition:transform .15s ease-out;background:var(--paper);border-radius:4px;}
+  .yf .pl-minimap:hover,.yf .pl-minimap:focus-visible{transform:scale(3.2);box-shadow:0 4px 18px rgba(0,0,0,.3);}
+  .yf .pl-minisvg{display:block;width:100%;height:auto;}
+  /* no reserved gaps: on a phone the results' message regions take the room
+     their message needs and none when empty (the wide layout keeps its
+     reserved heights, which stop the page jumping as a lever moves) */
+  .yf .pl-engine.yf-slot,.yf .pl-oneline.yf-slot,.yf .pl-flips.yf-slot{height:auto;}
+  .yf .pl-engine.yf-slot:empty,.yf .pl-flips.yf-slot:empty{display:none;}
+  /* the same in section 2: the ward instruction, and "Your council"'s
+     restatement, cap and excessive-seats line; the council bar shows once it
+     has seats to draw */
+  .yf .painthint.yf-slot,.yf .restate.yf-slot,.yf .stubnote.excess.yf-slot{height:auto;}
+  .yf .restate.yf-slot:empty,.yf .stubnote.excess.yf-slot:empty{display:none;}
+  .yf [data-live="b-council"] .cap{min-height:0;}
+  .yf [data-live="b-council"] .council:not(:has(.stripbar rect)){display:none;}
+  /* and the room the council table keeps for rows a lever may add */
+  .yf [data-live="b-council"] .bars,.yf [data-live="b-council"] .bars[data-extra]{padding-bottom:0;}
+  /* section 1's key: the "Outlined" entry takes no line until it applies */
+  .yf.pl .pl-key .pl-live{display:none;}
+}

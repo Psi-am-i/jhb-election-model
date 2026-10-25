@@ -1,5 +1,7 @@
 # Johannesburg Election Model
 
+> ⛔ **Every backtest figure dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy** (§1.337).
+
 A voting-district model of the City of Johannesburg — 5,000 simulations over 865 voting districts, both ballots, the statutory seat formula, and the coalition arithmetic it permits. The forecast, the machinery, and the full warts-and-all record of how it was built, reviewed, broken and corrected.
 
 # Log — findings, obstacles, decisions, mitigations
@@ -31158,3 +31160,271 @@ The fall is in the large parties' term. Mild's ANC and DA closeness went from 0.
 The bands are unchanged (owner's (a)). `tests/test_reweight.py` BRIEF_TABLE re-recorded on 336d666d. Not measured: whether readers' shared predictions sit closer to or further from ours than the brief's examples, which would say whether the bands now read harsh in use.
 
 Correction to OWNER-DECISIONS item 13 as asked: its "16 October forecast" column is model 7ea27c28's (the 8 October draws, the table's own record), not the 16 October draws (de1911fd, aa95c51). On those draws mild scores 0.888 and moderate 0.760, but against the forecast.json committed beside them, whose start was still the 8 October prediction (ANC 70, PA 24 seats; those draws' medians 74 and 14), so that column measures a mismatched pair and is not quoted as the 16 October forecast's.
+
+## 1.333 Before the freeze: by-elections off and γ from the other fold, Johannesburg 2026 (2026-10-23)
+
+Owner, item 31: "test the two inputs." Pre-registration
+`prereg/2026-10-23-prefreeze-arms.md` (9cd11c9; amendment 762957e before any
+run). Driver `rounds/2026-10-23-out-of-sample/prefreeze/run_arms.py` (261b29f),
+seed 20261104, 5,000 draws each, `run_model` in process, nothing written under
+`data/`. Checks C1–C4 all passed: the arms are paired; each switch took (A7:
+`w_bye` 0, no by-election files, the 79 tilted VDs at ×1.000; every arm's γ as
+drawn equals its definition in all 10,000 solve calls); the κ = 0.25 turnout and
+the fold-1 refit rebuild byte-identical; B reproduces the live site (P(largest
+alone) ANC 58%, DA 34%, tied 3.6%; every seat median; ANC + DA majority 56.5%
+against the site's 56%).
+
+Measured, 5,000 draws each, against B unless stated:
+
+| arm | what changes | P(ANC largest alone) | P(DA largest alone) | median seats moved by more than 1 | ward favourites changed (of 135) | largest mean list-share change |
+|---|---|---|---|---|---|---|
+| B | the live forecast | 58.1% | 33.8% | — | — | — |
+| BF | fold-1 placeholder γ rows no longer block `gamma_recent` | 61.2% | 30.9% | none | 5 (4 PA → DA, 1 MK → ANC) | 0.000 pp |
+| A7t | by-election turnout tilt off | 58.4% | 33.5% | none | 0 | 0.000 pp |
+| A7 | by-elections off | 72.1% | 20.6% | ANC +2, DA −2.5, EFF +2 | 1 | +0.91 pp (ANC) |
+| G2 | γ from 2019 → 2021 | 56.7% | 34.9% | none | 6 | 0.000 pp |
+| GP | γ from both folds pooled | 59.1% | 32.9% | none | 6 | 0.000 pp |
+
+A7's list shares: DA 25.16 → 24.30, ANC 21.24 → 22.15, EFF 9.56 → 10.27, PA
+6.20 → 5.56, IFP 1.61 → 1.40, ActionSA 17.64 → 17.64. Coalition majorities move
+by under 2 points in every arm except A7, where ANC + ASA + EFF goes
+56.3% → 67.3% and ANC + ASA + MK 36.9% → 42.5%. Tables:
+`summary.md`, `list_shares.txt` and `coalitions_table.txt` in the run directory,
+copied to `rounds/2026-10-23-out-of-sample/prefreeze/results/`.
+
+**Scored.**
+- **P1 held.** ANC largest alone +14.0 points, DA −13.2 (bound: 4 each).
+- **P2 falsified.** ActionSA's list share does not move. Its centre is the
+  owner's 17.6% (`judgements/joburg-2026.toml` `[party.ASA]`, 21 October),
+  which by-election evidence does not reach. The pre-registration missed this.
+- **P3 held.** A7t moves no mean list share (largest change 0.000 points;
+  bound 0.05).
+- **P4 held.** G2 and GP move no mean list share (0.000 points; bound 0.3),
+  because calibration pins the citywide level.
+- **P5 held.** 6 ward favourites change in each of G2 and GP (bound 1 to 13).
+- **P6 held.** The largest median-seat move in G2 or GP is 1 (bound 3).
+- **P7 held on seats, falsified on chances against B.** On median seats GP lies
+  between B and G2 for the five largest parties. On P(ANC largest alone) GP is
+  59.1%, outside B–G2 (58.1%, 56.7%), because B also carries the placeholder
+  defect. Against BF (61.2%) it lies between. The caveat recorded before the run
+  allowed this.
+- **P8 falsified on chances.** BF moves no median seat by more than 1 (held),
+  but P(ANC largest alone) moves +3.1 points and DA −2.9 (bound: under 1). Four
+  wards change favourite from PA to DA once PA's ward pattern flattens (γ
+  1.0 → 0.544), and that reaches the largest-party race.
+
+**What it means.** The by-election term is the larger of the two inputs: it
+accounts for 14 points of the ANC–DA largest-party race and 2 to 2.5 median seats
+each. (`summary.md` prints medians rounded to whole seats, half to even, so its
+DA 64 is 64.5 and BF's EFF 24 is 24.5.) Its
+turnout tilt alone does nothing measurable, so the term acts through party
+levels. γ moves geography only. Which fold it comes from shifts the
+largest-party chances by 1–5 points and up to 6 ward favourites, and no
+median seat by more than 1. The placeholder defect (DATA-QUALITY 21) is about
+as large as the choice of fold. Nothing here says which arm is right: 2026 has
+no result, and no backtest scores either input.
+
+Limits:
+- fold 2's ward γ is negative for AIC (−0.09) and COPE (−0.02), used as fitted
+  in G2 and GP (AIC also in GP);
+- G2 loses the fold-1 fits for APC and AZAPO, which fold 2 does not fit;
+- the site's interactive reads fold 1 (`export_interactive.py:158`);
+- ActionSA, PA (other than its `gamma_recent` value) and MK have no fold γ in
+  any arm.
+
+## 1.334 Second-election retention, scored out of sample (2026-10-23)
+
+Owner, item 28. Pre-registration `prereg/2026-10-23-second-election-retention.md`
+(00383da). Script `rounds/2026-10-23-out-of-sample/retention/score.py` (24ea22a),
+which reuses `levels.local_record`, `_held_back` and `size_centre`, and checks
+that its pairs equal the live record at 2016, 2021 and 2026. Results in
+`results.md` beside it. The descriptive record was known before the
+pre-registration (`SPEC.md`), and the pre-registration says so.
+
+Two rules for a party at its second local election, each fitted only on pairs
+whose later election precedes the target:
+- **S** is the size line the model uses now.
+- **P** is the median over parties of each party's median first → second ratio.
+
+The score is the mean absolute log error, metros averaged within a party, then
+parties averaged.
+
+| target | scored on | S | P |
+|---|---|---|---|
+| 2016 | COPE, APC, Al Jama-ah, AIC (Buffalo City); 18 party-metros | 0.731 | 0.721 |
+| 2021 | EFF, AIC (per-metro first); 14 party-metros | 0.526 | 0.608 |
+
+- **R1 held.** Neither rule beats the other by more than 0.2 at either target:
+  the gap is 0.010 at 2016 and 0.082 at 2021. The gap stays under 0.2 under
+  every alternative reading of "first election" the script tried. The narrowest
+  is EFF alone at 2021: 0.670 against 0.859.
+- **R2 held.** Both rules predict EFF below 0.9 in all eight metros (S 0.64–0.71,
+  P 0.563). EFF's realised ratios run from 0.90 to 2.98.
+- **R3 held.** P for use at 2026 is 0.854 (76 pairs, 43 parties). It is 0.850
+  without PA and 0.884 without AIC's per-metro pairs.
+
+P rose with each cycle: 0.449 fitted for 2016, 0.563 for 2021, 0.854 for 2026.
+The parties that grew (EFF, AIC, Al Jama-ah, PA) all enter the record late.
+S's slope changes sign across the refits (+0.17, +0.07, −0.03).
+
+**What it means.** Neither the size line nor second-election parties' own
+record predicted the next second election better than the other; both missed
+EFF's growth. The record does not pick a retention for ActionSA. At 2026 the
+size line gives 0.720 and P gives 0.854. By the arithmetic in `SPEC.md`,
+interpolated between its 0.72 and 0.93 rows, P would put ActionSA's centre near
+14.0%, against the model's 12.64%. That figure is interpolated, not run.
+Effective sample: four parties scored at 2016 and two at 2021.
+
+## 1.335 The freeze settings run: pooled γ, the placeholder fix, the ActionSA call withdrawn (2026-10-23)
+
+Owner, item 33. Pre-registration `prereg/2026-10-23-freeze-settings.md` (78513fb;
+amendment 88495e8 before any run). Code db1402f, reviewed.
+
+**Re-emit.** Done on 3f2cd51, after `backup_ignored.py` (backups/2026-10-23T205010Z).
+- **Fold files.** All 27 fold files of the eight metros now carry `fit_status`.
+  Every value column is byte-identical to before, checked file by file (K2,
+  including a scratch refit of every city first). `fold5_parameters.csv`
+  cannot be refitted under the defaults and has no reader; it is left as it was
+  (TODO, legacy files).
+- **Pooled γ.** `gamma_pooled_fold1-2.csv` is byte-identical to the GP arm's
+  (§1.333).
+- **Pool specs.** In `pools_2026.json` and `pools_2026_simulation.json` only
+  `artefact_key.judgements_sha` moved.
+- **Width record.** `width_record.json` was re-emitted. The shipped variant
+  (level_shrink 0.35, scale 0.04) is unchanged in all 1,158 fields. The file no
+  longer carries the two variants built for earlier arms, which remain in the
+  backup.
+- **Canonical run.** `montecarlo.py --city joburg --target 2026 --draws 5000
+  --seed 20261104` on a clean tree, then `overhang_regimes.py`. The run in arm
+  format (`arms.run_city_year`, same seed) reproduces the published
+  `seat_draws.csv` draw for draw.
+
+**Checks.**
+- **K1:** `inputs_preflight --strict` flagged the roll by age (26 September
+  snapshot). On 2026-10-23 the IEC page's Johannesburg ward table, now labelled
+  29 September, is identical ward by ward
+  (`archive/iec-registration-2026-09-29/README.md`).
+- **K2:** passed.
+- **K3:** the γ sources print `ASA=recent, MK=default 1.0, PA=recent`, and no
+  placeholder is read.
+- **K4:** `declares --verify` after the run: the fold files and the pooled file pass. 8 of 180 artefacts fail:
+  - the three site draw manifests (`~`, until `export_draws.py` is re-run for the new forecast);
+  - `history.json` (`~`, withdrawn in-sample, failing before this round);
+  - `fold5_parameters.csv` (`✗`, dead);
+  - `validation_2021.json` (in-sample flag, withdrawn);
+  - `forecast_frozen.json` (names the 21 October commit; the freeze is re-made
+    when this forecast is frozen).
+- **K5:** every city's fold files have placeholder rows, so the fix reaches
+  Tshwane's forecast and every past target. No Tshwane forecast is published.
+- **K6:** `judgements_applied` is empty. ActionSA's centre before the shrink is
+  14.70% and after it 14.48%, as the arithmetic in
+  `rounds/2026-10-23-out-of-sample/retention/SPEC.md` gives.
+- **K7:** the council is 270 in every draw; mean seats sum to 270.0 and mean
+  list shares to 1.000000.
+
+**Measured** (5,000 draws), against B (the site, §1.333):
+
+| | B (site) | GP (§1.333) | frozen settings |
+|---|---|---|---|
+| P(ANC largest alone) | 58.1% | 59.1% | 45.1% |
+| P(DA largest alone) | 33.8% | 32.9% | 46.7% |
+| tied for most seats | 3.6% | 3.4% | 4.0% |
+| ActionSA mean list share | 17.64% | 17.64% | 12.67% (90% range 8.4–17.9%) |
+| median seats: DA / ANC / ASA / EFF / MK / PA | 67 / 72 / 40 / 25 / 17 / 14 | 67 / 72 / 40 / 25 / 17 / 14 | 71 / 72 / 29 / 26 / 19 / 15 |
+| P(ANC wins more wards than its entitlement) | 89.6% | | 86.6% |
+
+Ward favourites changed against B:
+- 9 (DA → Al Jama-ah) and 10 (ANC → Al Jama-ah);
+- 17, 18, 68 and 82 (PA → DA);
+- 124 (MK → ANC).
+
+Al Jama-ah won ward 9 in 2021 with 49% and took 21% of ward 10
+(`lge2021_JHB_vd_party_clean.csv`, ward ballot; wards were redrawn for 2026).
+
+**Scored.**
+- **F1 held** (12.67%; band 11.5–14). **F2 held** (29; band 24–33). Both are
+  tripwires.
+- **F3 held.** List-share factors: DA 1.0604, ANC 1.0605, EFF 1.0601, MK 1.0605,
+  PA 1.0594 (band 1.03–1.09).
+- **F4a held.** ANC 45.1% (band 42–54), DA 46.7% (band 38–50).
+- **F4b falsified.** The DA, not the ANC, is the narrow favourite.
+- **F4c held.** The ANC's median seats move +0 against a proportional
+  +4.4 (72 × 1.0605), less than half.
+- **F5 held.** The shipped width variant is unchanged.
+- **F6 held.** ActionSA is the favourite in no ward. The six GP wards keep
+  GP's favourites; ward 124, a close MK–ANC ward, moves MK → ANC.
+- **F7 held** (0.04%).
+
+**What it means.**
+- The withdrawal is a change of input, not new evidence. ActionSA's own centre
+  (12.64%) was the model's figure throughout; 17.6% was the owner's.
+- Moving ActionSA's 5 points of list vote to the other parties in proportion
+  hands the DA its seats: the ANC already wins more wards than its list vote
+  entitles it to, so its extra list vote adds no seats.
+- The largest-party race is now within 2 points, a near-tie. Most of it moves
+  with the ActionSA withdrawal: ANC 59.1 → 45.1, DA 32.9 → 46.7, against GP.
+  The γ changes alone moved it about 1 point.
+- ActionSA's level depends on the borrowed retention 0.72 (§1.334;
+  OWNER-DECISIONS item 34).
+
+## 1.336 The frozen Johannesburg 2026 forecast, built (2026-10-24)
+
+The run in §1.335 was made into published artefacts on a clean tree at 3fdc419:
+- `freeze.py` wrote `forecast_frozen.json`, content_sha256
+  e1b960fb84af5c8d7b8076e751764f6b9dc07e17eff26c2cec9822a9dae3b926;
+- `export_draws.py --jobs 2` wrote the base cell and the cells `w_bye=0` and
+  `w_bye=1` (5,000 draws each), then `--index site/draws`;
+- `citywide_table.py --city joburg --target 2026` wrote `citywide_2026.json`.
+
+Committed in 024f873.
+
+`declares --verify` now fails on 5 of 180 artefacts:
+- `history.json` and `validation_2021.json`, both withdrawn as in-sample;
+- `fold5_parameters.csv`, which no longer has a reader;
+- two files that declare nothing.
+
+The site draw manifests and the freeze pass. Not yet on the site: the text
+brief (`audits/2026-10-23-freeze/BRIEF-site-text.md`) waits on the owner, and
+no UAT build has been made.
+
+## 1.337 The in-sample backtest scores are withdrawn: every backtest figure dated before 2026-10-23 is in-sample (2026-10-24)
+
+Owner, 2026-10-23 (`OWNER-DECISIONS-ANSWERED.md` item 29): delete any contaminated scores or results. Every backtest score on disk was produced with settings chosen on the election scored or a later one (`rounds/2026-10-23-out-of-sample/POLLSTER-ON-RECORD.md`). **Every backtest figure in this log, in `JUDGEMENT-CALLS.md` and in any other committed document dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy.** Earlier entries are not edited; this entry and the one-line pointer at the top of this file say so once. Brief: `audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-scores.md`; plan: `rounds/2026-10-23-out-of-sample/PLAN.md` step 0.
+
+The work was done on 2026-10-23 (dfdb334, 0b6bf6a, 8eb94c9), held off that day's release (b6469c3, kept on branch `step0-withdraw`) and re-applied on `site-sweep-1` on 2026-10-24, owner: "1 yes", to publish with this release.
+
+- **The published scores.** 62 tokens removed from `content/joburg/stats.toml` and every page: the 55 with a `validation:` or `history:` source, the four `compare_history:` poll-removal scores, the fold-2 blind test's pair (`blind_test_called`, `blind_test_of`) and `backtest_target`. Their ledger retirements are written at publish, by `audits/2026-10-23-freeze/revive_retire.py`, which computes them from a probe build. The methodology's scoring section is a withdrawal notice; `src/build_validation.py` writes only that notice while `WITHDRAWN` is set. A corrections entry records the error.
+- **The files.** On 2026-10-23 copies were made outside the repository; the owner had them deleted the same day ("if the files in quarrantine are copies - they can be deleted for now"). The originals stay in the project: `history.json`/`.md`, `validation_2021.json`, the past targets' draws and tables, and the seven scored `reports/model-changes/*/backtest.json`, each of whose `report.html` carries an in-sample banner.
+- **The guard.** `tests/test_quarantine.py`: the scoring section is the notice `build_validation` writes; no token with a backtest source is held or printed without `label = "in-sample"` or `"forward-chained"`; every model-change report whose `backtest.json` holds scores carries the banner. It does not forbid `compare_history` writing a new `history.json`.
+- **The ranges.** The forecast page and the methodology say the ranges are fitted on errors from past tests whose settings had seen those elections, so they are likely too narrow (`width_record.json`, PLAN step 0.7).
+
+Committed text that quotes in-sample figures, not edited: 117 tracked `.md` files outside `site/` on 2026-10-24, by `git grep -lE '[0-9][^|]{0,40}(coherent|city-years|beats uniform swing|CRPS|seat error)|(coherent|city-years|beats uniform swing|CRPS|seat error)[^|]{0,40}[0-9]' -- '*.md' ':!site' | wc -l`. An upper bound: the pattern also matches a digit beside the term that is not a score.
+
+## 1.338 The pool fit puts most parties' votes in one population group: rates on the Duncan-Davis bounds (2026-10-25)
+
+**What prompted it.** The owner, on /your-forecast's "Where each party's votes come from": the chart gives the ANC "over 99%" Black African, and the EFF, IFP and MK 100%. "It is in fact impossible."
+
+**Measured.** `pools.fit_city(joburg, "2021", load_config())`, run in process, nothing written. Each cell is the fitted rate (the party's share of that pool's votes) and its Duncan-Davis interval (`pools.bounds`, what the ward arithmetic alone allows). HI: within 1e-4 of the upper bound; LO: within 1e-4 of the lower bound. Parties at 0.3% of the 2021 ward vote or more.
+
+| party | 2021 ward vote | Black African | Coloured | Indian/Asian | White |
+|---|---|---|---|---|---|
+| ANC | 0.332 | 0.4934 [0.368, 0.495] | 0.0235 [0.002, 0.604] | 0.0000 [0.000, 0.711] LO | 0.0000 [0.000, 0.262] LO |
+| DA | 0.255 | 0.0591 [0.027, 0.222] | 0.3375 [0.021, 0.620] | 0.4560 [0.000, 0.883] | 0.8209 [0.325, 0.936] |
+| ActionSA | 0.181 | 0.1960 [0.114, 0.260] | 0.0789 [0.000, 0.526] | 0.2946 [0.000, 0.852] | 0.1383 [0.001, 0.399] |
+| EFF | 0.101 | 0.1510 [0.095, 0.151] HI | 0.0000 [0.000, 0.324] LO | 0.0000 [0.000, 0.373] LO | 0.0000 [0.000, 0.124] LO |
+| PA | 0.030 | 0.0003 [0.000, 0.030] LO | 0.3949 [0.126, 0.395] | 0.0003 [0.000, 0.100] | 0.0003 [0.000, 0.041] |
+| IFP | 0.024 | 0.0352 [0.023, 0.035] HI | 0.0000 LO | 0.0000 LO | 0.0000 LO |
+| Al Jama-ah | 0.008 | 0.0001 LO | 0.0001 LO | 0.1486 [0.008, 0.149] HI | 0.0001 LO |
+| AHC, ATM | 0.004, 0.003 | HI | LO | LO | LO |
+
+Pool sizes (share of 2021 votes cast): Black African 0.670, Coloured 0.074, Indian/Asian 0.055, White 0.201.
+
+**What it shows.** For the EFF, IFP, Al Jama-ah, AHC and ATM the fit sits on the corner: the home pool's rate at its ceiling (the ceiling of the home pool is the rate at which every one of the party's votes comes from that pool) and every other pool at zero. The ANC is within 0.002 of its Black African ceiling and at zero among Indian/Asian and White voters, where the ward arithmetic allows up to 0.711 and 0.262. The PA is within 0.0001 of its Coloured ceiling. The 2026 spec's chart values (`pools_2026.json` `pools[group].members`) are these fits carried forward: ANC 0.9948 / 0.0052 / 0 / 0; EFF, IFP and MK 1 / 0 / 0 / 0 (MK fitted on the 2024 national result).
+
+**Why the fit can land there.** `fit_joint` is least squares under non-negativity and sum-to-one. Where pools are collinear across wards, the squared-error surface is flat along the bound interval and the constraint corner is a minimum like any other; nothing in the fit prefers an interior point. This is the known failure of ecological regression (Goodman) near the bounds. Argued, not tested: the corner is what the solver returned, and no measurement here says what the true rates are.
+
+**Two instruments that do not see it.**
+- `PartyFit.identified()` tests interval width and `rate > floor * 1.5`. A rate on its upper bound with a narrow interval passes, so the spec lists ANC, EFF and IFP as identified in the Black African pool.
+- `rates_on_a_bound` covers the registration, adult-share and turnout bounds, not the composition fit's Duncan-Davis bounds; it is empty for Johannesburg 2026.
+
+**What it reaches.** The pool rates drive the reader's turnout-by-population-group controls and the forecast's turnout reweighting. A change is forecast-moving. Not changed; to the owner as `OWNER-DECISIONS.md` "Where each party's votes come from".

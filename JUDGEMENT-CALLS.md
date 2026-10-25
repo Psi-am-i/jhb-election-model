@@ -1,5 +1,7 @@
 # Judgement calls — what in these results is not from the record
 
+> ⛔ **Every backtest figure dated before 2026-10-23 is in-sample and is not evidence of forecast accuracy.** Several of the model's settings were chosen on records that include the elections scored (`rounds/2026-10-23-out-of-sample/POLLSTER-ON-RECORD.md`). The scores are withdrawn from the site by the change recorded in MODEL-LOG §1.337.
+
 Every number in this model is meant to be measured or declared. This is the list
 of the **declared** ones: choices a person made that the data did not force. It
 exists so that "the model measures its constants" can be audited rather than
@@ -116,6 +118,7 @@ promotion note in §F.
 | `CLOSENESS_LARGE_WEIGHT` | 2 | `reweight.py`, `closeness` | Owner, 2026-10-13: "large parties and predictions are way more important". The large parties' mean counts twice the small parties': overall closeness = (2L + S) / 3. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
 | `CLOSENESS_TINY_POINTS` | 0.5 | `reweight.py`, `closeness` | Owner, 2026-10-13. A party with no seats and under 0.5 points of the list ballot in both our prediction and the reader's forecast is left out of the small-party mean S, so parties nobody moved do not dilute it. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
 | `MIN_SHOWN_SEATS` | 2 | `reweight.py`; `scenarios.named_parties`, `interactive/pyboot/page.py` | Owner, decision D1 (2026-10-02), one rule for every seats table (owner, 2026-10-22: "Standardise them"). A party gets its own seat row when its median seats is at least 2; every other party is in "Others". Presentation: moves no forecast. | ⚖️ | §N10 |
+| `MIN_SMALLEST`, `MAX_SIZE`, `MIN_GOVERNS` | 0.05, 5, 0.10 | `render_sheet.py`, `coalition_cuts` | Which combinations the who-can-govern table lists: a smallest majority in at least 5% of the simulations (set 2026-09-17), at most five parties, and governing in at least 10% (owner, 2026-10-24: "The cut off for showing all coalitions should be 10%"). `revive_retire.py` reads the same constants to say why a coalition left the table. Presentation: moves no forecast. | ⚖️ | OWNER-DECISIONS-ANSWERED item 35 |
 | `CLOSENESS_TOLERANCE` | 1e-9 | `reweight.py`, `party_closeness` | A numerical tolerance, not a modelling choice: a simulation exactly as far from our figure as the reader's counts despite float rounding of list percents. Moves no forecast. | 🟢 | §N10 |
 | `contestation_expand` | 0.220 | `montecarlo.py`, applied in `levels.projected_cont… | **AMENDED 2026-09-24 (register audit).** Ships 0.220 and is INERT at 2026 since the declared ward slates reached the correction (MODEL-LOG §1.252; `EXPECTED_INERT[("contestation_expand", "2026")]`), for as long as the roster is `complete = true`. It acts at no backtest target either (§1.60). | 🔴 | §A5 |
 | `DIRICHLET_FLOOR` | 1e-4 | — | 1e-4 and inert as committed — but it has a SECOND consumer that floors a CONCENTRATION rather than a mean, and `PERTURB` sweeps it to 0.05 where that would bind. | 🟢 | §F1 |
@@ -125,7 +128,9 @@ promotion note in §F.
 | `extrapolation_damping` | 0.6 | `config/dimensions.toml` | **AMENDED 2026-09-24 (register audit).** 0.6. One other copy in `pools.py`, not a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key). The third, a default argument of a function deleted 2026-10-17 (§1.321), is gone. The value acts only when a second census is configured, and none is. | 🔴 | §H8 |
 | `extrapolation_max_years` / `max_extrapolation` | 8 / 8.0 | `dimensions.toml`, `pools.Config` | 8 / 8.0 — two copies of one number, one in TOML and one as a dataclass field. | 🔴 | §H9 |
 | `FRESHNESS_GRACE_S` | — | `stats.py`, `freshness_problems` | Typed at 300s. ARGUED, NOT TESTED — the harness cannot score a publishing guard; the strong half of the check catches the 16-day defect with no window at all. | 🟡 | §D16 |
-| `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast. | 🔴 | §H6 |
+| `FIT_MIN_BASE_SHARE` | 0.001 | `fold.py` (`main`, `fit_status`) | The base citywide share at or below which a fold writes γ = 1.0 without fitting. Named 2026-10-23; the literal was in `fold.main` before. Since 2026-10-23 such a row is marked in the file's `fit_status` column and not read, so the party takes `gamma_recent`, then 1.0 (DATA-QUALITY 21, fixed). Typed, never swept. | 🔴 | §V1 |
+| `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | **AMENDED 2026-10-23.** Its 2026 entry no longer reaches Johannesburg, whose γ is pooled (`GAMMA_POOL`, §V2); it still sets Tshwane 2026 (fold 1) and every past target. | 🔴 | §H6 |
+| `GAMMA_POOL` | `{"joburg\|2026": (1, 2)}` | `montecarlo.py` (`gamma_folds_for`, `resolve_gamma`) | Johannesburg 2026 takes γ from folds 1 and 2 fitted together (`fold.py --pool 1,2`), owner 2026-10-23 (OWNER-DECISIONS-ANSWERED 33). No backtest scores the 2026 γ. | 🔴 | §V2 |
 | `GRID_MARGIN_CELLS` | — | `hex_cartogram.py` | Typed at 2 and purely operational: the Johannesburg optimum uses no cell in the outermost ring. | 🟢 | §D18 |
 | `kappa_bye` | 0.25 | `turnout.py --kappa-bye` | 0.25. Same provenance and the same artefact problem as `w_recency`. | 🔴 | §H3 |
 | `LEVEL_DF` | 7.0 | `montecarlo.py` | Ships 7.0. Read only under `draw_law = "incumbent"` since 2026-10-12 (§A57), where it is live and swept (`test_levers_are_live` holds that law open); the shipped universal draw does not read it. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints. | 🟡 | §A18 + §F8 |
@@ -389,7 +394,7 @@ neither replicated. ⚠️ Under rule 11 the effective sample is close to two ev
 **Plain — No poll is used.** There is no designed rule yet for how several polls
 combine. With polls in, the forecast moves toward the polls the rules admit;
 what that was worth when measured is under *Where polls fit*, below. On [your
-forecast](your-forecast/) you can pick one poll at a time and choose how far to
+prediction](your-forecast/) you can pick one poll at a time and choose how far to
 believe it.
 
 **Where.** `montecarlo.py`, gates both live poll paths
@@ -559,10 +564,7 @@ machinery cannot rot while it is switched off.
 **Plain — The largest parties are pulled down.** Before the simulations are
 drawn, each party's expected share is cut by an amount that grows with its size,
 and the vote freed is returned to all parties in proportion to their share.
-Without the cut, forecasts of past elections gave the largest parties too much
-and the middle-sized parties too little; adding it was the largest single
-improvement This Model has had. The smallest parties are now forecast slightly
-too high. It cannot be changed on [your forecast](your-forecast/).
+It cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
 
@@ -1056,10 +1058,10 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 **Plain — How far each party's support can move.** Each party's simulated
 support is drawn from a bell curve on a log scale, so its share is multiplied
 up or down. The curve is wider for a smaller party and for a party new to the
-city. Its width is measured from how far This Model's expected shares missed in
-the past elections before this one. Parties below a fifth of the vote share part
+city. Its width is fitted on how far This Model's expected shares missed in
+tests on the past elections before this one. Parties below a fifth of the vote share part
 of each simulation's move; a party with a fifth or more moves on its own. It
-cannot be changed on [your forecast](your-forecast/).
+cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `montecarlo.make_drawer` (the draw, the calibration pass, the composition subtraction), `montecarlo.party_width`, `width_sigma`, `width_location`, `width_rho`, `pool_spec_centres`, `mean_conservation`; `src/width_record.py` (the record); scenario key `draw_law`.
 
@@ -1106,7 +1108,7 @@ Each row: `§SJ<n>` · party · target · `support` / `overperform` / `sigma_j` 
 | row | party | target | entry | reason | evidence | date | check |
 |---|---|---|---|---|---|---|---|
 | §SJ1 | MK | joburg 2026 | `parent_weight = 0.9` (a pool-vector judgement, not a strength: no `support`, `overperform` or `sigma_j`) | Owner, 2026-10-15: "it is more like 90% ANC resemblance". MK's starting pool vector is 90% the ANC's and 10% the city's own composition, against the default of 35% (§F6). | None the record supplies: MK has no result at a local election in Johannesburg. The default's range over past splinters runs from ActionSA about 0.02 through GOOD 0.28 to EFF 0.89, so 0.9 sits at the top of it; the nearest past case, EFF from the ANC, measured 0.89. Argued, not tested. | 2026-10-15 | **Superseded while MK's own fit is identified** (owner, 2026-10-15, "option A"; confirmed 2026-10-21: the fitted placement wins, and "identified" means the fit finds the party in at least one pool): MK is fitted on its 2024 national ward results (`pools.place_vectorless`; the spec's `fitted_from_national[MK].superseded` names `parent_weight`), so this weight is not read. The entry stays on the sheet as the owner's call and is read again only if that fit stops identifying a pool. The 2026 forecast is reported with and without it (`pools.py --emit --without-judgements --out DIR`, POOLS-REEMIT-QUEUE) and scored against the 2026 result, MK's pool shares against its measured vector. |
-| §SJ2 | ASA (ActionSA) | joburg 2026 | `support = 0.176`, `sigma_j = 0` | Owner, 2026-10-21: "Put action SA at 17.6%". The judged centre replaces the model's own (12.64% of the list vote): ActionSA's 2021 list vote (18.1%) carried forward at the record's typical retention for a party its size (0.72, because ActionSA has stood in one local election only) to 13.1%, blended with its by-elections to 14.7%, pulled by the size shrink to 14.5%, and divided by 1.146 when the parties' levels were made to add to 100% (OWNER-DECISIONS item 1 has the steps). Every other party is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at 17.6%. | The record holds one local election for ActionSA (2021 list vote 18.1%), its share of Johannesburg's 2024 national ballot (6.22%; 5.4% after the model's national-to-local conversion, a route the model weights at zero for ActionSA because it has no national-to-local gap on record), and four by-elections since 2021 that imply 18.9% (capped by the model at 16.3%). The by-elections are the only post-2021 evidence of its local level and the model already reads them; four contests are thin evidence of a citywide share. Argued, not tested. | 2026-10-21 | Against the 2026 result: ActionSA's list share against 17.6% and against the model's own centre (MODEL-LOG §1.330 has both runs). The forecast is reported with and without it (`apply_judgements` off). |
+| §SJ2 | ASA (ActionSA) — **WITHDRAWN 2026-10-23** | joburg 2026 | ~~`support = 0.176`, `sigma_j = 0`~~ (entry removed from `judgements/joburg-2026.toml`) | **Withdrawn 2026-10-23.** Owner: "remove my action sa judgement call which just serms to ,make things compolicated. we cna deal with that later." (OWNER-DECISIONS-ANSWERED 33.) ActionSA takes the model's own centre. Kept as the record of the call that was in force from 2026-10-21 to 2026-10-23. The call was: Owner, 2026-10-21: "Put action SA at 17.6%". The judged centre replaces the model's own (12.64% of the list vote): ActionSA's 2021 list vote (18.1%) carried forward at the record's typical retention for a party its size (0.72, because ActionSA has stood in one local election only) to 13.1%, blended with its by-elections to 14.7%, pulled by the size shrink to 14.5%, and divided by 1.146 when the parties' levels were made to add to 100% (OWNER-DECISIONS item 1 has the steps). Every other party is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at 17.6%. | The record holds one local election for ActionSA (2021 list vote 18.1%), its share of Johannesburg's 2024 national ballot (6.22%; 5.4% after the model's national-to-local conversion, a route the model weights at zero for ActionSA because it has no national-to-local gap on record), and four by-elections since 2021 that imply 18.9% (capped by the model at 16.3%). The by-elections are the only post-2021 evidence of its local level and the model already reads them; four contests are thin evidence of a citywide share. Argued, not tested. | 2026-10-21 | Against the 2026 result: ActionSA's list share against 17.6% and against the model's own centre (MODEL-LOG §1.330 has both runs). The forecast is reported with and without it (`apply_judgements` off). |
 
 *(`parent_weight` entries are rows of this register as well as strength entries. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
 
@@ -1131,9 +1133,9 @@ picked it, did not.
 
 **Plain — How much recent by-elections count.** Each party's expected share is
 set halfway between what This Model expects from earlier elections and what the
-by-elections since 2021 imply for it. Tested on the 2021 election in the eight
-metros, equal weight gave the smallest error in the party-list vote, with
-weights a little either side close behind; that is one election's test. A party
+by-elections since 2021 imply for it. Halfway is our choice, made
+because no weight had been measured, and kept after a test on the 2021
+election in the eight metros. A party
 that had a vote in the 2024 national election cannot be moved by its
 by-elections further than This Model's usual range for it allows,
 so a party whose by-elections imply a very large swing moves less than halfway.
@@ -1141,7 +1143,7 @@ A party whose only earlier vote is the 2021 local election has no such range
 and moves halfway. A party with no earlier vote at all is covered under new
 parties and by-elections. A party that stood only for ward seats in 2021, and
 not on the party list, is not moved. In
-Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your forecast](your-forecast/) you can make
+Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make
 by-elections count not at all or fully.
 
 **Where.** `DEFAULTS["w_bye"]` in `src/montecarlo.py`, applied by `montecarlo.bye_weight` (override branch) in `montecarlo.blended_centres`: `centre = 0.5 × level + 0.5 × clamped`, where `clamped` is the previous local list share plus `byelections.delta_pr`, held inside θ's relative band around the level (`PLAN_BOUNDS`, empty by default, for a party with no θ prior, so a party with no national share is not capped). A party with no previous PR share that stood on the 2021 ward ballot is skipped (`bye.ward_only_base_skipped`). Parties below `BYE_MIN_WEIGHT` of contest weight are not moved. The level shrink and normalisation come after the blend.
@@ -1157,7 +1159,7 @@ by-elections count not at all or fully.
 **Plain — New parties and by-elections.** A party with no vote in the 2024
 national election and none in the 2021 local election, on the list or in a
 ward, is not moved by its by-elections, and the by-election setting on
-[your forecast](your-forecast/) does not move it either. A few ward contests
+[your prediction](your-forecast/) does not move it either. A few ward contests
 are not enough to size a party nobody has measured before; such a party is
 sized the way earlier new parties did in their first election.
 
@@ -1202,7 +1204,7 @@ past local elections in the metros. Black African, Coloured and White turnout
 have moved closely together, and Indian/Asian turnout much less. Separate
 figures for each pair have not been tried. Removing the link was tested and
 changed the forecast's spread very little, and why it matters so little is not
-yet explained. It cannot be changed on [your forecast](your-forecast/).
+yet explained. It cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `montecarlo.py`
 
@@ -1994,7 +1996,7 @@ turnout differs between voting districts is set about half by each district's
 own 2021 turnout and half by a projection from how far its turnout fell from
 the national to the local election in 2016 and 2021, with 2021 counting for
 70%. That weight comes from This Model's original plan and has never been
-tested. On [your forecast](your-forecast/) you can move the turnout of any or
+tested. On [your prediction](your-forecast/) you can move the turnout of any or
 all four population groups at once. A group you leave alone stays at the
 forecast's turnout.
 
@@ -2039,7 +2041,7 @@ asks for is still unrun; this gives the sign only.
 
 **Where.** `montecarlo.py`
 
-**Now.** The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast.
+**Now.** **AMENDED 2026-10-23.** Johannesburg 2026 no longer reads its 2026 entry: `GAMMA_POOL` takes precedence there and pools folds 1 and 2 (§V2). The entry still sets Tshwane 2026 (fold 1), and the other entries every past target. `gamma_folds_for` checks that every fold it returns, pooled or not, targets a year before the target.
 
 **Record.** Which γ fold each target may read. The code's own comment concedes that for 2026 *"the constraint alone does not pick one"* — the live forecast uses fold 1, the 2014→2016 fold, over the 2019→2021 one. A contestable choice on the published forecast
 
@@ -3991,7 +3993,7 @@ any absent party's vote does. In 2026 ActionSA inherits from Forum 4 Service
 Delivery, and Rise Mzansi from GOOD. No merger in the record shows how much
 carries over, so the share is a judgement; a review in September that was not
 shown our reasoning recommended 50%. A lower share moves the inheriting party
-down. It cannot be changed on [your forecast](your-forecast/).
+down. It cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `pools.MERGER_RETENTION`, read at call time by `pools.apply_mergers`,
 which every function in `pools.MERGER_CONSUMERS` calls: `montecarlo.run_model`
@@ -5045,6 +5047,62 @@ above), so the rule says nothing about them; their slates are listed as
 `independents` in the run's `_ballot_report`.
 
 **How to check it.** `tests/test_ward_contest_rule.py`.
+
+## V. Added 2026-10-23 — which fold rows are fits
+
+### §V1 · `FIT_MIN_BASE_SHARE` — 0.001 — 🔴 typed, never swept
+
+**Where.** `fold.py`: `main`'s γ loop (a party at or below it gets γ = 1.0,
+unfitted) and `fit_status` (which names that row a placeholder,
+`base share <= 0.001`).
+
+**Now.** 0.001 of the base election's citywide vote. Below it the regression
+has too few votes per VD to fit a slope, which is the argument; the value was
+typed, not measured. It was an unnamed literal in `fold.main` until
+2026-10-23, when `fit_status` needed the same threshold and the two were made
+one constant. Number-neutral: the fold files refit byte-identical.
+
+**What it reaches.** Until 2026-10-23 `run_model` read any fold row as a
+fitted γ, so a party under the threshold was drawn at 1.0 and never reached
+`gamma_recent.csv` (DATA-QUALITY 21; prereg `2026-10-23-prefreeze-arms.md`,
+amendment, arm BF). Since then every fold file carries `fit_status`,
+`fold.load_parameters` reads γ from `fitted` rows only (and refuses a file
+without the column), and the party falls through to `gamma_recent`, then 1.0.
+The threshold now decides which parties take that fallback.
+
+**How to check it.** Refit the folds at other thresholds (`fold.py --out`
+writes beside the canonical file) and compare the parties that cross it; no
+backtest scores the 2026 γ.
+
+### §V2 · `GAMMA_POOL` — `{"joburg|2026": (1, 2)}` — 🔴 owner's call, not tested
+
+**Where.** `montecarlo.py`: `gamma_folds_for` (the source, and the check that
+every fold in it targets a year before the target) and `resolve_gamma` (the
+chain `run_model` and `export_interactive` both read). The pooled γ is
+`gamma_pooled_fold1-2.csv` in Johannesburg's processed directory, written by
+`fold.py --pool 1,2`.
+
+**Now.** Johannesburg 2026 takes γ from folds 1 (2014 → 2016) and 2
+(2019 → 2021) fitted together: one through-origin weighted fit over both
+folds' VD rows, each fold contributing only where its row is a real fit
+(`fold.fit_status`), not the mean of two γs. A party neither fold fitted takes
+`gamma_recent`, then 1.0. Tshwane 2026 and every past target keep their
+`GAMMA_FOLD` fold.
+
+**Why.** Owner, 2026-10-23, answering OWNER-DECISIONS item 33 (option 2,
+"go with your reccommendation"; OWNER-DECISIONS-ANSWERED 33): the pooled fit
+uses the most data and adds no new judgement. Measured before the decision as
+arm GP (MODEL-LOG §1.333): it moves no mean list share, 6 ward favourites, and
+no median seat by more than 1, against the site.
+
+**Limits.** No backtest scores the 2026 γ: 2026 has no result, and a past
+target cannot pool both folds without one of them having seen it. Pooling
+also spends the fold the plan's §4.1 kept for validation (fit on fold 1,
+validate on fold 2), so no fold is left out of the fit. Fold 2's
+ward γ is negative for AIC and COPE (§1.333 limits), and AIC's enters the pool.
+
+**How to check it.** Against the 2026 result: the ward-level deviation of each
+party from its citywide share, against the pooled γ and against each fold's.
 
 ## Appendix — how this register has failed before
 

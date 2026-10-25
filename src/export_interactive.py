@@ -46,7 +46,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from fold import citywide, load, load_parameters, shares
+from fold import citywide, load, shares
 import montecarlo as _M
 from montecarlo import DEFAULTS
 # PLAN_BOUNDS is READ THROUGH THE MODULE, not imported by name.
@@ -145,27 +145,18 @@ def main(argv: list[str] | None = None) -> int:
     pr21, _ = load(args.data_dir / "lge2021_{CODE}_vd_party_clean.csv", "PR")
     wc, pc = citywide(ward21), citywide(pr21)
 
-    # --- gamma: fold 1, then 2021→2024, then 1.0 (as montecarlo resolves) -----
-    # CITY-LEVEL ARTEFACTS, not target-level (§1.97 F15, §1.120). Both the
-    # ward crosswalk and the fold parameters are keyed by something other than
-    # the running target — `build_concordance` is city-scoped, and fold 3 is
-    # the 2009→2011 transition whichever election is being built — so both are
-    # written to and read from the CITY's directory. `montecarlo` already reads
-    # the fold parameters that way and says why; this file did not, and was
-    # therefore broken for every city except Johannesburg, where
-    # `legacy_processed_root` collapses the two.
-    _city_processed = cityconfig.active().processed
-    params = load_parameters(_city_processed / "fold1_parameters.csv")
-    recent = {}
-    recent_path = args.processed / "gamma_recent.csv"
-    if recent_path.exists():
-        with recent_path.open(encoding="utf-8", newline="") as fh:
-            recent = {r["party"]: float(r["gamma"]) for r in csv.DictReader(fh)}
+    # --- gamma: the run's own chain (montecarlo.resolve_gamma) ---------------
+    # ONE DEFINITION. This block read fold 1 itself, placeholders included,
+    # while the forecast's source is per city and year
+    # (montecarlo.gamma_folds_for: folds 1 and 2 pooled for Johannesburg 2026)
+    # and skips placeholder rows (DATA-QUALITY 21). The fold files are a
+    # CITY-level artefact and gamma_recent a target-level one (§1.97 F15,
+    # §1.120); resolve_gamma reads each from its own directory.
+    _target = cityconfig.target()       # set from --target above
+    _gamma = _M.resolve_gamma(_target, args.processed, codes)
 
     def gamma_for(code: str, ballot: str) -> float:
-        if code in params[ballot]["gamma"]:
-            return params[ballot]["gamma"][code]
-        return recent.get(code, 1.0)
+        return _gamma[ballot][code][0]
 
     # --- by-election deltas ---------------------------------------------------
     bye = {}

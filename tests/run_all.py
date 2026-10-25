@@ -63,7 +63,8 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            "test_freeze",
            "test_spine", "test_theta_prior", "test_ward_pr_ratios",
            "test_ward_parts", "test_roll_2026", "test_pool_shares_one_roll", "test_splinter_parent_weight", "test_model_claims", "test_solve_and_predict", "test_pool_placement", "test_ward_contest_rule", "test_national_record_fit",
-           "test_blended_centres", "test_bye_value",
+           "test_blended_centres", "test_bye_value", "test_fold_pool",
+           "test_gamma_source",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
            "test_publication_ledger", "test_published_page",
            # Added 2026-09-25: `render_home` shipped on 24 Sep with no test of
@@ -78,9 +79,19 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            # Added 2026-10-03 with lane N: the dates on a figure's tooltip, a
            # dated passage's figures, and a registered fact's page.
            "test_provenance_dates",
+           # Added 2026-10-23 with the withdrawal of the in-sample scores: the
+           # scoring section is the notice; no backtest score without its
+           # label; every scored model-change report says it is in-sample.
+           "test_quarantine",
+           # Added 2026-10-24 with brief 3 item 9: a release's corrections
+           # entries take their corrected date from build_site.release_date.
+           "test_release_date",
            # Added 2026-10-22 with the tooltips brief: the one tooltip writer
            # and the plain-sentence table, both ways round.
            "test_tooltip_says",
+           # Added 2026-10-24 with the tone sweep (BRIEF-2-tone.md, F): live
+           # reader text says "This Model" and names no internal term.
+           "test_reader_terms",
            # Added 2026-10-03 with the site-structure lane (items 9-15): the
            # nav, the pages cut from the sheet, the old anchors, the footer.
            "test_site_structure",

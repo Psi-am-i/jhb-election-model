@@ -1,0 +1,16 @@
+chance the coalition has a majority (% of 5,000 simulations)
+coalition                   B     BF    A7t     A7     G2     GP
+ANC + DA + ASA           96.3   96.4   96.3   96.5   96.3   96.3
+ANC + DA + MK            94.4   94.9   94.5   94.8   93.9   94.3
+ANC + DA + EFF           92.2   92.5   92.3   93.5   92.4   92.4
+ANC + DA + PA            84.2   84.6   84.2   82.8   83.6   84.0
+ANC + DA + IFP           67.0   68.4   67.2   65.8   66.7   67.4
+ANC + DA + RISE          66.7   68.1   66.7   66.7   66.2   66.8
+ANC + DA + BOSA          63.6   64.9   63.7   63.2   62.9   63.6
+ANC + DA + ALJAMAAH      62.8   64.2   62.8   62.8   62.2   62.9
+ANC + DA + VFPLUS        62.3   63.8   62.4   62.1   61.7   62.4
+ANC + DA + ACDP          61.5   62.8   61.5   61.1   61.0   61.6
+ANC + DA                 56.5   58.0   56.6   56.2   55.7   56.8
+ANC + ASA + EFF          56.3   57.9   56.3   67.3   55.6   56.5
+DA + ASA + EFF           46.3   44.9   46.2   46.2   46.7   45.8
+ANC + ASA + MK           36.9   38.4   37.2   42.5   36.5   37.3

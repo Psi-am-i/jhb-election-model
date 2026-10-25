@@ -70,51 +70,6 @@ used_in = "the 'viability is not intent' note under the coalition table"
 # that said 58%. A registered token no page uses is a guard that was never
 # armed. Tokenised 2026-08-30. MODEL-LOG §1.140.
 
-# The home page's introduction: wards whose winner the backtest called, of the
-# wards there were, at each of Johannesburg's past elections
-# (history.json, compare_history; owner-approved text, 2026-10-10).
-[hist_jhb_wards_called_2011]
-mode = "free"
-source = "history:joburg:2011:wards.called"
-format = "int"
-inserted = "2026-10-10"
-used_in = "the home page's introduction"
-
-[hist_jhb_wards_2011]
-mode = "free"
-source = "history:joburg:2011:wards.n_wards"
-format = "int"
-inserted = "2026-10-10"
-used_in = "the home page's introduction"
-
-[hist_jhb_wards_called_2016]
-mode = "free"
-source = "history:joburg:2016:wards.called"
-format = "int"
-inserted = "2026-10-10"
-used_in = "the home page's introduction"
-
-[hist_jhb_wards_2016]
-mode = "free"
-source = "history:joburg:2016:wards.n_wards"
-format = "int"
-inserted = "2026-10-10"
-used_in = "the home page's introduction"
-
-[hist_jhb_wards_called_2021]
-mode = "free"
-source = "history:joburg:2021:wards.called"
-format = "int"
-inserted = "2026-10-10"
-used_in = "the home page's introduction"
-
-[hist_jhb_wards_2021]
-mode = "free"
-source = "history:joburg:2021:wards.n_wards"
-format = "int"
-inserted = "2026-10-10"
-used_in = "the home page's introduction"
-
 # The small-party note on /methodology (owner, 2026-10-10): the record's test
 # (MODEL-LOG §1.296) and how often the published simulations fail it.
 [small_party_share]
@@ -569,21 +524,6 @@ used_in = "methodology (polls)"
 
 unverifiable = "a published poll's figure, not a model output"
 
-[blind_test_called]
-mode = "fixed"
-value = 129
-source = "external:fold-2 blind validation (MODEL-LOG 1.9)"
-captured = "2026-08-04"
-used_in = "why-believe (forecast + interactive), methodology — restated 3x"
-
-unverifiable = "a recorded result of the fold-2 blind validation, not a live quantity"
-[blind_test_of]
-mode = "fixed"
-value = 135
-source = "external:ward count at the 2021 delimitation"
-captured = "2026-08-04"
-
-unverifiable = "the ward count at the 2021 delimitation — an external boundary fact"
 [asa_2021_seats]
 mode = "fixed"
 value = 44
@@ -762,60 +702,6 @@ page = "nobody-catches-the-votes.html"
 why = "a statement about the mechanism; the ranges are tokens"
 
 # ---------------------------------------------------------------------------
-# The poll channel, switched off 2026-09-12 (MODEL-LOG §1.225)
-# ---------------------------------------------------------------------------
-# These four sit inside a DATED argument on the methodology page — "this is
-# what removing polls was worth, measured on the day it was done" — so they are
-# `fixed` by the same logic as every entry above: the claim is about a past
-# comparison and must not silently re-resolve to a later panel.
-#
-# ⚠️ THEY ARE A BACKTEST PANEL, NOT A FORECAST OUTPUT, so `free` is not
-# available to them: nothing in a site build runs `compare_history`. That makes
-# the pin honest rather than convenient, but it also means the usual drift
-# report cannot see them. The check that CAN is `src/declares.py --verify`
-# against the run below, and the row-by-row table in MODEL-LOG §1.225.
-
-[polls_off_seat_err_before]
-unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
-mode = "fixed"
-value = 725
-source = "compare_history:seat_abs_err_coherent, poll_paths=all"
-captured = "2026-09-12"
-run = "seed=20261104 draws=1000 rows=24 pools:843229db"
-tolerance = "exact"
-used_in = "methodology.md, 'what it was worth, measured' — the with-polls arm"
-
-[polls_off_seat_err_after]
-unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
-mode = "fixed"
-value = 723
-source = "compare_history:seat_abs_err_coherent, poll_paths=off"
-captured = "2026-09-12"
-run = "seed=20261104 draws=1000 rows=24 pools:843229db"
-tolerance = "exact"
-used_in = "methodology.md — the without-polls arm. The PAIR is the claim; quoting either alone says nothing"
-
-[polls_off_crps_before]
-unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
-mode = "fixed"
-value = 545.8
-source = "compare_history:crps, poll_paths=all"
-captured = "2026-09-12"
-run = "seed=20261104 draws=1000 rows=24 pools:843229db"
-tolerance = 0.05
-used_in = "methodology.md — distributional score, with polls"
-
-[polls_off_crps_after]
-unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
-mode = "fixed"
-value = 541.4
-source = "compare_history:crps, poll_paths=off"
-captured = "2026-09-12"
-run = "seed=20261104 draws=1000 rows=24 pools:843229db"
-tolerance = 0.05
-used_in = "methodology.md — distributional score, without polls"
-
-# ---------------------------------------------------------------------------
 # AS PUBLISHED ON 8 AUGUST 2026 — the frozen originals of written pieces.
 # Publication convention (PUBLISHING-BACKLOG §8, owner 2026-09-17): a written
 # piece keeps the figures it was published with, dated, and a "Since then" box
@@ -903,15 +789,6 @@ used_in = "Wards, lists article, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
 historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
 
-[backtest_target]
-mode = "fixed"
-value = 24
-format = "int"
-source = "external:the panel we aim to score — 8 metros x 3 elections (2011, 2016, 2021)"
-captured = "2026-09-17"
-used_in = "methodology — the backtest we aim for, not the panel on any given day"
-unverifiable = "a target, not a measurement: what the panel holds today is whatever compare_history reports"
-
 [n_vds]
 mode = "free"
 source = "model:n_vds"
@@ -931,7 +808,7 @@ page = "index.html, forecast.html, nobody-will-win.html"
 
 [[audit.fixed]]
 value = "8"
-context = "The ANC is now ahead for largest party, where on 8 August the DA led clearly:"  # re-keyed 2026-10-16: wording (owner-approved draft for UAT)
+context = "The race for largest party is now close, where on 8 August the DA led clearly:"  # re-keyed 2026-10-24: wording (owner-approved brief, audits/2026-10-23-freeze/BRIEF-site-text.md §1)
 kind = "history"
 source = "the date of the published edition this piece is compared against (the 8 August deploy; /corrections, 27 September)"
 reviewed = "2026-10-02"
@@ -964,22 +841,6 @@ page = "laingsburg-2021.html"
 [[audit.fixed]]
 value = "1"
 context = "a 2021 amendment completes schedule 1, and"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
-kind = "rule"
-source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
-reviewed = "2026-09-17"
-page = "forecast.html"
-
-[[audit.fixed]]
-value = "1"
-context = "uncil seats · majority · Schedule 1 item 16 applied Johannesburg · 20"
-kind = "rule"
-source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
-reviewed = "2026-09-17"
-page = "forecast.html"
-
-[[audit.fixed]]
-value = "16"
-context = "eats · majority · Schedule 1 item 16 applied Johannesburg · 2026 Local"
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
@@ -1066,14 +927,6 @@ reviewed = "2026-09-17"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "six"
-context = "one of them by six seats against the change"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
-kind = "history"
-source = "MODEL-LOG 1.244 — the poll-removal comparison"
-reviewed = "2026-09-17"
-page = "methodology.html"
-
-[[audit.fixed]]
 value = "two"
 context = "of the vote, a share entitling it to only two seats"  # re-keyed 2026-10-03: the share is a token now
 kind = "history"
@@ -1112,356 +965,6 @@ kind = "convention"
 source = "a reference to this page's own numbered steps"
 reviewed = "2026-09-17"
 page = "methodology.html"
-
-# The backtest scoreboard, resolved from data/processed/validation_<year>.json,
-# whose `headline` block build_validation writes from its own comparison. The
-# methodology quotes these rather than repeating the about page's numbers.
-[backtest_cities]
-mode = "free"
-source = "validation:cities"
-format = "int"
-inserted = "2026-09-18"
-used_in = "methodology — how many cities the backtest covers"
-
-[backtest_wins]
-mode = "free"
-source = "validation:total.wins"
-format = "int"
-inserted = "2026-09-18"
-used_in = "methodology — cities where the model beats the toughest baseline"
-
-[backtest_crps_better]
-mode = "free"
-source = "validation:total.crps_better"
-format = "pct0"
-inserted = "2026-09-18"
-used_in = "methodology — how much lower the model's distributional error is"
-
-# The backtest, metro by metro (owner, 2026-10-10): each metro's CRPS against
-# its best baseline's by CRPS, and the seats given to the wrong party
-# (stats.wrong_party_seats: half the summed absolute seat error), model and
-# that baseline. Totals are sums of these same figures (validation:total.*).
-[val_joburg_crps]
-mode = "free"
-source = "validation:cities.joburg.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, joburg"
-
-[val_joburg_best_crps]
-mode = "free"
-source = "validation:cities.joburg.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, joburg"
-
-[val_joburg_best]
-mode = "free"
-source = "validation:cities.joburg.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, joburg"
-
-[val_joburg_wrong]
-mode = "free"
-source = "validation:cities.joburg.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, joburg"
-
-[val_joburg_best_wrong]
-mode = "free"
-source = "validation:cities.joburg.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, joburg"
-
-[val_tshwane_crps]
-mode = "free"
-source = "validation:cities.tshwane.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, tshwane"
-
-[val_tshwane_best_crps]
-mode = "free"
-source = "validation:cities.tshwane.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, tshwane"
-
-[val_tshwane_best]
-mode = "free"
-source = "validation:cities.tshwane.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, tshwane"
-
-[val_tshwane_wrong]
-mode = "free"
-source = "validation:cities.tshwane.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, tshwane"
-
-[val_tshwane_best_wrong]
-mode = "free"
-source = "validation:cities.tshwane.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, tshwane"
-
-[val_ekurhuleni_crps]
-mode = "free"
-source = "validation:cities.ekurhuleni.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ekurhuleni"
-
-[val_ekurhuleni_best_crps]
-mode = "free"
-source = "validation:cities.ekurhuleni.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ekurhuleni"
-
-[val_ekurhuleni_best]
-mode = "free"
-source = "validation:cities.ekurhuleni.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ekurhuleni"
-
-[val_ekurhuleni_wrong]
-mode = "free"
-source = "validation:cities.ekurhuleni.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ekurhuleni"
-
-[val_ekurhuleni_best_wrong]
-mode = "free"
-source = "validation:cities.ekurhuleni.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ekurhuleni"
-
-[val_ethekwini_crps]
-mode = "free"
-source = "validation:cities.ethekwini.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ethekwini"
-
-[val_ethekwini_best_crps]
-mode = "free"
-source = "validation:cities.ethekwini.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ethekwini"
-
-[val_ethekwini_best]
-mode = "free"
-source = "validation:cities.ethekwini.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ethekwini"
-
-[val_ethekwini_wrong]
-mode = "free"
-source = "validation:cities.ethekwini.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ethekwini"
-
-[val_ethekwini_best_wrong]
-mode = "free"
-source = "validation:cities.ethekwini.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, ethekwini"
-
-[val_capetown_crps]
-mode = "free"
-source = "validation:cities.capetown.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, capetown"
-
-[val_capetown_best_crps]
-mode = "free"
-source = "validation:cities.capetown.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, capetown"
-
-[val_capetown_best]
-mode = "free"
-source = "validation:cities.capetown.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, capetown"
-
-[val_capetown_wrong]
-mode = "free"
-source = "validation:cities.capetown.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, capetown"
-
-[val_capetown_best_wrong]
-mode = "free"
-source = "validation:cities.capetown.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, capetown"
-
-[val_mangaung_crps]
-mode = "free"
-source = "validation:cities.mangaung.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, mangaung"
-
-[val_mangaung_best_crps]
-mode = "free"
-source = "validation:cities.mangaung.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, mangaung"
-
-[val_mangaung_best]
-mode = "free"
-source = "validation:cities.mangaung.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, mangaung"
-
-[val_mangaung_wrong]
-mode = "free"
-source = "validation:cities.mangaung.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, mangaung"
-
-[val_mangaung_best_wrong]
-mode = "free"
-source = "validation:cities.mangaung.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, mangaung"
-
-[val_nelsonmandelabay_crps]
-mode = "free"
-source = "validation:cities.nelsonmandelabay.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
-
-[val_nelsonmandelabay_best_crps]
-mode = "free"
-source = "validation:cities.nelsonmandelabay.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
-
-[val_nelsonmandelabay_best]
-mode = "free"
-source = "validation:cities.nelsonmandelabay.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
-
-[val_nelsonmandelabay_wrong]
-mode = "free"
-source = "validation:cities.nelsonmandelabay.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
-
-[val_nelsonmandelabay_best_wrong]
-mode = "free"
-source = "validation:cities.nelsonmandelabay.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
-
-[val_buffalocity_crps]
-mode = "free"
-source = "validation:cities.buffalocity.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, buffalocity"
-
-[val_buffalocity_best_crps]
-mode = "free"
-source = "validation:cities.buffalocity.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, buffalocity"
-
-[val_buffalocity_best]
-mode = "free"
-source = "validation:cities.buffalocity.best.name"
-format = "raw"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, buffalocity"
-
-[val_buffalocity_wrong]
-mode = "free"
-source = "validation:cities.buffalocity.model.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, buffalocity"
-
-[val_buffalocity_best_wrong]
-mode = "free"
-source = "validation:cities.buffalocity.best.wrong_party_seats"
-format = "int"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, buffalocity"
-
-[val_total_crps]
-mode = "free"
-source = "validation:total.model.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, all metros"
-
-[val_total_best_crps]
-mode = "free"
-source = "validation:total.best.crps"
-format = "one_dp"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, all metros"
-
-[backtest_seat_err_model]
-mode = "free"
-source = "validation:total.model.wrong_party_seats"
-format = "int"
-inserted = "2026-09-18"
-used_in = "methodology — seats given to the wrong party, model, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
-
-[backtest_seat_err_baseline]
-mode = "free"
-source = "validation:total.best.wrong_party_seats"
-format = "int"
-inserted = "2026-09-18"
-used_in = "methodology — seats given to the wrong party, best baseline per metro by CRPS, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
-
-[backtest_wards_called]
-mode = "free"
-source = "validation:wards_called"
-format = "comma"
-inserted = "2026-09-18"
-used_in = "methodology — ward winners called correctly"
-
-[backtest_wards]
-mode = "free"
-source = "validation:wards"
-format = "comma"
-inserted = "2026-09-18"
-used_in = "methodology — wards scored"
 
 [[audit.fixed]]
 value = "6 August 2026"
@@ -1612,14 +1115,6 @@ reviewed = "2026-10-02"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "17.6%"
-context = "instead, at 17.6% of the"
-kind = "judgement"
-source = "JUDGEMENT-CALLS.md §SJ2 (the owner's call of 2026-10-21, judgements/joburg-2026.toml support = 0.176)"
-reviewed = "2026-10-21"
-page = "methodology.html"
-
-[[audit.fixed]]
 value = "50%"
 context = "recommended 50%"
 kind = "judgement"
@@ -1627,40 +1122,49 @@ source = "JUDGEMENT-CALLS.md §O1 (the blind review of 2026-09-29 recommended a 
 reviewed = "2026-10-02"
 page = "methodology.html"
 
-# The small-party note on /methodology (2026-10-10): the reference to where
-# the record's count was measured. The count itself is the fixed token
-# `small_party_record_cases` (2026-10-22).
-[[audit.fixed]]
-value = "1.296"
-context = "model log, §1.296"
-kind = "convention"
-source = "a reference to MODEL-LOG.md's section number"
-reviewed = "2026-10-10"
-page = "methodology.html"
-
 # ---------------------------------------------------------------------------
 # added 2026-10-23 (site sweep, brief 1)
 # ---------------------------------------------------------------------------
 
-# ActionSA's expected share, the owner's judgement call (JUDGEMENT-CALLS.md
-# §SJ2), read from the judgements file where it is set, so the forecast page's
-# Limits cannot drift from it.
-[judgement_asa_support]
-mode = "free"
-source = "judgement:joburg-2026:party.ASA.support"
+# `judgement_asa_support` (the owner's ActionSA call, read from the judgements
+# file) was retired 2026-10-24: the call was withdrawn on 2026-10-23
+# (JUDGEMENT-CALLS.md §SJ2, MODEL-LOG §1.335), so its source no longer exists.
+# The figure survives only as history, `pub1021_asa_support` below
+# (audits/2026-10-23-freeze/BRIEF-site-text.md §4).
+
+# ActionSA's level as the owner set it from 21 to 23 October 2026, quoted as
+# history on the forecast page's Limits and on /methodology.
+[pub1021_asa_support]
+mode = "fixed"
+value = 0.176
 format = "pct1"
-inserted = "2026-10-23"
-used_in = "forecast — Limits"
+source = "external:JUDGEMENT-CALLS.md §SJ2, the owner's call of 2026-10-21 (judgements/joburg-2026.toml [party.ASA] support = 0.176), withdrawn 2026-10-23"
+captured = "2026-10-21"
+used_in = "forecast — Limits (the methodology's sentence was deleted 2026-10-25, owner item 39)"
+unverifiable = "a judgement call that has been withdrawn; nothing in the model produces it"
+historical = "the owner's call, applied 21 October 2026 and withdrawn 23 October 2026; kept as history, and the prose must date it"
+
+# What COPE kept of its first local-election list share (2011) at its second
+# (2016), pooled across the eight metros: 3.34 / 16.50 = 0.20. A count of past
+# IEC results, so fixed; the words are the figure.
+[record_cope_second_lge_kept]
+mode = "fixed"
+value = "a fifth"
+format = "raw"
+source = "external:rounds/2026-10-23-out-of-sample/retention/SPEC.md, the retention table's COPE row (2011→16, eight metros, list ballot) and the r-table's '0.20 (COPE)'; MODEL-LOG §1.334"
+captured = "2026-10-23"
+used_in = "forecast — Limits; methodology — how each party's support moves"
+unverifiable = "a ratio of past IEC results read from the retention record on 2026-10-23; a measurement of the past, not a model output"
 
 # The ANC's middle list-ballot share over the published simulations, for the
 # methodology's seat-law section (it read "a citywide vote in the
 # mid-twenties", typed).
-[anc_list_share_median]
+[anc_vote_share_median]
 mode = "free"
-source = "published:list_share_median:ANC"
+source = "published:vote_share_median:ANC"
 format = "pct0"
-inserted = "2026-10-23"
-used_in = "methodology — the seat law"
+inserted = "2026-10-25"
+used_in = "methodology — the seat law (replaced anc_list_share_median, the list ballot alone; owner, 2026-10-25, BRIEF-5 item 12)"
 
 # The one independent poll before 2021 (Ipsos, national, August 2021, 1.5% for
 # ActionSA), scaled to the areas ActionSA contested: POLLING.md "Feeding the

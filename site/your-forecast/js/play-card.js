@@ -47,7 +47,7 @@ import { compose } from "./yf-url.js";
 export const SIZES = { link: CARD_SIZES.link, story: CARD_SIZES.story };
 export { SITE, STORY_TEXT_BOTTOM };
 export const INVITE = "Make your own prediction at " + SITE + "/your-forecast";
-export const PUBLISHED_STAMP = "The model's published forecast.";
+export const PUBLISHED_STAMP = "This Model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
@@ -117,7 +117,8 @@ export function dayText(iso, what = "the date") {
 // The model's card headline, after the logo: "Forecast, 29 September 2026"
 // (`date` is forecast.json's forecast_date), and its words without the logo,
 // for the text alternative and the native share.
-export const forecastTitle = date => "Forecast, " + dayText(date, "the forecast's date");
+// the card is dated "as of" its figures' date (owner, 2026-10-24)
+export const forecastTitle = date => "Forecast as of " + dayText(date, "the forecast's date");
 export const forecastWords = date => FORECAST_NAME + ", " + dayText(date, "the forecast's date");
 
 // The two parties most often alone with the most seats, in alphabetical

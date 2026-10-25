@@ -1,36 +1,31 @@
-"""Run the validation across every metro and write the section that reports it.
+"""Write /methodology's scoring section: since 2026-10-23, a withdrawal notice.
 
-The section is /methodology's "How accurate is it?" scoring: it was the About
-page until the owner's sweep of 2026-10-03, and `build_site.validation_html`
+⛔ THE SCORES ARE WITHDRAWN (owner, 2026-10-23, OWNER-DECISIONS-ANSWERED.md
+item 29; audits/2026-10-23-site-sweep/BRIEF-step0-withdraw-scores.md). Every
+backtest score this module produced was scored with settings chosen on the
+election scored or a later one (rounds/2026-10-23-out-of-sample/
+POLLSTER-ON-RECORD.md). While :data:`WITHDRAWN` is set, :func:`main` writes
+only :data:`NOTICE` and writes no score: it runs nothing, reads no artefact
+and writes no ``validation_<target>.json``. The scoring functions below
+(:func:`collect`, :func:`markdown`) are kept for the re-scoring, from earlier
+elections only, that will replace the notice; nothing calls them meanwhile.
+:func:`collect` re-emits every metro's pool spec (``pools.py --emit``), so it
+is a re-emit window's work (CLAUDE.md §3), never a page build's.
+
+The section is /methodology's "How accurate is it?": it was the About page
+until the owner's sweep of 2026-10-03, and `build_site.validation_html`
 splices it into the methodology page, under its own headings (`###` and
 below), as a region the number scan lists as generated.
 
-**No figure in the section is typed.** The stat registry exists because
-four hand-copied numbers went stale on the live site (``stats.py``); the same
-rule applies here and more strongly, because a validation page carries sixty
-of them. So this module runs the backtest and the naive baselines for each
-city, keeps the results as data, and generates the prose around them. The
-Markdown it writes is a build artefact and says so at the top.
+    .venv/bin/python src/build_validation.py      # writes the notice
 
-    python src/build_validation.py --target 2021          # run and write
-    python src/build_validation.py --target 2021 --draws 2000
-
-It writes two things:
-
-* ``data/processed/validation_<target>.json`` — the results with their
-  provenance (seed, draw count, the date it was run), so the page is
-  reproducible and any later claim can be traced to the run that produced it.
-* ``docs-public/about-the-model.md`` — the section's source, regenerated whole.
-
-Running it is deliberately slow: it is the whole model, eight times, plus
-three baselines each. That is the point. A validation you can regenerate is
-one you can trust; a validation someone typed up once is a claim.
+It writes ``docs-public/about-the-model.md``, regenerated whole, opening with
+the GENERATED marker `build_site.validation_html` requires.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import subprocess
 import sys
@@ -313,8 +308,8 @@ def markdown(target: str, results: dict) -> str:
     add("| **uniform swing** | take the previous local election and add each party's change between the city's two national elections before the one forecast, equally in every voting district |")
     add("| **last result plus noise** | the previous result, with uncertainty added around it |")
     add("")
-    add("Uniform swing is the usual standard for judging election models, and "
-        "it is hard to beat. **Best baseline** below means whichever of the "
+    add("Uniform swing is the usual standard for judging election models. "
+        "**Best baseline** below means whichever of the "
         "three did best in that city.")
     add("")
     add("### The result, city by city")
@@ -361,7 +356,7 @@ def markdown(target: str, results: dict) -> str:
         m = r["model"]
         add(f"#### {r['name']} — {m['council']} seats")
         add("")
-        add("| party | actually won | our forecast | out by |")
+        add("| party | won | our forecast | out by |")
         add("|---|---|---|---|")
         shown = [p for p in m["parties"]
                  if not (p["actual"] == 0 and p["forecast"] == 0)]
@@ -397,7 +392,7 @@ def markdown(target: str, results: dict) -> str:
         "better; zero is perfect. It is in seats: a CRPS of 45 across a "
         "270-seat council is a small error.")
     add("")
-    add("**Calling the ward** is the hardest and most direct test: 135 "
+    add("**Calling the ward** is 135 "
         "separate first-past-the-post contests in Johannesburg alone. A "
         "forecast that got the council roughly right while misreading which "
         "streets vote which way would show up here.")
@@ -472,100 +467,45 @@ def markdown(target: str, results: dict) -> str:
     return "\n".join(L)
 
 
-def _seed() -> int:
-    """The seed the runs used, read from the model rather than typed here."""
-    import montecarlo
-    return int(montecarlo.DEFAULTS["seed"])
-
-
-def _git_head() -> str:
-    import subprocess
-    try:
-        return subprocess.run(["git", "rev-parse", "HEAD"],
-                              cwd=Path(__file__).resolve().parents[1],
-                              capture_output=True, text=True, check=True).stdout.strip()
-    except Exception:
-        return "unknown"
-
-
-
 def _long_date(iso: str) -> str:
     """"30 September 2026", the site's long date."""
     d = date.fromisoformat(str(iso)[:10])
     return f"{d.day} {d:%B %Y}"
 
 
-def _which_model(record: dict) -> str:
-    """"an earlier version of This Model" when the validation record was
-    generated before the forecast now published (forecast_summary.json's
-    `_generated`), else "This Model"."""
-    summary = Path("data/processed") / "forecast_summary.json"
-    try:
-        now = str(json.loads(summary.read_text())["_generated"])[:10]
-    except (OSError, KeyError, ValueError):
-        return "an earlier version of This Model"
-    return ("an earlier version of This Model" if str(record["generated"])[:10] < now
-            else "This Model")
+#: The day the scores were withdrawn (owner, 2026-10-23). While it is set,
+#: :func:`main` writes :data:`NOTICE` and no score.
+WITHDRAWN = "2026-10-23"
+
+#: The section while the scores are withdrawn, in the owner's words
+#: (2026-10-25, OWNER-DECISIONS-ANSWERED.md item 39). It names no date, so
+#: `notice` formats nothing into it.
+NOTICE = "We have withdrawn our scores for previous elections while they are re-run.\n"
+
+#: The first line of every file this module writes: `build_site.validation_html`
+#: refuses a source without it.
+MARKER = ("<!-- GENERATED by src/build_validation.py. Do not edit by hand: "
+          "the section is written by its main(). -->\n\n")
+
+
+def notice() -> str:
+    """The section's source while the scores are withdrawn."""
+    return MARKER + NOTICE.format(day=_long_date(WITHDRAWN))
+
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--target", default="2021")
-    ap.add_argument("--draws", type=int, default=400)
-    ap.add_argument("--from-json", action="store_true",
-                    help="rebuild the page from the existing artefact and run "
-                         "nothing; for a wording change, which must never need "
-                         "a model run")
     ap.add_argument("--out", type=Path,
                     default=Path("docs-public/about-the-model.md"))
     args = ap.parse_args(argv)
-
-    out_json = Path("data/processed") / f"validation_{args.target}.json"
-
-    if args.from_json:
-        # ⛔ REBUILD THE PAGE, RUN NOTHING. Every other path here re-runs eight
-        # cities and REWRITES the artefact — which is how the 11 August run was
-        # destroyed on 2026-09-27: it was gitignored, so there was no copy. A
-        # wording fix should never need a model run, and until this flag existed
-        # it did.
-        record = json.loads(out_json.read_text())
-        results = record["cities"]
-        print(f"rebuilding the page from {out_json} "
-              f"({record.get('draws')} draws, generated {record.get('generated')}) "
-              f"— nothing re-run")
-    else:
-        print(f"validating against {args.target}, {args.draws} draws per city")
-        results = collect(args.target, args.draws)
-        if not results:
-            raise SystemExit("no city produced a scored result")
-
-        record = {"target": args.target, "draws": args.draws,
-                  "generated": date.today().isoformat(), "cities": results,
-                  # ⛔ WHICH RUN THIS WAS. The artefact promised provenance in
-                  # its docstring and stored none, so attributing a 34-seat
-                  # move took archaeology through six weeks of commits instead
-                  # of a diff of two headers.
-                  "seed": _seed(), "git_commit": _git_head(),
-                  # the page's comparison figures, so a token can resolve them
-                  "headline": headline(results)}
-        out_json.parent.mkdir(parents=True, exist_ok=True)
-        out_json.write_text(json.dumps(record, indent=2))
-
-    body = markdown(args.target, results)
-    # FROM THE RECORD, not from the flags. In --from-json the run being
-    # described is the one on disk, and `args.draws` would be whatever the
-    # default happens to be — a footer stating the wrong draw count under
-    # figures it did not produce.
-    # ⛔ NO FILE NAMES AND NO "draws" IN READER TEXT (owner, 2026-10-22,
-    # audits/2026-10-22-headline-method/BRIEF.md B6). The artefact and the
-    # code stay named in this module's docstring, for us. "An earlier
-    # version" while the record predates the forecast it sits beside.
-    body += (f"\n---\n\n*Tested on {_long_date(record['generated'])} against "
-             f"{_which_model(record)}, on {record.get('draws', args.draws):,} "
-             f"simulations per city of the {args.target} election.*\n")
+    if not WITHDRAWN:
+        raise SystemExit("WITHDRAWN is unset, and the re-scored section is not "
+                         "written yet: there is no scoring path to run. Write "
+                         "it from earlier elections only (rounds/2026-10-23-"
+                         "out-of-sample/PLAN.md) before unsetting WITHDRAWN.")
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(body)
-    print(f"wrote {args.out}"
-          + ("" if args.from_json else f" and {out_json}"))
+    args.out.write_text(notice(), encoding="utf-8")
+    print(f"wrote {args.out} (the withdrawal notice; no score)")
     return 0
 
 

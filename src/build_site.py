@@ -113,34 +113,21 @@ def nav_items(leaderboard: bool | None = None) -> list[tuple[str, str]]:
     return items
 
 
-#: The nav's first group ends at this item; the second group, the record and
-#: the method, starts after it. The groups sit beside the logo's "Johannesburg"
-#: on one line where there is room, and the second drops to a row of its own
-#: as a whole where there is not (owner, 2026-10-05).
-NAV_FIRST_GROUP_ENDS = "claims"
-
-
 def nav_for(active_href: str, leaderboard: bool | None = None) -> str:
-    """The site nav with the current page held in the accent colour, in two
-    groups split after :data:`NAV_FIRST_GROUP_ENDS`, and the owner's
-    strapline (:data:`STRAPLINE`) directly under it."""
+    """The site nav with the current page held in the accent colour, one row
+    of items that wraps only where the width makes it (owner, 2026-10-24:
+    "remove the forced break in our menu items"), and the owner's strapline
+    (:data:`STRAPLINE`) directly under it."""
     items = nav_items(leaderboard)
-    cut = [h for h, _l in items].index(NAV_FIRST_GROUP_ENDS) + 1
-
-    def group(part):
-        return ('  <span class="navgroup">'
-                + "".join(f'<a{" class=\"active\"" if href == active_href else ""} '
-                          f'href="{href}">{label}</a>' for href, label in part)
-                + "</span>\n")
+    links = "".join(f'<a{" class=\"active\"" if href == active_href else ""} '
+                    f'href="{href}">{label}</a>' for href, label in items)
     return ('<nav class="topnav">\n'
             # the owner's logo (src/brand/logo.svg, site_assets.LOGO): one
             # file, drawn in the text colour; the link keeps the site's name
             f'  <a class="home" href="./" aria-label="{LOGO_NAME}">'
             f'<svg class="logo" viewBox="{site_assets.LOGO_VIEWBOX}" aria-hidden="true" focusable="false">'
             f'<use href="{site_assets.LOGO}#logo"></use></svg></a>\n'
-            '  <div class="navlinks">\n'
-            + group(items[:cut]) + group(items[cut:]) +
-            '  </div>\n'
+            f'  <div class="navlinks">{links}</div>\n'
             # js/theme.js wires the toggle; the page carries no handler
             '  <button class="themetoggle" type="button" '
             'aria-label="Switch between dark and light" title="Light or dark">'
@@ -213,7 +200,7 @@ SITE_HEAD = site_assets.head() + analytics_head()
 OG_TITLE = "Who governs Johannesburg after 4 November 2026?"
 OG_DESCRIPTION = ("The November vote, simulated: who could govern "
                   "Johannesburg, how the seat law shapes the council, and how "
-                  "sure the model is.")
+                  "sure This Model is.")
 
 OG_META = f"""<meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
@@ -241,6 +228,10 @@ IEC_RESULTS_URL = "https://results.elections.org.za/"
 #: publishes the ward and voting-district boundaries (SOURCES.md, "Boundaries").
 STATSSA_URL = "https://www.statssa.gov.za/"
 MDB_URL = "https://spatialhub-mdb-sa.opendata.arcgis.com/"
+
+
+#: The site's X account (owner, 2026-10-25: "Follow us on X in footer?").
+X_URL = "https://x.com/whyseriouscity"
 
 
 def footer_for() -> str:
@@ -274,6 +265,7 @@ def footer_for() -> str:
   </div>
   <div class="foot-side">{umbrella}
     <a class="foot-support" href="support">Support Our Work</a>
+    <a class="foot-support" href="{X_URL}">Follow us on X</a>
   </div>
 </footer>"""
 
@@ -344,13 +336,13 @@ MODEL_DOCS = {
         # council-growth reading of the seat law and is archived as superseded
         # (archive/superseded-pages/); the record of the errors is the log
         "MODEL-LOG.md",
-        "How the first version of the model was reviewed against its own plan, "
+        "How the first version of This Model was reviewed against its own plan, "
         "the errors that review found, and how each was fixed.",
     ),
     "docs-public/sources.md": (
         "sources.html",
         "Data sources",
-        "The model is built from election results, boundary maps, by-election "
+        "This Model is built from election results, boundary maps, by-election "
         "returns and census tables. This page traces each to its origin and "
         "records the state it was in when we found it.",
     ),
@@ -463,7 +455,7 @@ ARTEFACTS = {
     "claims.html": ("forecast-sheet.html", "claims",
                     "The parties' claims, tested", None,
                     "Public statements by the parties about November's result, "
-                    "each tested against the model's simulations."),
+                    "each tested against This Model's simulations."),
     "commentary.html": ("forecast-sheet.html", "commentary",
                         "Commentary · Johannesburg 2026", None,
                         "Dated articles on the Johannesburg council election: "
@@ -954,10 +946,10 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
         elif layout == "claims":
             claims = tomllib.loads((REPO_ROOT / "content" / city.slug / "claims.toml")
                                    .read_text(encoding="utf-8"))["claim"]
-            spec = og_pages.claims_spec(html, claims, headline=ARTEFACTS["claims.html"][2])
+            spec = og_pages.claims_spec(html, claims, headline=ARTEFACTS["claims.html"][2], pool=pool)
         elif layout == "claim":
             by_page = {f"{og_pages.CLAIM_DIR}/{c['slug']}.html": c for c in load_claims(city.slug)}
-            spec = og_pages.claim_spec(html, by_page[output])
+            spec = og_pages.claim_spec(html, by_page[output], pool)
         elif layout == "article":
             rows = og_pages.seat_rows(forecast_html) if forecast_html else []
             spec = og_pages.article_spec(articles[output], pool, rows=rows)
@@ -1104,16 +1096,54 @@ def typed_generated_markers(text: str) -> list[str]:
     return sorted({m.group(0) for m in _GENERATED_MARKER.finditer(text)})
 
 
+#: Where a corrections entry of the release being built writes its corrected
+#: date (audits/2026-10-23-site-sweep/BRIEF-3-item35.md, item 9). The entry
+#: types this mark, in its heading's "corrected …" and in its `data-asof`
+#: values, and the build writes the one date `release_date` gives, so every
+#: entry of a release carries the same date and none is typed per entry. Once
+#: the release is published, replace the mark in its entries with the date the
+#: publication carries: a later release's build would otherwise write its own
+#: date into them.
+RELEASE_DATE_MARK = "RELEASE_DATE"
+
+
+def release_date(as_published: bool = False, city: str | None = None,
+                 ledger_root: Path | None = None, stamp: str | None = None) -> str:
+    """The date ``RELEASE_DATE_MARK`` is written as, ``YYYY-MM-DD``: the UTC
+    day of ``stamp``, the instant `main` stamps the ledger rows with
+    (`publication.utc_now` when None), so the corrected date and a
+    ``--publish``'s rows cannot fall either side of midnight; under
+    ``--as-published``, the newest publication's own day, since that build
+    rebuilds the pages it served."""
+    if as_published:
+        _, newest = publication.before_latest_publication(
+            publication.history(city or cityconfig.active().slug, root=ledger_root))
+        if newest is not None:
+            return str(newest.published_at)[:10]
+    return (stamp or publication.utc_now())[:10]
+
+
+def fill_release_date(text: str, release: str) -> str:
+    """``text`` with ``RELEASE_DATE_MARK`` written as ``release``: the ISO date
+    inside a ``data-asof`` value, "24 October 2026" everywhere else."""
+    day = date.fromisoformat(release)
+    text = text.replace(f'data-asof="{RELEASE_DATE_MARK}"', f'data-asof="{day.isoformat()}"')
+    return text.replace(RELEASE_DATE_MARK, f"{day.day} {day:%B %Y}")
+
+
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
                tech: str | None | bool = None, og: str | None = None,
-               token: str | None = None) -> str:
+               token: str | None = None, release: str | None = None) -> str:
     """`tech` names the technical record on GitHub that a reader edition is
     drawn from; None derives it from the file name, False says there is none
     (a page about the site, not the model). `og` is the page's own share-card
     description; None keeps the site-wide one. `token` is the Web Analytics
     token that picks the document's analytics blocks; None reads the
-    module's."""
+    module's. `release` is the date ``RELEASE_DATE_MARK`` is written as
+    (`release_date`); None takes `release_date()`."""
     raw = source.read_text(encoding="utf-8")
+    if RELEASE_DATE_MARK in raw:
+        raw = fill_release_date(raw, release or release_date())
     typed = typed_generated_markers(raw)
     if typed:
         raise SystemExit(f"{source} types the script-made region marker(s) "
@@ -1159,11 +1189,11 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
         masthead += f'\n  <p class="standfirst">{standfirst}</p>'
     if tech is False:
         note = ("This page describes how the site is run. It is not part of "
-                "the model or its record.")
+                "This Model or its record.")
     elif str(source).startswith("docs-public/"):
         tech = tech or source.name.replace(".md", "").upper() + ".md"
-        note = (f"Reader edition, generated from {source} on "
-                f"{date.today().isoformat()}. The full technical record, with "
+        note = (f"Reader edition, {date.today().isoformat()}. The full "
+                f"technical record, with "
                 f"every URL, identifier and workaround, is "
                 f'<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/{tech}">'
                 f"{tech} on GitHub</a>.")
@@ -1272,7 +1302,10 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
             "previous_value": None if prev is None else prev.value,
             "previous_published_at": None if prev is None else prev.published_at,
             "previous_since": None if prev is None else since.get(name),
-            "since": (since.get(name) if prev is not None
+            # a revived token's run restarts with this publication, whatever
+            # it shows (`publication._runs`)
+            "revived": prev is not None and bool(prev.revived_at),
+            "since": (since.get(name) if prev is not None and not prev.revived_at
                       and movement in ("none", "rounding") else None),
             "prior": priors[name][0] if name in priors else None,
             "prior_since": priors[name][1] if name in priors else None,
@@ -1327,7 +1360,8 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
     Line 1 is the figure as displayed, its unit word, and its history:
 
     * a LIVE figure, from the ledger: moved (``since`` this edition),
-      unchanged (since its run's first date), new (since this edition). One
+      unchanged (since its run's first date), new or revived after a
+      retirement (`publication.revive`; since this edition). One
       that has ever shown another value then says ``Was`` the last such value
       (``prior``) on the date that value first appeared (``prior_since``), in
       the edition that moved it and in every later one (owner, 2026-10-23:
@@ -1390,6 +1424,9 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         on_site = (registry.get(x["token"]) or {}).get("on_site")
         if x["previous"] is None:
             return f"since {when(on_site)}" if on_site else this
+        if x.get("revived"):
+            # retired, then revived: current again from this edition
+            return this
         if x["movement"] in ("none", "rounding"):
             run = x["since"]
         elif x["display"] == x["previous"]:
@@ -1675,6 +1712,20 @@ def main(argv: list[str] | None = None) -> int:
         print("  refreshed docs-public/methodology.md 'The judgement calls' "
               "from JUDGEMENT-CALLS.md")
 
+    city = cityconfig.active().slug
+    # ROOT IS ANCHORED TO THE REPOSITORY, NOT THE WORKING DIRECTORY. `latest`
+    # defaults to a relative `publications/`, so a build run from anywhere but
+    # the repo root would read an EMPTY ledger, classify every token as `new`,
+    # and let `dated_context_violations` return [] — the refusal failing OPEN
+    # and silently, which is the exact failure the declared-dating design was
+    # chosen to avoid.
+    ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
+    # The corrected date of this release's corrections entries (item 9 of
+    # audits/2026-10-23-site-sweep/BRIEF-3-item35.md): one date per build.
+    # The build's one instant: the ledger rows below are stamped with it too.
+    stamp = publication.utc_now()
+    release = release_date(args.as_published, city, ledger_root, stamp)
+
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None
@@ -1682,7 +1733,8 @@ def main(argv: list[str] | None = None) -> int:
         if not og:
             raise SystemExit(f"DOCS gives {source} neither a share-card description nor a "
                              "standfirst: it would carry the home page's card and address")
-        page = render_doc(Path(source), kicker, standfirst, output, tech, og)
+        page = render_doc(Path(source), kicker, standfirst, output, tech, og,
+                          release=release)
         seen: list[dict] = []
         page, drift, unresolved = statlib.render(page, registry, ctx,
                                                  record=seen)
@@ -1929,14 +1981,7 @@ def main(argv: list[str] | None = None) -> int:
     # The prose DECLARES its own dating by enclosing the sentence in an element
     # carrying `data-asof`; see `stats.DATED_REGION` for why it is declared per
     # occurrence rather than sniffed for a nearby date.
-    city = cityconfig.active().slug
-    # ROOT IS ANCHORED TO THE REPOSITORY, NOT THE WORKING DIRECTORY. `latest`
-    # defaults to a relative `publications/`, so a build run from anywhere but
-    # the repo root would read an EMPTY ledger, classify every token as `new`,
-    # and let `dated_context_violations` return [] — the refusal failing OPEN
-    # and silently, which is the exact failure the declared-dating design was
-    # chosen to avoid.
-    ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
+    # (`city` and `ledger_root` are set before the documents are rendered.)
     rows_read = publication.history(city, root=ledger_root)
     # The refusals below (a retired figure in present tense, a published
     # figure gone unretired) read the WHOLE ledger in every mode. Only the
@@ -2011,6 +2056,23 @@ def main(argv: list[str] | None = None) -> int:
         print("  Each was published, is no longer in the stats registry, and "
               "carries no supersession stamp — so nothing can tell a reader "
               "when it stopped being true. Close each one out:")
+        print(f"    P.retire({city!r}, '<token>', reason='<why>', "
+              f"change_class='mechanism', root=Path({str(ledger_root)!r}))")
+
+    # A REVIVED TOKEN THIS BUILD DOES NOT PRINT IS FATAL. `publication.revive`
+    # records that a retired figure is current again; only the live row a
+    # --publish appends after it makes that true. A revived token missing from
+    # every page would never get that row, and the record would hold a return
+    # that never happened. (One that also left the registry is caught above as
+    # well; this one is the token the build can produce and did not print.)
+    dangling = publication.unpublished_revivals(ledger, on_page)
+    if dangling:
+        refuse = True
+        print("\nREVIVED TOKENS THIS BUILD DOES NOT PUBLISH — refusing to leave "
+              "a revival with no live row after it:")
+        for row in dangling:
+            print(f"  ✗ {row.token} = {row.display}  (revived {row.revived_at})")
+        print("  Print each on a page this build writes, or retire it again:")
         print(f"    P.retire({city!r}, '<token>', reason='<why>', "
               f"change_class='mechanism', root=Path({str(ledger_root)!r}))")
 
@@ -2242,7 +2304,7 @@ def main(argv: list[str] | None = None) -> int:
     # an experimental build can never be taken back, and this script is run
     # many times a day during a rewrite.
     ident = publication.run_identity(args.processed)
-    now = as_of_publication or publication.utc_now()
+    now = as_of_publication or stamp
     rows, changes = _ledger_candidates(published, classified, ident, now,
                                        reason=args.reason,
                                        change_class=args.change_class,
@@ -2335,6 +2397,13 @@ def main(argv: list[str] | None = None) -> int:
                                         edition=now_date, publishing=publishing, facts=facts,
                                         first_ledgered=first_ledgered, dated_on=dated_on)
                for c in changes}
+    # A frozen figure's moved-since marker carries its live counterpart's own
+    # tooltip, the same two lines as every other figure (tone sweep, owner,
+    # 2026-10-24: audits/2026-10-23-site-sweep/BRIEF-2-tone.md, D).
+    for t, (glyph, _now, cls) in list(arrows.items()):
+        tracked = (registry_entries.get(t) or {}).get("tracks")
+        if cls == "moved-since" and tracked in history:
+            arrows[t] = (glyph, history[tracked], cls)
     if changes:
         for page in sorted({p for c in changes for p in c["pages"]}):
             f = args.out / page
@@ -2353,7 +2422,7 @@ def main(argv: list[str] | None = None) -> int:
                 token = _re.search(r'data-token="([^"]+)"', m.group(0)).group(1)
                 glyph, was, cls = arrows[token]
                 return (m.group(0) + f'<span class="arrow mstat-move {cls}" '
-                        f'data-prov="{_html.escape(was, quote=True)}">{glyph}</span>')
+                        f'data-prov="{_html.escape(was, quote=True).replace(chr(10), "&#10;")}">{glyph}</span>')
             def _prov(m):
                 span = m.group(1)
                 if m.group(2) not in history:

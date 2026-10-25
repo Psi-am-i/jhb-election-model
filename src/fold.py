@@ -28,6 +28,36 @@ the ward and PR ballots. Per the §0 correction, seats follow the two combined.
 Usage:
     python src/fold.py --fold 1        # 2014 NPE -> 2016 LGE
     python src/fold.py --fold 2        # 2019 NPE -> 2021 LGE
+    python src/fold.py --fold 1 --out DIR      # the same fit, written into DIR
+    python src/fold.py --pool 1,2              # γ over folds 1 and 2 together
+    python src/fold.py --pool 1,2 --out DIR    # the same, written into DIR
+
+``--out DIR`` writes the parameters file into DIR (refused under ``data/``)
+instead of the city's processed directory, so a refit can be compared with
+the canonical file without replacing it.
+
+Every parameters file carries a ``fit_status`` column, per row
+(``fit_status``: ``fitted``, or why the row is a placeholder), and
+``load_parameters`` reads γ only from ``fitted`` rows and refuses a file
+without the column (DATA-QUALITY 21). For a ``--fit-from`` run the status is
+the source fold's: the γ in that row is the source's, or the 1.0 default
+where the source has no fitted row.
+
+``--pool 1,2`` fits γ, per ballot and party, over the folds' VD rows
+together: γ = (Σ w·x·y summed over every fold) ÷ (Σ w·x² summed over every
+fold), the same through-origin weighted fit as ``fit_gamma`` (``gamma_sums``,
+``gamma_from_sums``), not the mean of the folds' γs. Each fold is prepared as
+its own default fit (``fold_inputs``, ``fold_target``) and contributes only
+where its row is a real fit (``fit_status``): not where the base citywide
+share is <= 0.001 (the row ``main`` writes as 1.0), the target has no votes
+for the party (written as 0.0), or the fold never saw it. It writes
+``gamma_pooled_fold1-2.csv``: ``gamma`` (blank where no fold fitted the
+party), the two sums, the VD count, ``contributing`` (the folds that fitted it)
+and one ``fold<N>`` column per fold with that fold's ``fit_status``. No θ.
+It takes no other option: the pooled fit is defined on each fold's defaults.
+Without ``--out`` it writes into the city's processed directory, where
+``montecarlo`` reads it for a target ``montecarlo.GAMMA_POOL`` names
+(Johannesburg 2026: folds 1 and 2).
 """
 
 from __future__ import annotations
@@ -159,7 +189,31 @@ def fit_gamma(
     weights: dict[str, int],
     party: str,
 ) -> tuple[float, int]:
-    """Regress target logit-deviation on baseline logit-deviation, through the origin."""
+    """Regress target logit-deviation on baseline logit-deviation, through the origin.
+
+    ``gamma_sums`` then ``gamma_from_sums``: the same two sums and the same
+    division as before the split (2026-10-23), so every fitted value is
+    unchanged."""
+    sxy, sxx, n = gamma_sums(base, target, base_city, target_city, weights, party)
+    return gamma_from_sums(sxy, sxx), n
+
+
+def gamma_sums(
+    base: dict[str, dict[str, float]],
+    target: dict[str, dict[str, float]],
+    base_city: dict[str, float],
+    target_city: dict[str, float],
+    weights: dict[str, int],
+    party: str,
+) -> tuple[float, float, int]:
+    """The weighted sums behind ``fit_gamma``: ``(Σ w·x·y, Σ w·x², n)``.
+
+    x is the base VD's logit deviation from the base citywide share, y the
+    target VD's from the target citywide share, w the VD's base votes cast,
+    over the ``n`` VDs both elections hold. Returned separately so several
+    folds can be fitted TOGETHER (``--pool``) by adding their sums: the pooled
+    γ is ``Σ_folds Σwxy ÷ Σ_folds Σwx²``, the through-origin fit over every
+    fold's VD rows at once, which is not the mean of the folds' γs."""
     common = [vd for vd in base if vd in target]
     x, y, w = [], [], []
     for vd in common:
@@ -167,10 +221,44 @@ def fit_gamma(
         y.append(logit(target[vd].get(party, 0.0)) - logit(target_city.get(party, SHARE_FLOOR)))
         w.append(weights.get(vd, 1))
     xa, ya, wa = np.array(x), np.array(y), np.array(w, dtype=float)
-    denominator = float((wa * xa * xa).sum())
-    if denominator == 0:
-        return 0.0, len(common)
-    return float((wa * xa * ya).sum() / denominator), len(common)
+    return float((wa * xa * ya).sum()), float((wa * xa * xa).sum()), len(common)
+
+
+def gamma_from_sums(sxy: float, sxx: float) -> float:
+    """γ from ``gamma_sums``' two sums: 0.0 when Σwx² is 0 (no deviation to
+    regress on), as ``fit_gamma`` has always returned."""
+    if sxx == 0:
+        return 0.0
+    return sxy / sxx
+
+
+# THE THREE WAYS A FOLD ROW IS NOT A REAL FIT (prereg
+# 2026-10-23-prefreeze-arms.md, amendment). `main` writes a γ for each of the
+# first two all the same -- 1.0 by the branch below, 0.0 because a party absent
+# from the target's citywide shares reads `SHARE_FLOOR` there and every y is
+# zero -- and the file does not say which rows those are. `fit_status` does.
+FITTED = "fitted"
+UNFITTED_BASE = "base share <= 0.001"
+UNFITTED_TARGET = "no target votes"
+UNFITTED_UNSEEN = "unseen"
+# The base citywide share at or below which `main` writes γ = 1.0 unfitted.
+FIT_MIN_BASE_SHARE = 0.001
+
+
+def fit_status(party: str, base_city: dict[str, float],
+               target_city: dict[str, float], universe) -> str:
+    """Whether a fold's γ row for ``party`` is a real fit, and if not why:
+    ``UNFITTED_UNSEEN`` (not in the fold's universe, so no row at all),
+    ``UNFITTED_BASE`` (base citywide share <= ``FIT_MIN_BASE_SHARE``, the row
+    ``main`` writes as 1.0), ``UNFITTED_TARGET`` (no votes in the target, the
+    row written as 0.0), else ``FITTED``."""
+    if party not in universe:
+        return UNFITTED_UNSEEN
+    if base_city.get(party, 0) <= FIT_MIN_BASE_SHARE:
+        return UNFITTED_BASE
+    if target_city.get(party, 0) <= 0:
+        return UNFITTED_TARGET
+    return FITTED
 
 
 def expit(x: float) -> float:
@@ -289,16 +377,37 @@ def calibrate_theta(
 
 
 def load_parameters(path: Path) -> dict[str, dict[str, dict[str, float]]]:
-    """Read a fold's fitted parameters back in, for out-of-sample transfer."""
-    out: defaultdict[str, dict[str, dict[str, float]]] = defaultdict(
-        lambda: {"theta": {}, "theta_raw": {}, "gamma": {}}
+    """Read a fold's fitted parameters back in, for out-of-sample transfer.
+
+    ``{ballot: {"theta", "theta_raw", "gamma", "status"}}``. ``gamma`` holds
+    only the rows whose ``fit_status`` is ``FITTED``: a placeholder γ (1.0 for
+    a base share <= ``FIT_MIN_BASE_SHARE``, 0.0 for no target votes) is not a
+    fit, and a reader that took it would stop the party falling through to
+    ``gamma_recent`` and then 1.0 (DATA-QUALITY 21). θ is read for every row,
+    because θ is calibrated for every party, placeholders included.
+    ``status`` maps every party in the file to its ``fit_status``.
+
+    REFUSES (SystemExit) a file without the ``fit_status`` column: such a file
+    cannot say which γ rows are placeholders, so reading it would reproduce
+    the defect."""
+    out: defaultdict[str, dict[str, dict]] = defaultdict(
+        lambda: {"theta": {}, "theta_raw": {}, "gamma": {}, "status": {}}
     )
-    with path.open(encoding="utf-8", newline="") as handle:
-        for row in csv.DictReader(handle):
-            ballot = row["ballot"]
-            out[ballot]["theta"][row["party"]] = float(row["theta_calibrated"])
-            out[ballot]["theta_raw"][row["party"]] = float(row["theta_raw"])
-            out[ballot]["gamma"][row["party"]] = float(row["gamma"])
+    with Path(path).open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if "fit_status" not in (reader.fieldnames or []):
+            raise SystemExit(
+                f"{path} has no fit_status column, so its placeholder γ rows "
+                f"cannot be told from fitted ones (DATA-QUALITY 21). Refit it: "
+                f"`.venv/bin/python src/fold.py --fold <N> --city <city>` "
+                f"writes the column (POOLS-REEMIT-QUEUE.md: a re-emit window).")
+        for row in reader:
+            ballot, party = row["ballot"], row["party"]
+            out[ballot]["theta"][party] = float(row["theta_calibrated"])
+            out[ballot]["theta_raw"][party] = float(row["theta_raw"])
+            out[ballot]["status"][party] = row["fit_status"]
+            if row["fit_status"] == FITTED:
+                out[ballot]["gamma"][party] = float(row["gamma"])
     return dict(out)
 
 
@@ -407,6 +516,167 @@ def suspect_vds(concordance: Path, election: str) -> set[str]:
         }
 
 
+def fold_inputs(fold: int, data_dir: Path, turnout: str = "level",
+                stability: str = "all", w_split: float = 0.6) -> dict:
+    """The base election of one fold, prepared as ``main`` fits it.
+
+    ``base_share``/``base_city`` (VD and citywide shares of the base election),
+    ``base_weight`` (base votes cast per VD, the regression's weights),
+    ``weight``/``weight_label`` (the target's votes-cast weights under the
+    ``turnout`` specification; empty when that specification is unavailable)
+    and ``flagged`` (the VDs the concordance marks as possibly redrawn).
+    When ``weight`` is non-empty, ``base_share`` and ``base_weight`` hold only
+    the VDs it covers. ONE DEFINITION, read by ``main`` and by the pooled fit
+    (``pooled_gamma``), so the pooled sums are the ones each fold's own fit
+    divides."""
+    spec = FOLDS[fold]
+    base_votes, _ = load(data_dir / spec["base"][0], spec["base"][1])
+    base_share, base_city = shares(base_votes), citywide(base_votes)
+    base_weight = {vd: sum(counts.values()) for vd, counts in base_votes.items()}
+
+    # Task #17: the concordance keys on VD number, which cannot be verified
+    # geometrically. Re-run with suspect VDs down-weighted or dropped and see
+    # whether the parameters move.
+    base_year = spec["base"][0][3:7]
+    flagged = suspect_vds(Path("data/processed/vd_concordance.csv"), base_year)
+    if stability == "exclude":
+        base_share = {vd: s for vd, s in base_share.items() if vd not in flagged}
+        base_weight = {vd: w for vd, w in base_weight.items() if vd not in flagged}
+    elif stability == "downweight":
+        base_weight = {
+            vd: int(w * w_split) if vd in flagged else w for vd, w in base_weight.items()
+        }
+
+    # Votes-cast weights for the target election. This is what turns predicted
+    # shares into seats, and it is where the turnout sub-model enters the fold.
+    weight, weight_label = turnout_weights(spec, turnout, data_dir, set(base_share))
+    if weight:
+        base_share = {vd: v for vd, v in base_share.items() if vd in weight}
+        base_weight = {vd: base_weight[vd] for vd in base_share}
+    return {"base_share": base_share, "base_city": base_city,
+            "base_weight": base_weight, "weight": weight,
+            "weight_label": weight_label, "flagged": flagged}
+
+
+def fold_target(fold: int, data_dir: Path, ballot: str,
+                base_city: dict[str, float]):
+    """One ballot of a fold's target: ``(target_share, target_city, ward_of,
+    universe)``, the universe being every party in the base or the target
+    except independents. ONE DEFINITION for ``main`` and ``pooled_gamma``."""
+    target_votes, ward_of = load(data_dir / FOLDS[fold]["target"][0], ballot)
+    target_share, target_city = shares(target_votes), citywide(target_votes)
+    universe = [p for p in set(base_city) | set(target_city) if p != "IND"]
+    return target_share, target_city, ward_of, universe
+
+
+def pooled_gamma(folds: list[int], data_dir: Path) -> dict:
+    """γ fitted over several folds together, per ballot and party.
+
+    Each fold is prepared exactly as its own default fit (``fold_inputs`` with
+    the defaults, ``fold_target``), and a party contributes a fold's
+    ``gamma_sums`` only where ``fit_status`` calls that fold's row a real fit;
+    a party fitted in one fold takes that fold's sums alone. Returns
+    ``{ballot: {party: {"gamma", "sxy", "sxx", "n", "status", "contributing"}}}``
+    where ``status`` maps each fold to its ``fit_status`` and ``gamma`` is None
+    when no fold contributes."""
+    out: dict[str, dict[str, dict]] = {"PR": {}, "Ward": {}}
+    for fold in folds:
+        inputs = fold_inputs(fold, data_dir)
+        if not inputs["weight"]:
+            raise SystemExit(f"fold {fold}: turnout weights are "
+                             f"{inputs['weight_label']}")
+        base_share, base_city = inputs["base_share"], inputs["base_city"]
+        for ballot in out:
+            target_share, target_city, _, universe = fold_target(
+                fold, data_dir, ballot, base_city)
+            for party in universe:
+                row = out[ballot].setdefault(party, {
+                    "sxy": 0.0, "sxx": 0.0, "n": 0, "status": {},
+                    "contributing": []})
+                status = fit_status(party, base_city, target_city, universe)
+                row["status"][fold] = status
+                if status != FITTED:
+                    continue
+                sxy, sxx, n = gamma_sums(base_share, target_share, base_city,
+                                         target_city, inputs["base_weight"], party)
+                row["sxy"] += sxy
+                row["sxx"] += sxx
+                row["n"] += n
+                row["contributing"].append(fold)
+    for ballot in out:
+        for party, row in out[ballot].items():
+            for fold in folds:
+                row["status"].setdefault(fold, UNFITTED_UNSEEN)
+            row["gamma"] = (gamma_from_sums(row["sxy"], row["sxx"])
+                            if row["contributing"] else None)
+    return out
+
+
+def pooled_path(out_dir: Path, folds: list[int]) -> Path:
+    """Where ``--pool`` writes: ``gamma_pooled_fold1-2.csv`` for folds 1, 2."""
+    return Path(out_dir) / f"gamma_pooled_fold{'-'.join(str(f) for f in folds)}.csv"
+
+
+def refuse_data_out(out_dir: Path) -> None:
+    """``--out`` is for writing BESIDE the canonical files: a directory under
+    ``data/`` is refused, so this mode cannot replace what the forecast reads."""
+    data = (Path(__file__).resolve().parents[1] / "data").resolve()
+    out = Path(out_dir).resolve()
+    if out == data or data in out.parents:
+        raise SystemExit(f"--out {out} is inside {data}; give a directory "
+                         f"outside data/")
+
+
+def write_pooled(args) -> int:
+    """``--pool``: write ``pooled_gamma`` as CSV into ``--out``."""
+    folds = [int(f) for f in args.pool.split(",")]
+    unknown = [f for f in folds if f not in FOLDS]
+    if unknown or len(set(folds)) != len(folds):
+        raise SystemExit(f"--pool {args.pool}: folds must be distinct, from "
+                         f"{sorted(FOLDS)}")
+    if (args.fit_from or args.entrant or args.turnout != "level"
+            or args.stability != "all" or args.w_split != 0.6):
+        raise SystemExit("--pool fits each fold's DEFAULT fit; it takes no "
+                         "--fit-from, --entrant, --turnout, --stability or "
+                         "--w-split")
+    if args.out is not None:
+        refuse_data_out(args.out)
+    out_dir = args.out if args.out is not None else cityconfig.active().processed
+    pooled = pooled_gamma(folds, args.data_dir)
+    path = pooled_path(out_dir, folds)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["ballot", "party", "gamma", "sum_wxy", "sum_wxx", "n_vd",
+                         "contributing"] + [f"fold{f}" for f in folds])
+        for ballot, rows in pooled.items():
+            for party in sorted(rows):
+                row = rows[party]
+                writer.writerow(
+                    [ballot, party,
+                     "" if row["gamma"] is None else f"{row['gamma']:.4f}",
+                     repr(row["sxy"]), repr(row["sxx"]), row["n"],
+                     "+".join(str(f) for f in row["contributing"])]
+                    + [row["status"][f] for f in folds])
+    print(f"wrote {path}  (γ pooled over folds {folds}; a blank γ is a party "
+          f"no fold fitted)")
+    return 0
+
+
+def read_pooled(path: Path) -> dict[str, dict[str, dict]]:
+    """``--pool``'s CSV back: ``{ballot: {party: {"gamma": float | None,
+    "contributing": [fold, ...], "status": {fold: str}}}}``."""
+    out: dict[str, dict[str, dict]] = {}
+    with Path(path).open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle):
+            status = {int(k[4:]): v for k, v in row.items() if k.startswith("fold")}
+            out.setdefault(row["ballot"], {})[row["party"]] = {
+                "gamma": float(row["gamma"]) if row["gamma"] else None,
+                "contributing": [int(f) for f in row["contributing"].split("+") if f],
+                "status": status}
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fold", type=int, choices=sorted(FOLDS), default=1)
@@ -451,9 +721,20 @@ def main(argv: list[str] | None = None) -> int:
              "MK on the ANC, 0.05 for the EFF on the ANC, 1.00 for ActionSA on "
              "the DA.",
     )
+    parser.add_argument(
+        "--out", type=Path, default=None,
+        help="write the parameters file into this directory (outside data/) "
+             "instead of the city's processed directory")
+    parser.add_argument(
+        "--pool", default=None, metavar="N,M",
+        help="fit γ over these folds together (default fit of each) and write "
+             "gamma_pooled_foldN-M.csv into --out, else into the city's "
+             "processed directory; no θ")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+    if args.out is not None:
+        refuse_data_out(args.out)
 
     # CODE=SHARE, or CODE=SHARE:PARENT:K to give the entrant a geography.
     entrants: dict[str, float] = {}
@@ -481,8 +762,10 @@ def main(argv: list[str] | None = None) -> int:
     def _file(template: str) -> Path:
         return args.data_dir / template.replace("{CODE}", city.code)
 
-    for role in ("base", "target"):
-        path = _file(spec[role][0])
+    for role, path in [(r, _file(FOLDS[f][r][0]))
+                       for f in ([int(x) for x in args.pool.split(",")]
+                                 if args.pool else [args.fold])
+                       for r in ("base", "target")]:
         if not path.exists():
             runnable = [n for n, s in sorted(FOLDS.items())
                         if all(_file(s[r][0]).exists() for r in ("base", "target"))]
@@ -492,33 +775,17 @@ def main(argv: list[str] | None = None) -> int:
                 f"Johannesburg.\n"
                 f"  folds runnable for {city.name}: "
                 f"{', '.join(str(n) for n in runnable) or 'none'}")
-    base_votes, _ = load(args.data_dir / spec["base"][0], spec["base"][1])
-    base_share, base_city = shares(base_votes), citywide(base_votes)
-    base_weight = {vd: sum(counts.values()) for vd, counts in base_votes.items()}
+    if args.pool:
+        return write_pooled(args)
 
-    # Task #17: the concordance keys on VD number, which cannot be verified
-    # geometrically. Re-run with suspect VDs down-weighted or dropped and see
-    # whether the parameters move.
-    base_year = spec["base"][0][3:7]
-    flagged = suspect_vds(Path("data/processed/vd_concordance.csv"), base_year)
-    if args.stability == "exclude":
-        base_share = {vd: s for vd, s in base_share.items() if vd not in flagged}
-        base_weight = {vd: w for vd, w in base_weight.items() if vd not in flagged}
-    elif args.stability == "downweight":
-        base_weight = {
-            vd: int(w * args.w_split) if vd in flagged else w for vd, w in base_weight.items()
-        }
-
-    # Votes-cast weights for the target election. This is what turns predicted
-    # shares into seats, and it is where the turnout sub-model enters the fold.
-    weight, weight_label = turnout_weights(
-        spec, args.turnout, args.data_dir, set(base_share)
-    )
+    inputs = fold_inputs(args.fold, args.data_dir, args.turnout,
+                         args.stability, args.w_split)
+    weight, weight_label = inputs["weight"], inputs["weight_label"]
     if not weight:
         print(f"turnout method '{args.turnout}' is {weight_label}")
         return 1
-    base_share = {vd: v for vd, v in base_share.items() if vd in weight}
-    base_weight = {vd: base_weight[vd] for vd in base_share}
+    base_share, base_city = inputs["base_share"], inputs["base_city"]
+    base_weight, flagged = inputs["base_weight"], inputs["flagged"]
 
     source = None
     if args.fit_from:
@@ -543,11 +810,9 @@ def main(argv: list[str] | None = None) -> int:
     predicted_votes: dict[str, dict[str, dict[str, float]]] = {}
 
     for ballot in ("PR", "Ward"):
-        target_votes, ward_of = load(args.data_dir / spec["target"][0], ballot)
-        target_share, target_city = shares(target_votes), citywide(target_votes)
+        target_share, target_city, ward_of, universe = fold_target(
+            args.fold, args.data_dir, ballot, base_city)
         common = sorted(set(base_share) & set(target_share))
-
-        universe = [p for p in set(base_city) | set(target_city) if p != "IND"]
 
         # A party with no baseline cannot be produced by a multiplicative θ. Seed
         # it at an assumed citywide share, spatially flat, and let everything else
@@ -591,12 +856,20 @@ def main(argv: list[str] | None = None) -> int:
             }
         if source and ballot in source:
             # Out-of-sample: γ comes from the other fold, defaulting to 1.0 for
-            # parties it never saw.
+            # parties it never saw or did not fit (`load_parameters` reads
+            # fitted γ rows only). The row's status is the source's.
             gamma = {p: source[ballot]["gamma"].get(p, 1.0) for p in universe}
+            status = {p: source[ballot]["status"].get(p, UNFITTED_UNSEEN)
+                      for p in universe}
         else:
             gamma = {}
+            # ONE DEFINITION of a real fit: `fit_status`, the rule the branch
+            # below applies (1.0 at or under FIT_MIN_BASE_SHARE; 0.0 from
+            # fit_gamma when the target has no votes for the party).
+            status = {p: fit_status(p, base_city, target_city, universe)
+                      for p in universe}
             for p in universe:
-                if base_city.get(p, 0) > 0.001:
+                if base_city.get(p, 0) > FIT_MIN_BASE_SHARE:
                     gamma[p], _ = fit_gamma(
                         model_base_share, target_share, model_base_city,
                         target_city, base_weight, p
@@ -626,7 +899,8 @@ def main(argv: list[str] | None = None) -> int:
                 model_base_share, model_base_city, target_city, gamma,
                 weight, universe
             )
-        fitted[ballot] = {"theta": theta, "theta_raw": theta_raw, "gamma": gamma}
+        fitted[ballot] = {"theta": theta, "theta_raw": theta_raw, "gamma": gamma,
+                          "status": status}
 
         prediction = predict(model_base_share, model_base_city, theta, gamma)
         predicted_votes[ballot] = prediction
@@ -738,12 +1012,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.entrant:
         variant += "__entrant-" + "_".join(sorted(e.replace("=", "-").replace(":", "-")
                                                   for e in args.entrant))
-    out = (cityconfig.active().processed
+    out = ((args.out if args.out is not None else cityconfig.active().processed)
            / f"fold{args.fold}{suffix}_parameters{variant}.csv")
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["ballot", "party", "theta_raw", "theta_calibrated", "gamma"])
+        # `fit_status` LAST, so the value columns are what they were before
+        # the column existed (DATA-QUALITY 21).
+        writer.writerow(["ballot", "party", "theta_raw", "theta_calibrated", "gamma",
+                         "fit_status"])
         for ballot, values in fitted.items():
             for party in sorted(values["theta"]):
                 writer.writerow([
@@ -751,6 +1028,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"{values['theta_raw'][party]:.4f}",
                     f"{values['theta'][party]:.4f}",
                     f"{values['gamma'][party]:.4f}",
+                    values["status"][party],
                 ])
     print(f"\n  wrote {out}  (fold 2 validates against these, per §4.1)")
     print(

@@ -46,7 +46,7 @@ export async function loadReweightEngine({ onStage = () => {}, loadPyodide, read
   const py = await loadPyodide({ indexURL });
   mark("pyodide", "Loading numpy");
   await py.loadPackage("numpy", { messageCallback: () => {} });
-  mark("numpy", "Loading the model's re-weighting");
+  mark("numpy", "Loading This Model's re-weighting");
   const { manifest, texts, boot } = await code;
   py.FS.mkdirTree(PAGE_DIR);
   for (const [f, text] of texts) {
@@ -64,7 +64,7 @@ export async function loadReweightEngine({ onStage = () => {}, loadPyodide, read
   const poolsPy = py.globals.get("pools_of");
   const handoffPy = py.globals.get("handoff");
   const analysePy = py.globals.get("analyse");
-  mark("import", "Loading the published draws");
+  mark("import", "Loading the published simulations");
 
   const { cells } = await index;
   const loaded = new Map();

@@ -479,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
     inset = f"""<g transform="translate({mx:.0f},{my:.0f})">{''.join(bands)}
       <rect width="{BAR_W:.0f}" height="{BAR_H:.0f}" fill="none" stroke="var(--ink-3)" stroke-width="1"/></g>
     <text x="{mx + BAR_W:.0f}" y="{my + BAR_H + 16:.0f}" text-anchor="end"
-      class="mapcap">The full council — {council} seats, one typical simulation</text>
+      class="mapcap">The full council, {council} seats: the simulation closest to every party's median</text>
     <text x="8" y="16" class="mapcap">Ward races — 135 seats, first past the post</text>"""
 
     tier_key = map_key(called)
@@ -500,7 +500,7 @@ def main(argv: list[str] | None = None) -> int:
     <figure>
       <div class="mapbox">
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap" class="mapsvg"
-           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party">
+           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by the likeliest winning party">
         <defs>{patterns}</defs>
         {paths}{hatches}{''.join(labels)}{inset}
       </svg>
@@ -509,7 +509,7 @@ def main(argv: list[str] | None = None) -> int:
       <figcaption class="mapcaption">
         <span>{tier_key}</span>
         <span>Touch or hover any ward for its numbers. The bar shows the whole council, ward and
-        list seats together, in one typical simulation.</span>
+        list seats together, in the simulation closest to every party's median seat count.</span>
       </figcaption>
     </figure>
   </details>

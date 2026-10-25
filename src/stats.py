@@ -55,14 +55,15 @@ Source grammar:
   ``history:joburg:2011:wards.called``. See :func:`history_value`.
 * ``published:small_party_surge`` — :func:`small_party_surge` over the
   published draws (``site/draws/``, the files the site's pages read).
-* ``published:list_share_median:<PARTY>`` — that party's middle share of the
-  list ballot over the published draws (:func:`published_list_share_median`).
+* ``published:vote_share_median:<PARTY>`` — that party's middle share of the
+  combined vote, ward and list ballots together as the statute tallies them,
+  over the published draws (:func:`published_vote_share_median`).
 * ``published:run_date`` — when the run that exported the published draws was
   made (``export_draws.run_time``); the date the pages and our forecast's card
   both print.
 * ``judgement:<city>-<target>:<dotted path>`` — into that city-year's
   judgements file (``judgements/<city>-<target>.toml``), the values the owner
-  set by hand and the run applied (``judgement:joburg-2026:party.ASA.support``).
+  set by hand and the run applied (``judgement:joburg-2026:party.MK.parent_weight``).
   A judgement call is written once, there; a page quoting it reads it from
   there (:func:`judgement_value`).
 * ``run:<description>`` / ``external:<description>`` — never auto-resolved;
@@ -259,13 +260,14 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # "Your forecast" (src/build_your_forecast.py), section 1, "Adjust the
     # model" (interactive/js/model.js): the controls it builds and every figure
     # a reader's settings produce. Each results region is the LIVE twin of a
-    # build twin of tokens (DESIGN §4, 2026-10-02): banner, result (the status
-    # strip and the one-line result), map and its tooltip, flips, seats; then
+    # build twin of tokens (DESIGN §4, 2026-10-02): banner, the status strip
+    # under it and the header's small ward map (BRIEF-6, 2026-10-25), result
+    # (the one-line result), map and its tooltip, flips, seats; then
     # the controls, the line under the by-elections, the seat law's summary,
     # the note's effective count, the floating "computing" overlay and the
     # phone's change toast.
     "your-forecast/js/model.js": frozenset({
-        "engine", "busy", "banner", "result", "map", "wardtip", "flips", "seats",
+        "engine", "busy", "banner", "status", "minimap", "result", "map", "wardtip", "flips", "seats",
         "turnout", "polls", "trust", "trustwhy", "cells", "byelection", "law", "lawnow", "ess",
         "toast",
     }),
@@ -513,8 +515,8 @@ def resolve(source: str, ctx: dict):
         return run_time(_bm._draws(ctx.get("draws_dir"))[0])
     if source == "published:small_party_surge":
         return published_small_party_surge(ctx)
-    if source.startswith("published:list_share_median:"):
-        return published_list_share_median(source.rsplit(":", 1)[1], ctx)
+    if source.startswith("published:vote_share_median:"):
+        return published_vote_share_median(source.rsplit(":", 1)[1], ctx)
     return None                      # run: / external: — pinned only
 
 
@@ -561,18 +563,23 @@ def published_small_party_surge(ctx: dict):
     return ctx["_small_party_surge"]
 
 
-def published_list_share_median(party: str, ctx: dict):
-    """``party``'s median share of the list ballot over the published draws
-    (``site/draws``' ``list_vote`` block, as shares by ``reweight.list_shares``),
-    or None when the party has no column. Added 2026-10-23 for the
-    methodology's ANC list share, which was typed ("the mid-twenties")."""
-    if "_list_shares" not in ctx:
+def published_vote_share_median(party: str, ctx: dict):
+    """``party``'s median share of the COMBINED vote over the published draws:
+    its ward and list votes together over the same tally for every party the
+    statute counts (`seats.eligible_parties`, Schedule 1 items 12-13 and 16:
+    no independent, no party without a list), per simulation, from
+    ``site/draws``' ``ward_vote`` and ``list_vote`` blocks; None when the
+    party has no column (`scenarios.combined_vote_shares`, the one
+    definition). Replaced the list-ballot median for the methodology's
+    ANC vote on 2026-10-25 (owner, BRIEF-5 item 12: the page compared seats
+    with the party-list vote alone)."""
+    if "_vote_shares" not in ctx:
         import build_make as _bm
-        import reweight as _rw
+        import scenarios as _sc
         manifest, arrays, _raw = _bm._draws(ctx.get("draws_dir"))
-        ctx["_list_shares"] = (_rw.list_shares(arrays["list_vote"]),
-                               _bm._columns(manifest, "list_vote"))
-    shares, cols = ctx["_list_shares"]
+        ctx["_vote_shares"] = _sc.combined_vote_shares(
+            arrays, {b: _bm._columns(manifest, b) for b in ("ward_vote", "list_vote")})
+    shares, cols = ctx["_vote_shares"]
     if party not in cols:
         return None
     import numpy as _np

@@ -183,9 +183,9 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   // whole document.
   const FOLLOWS = ".yf-builder";
   const S = [
-    ["turnout +5, section 2 following", T0, slide(T0, 5), '[data-live="result"] .pl-status', { above: FOLLOWS }],
+    ["turnout +5, section 2 following", T0, slide(T0, 5), '[data-live="status"] .pl-status', { above: FOLLOWS }],
     ["by-elections, section 2 following", '[data-live="cells"]', click('[data-live="cells"] button:first-child'), null, { above: FOLLOWS }],
-    ["back to the forecast, section 2 following", '[data-live="result"]', click('[data-live="result"] .pl-back'), null, { above: FOLLOWS }],
+    ["back to the forecast, section 2 following", '[data-live="result"]', click('[data-live="status"] .pl-back'), null, { above: FOLLOWS }],
     // section 2 edited: from here it holds its own forecast
     ["paint a ward", ".wardmap", async p => {
       // a DOM click: the reader's click does not scroll, Playwright's would
@@ -213,7 +213,7 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     ["by-elections", '[data-live="cells"]', click('[data-live="cells"] button:first-child'), '[data-live="byelection"] .pl-note'],
     ["seat law", '[data-live="law"]', pick('[data-live="law"] input:not([value="deduct"])'), ".pl-sharewhy"],
     ["seat law back", '[data-live="law"]', pick('[data-live="law"] input[value="deduct"]'), null],
-    ["back to the forecast", '[data-live="result"]', click('[data-live="result"] .pl-back'), null],
+    ["back to the forecast", '[data-live="result"]', click('[data-live="status"] .pl-back'), null],
     // section 2
     ["paint another ward", ".wardmap", p => p.locator(".wardmap [data-i]").nth(20).click({ force: true }), null],
     ["a party's vote", VOTE, vote(30), null],

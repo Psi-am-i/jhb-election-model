@@ -5,6 +5,435 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 43. Two yeses: the methodology tooltip, and promoting the current UAT version — answered 2026-10-25
+
+**Context.** UAT version d680538f (https://d680538f-joburg-whysoserious.psi-02e.workers.dev) holds the home-page top, the methodology changes, "Follow us on X" in the footer and the methodology's combined-vote "23%". Its page checks passed. Its tooltip on the methodology's 23% reads: "SOURCE: This Model. The ANC's middle share of the votes, ward and party-list together, across 5,000 simulations."
+
+**Decisions.**
+1. That tooltip text.
+2. Promote d680538f to the live site now, with Brief 6 to follow as its own UAT version.
+
+**Recommendation.** Yes to both. Promoting now keeps the publication record (dated 24 October) true; Brief 6 does not depend on it.
+
+**Blocks.** The live site's next update.
+
+**Answered 2026-10-25.** Owner: "make the changes and publish. these are so minor full UAT seems rather pointless. just check teh e[…] site" Recorded: Read as yes to both: the tooltip stands, and Brief 6 goes live with d680538f's changes in one publish, checked on the page tier (QC.md §4b) and by looking at the site; no whole suite.
+
+### 42. "Tap or drag" on a phone — answered 2026-10-25
+
+**Context.** Your instruction for the ward map is "Choose a party below, then tap or drag across wards to give them ward wins." On a computer both work. On a phone a tap gives a ward; a drag scrolls the page, by design, so a finger can scroll past the map.
+
+**Options.**
+1. Keep the one sentence everywhere.
+2. Make a drag paint on a phone too, while a party is chosen; the page then scrolls only outside the map.
+3. On phones only, "Choose a party below, then tap wards to give them ward wins."
+
+**Recommendation.** 3.
+
+**Blocks.** Nothing; Brief 6 uses your sentence until answered.
+
+**Answered 2026-10-25.** Owner: "tap only yes." Recorded: Option 3: on touch screens the instruction reads "Choose a party below, then tap wards to give them ward wins." Brief 6 Part E.
+
+### 41. The ward vote and the list vote on /your-forecast — answered 2026-10-25
+
+**Context.** Each party row has a list-vote slider and, under "Adjust ward vote", a box reading "Ward vote: points from list vote". The number in the box is the party's ward-ballot share minus its list-ballot share in the published forecast: ActionSA -2.7 means its ward vote starts 2.7 points below its list vote (9.1% against 11.8%); EFF +1.0 means 1.0 point above. Moving the slider keeps that gap. The figure is the gap, not a vote, which is why it reads as unexplained.
+
+**Options.**
+1. Show two plain figures per party, "Ward vote" and "List vote", each editable, no gap box.
+2. Keep one slider (the list vote) and show the ward vote beside it as a figure, with the gap box removed; a reader who wants a different ward vote types it.
+3. Keep the gap box and rename it.
+
+**Recommendation.** 2: one control per party, and both ballots in view as percentages. Needs your yes to these words: the column headings "List vote" and "Ward vote", and no other text.
+
+**Blocks.** That part of Brief 6.
+
+**Answered 2026-10-25.** Owner: "sliders and vote, fine." Recorded: Option 2: one list-vote slider per party, the ward vote shown beside it; headings "List vote" and "Ward vote". Brief 6 Part E.
+
+### 40. Where each party's votes come from: the chart shows a fit sitting on its limits — answered 2026-10-25
+
+**Context.** /your-forecast's chart "Where each party's votes come from" gives the ANC "over 99%" Black African and the EFF, IFP and MK 100%. You said this is impossible. Measured (MODEL-LOG §1.338): the chart prints the model's pool fit as it is, and the fit has put most parties on a corner of what the 2021 ward results allow. The ward arithmetic alone allows the ANC 0% to 71% of Indian/Asian voters and 0% to 26% of white voters; the fit chose 0% for both. The EFF, IFP and Al Jama-ah sit at the limit where every one of their votes comes from one group. The model's own record already marks the ANC's Indian/Asian and white figures as not pinned down by the data; the chart does not say so.
+
+These figures are not only on the chart. They drive the population-group turnout controls on the same page and the forecast's turnout adjustment, so changing them moves forecast numbers.
+
+**Options.**
+1. Keep the fit; on the chart, mark the figures the data does not pin down (hatched, with a note). Needs your words for the note.
+2. Re-fit (a method that does not run to the limits) as a model round after 4 November, with the usual checks.
+3. Re-fit before 4 November. It moves the forecast ten days out, and the round (pre-registration, review, backtest, full suite) would have to finish in that time.
+4. Take the chart off the page until it is re-fitted.
+
+**Recommendation.** 4 now and 2 after 4 November. Option 1 still prints 0% for the ANC among white voters as a figure.
+
+**Blocks.** Nothing else in Brief 6.
+
+**Answered 2026-10-25.** Owner: "take the chart off leave the population group sliders." Recorded: Option 4: the chart comes off /your-forecast; the population-group turnout controls stay. Re-fit (option 2) to TODO.md for after 4 November. Brief 6 Part E.
+
+### 39. What leaves the methodology page — answered 2026-10-25
+
+**Context.** Owner, 2026-10-25: the methodology "is now a corrections page. It
+is mean to say what the methadology is. We can put in a note to say that we
+have current withrawn our scores for previous electsions while they are rerun".
+The passages on the page now that describe errors, withdrawals or history,
+and what each would become:
+
+1. **How accurate is it?** The scores notice ("This Model's past scores were
+   withdrawn on 23 October. Several of its settings had been chosen on the
+   elections they were scored against. Re-scored figures, from earlier
+   elections only, will be published here.") becomes "We have withdrawn our
+   scores for previous elections while they are re-run." The paragraph on the
+   seat law reproducing published councils stays.
+2. **The judgement calls.** Delete the three sentences "Those tests' settings
+   had been chosen on the same elections, so …" (the cut, the widths, the
+   by-election weight), and in the cut's paragraph the sentence on what those
+   tests showed ("without the cut those tests gave the largest parties too
+   much …"), which reports an in-sample result.
+3. **ActionSA.** Delete "From 21 to 23 October ActionSA's level was set by our
+   judgement at 17.6%; that judgement was withdrawn on 23 October."
+4. **Where polls fit.** Delete the subsection "What they were worth, measured"
+   (it says only that the measurement is withdrawn).
+5. **What this does not cover.** "The ranges are likely too narrow. They are
+   fitted on This Model's errors in past tests whose settings had seen those
+   elections." Keep, or delete.
+6. **Corrections and review.** Your text, with "This Model" (item 38).
+
+**Recommendation.** 1 to 4 and 6 as stated; 5 keep: it is a limit of the
+forecast now, and the forecast page says the same.
+
+**Blocks.** Brief 5, then a new UAT version and the release going live.
+
+**Answered 2026-10-25.** Owner, on this item and the tooltip on the home page's 23% ("SOURCE: This Model. The middle share of the votes, ward and party-list together, …"): "1 and 2 are both fine and keep the one line." Recorded: 1 to 4 and 6 as stated, 5 kept; `audits/2026-10-23-site-sweep/BRIEF-5-home-top-methodology.md` Part B.
+
+### 38. Your new home-page top and methodology section: five wording points — answered 2026-10-25
+
+**Context.** On 2026-10-25 you sent new text for the top of the home page (the
+headline and the paragraph under it) and for the methodology section
+"Corrections and review". It goes into the release now on UAT, before it goes
+live. Five points in it need your call before a writer applies it.
+
+Figures today, from the frozen 23 October forecast: the clause applies to the
+ANC in 87% of simulations and to some party in 91%; where it applies to the
+ANC, its median is 27% of the seats on 23% of the party-list vote.
+
+**Decisions.**
+1. **"We give an 87% chance" and "We predict they will hold".** Your rule on
+   forecast and prediction (STYLE rule 11) keeps "predict" for a reader's one
+   complete scenario, and the site's own sentences say "This Model". (a) "This
+   Model gives an 87% chance of this happening with the ANC this year. It
+   forecasts that they will hold about 27% of the seats with only 23% of the
+   party-list vote."; or (b) your words as written.
+2. **"23% of the vote".** The 23% is the party-list vote; the ANC's ward vote
+   differs. (a) "of the party-list vote", as in 1(a); or (b) "of the vote".
+3. **What leaves the top of the page.** Your text drops the ward counts (DA
+   ahead in 48 wards, 7 not safe; ANC in 77, 29 not safe) and "Chance of one
+   party winning outright: under 0.1%". The ward counts stay on the forecast
+   map below. (a) both go, as your text has it; or (b) keep one or both.
+4. **The third headline line, "It is likely that the council will not match
+   the vote proportionally."** The site picks the other two headline phrases
+   from the figures, so they change if the figures do. Recommendation: "likely"
+   is printed while the chance that the clause applies to any party is 50% or
+   more (91% today), and the build stops below that until you give words for
+   it. "The ANC" in the paragraph is picked the same way (the party the clause
+   applies to most often), as now.
+5. **"The model is constantly reviewed".** The site says "This Model" for this
+   model. (a) "This Model is constantly reviewed, errors found and fixed."; or
+   (b) as written.
+
+Spelling fixed without asking: "specific", "councillors", "Methodology".
+
+**Recommendation.** 1 (a); 2 (a); 3 (a); 4 as stated; 5 (a).
+
+**Blocks.** The writer's brief for these changes, then a new UAT version and
+the release going live.
+
+**Answered 2026-10-25.** Owner: "1. ok. 2. I belieeb the two votes are added together for the final vote - which decides how many extra seats each party gets. … Check VERY carefully. 3, Sorry no." (with the text re-sent, ward sentence and outright-majority chance kept), "4. So extremelely likely? ANd I am only talking abot the ANC, so what is their chance and then use the word we decided. 5. ok".
+
+Checked: Schedule 1 items 12(1) and 13(1)(a) of the Municipal Structures Act count each party's party-list votes and its ward candidates' votes together, and item 16(3)-(9) as substituted by Act 3 of 2021 re-quotas on the same combined votes (MODEL-LOG §1.17; `tests/test_overhang.py` reproduces the IEC's Laingsburg 2021 calculation). This Model already allocates on combined votes (`seats.eligible_parties`); the home page's 23% was the ANC's party-list share. The combined share in the same simulations is also 23% (22.8% list, 23.0% combined, medians). The government's B23-2026 amendment bill does not touch Schedule 1, and no 1% seat threshold is in force that we could find.
+
+Recorded: 1 (a); 2 the owner's "of the vote", the figure switched to the combined vote; 3 the ward sentence and the outright-majority chance stay; 4 the word is the claims scale's word for the ANC's chance (87%, VERY LIKELY, so "very likely"); 5 (a). Brief: `audits/2026-10-23-site-sweep/BRIEF-5-home-top-methodology.md`.
+
+### 37. The council bar's caption on the forecast map — answered 2026-10-24
+
+**Context.** Owner, 2026-10-24, on "The full council — 270 seats, one typical
+simulation": "We are not showing a typical simulation. Makes it sound like
+this is not our forecast and it doesn't say what it is at all."
+
+What the bar is: one of This Model's 5,000 simulations, the one closest to
+every party's median seat count (`scenarios.typical`, each party's distance
+scaled by its 5-95% range). A real simulation is used because the parties'
+medians do not add up to the council: a bar of medians would show more or
+fewer than 270 seats. The "two ballots" bars on the forecast page show the
+same simulation.
+
+**Options.**
+1. Keep the simulation and say what it is. Bar label: "The full council,
+   270 seats: the simulation closest to every party's median". The caption's
+   sentence: "The bar shows the whole council, ward and list seats together,
+   in the simulation closest to every party's median seat count."
+2. Show each party's median seats, with the gap to 270 drawn as a grey
+   "unallocated" band and the label "The full council, 270 seats: each
+   party's median". Every band then is a forecast figure, but the bar no
+   longer adds up to a council that could happen.
+3. Remove the bar; the seats chart above already gives each party's seats.
+
+**Recommendation.** Option 1: the bar stays a council that could happen,
+and the words say which one.
+
+**Blocks.** Nothing else in the release; the bar keeps its current words
+until answered.
+
+**Answered 2026-10-24.** Owner, quoting option 1's two texts: "use that". Recorded in `audits/2026-10-23-site-sweep/BRIEF-4-nav-cards.md` item 5.
+
+### 36. Three tooltip sentences for the new who-can-govern figures — answered 2026-10-24
+
+**Context.** Item 35's changes put three new figures on the forecast page:
+the DA's workable majorities without the ANC, how many of those are better
+than even, and the 10% cut-off. Every figure on the site carries a tooltip
+sentence, and the build refuses a figure without one. Proposed, mirroring the
+live ANC sentences ("The coalitions in the table that include the ANC and not
+the DA." and "...and hold a majority in more than half of 5,000 simulations."):
+1. DA's count: "The coalitions in the table that include the DA and not the ANC."
+2. DA's better-than-even count: "The coalitions in the table that include the
+   DA and not the ANC and hold a majority in more than half of 5,000
+   simulations."
+3. The cut-off: "The share of 5,000 simulations below which a combination is
+   left out of the table."
+Each tooltip also carries the standard "SOURCE: This Model." line. [Yes to all
+three]
+
+**Blocks.** The publish build and UAT.
+
+**Answered 2026-10-24.** Owner: "tooltips are fine". The three sentences go into `src/tooltip_says.py` as proposed.
+
+### 35. Five wording questions before the freeze release — answered 2026-10-24
+
+**Context.** The release (frozen forecast, tone sweep, withdrawal of the
+in-sample scores) is built on `site-sweep-1`, not published. These five need
+your words or a judgement. My recommendation is in brackets.
+
+1. **A live corrections entry that is no longer true** (the "deliberate
+   choice" entry). Its "What is right" says "This Model uses only what was known
+   before each election it is tested on." Proposed: "Several of This Model's
+   settings had been chosen on records that include the elections it is tested
+   on; the test scores were withdrawn on 23 October 2026." [Yes]
+2. **A live corrections entry describing tooltips that are being removed**
+   ("forecasting that election from earlier ones"). Its "What is right" says the
+   home tooltips now explain the settings; the withdrawal removes those
+   tooltips. Proposed: "The ward counts are removed with This Model's other past
+   scores, withdrawn on 23 October 2026." [Yes]
+3. **The methodology repeats a claim already corrected.** It says the DA and
+   ActionSA "drawing from the same population group means that when one rises
+   in a simulation the other tends to fall… a mild offset". The correction of
+   23 October removed that claim from the forecast page because This Model
+   draws no such trade (the two rise and fall together). Remove the two
+   sentences from the methodology, and add "and the methodology" to that
+   correction's "What was wrong". [Yes]
+4. **"simulations" twice in the home stamp:** "This Model's simulations as of
+   23 October · 5,000 simulations". Proposed: "5,000 of This Model's
+   simulations as of 23 October". [Yes]
+5. **The "Single party majority" preset shows an empty table**, because the
+   coalition table lists combinations of two parties or more. Proposed: the
+   preset shows one row per party that ever wins a majority alone, with its
+   chance (today: MK, 2 of 5,000 simulations), and "No party wins a majority
+   alone in any simulation." when none does. [Yes]
+
+Two more need a word:
+- The who-can-govern lede keeps "The ANC without the DA has N workable
+  majorities", one party singled out. Remove it, as with the DA preset? [Yes]
+- The methodology says "Halfway is the owner's choice" (by-election weight).
+  Proposed: "Halfway is our choice." [Yes]
+
+**Partly answered 2026-10-24.** Owner: on 1 and 2, "These don't make any sense because the model now does not use information from before elections or what have we been doing? If we no longer use contaminated data, then say the model overclaimed this before today." On 5: "showing MK distorts their real chances, even if we say it. We need to show things that are more likely to be informational. The cut off for showing all coalitions should be 10% or even showing it there is a distortion." On the lede: "Put both the DA and the ANC's workable majorities since they are the two largest parties. The rest are fine." So 3, 4 and "Halfway is our choice" are approved as proposed.
+
+**The facts behind 1 and 2.** The 2026 forecast uses only what was known before the 2026 election: its settings were chosen on elections up to 2021 (PLAN step 5.1), and its other inputs (by-elections, the September 2026 roll, nominations, Census 2022) all predate polling day. The tests on past elections did not: their settings were chosen on results that include the elections tested (MODEL-LOG §1.337). Re-testing each past election from earlier ones only is PLAN steps 3 and 4, not yet run.
+
+**Revised proposals, for your yes:**
+- **1a. A new corrections entry** for the overclaim. Heading: "The model uses only what was known before each election it is tested on" — published 2 October 2026 (the date the entry's text carries), corrected on the release date. What was wrong: "A correction on this page said This Model uses only what was known before each election it is tested on, and that the about page's accuracy figures came from that version. That overclaimed: several of its settings had been chosen on results that include those elections." What is right: "This Model's 2026 forecast uses only what was known before the 2026 election. Its scores on past elections are withdrawn; re-scored figures, from earlier elections only, will be published on the methodology page."
+- **1b. The "deliberate choice" entry's What is right** becomes "This Model no longer uses party splits that happened after the election it is tested on." (Its What was wrong is about those splits, and that fix stands.)
+- **2.** "The ward counts are withdrawn with This Model's other scores on past elections."
+- **5. The 10% cut-off.** A combination is listed only if it governs in at least 10% of simulations (today the cut is a smallest majority in at least 5%). On the frozen forecast's page this takes the table from 21 rows to 16; the five dropped are DA+ActionSA+PA 8.6%, ANC+ActionSA+PA 8.5%, DA+MK+PA 8.1%, DA+EFF+PA 7.2%, ANC+EFF+PA 5.7% (`forecast-sheet.html`, `data-p`). The "How to read it" note gains: "Combinations that govern in fewer than 10% of the simulations are left out." The "Single party majority" preset shows the line "No party wins a majority alone in 10% or more of the simulations." while none does, and otherwise one row per party at or above 10%.
+- **6. The lede's last sentence** becomes "The ANC without the DA has N workable majorities, n of them with a better than even chance of reaching {majority} seats; the DA without the ANC has M, m of them with a better than even chance." At the 10% cut: ANC 8 and 4, DA 7 and 4 (counted from the same page).
+- **6b. Question.** The lede opens "If the DA rules out the ANC, the EFF and MK, ActionSA and the PA give it the numbers: 8.6% chance. With the smaller parties as well: 87.7% chance." That is one party's red lines, and the 8.6% route falls under the new cut. Remove those two sentences, so the lede is only the two-party sentence? [Yes]
+
+**Blocks.** The publish build and UAT.
+
+**Answered 2026-10-24.** Owner: "remove 'redundant stuff like: , which is the date that text carries. What was wrong: the correction said this, and said the accuracy figures came from that version. use \"That overclaimed, because several scores on previous elections had been inadvertantly using data that included those same elections. What is right: \"This Model's 2026 forecast uses only what was known before the 2026 election. Its scores on past elections are withdrawn; re-scored figures, for earlier elections, will be published on the methodology page.\" and 6 - remove those two sentences."
+
+**As decided.** 1a: new entry, heading "The model uses only what was known before each election it is tested on" — published 2 October 2026, corrected on the release date; What was wrong "That overclaimed, because several scores on previous elections had been inadvertently using data that included those same elections." (spelling corrected); What is right as quoted. 1b, 2, 3, 4, 5, 6 and "Halfway is our choice" as proposed; 6b yes, the lede's two DA sentences removed. Recorded in `audits/2026-10-23-site-sweep/BRIEF-3-item35.md`; the work is in TODO.
+
+
+### 34. ActionSA's level in the frozen forecast: which retention? — answered 2026-10-23
+
+**Context.** With your 17.6% call withdrawn (item 33), ActionSA's level comes
+from its 2021 list vote (18.1%) times a retention, how much of its first result
+a party keeps at its second local election. The model uses 0.72, MEASURED: a
+line fitted to 292 pairs of consecutive local results (59 parties, eight
+metros, 2000–2021), read at ActionSA's 2021 size (`levels.size_centre`). The
+pairs are mostly established parties between 0.5% and 10%, few at their second
+election and none near 18%, and the line hardly depends on size (R² 0.04). You commissioned a measurement on second-election parties up to
+2021 (MODEL-LOG §1.334; `rounds/2026-10-23-out-of-sample/retention/`).
+- **The record splits:** COPE kept about 0.2 and APC about 0.4; UDM about 0.7;
+  EFF 0.9–3.0, Al Jama-ah 1.2–1.6 and AIC 1.1 grew. No party was near
+  ActionSA's 18% at its first local election.
+- **The test.** Tried before 2016 and before 2021 on earlier elections only,
+  neither the size line nor second-election parties' own median predicted the
+  next second election better than the other, and both forecast EFF too low.
+- **At 2026** the size line gives 0.72 and second-election parties' median
+  gives 0.85. ActionSA's starting level would be 12.6% (as now) or about 14.0%
+  (interpolated, not run).
+
+**Options.**
+1. Keep 0.72, the model's existing measured rule. No new judgement. The page says
+   ActionSA's level rests on a typical retention and that second-election
+   parties have kept from 0.2 to 1.5 of their first result.
+2. Use 0.85, second-election parties' median. A measured value with no better
+   record out of sample, so in practice a choice between two equal rules.
+3. Keep 0.72 and widen ActionSA's range to cover both groups. That is a new
+   judgement call.
+
+**Recommendation.** Option 1. The evidence prefers neither number. Keeping
+the existing rule adds nothing to argue about, and the page states the spread
+plainly. Option 3 is the honest alternative if you want the range to show it,
+but it is a judgement call of the kind you asked to avoid.
+
+**Blocks.** The freeze, by 31 October. If no answer by then: option 1.
+
+**Your answer.** After "isn't the 0.72 measured" and how EFF's own record is used: "ok that is fine go ahead".
+
+**Recorded.** Option 1: the frozen forecast keeps the measured 0.72
+(`levels.size_centre`); ActionSA's centre is the model's own, 12.67% mean list
+share (MODEL-LOG §1.335). No code change. The page states the spread
+second-election parties have kept, in the site text brief.
+
+**Corrected 2026-10-24.** Option 1 above, as put to the owner, said "from 0.2
+to 1.5". "1.5" had no source. Pooled per party across metros the record runs
+from COPE 0.20 to Al Jama-ah about 1.39 (EFF 1.26); single metros run 0.14 to
+2.98 (`rounds/2026-10-23-out-of-sample/retention/SPEC.md`).
+
+### 33. How will the frozen forecast be chosen from the pre-freeze arms? — answered 2026-10-23
+
+**Context.** You asked for the two untested inputs to be tested before the
+freeze (item 31, answered). The runs are pre-registered in
+`prereg/2026-10-23-prefreeze-arms.md`:
+- **B:** the current forecast.
+- **BF:** B with a defect fixed. Three parties (PA, ALJAMAAH, AIC) are drawn with
+  a ward pattern of 1.0 because placeholder rows in the γ file hide their real
+  fits.
+- **A7t:** the by-election turnout tilt off.
+- **A7:** all by-election terms off.
+- **G2:** γ from 2019→2021.
+- **GP:** γ from both fits pooled.
+
+None of them can be scored, because 2026 has no result. A choice made after
+seeing the numbers can drift toward the outcome someone prefers, so the
+pollster review recommends fixing the rule before anything is read. The
+results come to you in a fixed order, each opening with what is known about
+its input, with the headline chances after.
+
+**Options.**
+1. Freeze B with the defect fixed (BF), and publish the other arms beside it
+   as how far the untested inputs move the forecast.
+2. Freeze on evidence status, decided now:
+   - by-elections stay at ½, measured on 2021 (on scores now withdrawn as in-sample);
+   - γ pooled from both folds, which uses the most data and adds no new judgement;
+   - the defect fixed.
+3. Decide after seeing the reports.
+
+**Recommendation.** Option 2. It is fixed before any result, it uses the most
+evidence for each input, and it fixes the defect. Option 1 is the cautious
+alternative: one change from what readers have seen since 21 October.
+
+**Blocks.** The freeze, by 31 October. The runs go ahead either way.
+
+**Results, 2026-10-23** (run after this item was written; MODEL-LOG §1.333).
+Reports, one per arm against the current forecast:
+`reports/model-changes/2026-10-23-prefreeze-{BF,A7t,A7,G2,GP}/report.html`.
+
+| arm | ANC largest alone | DA largest alone | what else moves |
+|---|---|---|---|
+| B, the current forecast | 58.1% | 33.8% | |
+| BF, defect fixed | 61.2% | 30.9% | 4 wards PA → DA |
+| A7t, by-election turnout tilt off | 58.4% | 33.5% | nothing measurable |
+| A7, by-elections off | 72.1% | 20.6% | ANC +2 seats, DA −2.5, EFF +2; ANC list vote +0.9 points |
+| G2, γ 2019 → 2021 | 56.7% | 34.9% | 6 wards; no seat median moves by more than 1 |
+| GP, γ pooled | 59.1% | 32.9% | 6 wards; no seat median moves |
+
+**Your answer.** "go with your reccommendation and remove my action sa judgement call which just serms to ,make things compolicated. we cna deal with that later."
+
+**Recorded.** Option 2: the frozen Johannesburg 2026 forecast keeps by-elections
+at ½, takes γ pooled from folds 1 and 2, and fixes the placeholder defect
+(DATA-QUALITY 21). The ActionSA call (`judgements/joburg-2026.toml`
+`[party.ASA]`, JUDGEMENT-CALLS §SJ2) is withdrawn, so ActionSA's level is the
+model's own again. Tshwane is not changed by this answer. Pre-registration
+`prereg/2026-10-23-freeze-settings.md`; the work, and ActionSA's level for later,
+in `TODO.md`. Going live needs your yes after the old-vs-new report.
+
+### 32. Which quarantined score files may be deleted? — answered 2026-10-23
+
+**Context.** 5,515 backtest score files were copied to
+`~/projects/quarantine/jhb-election-model-2026-10-23-in-sample/`; 5,506 originals
+are still in the project. You said the scores may be useful for 2026. The
+evaluation and its review (`rounds/2026-10-23-out-of-sample/SCORES-FOR-2026-*.md`)
+agree: the 2026 forecast needs none of them, but these are the only record of
+what was tried and of the in-sample baseline the clean re-run is compared with:
+`history.json`/`.md`, the arm and sweep outputs, `width_budget.json`, and the
+seven reports' `backtest.json`. The past-target seat draws, ward-winner and
+coalition tables and `validation_2021.json` are not needed.
+
+**Options.**
+1. Keep those named files (copy in quarantine, original removed from the
+   project); delete the rest from both.
+2. Keep everything in quarantine; remove all originals from the project.
+3. Keep everything where it is until the clean re-run exists.
+
+**Recommendation.** Option 2: nothing is lost, and the project holds no in-sample
+score a reader or the build could pick up. The removal script would be cut to
+match.
+
+**Blocks.** Nothing before the freeze.
+
+**Partly answered 2026-10-23:** "dont delete anything yet". Nothing is deleted
+and `remove-originals.sh` is not run; the 5,506 originals stay in the project
+and the 5,515 copies stay in quarantine. Which option applies, and when, stays
+open.
+
+**Your answer.** "ifthe files in quarrantine are copies - they can be deleted for now. We can revist legacy files and legacy or stael fiels and instructions throught the project folder as the next plan."
+
+**Recorded.** Every one of the 5,515 quarantine files was byte-compared with its
+original in the project: all identical, none missing, nothing else in the
+folder. The quarantine folder was moved to the Trash (recoverable until the
+Trash is emptied); the originals stay in the project and `remove-originals.sh`
+was not run. The review of legacy and stale files and instructions across the
+project folder is the next plan, in `TODO.md`.
+
+### 31. Before the freeze: test two inputs the backtest never checks? — answered 2026-10-23
+
+**Context.** The data audit (`rounds/2026-10-23-out-of-sample/DATA-USE-AUDIT.md`)
+found two inputs of the 2026 forecast that no backtest scores:
+- **By-elections.** Their pull on each party's share, the turnout tilt and the
+  ward-level term act only in Johannesburg 2026.
+- **γ (how much of each party's ward pattern carries over).** The forecast reads
+  the 2014→2016 fit, kept so the 2019→2021 fit stays a validation set; every
+  backtest reads the most recent fit.
+
+**Options.**
+1. Before 31 October, run the forecast with by-elections off, and with γ from
+   2019→2021 and from both pooled, and send you an old-vs-new report for each;
+   you choose what is frozen.
+2. Freeze on the current inputs and state on the page that these two are not
+   tested.
+
+**Recommendation.** Option 1, with option 2's statement whichever is frozen.
+
+**Blocks.** The freeze, by 31 October (`rounds/2026-10-23-out-of-sample/DATA-PLAN.md` §7).
+
+**Your answer.** "test the two inputs."
+
+**Recorded.** Option 1. The three arms (by-elections off; γ from 2019→2021; γ
+from both fits pooled) are pre-registered under `prereg/` and run against the
+current forecast with the same seed and draws, outside `data/`; each gets an
+old-vs-new report in `reports/model-changes/`, and the frozen choice comes back
+to you as a new item. Work in `TODO.md`. Run with the CPU left free for you
+("please leave some cpu available").
+
 ### 30. Tooltips without the previous value: a corrections entry? — answered 2026-10-23
 
 **Context.** Since the 22 October publication, a live figure's tooltip has said

@@ -842,14 +842,27 @@ def test_the_judged_centre_is_exact_after_normalisation():
     assert rec2["ignored"] and "off" in rec2["ignored"][0]["reason"]
 
 
-def register_rows(text: str) -> set[str]:
-    """The `§SJ<n>` rows of JUDGEMENT-CALLS.md's strength section."""
+def _register_table(text: str) -> dict[str, bool]:
+    """``{§SJ<n>: withdrawn}`` over JUDGEMENT-CALLS.md's strength section. A
+    row is withdrawn when its party cell says ``WITHDRAWN``: it stays in the
+    register as the record of a call that was made, and no entry may name it."""
     import re
     section = text.split("## SJ. Strength judgements", 1)
     if len(section) < 2:
         raise AssertionError("JUDGEMENT-CALLS.md has no strength section")
     body = section[1].split("\n## ", 1)[0]
-    return set(re.findall(r"^\|\s*(§SJ\d+)\s*\|", body, flags=re.M))
+    return {row: "WITHDRAWN" in cell for row, cell in
+            re.findall(r"^\|\s*(§SJ\d+)\s*\|([^|]*)\|", body, flags=re.M)}
+
+
+def register_rows(text: str) -> set[str]:
+    """The `§SJ<n>` rows of the strength section that are in force."""
+    return {r for r, gone in _register_table(text).items() if not gone}
+
+
+def withdrawn_register_rows(text: str) -> set[str]:
+    """The `§SJ<n>` rows of the strength section marked WITHDRAWN."""
+    return {r for r, gone in _register_table(text).items() if gone}
 
 
 def strength_entries(root: Path) -> dict[str, str]:
@@ -863,9 +876,12 @@ def strength_entries(root: Path) -> dict[str, str]:
     return out
 
 
-def register_faults(rows: set[str], entries: dict[str, str]) -> list[str]:
-    out = [f"{k} names register row {v!r}, which does not exist"
-           for k, v in entries.items() if v not in rows]
+def register_faults(rows: set[str], entries: dict[str, str],
+                    withdrawn: set[str] = frozenset()) -> list[str]:
+    out = [f"{k} names register row {v!r}, which was withdrawn"
+           for k, v in entries.items() if v in withdrawn]
+    out += [f"{k} names register row {v!r}, which does not exist"
+            for k, v in entries.items() if v not in rows and v not in withdrawn]
     named = set(entries.values())
     out += [f"register row {r} names no entry" for r in sorted(rows - named)]
     return out
@@ -876,15 +892,27 @@ def test_every_strength_entry_has_a_register_row_and_every_row_an_entry():
     judgements, both directions. The live population is checked (today both
     are empty, and that is stated, not assumed), and a constructed violation in
     each direction is caught and goes quiet when fixed."""
-    live_rows = register_rows((ROOT / "JUDGEMENT-CALLS.md").read_text())
+    register = (ROOT / "JUDGEMENT-CALLS.md").read_text()
+    live_rows = register_rows(register)
+    gone = withdrawn_register_rows(register)
     live = strength_entries(ROOT / "judgements")
-    assert not register_faults(live_rows, live), register_faults(live_rows, live)
+    assert not register_faults(live_rows, live, gone), \
+        register_faults(live_rows, live, gone)
     files = list((ROOT / "judgements").glob("*.toml"))
     scanned(files, of=len(files), low=1.0, high=1.0,
             what="judgements files scanned for strength entries",
             denominator="judgements files on disk")
     text = "## SJ. Strength judgements\n| row |\n|---|\n| §SJ1 | X |\n\n## T\n"
     assert register_rows(text) == {"§SJ1"}
+    # A WITHDRAWN row is kept as a record, is not in force, names no entry
+    # without fault, and is a fault when an entry still names it.
+    text2 = ("## SJ. Strength judgements\n| row | party |\n|---|---|\n"
+             "| §SJ1 | X |\n| §SJ2 | Y — **WITHDRAWN 2026-10-23** |\n\n## T\n")
+    assert register_rows(text2) == {"§SJ1"}
+    assert withdrawn_register_rows(text2) == {"§SJ2"}
+    assert not register_faults({"§SJ1"}, {"f:X": "§SJ1"}, {"§SJ2"})
+    assert any("withdrawn" in f for f in register_faults(
+        {"§SJ1"}, {"f:X": "§SJ1", "f:Y": "§SJ2"}, {"§SJ2"}))
     with tempfile.TemporaryDirectory() as tmp:
         d = Path(tmp)
         (d / "joburg-2026.toml").write_text(

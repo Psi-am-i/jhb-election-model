@@ -1,4 +1,4 @@
-# The home page's headline and the paragraph under it — the owner's words.
+# The home page's headline and the paragraphs under it — the owner's words.
 #
 # Edit the words freely, here or in edit mode (src/edit_mode.py). Each
 # {{lede_…}} is filled in by `render_home.py` from the run and can be kept,
@@ -8,31 +8,38 @@
 # placeholders, what each says and where it comes from, is
 # `render_home.LEDE_PLACEHOLDERS`; a placeholder not in it stops the build.
 #
-# `head` is the headline (<em> marks the emphasised opening). `sub` is the
-# paragraph under it.
+# `head` is the headline (<em> marks the emphasised opening, on a line of its own;
+# <br> starts the next sentence on its own line). `sub`, `sub2`
+# and `sub3` are the three paragraphs under it (owner, 2026-10-25).
 
 [[lede]]
-head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}."""
+head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}.<br>
+It is {{lede_overhang_word}} that the council will not match the vote
+proportionally."""
 sub = """{{lede_wards_open}} is ahead in {{lede_wards_first}} wards,
 {{lede_wards_in}}{{lede_close_first}} of them {{lede_wards_lead}}{{lede_not_safe}}.
 {{lede_second_cap}} is ahead in {{lede_wards_second}} wards{{lede_wards_only}}
 {{lede_close_second}} {{lede_wards_that}}{{lede_not_safe}}. Chance of one party
-winning outright: {{lede_p_alone}}. Proportional representation is meant to give parties seats that match their
-support. Our system mixes directly elected ward councillors with party seats topped up
-according to each party's share of the vote, and it has a quirk. A ward you win
-cannot be taken away, so a party that wins many wards can end up with more
-council seats than its share of the vote should allow. That is surprisingly
-likely this year: there is a {{lede_p_overhang}} chance it happens to
-{{lede_overhang_party}}. When it does, {{lede_overhang_party}} typically holds
-about {{lede_overhang_seats}} of the seats on about {{lede_overhang_votes}} of
-the party-list vote."""
+winning outright: {{lede_p_alone}}."""
+sub2 = """Proportional representation is designed to give each party seats that match
+their support. Direct representation lets voters elect a specific person to
+represent them. Our local government elections are a mix of both: we directly
+elect ward councillors and then each party is allocated additional seats so that
+each party's percentage of the council matches their percentage of the vote.
+There is an edge case where this doesn't happen."""
+sub3 = """A ward you win cannot be taken away, so a party that wins many wards can end
+up with more council seats than its share of the vote should allow. This Model
+gives {{lede_overhang_article}} {{lede_p_overhang}} chance of this happening with
+{{lede_overhang_party}} this year. It forecasts that they will hold about
+{{lede_overhang_seats}} of the seats with only {{lede_overhang_votes}} of the
+vote."""
 
 # The introduction under the headline (owner-approved 2026-10-10;
 # audits/2026-10-09-site-batch/RELEASE-BRIEF.md, addendum item 3): what the
 # site is and how the model works. `paragraphs` are written into the page by
 # `render_home._intro`, in order. A {{token}} here is a registry token
 # (content/joburg/stats.toml), resolved by the build like any on the page;
-# never type a figure. The ward counts are the backtest's (history.json).
+# never type a figure.
 [intro]
 heading = "What this is"
 paragraphs = [
@@ -40,14 +47,9 @@ paragraphs = [
 sources. It starts from each voting district's history: past results, turnout,
 census data and each party's trajectory. From there it builds the city up from
 its wards, rather than applying generalisations down.""",
-"""The model simulates the election thousands of times. Each run uses different
-values for turnout and for every party's support, but not just any values: each
-is drawn from how far turnout and parties have moved in past elections.""",
-"""Run on Johannesburg's last three elections, it called
-{{hist_jhb_wards_called_2011}} of {{hist_jhb_wards_2011}},
-{{hist_jhb_wards_called_2016}} of {{hist_jhb_wards_2016}} and
-{{hist_jhb_wards_called_2021}} of {{hist_jhb_wards_2021}} ward winners. Several of its
-settings were chosen on records that include those elections.""",
+"""This Model simulates the election thousands of times. Each simulation uses
+different values for turnout and for every party's support, each drawn from how
+far turnout and parties have moved in past elections.""",
 """It uses as few judgement calls as possible. Each one is listed, with its
 evidence, on the <a href="methodology#the-judgement-calls">judgement calls</a>
 page, and several can be changed on <a href="your-forecast/">your prediction</a>.""",

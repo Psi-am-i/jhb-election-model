@@ -86,74 +86,39 @@
          section 1's, and section 2 opens from them by its own rule -->
     <div class="pl-bannerwrap">
       <div class="pl-banner pl-pub" aria-label="Seats in the published forecast"><span class="pl-bstate">Published forecast</span><!-- __PLAY:banner__ --></div>
-      <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your changes"></div>
+      <!-- a phone's header (owner, 2026-10-25, BRIEF-6 part A): the reader's
+           ward map, small, linking to the full one (model.js draws it), and
+           "Your changes" in one block under the published row: the seats
+           and the settings line -->
+      <a class="pl-minimap" href="#ward-map" data-live="minimap" aria-labelledby="h-wards"></a>
+      <div class="pl-minebox">
+        <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your changes"></div>
+        <div data-live="status" class="pl-statusbox">
+          <div class="pl-status yf-slot" hidden><span class="pl-dot"></span><span class="pl-settings yf-clamp"></span>
+            <button class="btn pl-back" type="button">Back to the forecast</button></div>
+        </div>
+      </div>
     </div>
     <h2 id="h-adjust" class="yf-shead">Adjust our forecast</h2>
     <p class="yf-sdek yf-sub">Move turnout by population group, take a poll into account, decide how much by-election
       results count, and see how other systems would seat the vote.</p>
 
     <div class="pl-layout yf-layout">
-      <div class="pl-controls">
-        <section class="pl-ctl" aria-labelledby="h-turn">
-          <h3 id="h-turn">Turnout by population group</h3>
-          <p class="yf-sub">Move any or all four. A group you leave alone stays at the forecast's turnout. The scale is percentage points
-            of that group's estimated registered voters.<sup class="fn"><a href="#note-turnout">2</a></sup></p>
-          <div class="pl-pub pl-turntwin"><!-- __PLAY:turnout__ --></div>
-          <div data-live="turnout" class="pl-sliders"></div>
-          <details class="rollup pl-comp">
-            <summary><span class="eyebrow">Where each party's votes come from</span></summary>
-            <p class="pl-note">The model estimates this from the ward results of 2021 and the census population groups in each
-              ward. The census reports population groups, so those are the groups the model can measure.<sup class="fn"><a href="#note-groups">3</a></sup></p>
-            <!-- __PLAY:composition__ -->
-          </details>
-        </section>
-
-        <section class="pl-ctl" aria-labelledby="h-poll">
-          <h3 id="h-poll">A poll</h3>
-          <p class="yf-sub">Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">5</a></sup></p>
-          <div data-live="polls" class="pl-polls" role="radiogroup" aria-labelledby="h-poll"></div>
-          <div data-live="trust" class="pl-trust"></div>
-          <!-- why the belief slider stops, or why a poll cannot be chosen: after
-               the slider's block, which fades while no poll is chosen -->
-          <p data-live="trustwhy" class="pl-note pl-zonewhy yf-slot" id="trust-why" role="status"></p>
-          <p class="pl-note">A poll's error, as This Model rates it, has four parts: sampling error from its effective sample
-            size, smaller for a city subsample of a national survey; a house error, one figure for every polling house;
-            an allowance when the poll does not publish how it screened for likely voters; and an allowance that grows
-            with the time since fieldwork. At full belief the page gives a poll that error alone.</p>
-          <p class="pl-note"><!-- __PLAY:refused__ --></p>
-        </section>
-
-        <section class="pl-ctl" aria-labelledby="h-bye">
-          <h3 id="h-bye">By-elections</h3>
-          <p class="yf-sub">Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">6</a></sup></p>
-          <div data-live="cells" class="pl-seg3" role="radiogroup" aria-labelledby="h-bye"></div>
-          <p class="pl-note"><!-- __PLAY:bye__ --></p>
-          <div data-live="byelection" class="pl-byenote yf-slot" id="bye-why" role="status"></div>
-        </section>
-
-        <section class="pl-ctl pl-law" aria-labelledby="h-law">
-          <h3 id="h-law">See how other systems would seat this vote</h3>
-          <p class="yf-sub">What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">7</a></sup>
-            <span class="pl-lawnow yf-slot" data-live="lawnow" id="law-why" role="status"></span></p>
-          <div data-live="law" class="pl-lawopts" role="radiogroup" aria-labelledby="h-law"></div>
-        </section>
-
-      </div>
-
+      <!-- the results come first in the page, so a phone shows the map and the
+           party table before the controls (owner, 2026-10-24); on a wide
+           screen play.css puts the controls in the left column -->
       <div class="pl-resultscol">
         <section class="pl-results" aria-label="Results">
-          <div data-live="engine" data-election="<!-- __PLAY:election__ -->"><p class="pl-engine yf-slot" role="status">Loading the re-weighting code. The published forecast is shown until it is ready.</p>
+          <div data-live="engine" data-election="<!-- __PLAY:election__ -->"><p class="pl-engine yf-slot" role="status">Loading. The published forecast is shown until it is ready.</p>
             <p class="pl-linknote" hidden></p></div>
           <div data-live="result" class="pl-result">
-            <div class="pl-status yf-slot" hidden><span class="pl-dot"></span><span class="pl-settings yf-clamp"></span>
-              <button class="btn pl-back" type="button">Back to the forecast</button></div>
             <p class="pl-oneline yf-slot"></p>
             <p class="visually-hidden pl-announce" aria-live="polite"></p>
           </div>
           <p class="pl-oneline pl-pub yf-slot"><!-- __PLAY:oneline__ --></p>
           <div class="pl-rgrid">
-            <figure class="pl-mapfig">
-              <figcaption class="pl-fhead"><h2>Who wins each ward</h2></figcaption>
+            <figure class="pl-mapfig" id="ward-map">
+              <figcaption class="pl-fhead"><h2 id="h-wards">Who wins each ward</h2></figcaption>
               <div class="pl-pub pl-maptwin"><!-- __PLAY:map__ --></div>
               <div class="pl-livemap" data-live="map"></div>
             </figure>
@@ -168,14 +133,58 @@
             <!-- the map's key under the seat table, so the table sits right
                  under the map in the wide layout's column -->
             <div class="pl-mapnotes">
-              <p class="pl-key"><span class="pl-ksolid"></span>Solid: one party wins the ward in nine in ten simulations or more.
-                <span class="pl-kstripe"></span>Stripes: each party winning it in at least one in ten.
-                <span class="pl-live"><span class="pl-kring"></span>Outlined: the most likely winner differs from the published forecast.</span>
-                Tap a ward for its numbers.</p>
+              <!-- each swatch beside its own sentence, the entries on separate
+                   lines where they do not fit on one, the tap line under them
+                   (owner, 2026-10-25, BRIEF-6 item 13) -->
+              <p class="pl-key"><span class="pl-kitem"><span class="pl-ksolid"></span><span>Solid: one party wins the ward in nine in ten simulations or more.</span></span>
+                <span class="pl-kitem"><span class="pl-kstripe"></span><span>Stripes: each party winning it in at least one in ten.</span></span>
+                <span class="pl-live pl-kitem"><span class="pl-kring"></span><span>Outlined: the most likely winner differs from the published forecast.</span></span>
+                <span class="pl-ktap">Tap a ward for its numbers.</span></p>
               <div data-live="flips" class="pl-flips yf-slot"></div>
             </div>
           </div>
         </section>
+      </div>
+
+      <div class="pl-controls">
+        <section class="pl-ctl" aria-labelledby="h-turn">
+          <h3 id="h-turn">Turnout by population group</h3>
+          <p class="yf-sub">Move any or all four. A group you leave alone stays at the forecast's turnout. The scale is percentage points
+            of that group's estimated registered voters.<sup class="fn"><a href="#note-turnout">2</a></sup></p>
+          <div class="pl-pub pl-turntwin"><!-- __PLAY:turnout__ --></div>
+          <div data-live="turnout" class="pl-sliders"></div>
+        </section>
+
+        <section class="pl-ctl" aria-labelledby="h-poll">
+          <h3 id="h-poll">A poll</h3>
+          <p class="yf-sub">Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">3</a></sup></p>
+          <div data-live="polls" class="pl-polls" role="radiogroup" aria-labelledby="h-poll"></div>
+          <div data-live="trust" class="pl-trust"></div>
+          <!-- why the belief slider stops, or why a poll cannot be chosen: after
+               the slider's block, which fades while no poll is chosen -->
+          <p data-live="trustwhy" class="pl-note pl-zonewhy yf-slot" id="trust-why" role="status"></p>
+          <p class="pl-note">A poll's error, as This Model rates it, has four parts: sampling error from its effective sample
+            size, smaller for a city subsample of a national survey; a house error, one figure for every polling house;
+            an allowance when the poll does not publish how it screened for likely voters; and an allowance that grows
+            with the time since fieldwork. At full belief the page gives a poll that error alone.</p>
+          <p class="pl-note"><!-- __PLAY:refused__ --></p>
+        </section>
+
+        <section class="pl-ctl" aria-labelledby="h-bye">
+          <h3 id="h-bye">By-elections</h3>
+          <p class="yf-sub">Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">4</a></sup></p>
+          <div data-live="cells" class="pl-seg3" role="radiogroup" aria-labelledby="h-bye"></div>
+          <p class="pl-note"><!-- __PLAY:bye__ --></p>
+          <div data-live="byelection" class="pl-byenote yf-slot" id="bye-why" role="status"></div>
+        </section>
+
+        <section class="pl-ctl pl-law" aria-labelledby="h-law">
+          <h3 id="h-law">See how other systems would seat this vote</h3>
+          <p class="yf-sub">What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">5</a></sup>
+            <span class="pl-lawnow yf-slot" data-live="lawnow" id="law-why" role="status"></span></p>
+          <div data-live="law" class="pl-lawopts" role="radiogroup" aria-labelledby="h-law"></div>
+        </section>
+
       </div>
     </div>
 
@@ -202,7 +211,7 @@
       link carries them. Opening the share sheet seals your prediction and enters it in the ranking against the
       result; the <a href="../privacy">privacy page</a> says what is stored.</p>
 
-    <noscript><p class="notours">This section needs JavaScript. The <a href="../forecast">model's forecast</a> works without it.</p></noscript>
+    <noscript><p class="notours">This section needs JavaScript. <a href="../forecast">This Model's forecast</a> works without it.</p></noscript>
 
     <div data-live="b-status" class="yf-slot"><p class="ess" role="status"></p>
       <p class="notours linknote" hidden></p>
@@ -224,23 +233,22 @@
             <svg class="wardmap" viewBox="<!-- __MAKE:mapviewbox__ -->" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
           </div>
           <div class="listview" hidden></div>
-          <p class="maphint painthint yf-slot">Choose a party, then tap or drag across wards to give them to it.</p>
+          <p class="maphint painthint yf-slot">Choose a party below, then tap or drag across wards to give them ward wins.</p>
           <div class="tray">
             <div class="brush" role="group" aria-label="Party to give wards to">
               <div class="brushscroll row"></div>
               <label class="brushpick">More parties <select class="brushselect"></select></label>
             </div>
           </div>
+          <!-- the list view's areas (make.js AREAS), one definition, in the
+               page; the map's area tools were removed 2026-10-25 (BRIEF-6 B6) -->
+          <template class="areas"><option value="north">North</option><option value="east">East</option>
+            <option value="south">South</option><option value="west">West</option>
+            <option value="central">Central</option></template>
           <div class="tools">
-            <label>Area <select class="area">
-              <option value="north">North</option><option value="east">East</option>
-              <option value="south">South</option><option value="west">West</option>
-              <option value="central">Central</option></select></label>
-            <button class="btn small fillarea" type="button">Give the area to the chosen party</button>
             <button class="btn small model copymodel" type="button">Back to the starting ward calls</button>
             <button class="btn small undo" type="button" disabled>Undo</button>
           </div>
-          <p class="maphint">Areas are compass sectors drawn from the ward boundaries, not the City's regions.</p>
           <p class="yf-nextrow"><button class="btn small yf-next" type="button">Next: set the vote</button></p>
         </section>
         <section class="results" data-live="b-council" aria-labelledby="h-res" data-scale="<!-- __MAKE:seatscale__ -->"
@@ -286,22 +294,37 @@
           </div>
         </section>
 
+      </div>
+    </div>
+
+    <!-- the two calls to act, side by side under the council and the steps,
+         each in a box like the steps' (owner, 2026-10-25, BRIEF-6 part C);
+         stacked on a phone. Step 4's heading stays with its button, and the
+         count of sealed predictions with the share button -->
+    <div class="yf-buttons">
         <div class="step yf-step yf-step4">
           <h3 class="stephead stepno">See how likely it is</h3>
           <!-- a large button, like the two calls to share -->
           <div data-live="b-actions" class="body yf-actions">
-            <button class="cta yf-analyse" type="button" disabled>Analyse my prediction</button>
+            <button class="cta cta-accent yf-analyse" type="button" disabled>Analyse my prediction</button>
             <p class="yf-ctanote">Our badge for your prediction, your map ward by ward, and each party's seats and vote.</p>
           </div>
         </div>
-      </div>
+        <div class="step yf-sharestep">
+          <div class="sharebox yf-cta" data-live="b-share">
+            <button class="cta shareopen" type="button" disabled>Share My Prediction</button>
+            <p class="yf-ctanote">Your map, your seats, our badge for your prediction, and a sealed link.</p>
+            <!-- __YFSHEET:break__ -->
+          </div>
+          <p class="stubnote yf-entries" data-live="entries" role="status" hidden></p>
+        </div>
     </div>
 
     <!-- the heading and its footnote marker sit outside the LIVE region,
          which holds no build-time digit; css/your-forecast.css hides the
          section while the region is hidden -->
     <section class="yf-analysis" aria-labelledby="h-analysis">
-      <h3 id="h-analysis">How likely is your prediction?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
+      <h3 id="h-analysis">How likely is your prediction?<sup class="fn"><a href="#note-outcome">7</a></sup></h3>
       <div data-live="b-analysis" hidden>
         <!-- the headline: what the council outcome is (share-card.js outcomeWords),
              then the badge, what it says (verdictLine) and how predictions are
@@ -335,22 +358,11 @@
             <li class="yf-svote yf-slot"></li>
           </ul>
         </section>
-        <p class="yf-caveat">But historical trends can always be broken.</p>
+        <p class="yf-caveat">Historical trends can be broken.</p>
         <p class="pl-note yf-anote yf-slot"></p>
       </div>
     </section>
 
-    <!-- the call to share the reader's forecast, a large button at the
-         foot of section 2, the last before the notes: the one share sheet
-         (js/share-sheet.js) with this section's content (js/make-share.js) -->
-    <div class="yf-ctafoot">
-      <div class="sharebox yf-cta" data-live="b-share">
-        <button class="cta shareopen" type="button" disabled>Share this prediction</button>
-        <p class="yf-ctanote">Your map, your seats, our badge for your prediction, and a sealed link.</p>
-        <!-- __YFSHEET:break__ -->
-      </div>
-      <p class="stubnote yf-entries" data-live="entries" role="status" hidden></p>
-    </div>
   </section>
 
   <section class="pl-notes" aria-labelledby="h-notes">
@@ -364,22 +376,17 @@
         simulations towards those with the turnout you set: it shows those simulations, not what This Model forecasts if
         turnout changes. Past this range, or with groups moved far in opposite directions, the
         simulations run out and the slider stops.</li>
-      <li id="note-groups">Each bar is one party's vote split by population group, as the model fits it to the ward results
-        of 2021. "Registered" is the voters' roll split by each ward's census population groups; the roll does not record population
-        group.</li>
-      <li id="note-new"><!-- __PLAY:newparties__ --></li>
-      <li id="note-poll">Each poll is a Johannesburg subsample of a larger survey. Under a poll, the figures describe the
-        model's simulations nearest the poll; the poll does not come true. The slider stops where too few simulations
+      <li id="note-poll">Each poll is a Johannesburg subsample of a larger survey. Under a poll, the figures describe
+        This Model's simulations nearest the poll; the poll does not come true. The slider stops where too few simulations
         lie near the poll.</li>
       <li id="note-bye">By-elections are small, low-turnout contests, and some parties' swings rest on a handful of wards.
-        The forecast counts them at half weight. Each setting is a separate full run of the
-        model, so part of any difference between settings is sampling noise; the line under the control lists only
+        The forecast counts them at half weight. Each setting is a separate full run of
+        This Model, so part of any difference between settings is sampling noise; the line under the control lists only
         changes larger than that.</li>
       <li id="note-law">The Municipal Structures Act deducts the surplus. Germany's laws are here for comparison, and only a
         council seated under South African law can be shared. Your own prediction is always seated by South African law.</li>
       <li id="note-vote">An election has two ballots, and your prediction sets both. You have called the wards on the
-        map, so here you set each party's list vote, its share of the list ballot; its ward vote follows it, as many
-        points above or below as "Adjust ward vote" says. A party with no list sets its ward vote.
+        map, so here you set each party's list vote, its share of the list ballot. A party with no list sets its ward vote.
         The law gives each party seats from its votes on both ballots together. Your prediction is scored on seats
         first, then ward calls, then the list vote. Moving one party scales the others in proportion. A party that wins a ward on your map keeps a vote on each ballot. The range each slider allows follows the wards on your map. In each ward, a
         party starts from its result there at the last local election. A party that has not stood in a local election
@@ -401,7 +408,7 @@
         map draws it as the strength of each ward's colour, and the number of your ward calls we expect to come true
         is their average count over the simulations. The citywide figures score your prediction against each simulation
         as if it were the result, by the competition's rules in its order. Seats: the gap between your seats and the
-        simulation's, party by party, added up. The seat line under the table is the model's own spread: its middle
+        simulation's, party by party, added up. The seat line under the table is This Model's own spread: its middle
         forecast, each party at its middle seat count, is that close to half the simulations. Vote: the gap between
         your list vote and the simulation's, party by party, added up, in points.</li>
     </ol>

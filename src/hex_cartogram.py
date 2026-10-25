@@ -447,7 +447,7 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city",
       <div class="mapbox">
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardhexmap" class="mapsvg"
            xmlns:xlink="http://www.w3.org/1999/xlink"
-           aria-label="{city_name} ward cartogram: one equal hexagon per ward, placed near its real location and coloured by predicted winning party">
+           aria-label="{city_name} ward cartogram: one equal hexagon per ward, placed near its real location and coloured by the likeliest winning party">
         <defs><polygon id="hexcell" points="{cell}"/>{''.join(patterns.values())}</defs>
         {''.join(tiles)}{''.join(hatches)}{''.join(numbers)}{''.join(labels)}
       </svg>

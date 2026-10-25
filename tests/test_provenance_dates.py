@@ -156,7 +156,7 @@ def test_a_figure_typed_before_it_was_a_token_is_dated_from_its_first_publicatio
     reg = tomllib.loads(STATS.read_text(encoding="utf-8"))
     dated = {"hist_da_bloc_change_votes": "nobody-catches-the-votes.html",
              "hist_asa_pr_2021_rounded": "nobody-catches-the-votes.html"}
-    undated = ("blind_test_called", "methodology.html")
+    undated = ("small_party_record_cases", "methodology.html")
     assert all(reg[t].get("on_site") == "2026-08-08" for t in dated)
     assert "on_site" not in reg[undated[0]]
     with tempfile.TemporaryDirectory() as tmp:
