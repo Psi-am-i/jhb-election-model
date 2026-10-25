@@ -496,4 +496,15 @@
      reserved heights, which stop the page jumping as a lever moves) */
   .yf .pl-engine.yf-slot,.yf .pl-oneline.yf-slot,.yf .pl-flips.yf-slot{height:auto;}
   .yf .pl-engine.yf-slot:empty,.yf .pl-flips.yf-slot:empty{display:none;}
+  /* the same in section 2: the ward instruction, and "Your council"'s
+     restatement, cap and excessive-seats line; the council bar shows once it
+     has seats to draw */
+  .yf .painthint.yf-slot,.yf .restate.yf-slot,.yf .stubnote.excess.yf-slot{height:auto;}
+  .yf .restate.yf-slot:empty,.yf .stubnote.excess.yf-slot:empty{display:none;}
+  .yf [data-live="b-council"] .cap{min-height:0;}
+  .yf [data-live="b-council"] .council:not(:has(.stripbar rect)){display:none;}
+  /* and the room the council table keeps for rows a lever may add */
+  .yf [data-live="b-council"] .bars,.yf [data-live="b-council"] .bars[data-extra]{padding-bottom:0;}
+  /* section 1's key: the "Outlined" entry takes no line until it applies */
+  .yf.pl .pl-key .pl-live{display:none;}
 }
