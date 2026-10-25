@@ -236,23 +236,22 @@
             <svg class="wardmap" viewBox="<!-- __MAKE:mapviewbox__ -->" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
           </div>
           <div class="listview" hidden></div>
-          <p class="maphint painthint yf-slot">Choose a party, then tap or drag across wards to give them to it.</p>
+          <p class="maphint painthint yf-slot">Choose a party below, then tap or drag across wards to give them ward wins.</p>
           <div class="tray">
             <div class="brush" role="group" aria-label="Party to give wards to">
               <div class="brushscroll row"></div>
               <label class="brushpick">More parties <select class="brushselect"></select></label>
             </div>
           </div>
+          <!-- the list view's areas (make.js AREAS), one definition, in the
+               page; the map's area tools were removed 2026-10-25 (BRIEF-6 B6) -->
+          <template class="areas"><option value="north">North</option><option value="east">East</option>
+            <option value="south">South</option><option value="west">West</option>
+            <option value="central">Central</option></template>
           <div class="tools">
-            <label>Area <select class="area">
-              <option value="north">North</option><option value="east">East</option>
-              <option value="south">South</option><option value="west">West</option>
-              <option value="central">Central</option></select></label>
-            <button class="btn small fillarea" type="button">Give the area to the chosen party</button>
             <button class="btn small model copymodel" type="button">Back to the starting ward calls</button>
             <button class="btn small undo" type="button" disabled>Undo</button>
           </div>
-          <p class="maphint">Areas are compass sectors drawn from the ward boundaries, not the City's regions.</p>
           <p class="yf-nextrow"><button class="btn small yf-next" type="button">Next: set the vote</button></p>
         </section>
         <section class="results" data-live="b-council" aria-labelledby="h-res" data-scale="<!-- __MAKE:seatscale__ -->"

@@ -94,8 +94,7 @@ const one = {
   hint: document.querySelector('[data-live="b-map"] .painthint'),
   brush: document.querySelector('[data-live="b-map"] .brushscroll'),
   brushselect: document.querySelector('[data-live="b-map"] .brushselect'),
-  area: document.querySelector('[data-live="b-map"] .area'),
-  fillarea: document.querySelector('[data-live="b-map"] .fillarea'),
+  areas: document.querySelector('[data-live="b-map"] .areas'),
   copymodel: document.querySelector('[data-live="b-map"] .copymodel'),
   undo: document.querySelector('[data-live="b-map"] .undo'),
   next1: document.querySelector('[data-live="b-map"] .yf-next'),
@@ -179,7 +178,7 @@ function goToStep(k) {
 paintSteps();
 
 // ---------- locking: the controls answer once the seat law has loaded ----------
-const editables = [one.brushselect, one.area, one.fillarea, one.copymodel, one.prmodel, one.analyse];
+const editables = [one.brushselect, one.copymodel, one.prmodel, one.analyse];
 let engineReady = false;
 // Locked until the seat law has loaded, and while a shared link's arrival
 // view is up: no control edits the forecast then, by pointer or keyboard.
@@ -582,7 +581,7 @@ function chooseBrush(c) {
   S.brush = c;
   paintBrush();
   if (wasOn && !one.brush.contains(document.activeElement)) one.brushselect.focus();
-  one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : "Choose a party, then tap or drag across wards to give them to it.";
+  one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : "Choose a party below, then tap or drag across wards to give them ward wins.";
 }
 function paintBrush() {
   // Each chip already drawn is kept (a keyboard user's focus stays on it);
@@ -621,9 +620,9 @@ for (const b of views) b.addEventListener("click", () => {
 
 // The list view: one aligned table per area (ward | the party it is called
 // for | the chance we give that call, once analysed), filtered by area and by
-// party instead of one long scroll. The areas are the area picker's options
-// (one definition, in the page).
-const AREAS = () => [...one.area.options].map(o => [o.value, o.textContent]);
+// party instead of one long scroll. The areas are the options of the page's
+// <template class="areas"> (one definition, in the page).
+const AREAS = () => [...one.areas.content.children].map(o => [o.value, o.textContent]);
 const LIST = { area: null, party: "" };
 function buildList() {
   if (LIST.area === null) LIST.area = AREAS()[0][0];
@@ -673,12 +672,6 @@ function buildList() {
       : el("p", { className: "stubnote" }, "No ward in this area is called for that party.")));
 }
 
-one.fillarea.addEventListener("click", () => {
-  if (locked) return;
-  if (!S.brush) { one.hint.textContent = "Choose a party first, then fill the area."; return; }
-  const sec = one.area.value;
-  setCallsFrom(state.calls.map((c, i) => geom.wards[i].sector === sec ? S.brush : c));
-});
 one.copymodel.addEventListener("click", () => setCallsFrom(from.calls));
 one.undo.addEventListener("click", () => {
   if (locked) return;
