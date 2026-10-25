@@ -297,15 +297,30 @@
           </div>
         </section>
 
+      </div>
+    </div>
+
+    <!-- the two calls to act, side by side under the council and the steps,
+         each in a box like the steps' (owner, 2026-10-25, BRIEF-6 part C);
+         stacked on a phone. Step 4's heading stays with its button, and the
+         count of sealed predictions with the share button -->
+    <div class="yf-buttons">
         <div class="step yf-step yf-step4">
           <h3 class="stephead stepno">See how likely it is</h3>
           <!-- a large button, like the two calls to share -->
           <div data-live="b-actions" class="body yf-actions">
-            <button class="cta yf-analyse" type="button" disabled>Analyse my prediction</button>
+            <button class="cta cta-accent yf-analyse" type="button" disabled>Analyse my prediction</button>
             <p class="yf-ctanote">Our badge for your prediction, your map ward by ward, and each party's seats and vote.</p>
           </div>
         </div>
-      </div>
+        <div class="step yf-sharestep">
+          <div class="sharebox yf-cta" data-live="b-share">
+            <button class="cta shareopen" type="button" disabled>Share My Prediction</button>
+            <p class="yf-ctanote">Your map, your seats, our badge for your prediction, and a sealed link.</p>
+            <!-- __YFSHEET:break__ -->
+          </div>
+          <p class="stubnote yf-entries" data-live="entries" role="status" hidden></p>
+        </div>
     </div>
 
     <!-- the heading and its footnote marker sit outside the LIVE region,
@@ -351,17 +366,6 @@
       </div>
     </section>
 
-    <!-- the call to share the reader's forecast, a large button at the
-         foot of section 2, the last before the notes: the one share sheet
-         (js/share-sheet.js) with this section's content (js/make-share.js) -->
-    <div class="yf-ctafoot">
-      <div class="sharebox yf-cta" data-live="b-share">
-        <button class="cta shareopen" type="button" disabled>Share this prediction</button>
-        <p class="yf-ctanote">Your map, your seats, our badge for your prediction, and a sealed link.</p>
-        <!-- __YFSHEET:break__ -->
-      </div>
-      <p class="stubnote yf-entries" data-live="entries" role="status" hidden></p>
-    </div>
   </section>
 
   <section class="pl-notes" aria-labelledby="h-notes">

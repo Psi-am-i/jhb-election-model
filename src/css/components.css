@@ -109,6 +109,13 @@ details.rollup + details.rollup{margin-top:30px;padding-top:26px;
    palettes, where the accent on --accent-soft did not in the light one */
 .cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);}
 .cta-row{margin:22px 0 0;}
+/* `cta-accent` is the same button filled in the model's accent, for a second
+   call beside a first in the reader's hue ("Analyse my prediction" beside
+   "Share My Prediction"; owner, 2026-10-25, BRIEF-6 part C) */
+.cta.cta-accent{background:var(--accent);border-color:var(--accent);
+  box-shadow:0 2px 0 color-mix(in srgb,var(--accent) 55%,var(--paper));}
+.cta.cta-accent:hover,.cta.cta-accent:focus-visible{background:color-mix(in srgb,var(--accent) 82%,var(--ink));
+  border-color:color-mix(in srgb,var(--accent) 82%,var(--ink));}
 @media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}
 
 /* the site's ordinary button (the share sheet's, src/css/share-sheet.css, and

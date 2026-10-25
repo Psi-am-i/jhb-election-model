@@ -191,7 +191,15 @@
 .yf .cta[disabled]{opacity:.45;cursor:not-allowed;}
 .yf .yf-ctanote{flex:1 1 28ch;margin:0;font-size:15px;line-height:1.45;color:var(--ink-2);}
 .yf .yf-actions .yf-ctanote{margin-top:10px;}
-.yf-ctafoot{margin-top:26px;}
+/* the two calls to act, side by side under the council and the steps, each
+   in a step's box with its caption under the button; stacked on a phone
+   (owner, 2026-10-25, BRIEF-6 part C) */
+.yf-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:22px;align-items:stretch;}
+@media (max-width:640px){.yf-buttons{grid-template-columns:minmax(0,1fr);}}
+.yf-buttons > .step{display:flex;flex-direction:column;}
+.yf .yf-buttons .yf-cta{flex-direction:column;align-items:flex-start;margin:0;padding:14px;}
+.yf .yf-buttons .yf-cta .yf-ctanote,.yf .yf-buttons .yf-actions .yf-ctanote{flex:none;}
+.yf .yf-buttons .yf-entries{padding:0 14px 14px;margin:0;}
 /* "Next" scrolls a step to the top of the window: a little air above it */
 .yf-step{scroll-margin-top:12px;}
 /* step 4's region is its body: room for the step's heading above it */

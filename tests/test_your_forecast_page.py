@@ -1906,9 +1906,9 @@ def test_refusal_lines_are_live_readable_and_revert_one_control():
 def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
     """B3, and the owner's layout notes of 2026-10-10 (large buttons in place
     of the full-width rows). "Share this forecast" is a large button at the
-    end of section 1 (section 1's sheet) and at the foot of section 2, after
-    the analysis and before the notes (section 2's sheet); "Analyse my
-    forecast" is the same button in step 4. Each button is followed by its
+    end of section 1 (section 1's sheet); section 2's share button sits beside
+    step 4's "Analyse my prediction", in the row of boxes under the steps and
+    before the analysis (owner, 2026-10-25, BRIEF-6 part C). Each button is followed by its
     one line on what it gives, and section 2's names the map, the seats, our
     chance and the sealed link. A share box moved back into the levers'
     column is caught, and so is a button style of the page's own: the buttons
@@ -1936,15 +1936,19 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
                 break
         if s1 > 0 and c0 < s1 < c1:
             out.append("section 1's share row is inside the levers' column")
-        if not (at('class="yf-analysis"') < s2 < notes):
-            out.append("section 2's share row is not between the analysis and the notes")
+        # section 2's share box sits beside step 4's analyse button, both in
+        # the row of boxes under the steps and before the analysis (owner,
+        # 2026-10-25, BRIEF-6 part C)
+        row = at('class="yf-buttons"')
+        if not (0 < row < at('class="cta cta-accent yf-analyse"') < s2 < at('class="yf-analysis"') < notes):
+            out.append("section 2's share row is not beside the analyse button, before the analysis")
         share = 'class="cta shareopen"'
         if page.count(share) != 2:
             out.append("not one share row in each section")
         # each row, in its own section, with its one line
         rows = (("section 1", page.find(share, s1) if s1 > 0 else -1, ("map", "council", "seats", "sealed")),
                 ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "badge", "sealed link")),
-                ("step 4", at('class="cta yf-analyse"'), ()))
+                ("step 4", at('class="cta cta-accent yf-analyse"'), ()))
         for where, i, words in rows:
             end = page.find("</button>", i) if i >= 0 else -1
             after = page[end + len("</button>"):] if end >= 0 else ""
@@ -1962,6 +1966,11 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
     row = row[:row.index("</dialog>") + len("</dialog>\n    </div>")]
     moved = html.replace(row, "").replace('<div class="pl-controls">', '<div class="pl-controls">' + row, 1)
     assert misplaced(moved)
+    # section 2's share box moved back to the foot, after the analysis, is caught
+    box = html[html.index('<div class="step yf-sharestep">'):]
+    box = box[:box.index('data-live="entries"')]
+    late = html.replace(box, "", 1).replace('<section class="pl-notes"', box + '<section class="pl-notes"', 1)
+    assert misplaced(late)
     assert misplaced(html.replace('<p class="yf-ctanote">', '<p class="yf-note">', 1))
     assert "yf-ctabtn" not in css
     # step 4 names what it holds now
@@ -2175,7 +2184,7 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
     site = _built()
     html = _html(site)
     js = (site / BREAK).read_text(encoding="utf-8")
-    region = html[html.index('data-live="b-analysis"'):html.index('class="yf-ctafoot"')]
+    region = html[html.index('data-live="b-analysis"'):html.index('<section class="pl-notes"')]
     note = re.search(r'<li id="note-outcome">(.*?)</li>', html, re.S).group(1)
 
     def missing(reg: str, src: str, nt: str) -> list[str]:
