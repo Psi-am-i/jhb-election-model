@@ -82,6 +82,8 @@ the page.
 
 ## Open, in the order I would take them
 
+**After 4 November: re-fit the pool rates (OWNER-DECISIONS-ANSWERED item 40, MODEL-LOG §1.338).** `pools.fit_joint` lands on Duncan-Davis corners (ANC 0 among Indian/Asian and White voters; EFF, IFP, Al Jama-ah at their home-pool ceiling). A model round: pre-register, a method that does not run to the bounds, backtest, blind review. Also make `PartyFit.identified()` and `rates_on_a_bound` see a rate on a Duncan-Davis bound. The chart "Where each party's votes come from" returns only after the re-fit.
+
 **Code review of site-sweep-1, 2026-10-24: follow-ups not needed for the freeze release.**
 - `src/fold.py` `fit_status`: a γ of 0.0 from Σw·x² = 0 is labelled fitted. Folds 1-4 and the pooled file hold none today (checked 2026-10-24); fold5 is legacy.
 - `src/declares.py` pooled-file check runs one direction only (pooled→fold); add fold→pooled.
