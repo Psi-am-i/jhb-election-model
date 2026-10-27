@@ -7,15 +7,18 @@
 > are its own `CLAUDE.md`. After changing polls, claims or articles here, run
 > its `bin/sync-context.sh` so the routine judges "new" against current state.
 >
-> ⛔ **THIS PROJECT RUNS ON ATLAS. If `hostname -s` says anything else, stop and
-> tell the owner before doing any work.** Say: *"This is a <host> session. This
-> project should be run from Atlas."* Why it is Atlas only: `data/**` is
+> ⛔ **THIS PROJECT RUNS AND DEPLOYS FROM SCOUT ONLY. If `hostname -s` says
+> anything else, stop and tell the owner before doing any work.** Say: *"This is
+> a <host> session. This project should be run from Scout."* The `atlas-` folder
+> prefix is historical; the machine is Scout. Why one machine: `data/**` is
 > gitignored, so the emitted specs, intermediates and raw elections exist only
-> on Atlas, and `.venv` is per machine. A Scout checkout has no venv and a stale
-> `data/`, so anything it runs or measures is wrong, and nothing warns you.
-> Its local branch also drifts behind silently, so a session there works from
-> an out-of-date `HANDOVER.md`. If the owner says to carry on anyway: `git fetch`
-> first, and run everything through `ssh atlas`.
+> in Scout's tree, and `.venv` is per machine. Any other checkout has no venv or
+> a stale `data/`, so anything it runs, measures or deploys is wrong, and
+> nothing warns you. Its local branch also drifts behind silently, so a session
+> there works from an out-of-date `HANDOVER.md`. If the owner says to carry on
+> anyway: `git fetch` first, and run everything on Scout through `ssh hub` (the
+> alias that names the canonical host). Machine topology is global — see
+> `~/CLAUDE.md` and its sync runbook.
 
 ---
 
