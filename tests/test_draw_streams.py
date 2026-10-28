@@ -471,7 +471,7 @@ def base_spec(with_entrant: bool = False, tie: bool = False,
     sc["draw_law"] = law
     sc["_width"] = dict(FIXTURE_RECORD)
     sc["_new_parties"] = []
-    # Every fixture party holds a national result (`montecarlo.newness_class`
+    # Every fixture party holds an NPE result (`montecarlo.newness_class`
     # reads this): a test that makes one new and unanchored removes it.
     sc["_baseline_before_seeds"] = dict(centres)
     sc["_strength_applied"] = []

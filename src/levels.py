@@ -19,8 +19,8 @@ PLAN_BOUNDS ANC  (0.65, 0.90)  excludes the observed 0.95
 ``f_other`` mattered most: it had every minor party *growing* 30% on its way
 into a local election when the record says they retain about four fifths.
 
-What this module measures is θ, the national-to-local retention ratio: a
-party's share at a local election over its share at the national election
+What this module measures is θ, the NPE-to-local retention ratio: a
+party's share at a local election over its provincial-ballot share at the NPE
 before it. Binned by party size, the record says something specific::
 
     baseline share    n   median θ   sd(log θ)
@@ -33,7 +33,7 @@ before it. Binned by party size, the record says something specific::
 It said the centre hardly moves and only the spread does, so size predicts how
 uncertain a party is and not how it trends. On eight metros, n=235::
 
-    national size before    n    median θ   geometric mean
+    NPE size before         n    median θ   geometric mean
     < 0.2%                 75      1.31         1.53
     0.2 - 0.5%             57      1.03         0.98
     0.5 - 2%               44      1.04         0.90
@@ -57,11 +57,11 @@ backtest cannot read its own result.
 THE SPINE (2026-08-13, MODEL-LOG task #22)
 ------------------------------------------
 
-θ alone is only half a forecast. It converts a party's last NATIONAL share into
+θ alone is only half a forecast. It converts a party's last NPE (provincial-ballot) share into
 a local one, which is the right spine for a nationally-organised party and the
 wrong one for a party whose evidence is local — and until now the model used it
 unconditionally. ActionSA is the case that forced this: 18.12% locally in 2021
-against 6.22% nationally in 2024, and no θ of its own, so the forecast built it
+against 6.22% on Johannesburg's 2024 provincial ballot, and no θ of its own, so the forecast built it
 from the 6.22% and discounted it to about 6%.
 
 There is a second route. A party's previous LOCAL result, moved by the measured
@@ -70,19 +70,19 @@ Measured over 180 party-city-years across eight metros and three transitions,
 neither route dominates — but **which one wins is predictable, and the thing
 that predicts it is how much θ evidence the party has**:
 
-    θ evidence (Σ reliability)    n    RMSE(log) national    local    best weight on local
+    θ evidence (Σ reliability)    n    RMSE(log) NPE         local    best weight on local
     0     – 2                    60          1.53            0.72            1.00
     2     – 5                    55          0.089           0.24            0.10
     5     – 20                   65          0.20            0.41            0.10
 
 That is not party size wearing a disguise. Within *every* size band the flip
 survives: among parties under 0.5% of the vote, those with θ evidence want the
-national route (best w 0.00) and those without want the local one (best w 1.00);
+NPE route (best w 0.00) and those without want the local one (best w 1.00);
 the same holds in the 0.5–5% band. Keying the same rule on size instead of
 evidence is measurably worse (0.2377 against 0.2358 held out by metro).
 
 So the weight on the local route is ``k / (worth + k)``: all local for a party
-whose θ is nothing but the group centre, almost all national for a party with a
+whose θ is nothing but the group centre, almost all NPE for a party with a
 long retention record. One parameter, and it is a statement about *evidence*
 rather than about which parties are "local" — which matters, because the two
 things that sound like they should identify a local party do not (geographic
@@ -90,25 +90,25 @@ concentration correlates with the local premium at r = −0.09, and the premium 
 no larger at home than away; MODEL-LOG §6).
 
 Held out one metro at a time, refitting both routes without it: pooled
-vote-weighted RMSE(log) 0.236 against the national spine's 0.275, a 14% gain.
+vote-weighted RMSE(log) 0.236 against the NPE spine's 0.275, a 14% gain.
 It wins on four metros of eight by count and on the pooled error because the
-wins land where the national route fails worst (Buffalo City 0.320 → 0.111,
+wins land where the NPE route fails worst (Buffalo City 0.320 → 0.111,
 Johannesburg 0.559 → 0.480) and the losses where it was already accurate
 (Mangaung 0.077 → 0.094).
 
 **Recency is priced by construction, not by a term.** The local result is five
-years stale at polling day where the national is two. Each route is corrected by
+years stale at polling day where the NPE is two. Each route is corrected by
 a ratio fitted over its own gap — ρ over five-year LGE-to-LGE pairs, θ over
 roughly two-year NPE-to-LGE ones — and the blend weight was fitted on local
 results that were themselves five years stale. Nothing further is owed.
 
 **Rejected: measuring θ in both directions.** MODEL-LOG proposed this as the
-partial fix — a local→national pair inverted is nominally the same ratio, and it
+partial fix — a local→NPE pair inverted is nominally the same ratio, and it
 would give ActionSA a θ of its own. Measured, it makes the forecast worse:
 pooled held-out RMSE(log) 0.292 against forward-only 0.275, and every adaptive
 blend built on it is worse than the same blend on forward θ. The reason is
 visible in the pairs. A reverse observation divides a local result by a *later*
-national one, so a party's secular trend enters with the opposite sign: the PA,
+NPE one, so a party's secular trend enters with the opposite sign: the PA,
 growing, measures 1.90 forward and 0.60 reverse; the ANC, declining, 0.85
 forward and 1.05 reverse. The two numbers are not the same quantity, and pooling
 them averages a party's trend into its local premium. The blend above solves
@@ -161,7 +161,7 @@ SD_FLOOR, SD_CEILING = 0.15, 1.20
 #
 # The reason is the whole point of MODEL-LOG §1.48's width budget. The binned
 # record is a MARGINAL dispersion — everything that moved a party's local share
-# against its national one — while this layer is CONDITIONAL: the within-pool
+# against its provincial-ballot one — while this layer is CONDITIONAL: the within-pool
 # Dirichlet independently supplies 39-98% of the drawn variance, and the turnout
 # and ward layers a little more. Asking theta to reproduce the marginal record
 # counts the same uncertainty twice.
@@ -179,12 +179,12 @@ LOG_CHI2_BIAS = 1.8873652674492816   # documented, deliberately unused
 # because a party has at most three and the group has dozens.
 SHRINK = 2.0
 
-# The national share at which one observed ratio is worth half of a large
+# The provincial-ballot share at which one observed ratio is worth half of a large
 # party's. Set to the hard cut it replaces, so the same evidence is being
 # discounted — continuously, and without denying any party a measured θ.
 RELIABILITY_HALF = 0.002
 
-# How much θ evidence a party needs before the national spine is trusted over
+# How much θ evidence a party needs before the NPE spine is trusted over
 # its own last local result. The weight on the LOCAL route is k / (worth + k),
 # so at worth = k the two routes are equal. Fitted by leave-one-metro-out over
 # 180 party-city-years: the curve is flat between 0.5 and 1.5 (0.2377, 0.2358,
@@ -679,12 +679,12 @@ def absent_from_ballot(baseline: dict, roster) -> list[str]:
 
 def theta_record(target: cityconfig.Target,
                  codes=METRO_CODES) -> dict[str, list[tuple[float, float]]]:
-    """Every observed national-to-local retention ratio before the target.
+    """Every observed NPE-to-local retention ratio before the target.
 
     One entry per party per metro per transition, as ``(ratio, share)`` where
-    ``share`` is the national share the ratio was measured off.
+    ``share`` is the provincial-ballot share the ratio was measured off.
 
-    **There is no minimum share.** Parties below 0.2% of the national vote used
+    **There is no minimum share.** Parties below 0.2% of the provincial-ballot vote used
     to be dropped here, on the grounds that a party going from 30 votes to 90
     is not evidence that parties triple. That reasoning is right about the
     NUMBER and wrong about the PARTY: dropping it did not stop the model
@@ -722,7 +722,7 @@ def theta_record(target: cityconfig.Target,
         # THE TEMPLATES COME FROM THE CALENDAR, not from a format string built
         # here. Until 2026-08-17 this line was
         # `f"data/raw/elections/npe{npe}_{code}_vd_party.csv"`, and the 1999
-        # national election is on disk as `npe1999_approx_JHB_vd_party.csv` —
+        # NPE is on disk as `npe1999_approx_JHB_vd_party.csv` —
         # so the open failed, `_citywide` swallowed the FileNotFoundError and
         # returned {}, and the whole NPE1999 -> LGE2000 transition contributed
         # ZERO observations while `lge2000_JHB_vd_party_clean.csv` sat there.
@@ -1077,11 +1077,11 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     # rows of it there are: three ratios measured off 0.02% of the vote are
     # three weak statements, not three strong ones, and the party ends up on
     # the group centre. A party with no ratios of its own but a baseline to
-    # apply θ to (MK in 2026 — a national vote, no local election yet) IS this
+    # apply θ to (MK in 2026 — an NPE vote, no local election yet) IS this
     # path, sitting at the centre with the group's spread.
     #
     # PATH TWO — a party with NO baseline at all is not here and cannot be:
-    # θ converts a national share into a local one and there is no national
+    # θ converts a provincial-ballot share into a local one and there is no NPE
     # share to convert. It is an arrival, and ``pools.arrival_rules`` sizes it
     # from the arrival record. ``montecarlo.blended_centres`` routes it there.
     # ONE ESTIMATOR, NOT TWO. Until 2026-08-18 this shrank toward the flat
@@ -1141,7 +1141,7 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         raw = sd_raw(size)
         sd_clip["n"] += 1
         if size <= 0.0:
-            # No national share to be sized off: the width is the fit
+            # No provincial-ballot share to be sized off: the width is the fit
             # extrapolated to `log(1e-5)` and the centre to `log(1e-6)`. Two
             # different floors for the same missing quantity, which is worth
             # knowing and is not this change's to alter.
@@ -1244,7 +1244,7 @@ def size_centre(record: dict[str, list[tuple[float, float]]]):
     0.93 across every band)". That was measured on TWO metros, n=51. On eight
     metros, n=235, it is not true::
 
-        national size before    n    median θ   geometric mean
+        NPE size before         n    median θ   geometric mean
         < 0.2%                 75      1.31         1.53
         0.2 - 0.5%             57      1.03         0.98
         0.5 - 2%               44      1.04         0.90
@@ -1325,7 +1325,7 @@ def _shrink_one(obs: list[tuple[float, float]], size: float, fit,
     ``mu = w·own + (1 − w)·target`` with ``w = worth / (worth + SHRINK)``.
 
     **``size`` is the party's CURRENT size** on the route the record belongs
-    to (its national share for θ, its previous local share for ρ), since
+    to (its provincial-ballot share for θ, its previous local share for ρ), since
     BRIEF item 11 (2026-10-09). The size centre says how parties of a given
     size retain their vote; the size that matters is the one the party has
     at the target, not the one its historical ratios were measured off.
@@ -1364,12 +1364,12 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
     between them in :func:`spine` would be measuring the estimators rather than
     the evidence. The per-party body is :func:`_shrink_one`.
 
-    ``current`` is each party's size now on this record's route: the national
+    ``current`` is each party's size now on this record's route: the NPE
     baseline for θ, the previous local result for ρ (BRIEF item 11). The size
     centre is evaluated there. A party in ``record`` with no positive
     ``current`` size keeps the reliability-weighted size of its own
     observations and is counted in ``report["size_fallback"]``; no level reads
-    such a party, because the spine consults ``mu_t`` only where the national
+    such a party, because the spine consults ``mu_t`` only where the NPE
     share is positive and ``mu_r`` only where the local share is.
 
     **``report`` is an absorption account, written and never read.** The return
@@ -1651,23 +1651,25 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
           ) -> tuple[dict[str, float], dict]:
     """Each party's central level at the target, from BOTH of its records.
 
-    ``baseline`` is the preceding national election's citywide shares;
+    ``baseline`` is the preceding NPE's citywide provincial-ballot shares;
     ``prev_local`` the preceding local election's. Returns the blended central
     share per party and a diagnostic block naming, for every party, which route
     it came from and why — because the whole point of task #22 is that the model
-    could not previously say.
+    could not previously say. The trace key ``detail[p]["national"]`` and the
+    route labels that begin ``national`` name the NPE route; tests and
+    artefacts read them, so they keep their names.
 
     Three cases, and every party is in exactly one:
 
     * **Both records.** The blend, weighted ``k / (worth + k)`` toward the local
       route, where ``worth`` is what the party's own θ record is worth. A party
-      with a long retention history sits on the national spine; a party whose θ
+      with a long retention history sits on the NPE spine; a party whose θ
       is nothing but the group centre sits on its own last local result.
-    * **National only.** A party facing its first local election — MK in 2026.
+    * **NPE only.** A party facing its first local election — MK in 2026.
       Weight 0: there is no local result to blend, and inventing one from the
-      group would be worse than using the national route the party does have.
+      group would be worse than using the NPE route the party does have.
     * **Local only.** A party that contested locally and then did not contest
-      nationally, or was not yet national when it did. Weight 1 by necessity.
+      the NPE, or did not yet exist when it was held. Weight 1 by necessity.
 
     A party with neither is an arrival and is not here at all;
     ``pools.arrival_rules`` sizes it from the arrival record.
@@ -1678,7 +1680,7 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     are not reported in ``local_only_unused``.
 
     ``h_theta`` and ``h_rho`` are the size windows (BRIEF item 16): a party's
-    own θ (ρ) observations count only where measured off a national (local)
+    own θ (ρ) observations count only where measured off a provincial-ballot (local)
     share within that log distance of its current one. ``run_model`` derives
     them with :func:`size_window` and passes the θ window to
     :func:`theta_prior` as well; the default, ``inf``, filters nothing.
@@ -1688,8 +1690,8 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     weight took from each, how many parties fell back to the flat group centre
     because they have no record of their own, and the shrink account from each
     call to :func:`_shrunk`. It is write-only and moves nothing. It exists so
-    that "changing the national route did not move the forecast" can be told
-    apart from "the national route was never worth anything here": at
+    that "changing the NPE route did not move the forecast" can be told
+    apart from "the NPE route was never worth anything here": at
     ``share_local ≈ 1`` the blend is an attractor and the null is
     ``ABSORBED:spine``, not ``INERT``.
     """
@@ -1707,7 +1709,7 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     theta_shrink: dict = {}
     rho_shrink: dict = {}
     # Each route's size centre is evaluated at the party's current size on
-    # that route (BRIEF item 11): its national share for θ, its previous
+    # that route (BRIEF item 11): its provincial-ballot share for θ, its previous
     # local share for ρ.
     mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink, current=baseline,
                                  h=h_theta)
@@ -1718,9 +1720,9 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
 
     # ABSORPTION ACCOUNTING (NULL-RESULTS.md 4.3). The blend is the model's
     # most consequential attractor and had no account of itself: two routes
-    # disagree by |log(local) − log(national)|, and `w` decides how much of
+    # disagree by |log(local) − log(NPE)|, and `w` decides how much of
     # that disagreement survives. `moved_from_national` is the mass the local
-    # route actually won; a change to the national route with
+    # route actually won; a change to the NPE route with
     # `share_local ≈ 1` is ABSORBED here and is not a null about the world.
     #
     # `centre_fallback` counts the OTHER absorber in this function, the one
@@ -1765,10 +1767,10 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
             #
             # THE LIMIT IS CHOSEN, NOT DERIVED — the owner's call, 2026-08-28.
             # `w` is the weight on the LOCAL route, so `k=0` means "pure
-            # national spine". Taking `w = 0.0` when `worth + k <= 0` keeps that
+            # NPE spine". Taking `w = 0.0` when `worth + k <= 0` keeps that
             # meaning for EVERY party. The alternative — `w = 1.0` when
             # `worth <= 0`, the limit from above — would have made `k=0` mean
-            # pure-national for everyone EXCEPT the parties with no θ evidence,
+            # pure-NPE for everyone EXCEPT the parties with no θ evidence,
             # which is the single largest thing the spine does at 2026. A lever
             # that means two things is not a lever. Registered in
             # JUDGEMENT-CALLS.md.
@@ -1782,7 +1784,7 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
             # its own last local result, nothing blended — and was labelled
             # "blend" anyway. That is the label a reader checks when asking why
             # a party sits where it does, and for ActionSA at 2026 it said the
-            # national route was contributing when it was not.
+            # NPE route was contributing when it was not.
             #
             # `routes["blend"]` still counts it as blend, because that counter
             # is about WHICH RECORDS THE PARTY HAS and it does have both.
@@ -2257,9 +2259,9 @@ def local_record_only(roster, baseline: dict[str, float],
 
     **The one classifier** for BRIEF item 8 (model correction batch,
     2026-10-09). A party on the target's roster, not an independent, with no
-    national baseline, no arrival seed, and a positive list vote at the
+    NPE baseline, no arrival seed, and a positive list vote at the
     previous LGE. Before this, such a party was in no input the run read: the
-    national baseline did not carry it, `pools` did not seed it (it has a
+    NPE baseline did not carry it, `pools` did not seed it (it has a
     record), and the run's party list is built from the baseline plus the
     seeds. Seven certified Johannesburg 2026 parties fell through that gap.
     `montecarlo.run_model` enters each at its previous-LGE list share, places

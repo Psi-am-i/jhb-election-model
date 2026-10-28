@@ -22,7 +22,7 @@ no leakage to argue about:
 
 **Both the centre and the fitted dispersion come from `levels.theta_prior`
 itself**, called with the real baseline for that metro-year: the preceding
-national election's citywide shares, which is exactly what `montecarlo` passes
+NPE's citywide provincial-ballot shares, which is exactly what `montecarlo` passes
 it. So `sd_for` is compared per party per metro-year, at the value the draw
 actually used, rather than at a bin midpoint.
 
@@ -48,7 +48,7 @@ intervals are about half as wide as they should be.
 
 THE RESULT, and it is two findings pointing opposite ways:
 
-    national size      n   cy   measured   95% CI (cluster)   sd_for   ratio
+    NPE size           n   cy   measured   95% CI (cluster)   sd_for   ratio
     < 0.2%            78   17     0.915    [0.683, 1.065]      0.460   1.99x
     0.2 - 1%          96   18     0.737    [0.565, 0.869]      0.340   2.17x
     1 - 5%            32   16     0.448    [0.274, 0.613]      0.263   1.70x
@@ -107,7 +107,7 @@ import cityconfig
 import levels
 import pools
 
-# Size bins, in national vote share. Chosen to match the bands `size_centre`'s
+# Size bins, in provincial-ballot share. Chosen to match the bands `size_centre`'s
 # own docstring reports, so these numbers can be read against ones already in
 # the record rather than against nothing.
 BINS = ((0.0, 0.002), (0.002, 0.01), (0.01, 0.05), (0.05, 0.15), (0.15, 1.0))
@@ -137,7 +137,7 @@ def _last_lge() -> str:
 def residuals(codes=levels.METRO_CODES) -> list[tuple]:
     """``(size, residual, fitted_sd, party, year, code, had_record)``.
 
-    See the module docstring. ``size`` is the national share the ratio was
+    See the module docstring. ``size`` is the provincial-ballot share the ratio was
     measured off — the same quantity `sd_for` takes as its argument — and
     ``fitted_sd`` is ``groups["sd"][party]``, the width the draw used.
 

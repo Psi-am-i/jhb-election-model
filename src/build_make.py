@@ -126,7 +126,7 @@ def _columns(manifest: dict, name: str) -> list[str]:
 #   ballots (``gap_min``, ``gap_max``): the past extremes (:func:`panel_extremes`),
 #   widened by the mean of their record events (:func:`shape_allowances`);
 # * per ward and party, a RANGE for its share of the ward's vote: its share
-#   there at the preceding local election (or national election, for a party
+#   there at the preceding local election (or NPE, for a party
 #   new to local elections), moved by the most any party of its starting size
 #   has swung between consecutive local elections, widened by the mean record
 #   exceedance (:func:`ward_ranges`);
@@ -167,7 +167,7 @@ COLLAPSE_KEEP = 0.25
 CORRELATION_MIN = 0.5
 #: The marker in a calendar result template that names an approximation of
 #: another election's footprint (``npe1999_approx_*``); such a file is not a
-#: national result in a metro's own VDs and is never a national prior.
+#: NPE result in a metro's own VDs and is never an NPE prior.
 APPROXIMATE = "_approx_"
 
 
@@ -356,7 +356,7 @@ def _lge(path: Path) -> dict:
 
 
 def _npe(path: Path) -> dict:
-    """A national result file by VD: ``{"vds": {vd: {"votes": Counter(code)}},
+    """An NPE result file (provincial ballot) by VD: ``{"vds": {vd: {"votes": Counter(code)}},
     "sha256"}``, read by ``score_forecasts._read_npe``."""
     import score_forecasts
     path = Path(path)
@@ -396,7 +396,7 @@ def _ward_shares(lge: dict) -> tuple[dict, dict, dict]:
 
 def _city_shares(vds: dict) -> dict:
     """Each code's share of every vote in ``vds`` (the ward ballot of a local
-    file, the one ballot of a national file)."""
+    file, the one ballot, provincial, of an NPE file)."""
     acc = collections.Counter()
     for d in vds.values():
         acc.update(d["votes"])
@@ -476,7 +476,7 @@ def swing_panel(city, target: str, *, elections: Path | None = None) -> dict:
       calendar's local election before b, both files on disk and b before the
       target. Each b's wards take a's VD votes through b's own VDs, each whole
       (:func:`_held_parts`).
-    * ``npe_pairs``: every (metro, n, l), n the national election before the
+    * ``npe_pairs``: every (metro, n, l), n the NPE before the
       local election l, l before the target.
     * ``ward_rows``: ``(metro, a, b, ward, code, h, s)``, a party's share in a
       ward at a (joined) and at b, over every party with either, ``IND``
@@ -493,7 +493,7 @@ def swing_panel(city, target: str, *, elections: Path | None = None) -> dict:
       on both.
     * ``newcomer``: the greatest ward share and the greatest citywide share
       taken by a party with no ward vote in its city at a and no vote at the
-      national election before b.
+      NPE before b.
     * ``pair_data``: per local pair, what :func:`exclusions` reads.
     * ``sources``: each file read and its sha256.
     """
@@ -560,7 +560,7 @@ def swing_panel(city, target: str, *, elections: Path | None = None) -> dict:
                 out["city_rows"].append((code, b, p, H[p], V[p]))
         Ha, Hb = _city_shares(A["vds"]), _city_shares(B["vds"])
         out["pair_data"][(code, a, b)] = {"h": h, "s": s, "Ha": Ha, "Hb": Hb, "pr_b": B["pr"]}
-        # parties new to the city with no national vote before b
+        # parties new to the city with no NPE vote before b
         n = cityconfig.preceding(b, "NPE")
         national = _city_shares(_npe(npe[(code, n)])["vds"]) if (code, n) in npe else {}
         fresh = {p for p in Hb if p != "IND" and Ha.get(p, 0) == 0 and national.get(p, 0) == 0}
@@ -768,7 +768,7 @@ def ward_priors(city, target: str, wards: list[str], *, elections: Path | None =
 
 def npe_priors(city, target: str, *, elections: Path | None = None,
                processed: Path | None = None) -> dict:
-    """The same from the national election before the target
+    """The same from the NPE before the target
     (``Target.previous_npe``): ``{"h", "city", "file", "sha256", "year"}``. A
     missing file, or an approximation (:data:`APPROXIMATE`), refuses the
     build: the prior for parties new to local elections would be empty in
@@ -780,7 +780,7 @@ def npe_priors(city, target: str, *, elections: Path | None = None,
     n = tgt.previous_npe
     files = _election_files(elections, "NPE")
     if (city.code, n) not in files:
-        raise MakeBuildError(f"build_make: no national result file for {city.code} {n}, the "
+        raise MakeBuildError(f"build_make: no NPE result file for {city.code} {n}, the "
                              f"prior of parties new to local elections (JUDGEMENT-CALLS §R8)")
     path = files[(city.code, n)]
     read = _npe(path)
@@ -802,7 +802,7 @@ def party_kind(code: str, local_city: dict, national_city: dict) -> str:
     are built from (JUDGEMENT-CALLS §R8): ``local`` if it had a ward vote
     anywhere in the city at the preceding local election (``local_city``, its
     citywide shares there), else ``national`` if it had a vote at the
-    preceding national election, else ``newcomer``."""
+    preceding NPE, else ``newcomer``."""
     if local_city.get(code, 0) > 0:
         return "local"
     if national_city.get(code, 0) > 0:
@@ -819,13 +819,13 @@ def ward_ranges(roster: list[str], wards: list[str], local: dict, national: dict
       that ward: its share there at the preceding local election (h > 0),
       moved by the local swing extremes of its bin; or, for a party new to
       local elections in the city (no ward vote anywhere in it at the
-      preceding local election), its share there at the preceding national
-      election, moved by the national-to-local extremes of its bin.
+      preceding local election), its provincial-ballot share there at the preceding
+      NPE, moved by the NPE-to-local extremes of its bin.
     * ``party_ranges[code] = {kind, prior, lo, hi}``, the range in every ward
       without one of those: ``local`` (its citywide share at the preceding
-      local election as the prior), ``national`` (its citywide national share,
+      local election as the prior), ``national`` (its citywide provincial-ballot share,
       for a party new to local elections), or ``newcomer`` ([0, the greatest
-      ward share any party new to its city with no national vote has taken]).
+      ward share any party new to its city with no NPE vote has taken]).
 
     Every range is widened by the ward allowance on each side."""
     A = allow["ward"]["value"]
@@ -863,9 +863,9 @@ def city_limits(roster: list[str], prior_e: dict, national: dict, local_city: di
     ``local`` party, its share at the preceding local election on the
     target's wards, weighted by each ward's expected ward vote (``prior_e``),
     moved by the citywide swing extremes of its bin; a ``national`` party,
-    its citywide national share moved by the national-to-local citywide
+    its citywide provincial-ballot share moved by the NPE-to-local citywide
     extremes; a ``newcomer``, [0, the greatest citywide share a party new to
-    its city with no national vote has taken]. Widened by the city allowance
+    its city with no NPE vote has taken]. Widened by the city allowance
     on each side."""
     A = allow["city"]["value"]
     out = {}
@@ -887,10 +887,10 @@ def city_limits(roster: list[str], prior_e: dict, national: dict, local_city: di
 def swing_extremes(panel: dict) -> dict:
     """The least and greatest swing per :data:`SWING_BINS` bin, of the parties
     standing at both elections: ``ward`` and ``city`` from local pairs (every
-    real swing, none excluded), ``npe_ward`` and ``npe_city`` from national to
+    real swing, none excluded), ``npe_ward`` and ``npe_city`` from NPE to
     local pairs, leaving out every (metro, local election, party) that
-    collapsed from the national election to the local one: a citywide
-    national share of at least :data:`COLLAPSE_FROM` and a local ward share
+    collapsed from the NPE to the local one: a citywide
+    provincial-ballot share of at least :data:`COLLAPSE_FROM` and a local ward share
     under :data:`COLLAPSE_KEEP` of it, whether or not it was the party's first
     local election (JUDGEMENT-CALLS §R8)."""
     collapsed = {(c, l, p) for c, _n, l, p, Hn, V in panel["npe_city_rows"]

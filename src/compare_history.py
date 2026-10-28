@@ -32,7 +32,7 @@ nothing is scored by different code. **The list is DERIVED, not typed here** --
 see :func:`scored_opponents`; at the time of writing it resolves to:
 
     last-lge              "the last local election happens again"
-    uniform-swing         that, shifted by the national movement bracketing it
+    uniform-swing         that, shifted by the movement between the NPEs bracketing it
     prior-lge-noise       that, with a spread from the previous transition
     uniform-swing+roster  uniform swing GIVEN THE BALLOT -- off-ballot parties
                           dropped, roster newcomers entered at the measured
@@ -2254,7 +2254,7 @@ def _actual_seats(target, data_dir: Path):
     before, so each map is picked out by shape rather than by position: the
     seats are ``{party: int}``, the ward winners ``{ward: party}``.
     ``entrant_actual`` needs the model's own BASELINE — which party had no
-    national share to grow from — not the target, which is what makes a
+    NPE share to grow from — not the target, which is what makes a
     correctly sized newcomer score as a newcomer rather than as a total miss.
 
     ⛔ **AND THIS FUNCTION DID NOT USE THAT BASELINE. IT USED THE MODEL'S

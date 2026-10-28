@@ -153,8 +153,8 @@ promotion note in §F.
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
 | `OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` | 2 | `montecarlo.py` | Derived, not chosen: any value ≥ 1 is equivalent. | 🟢 | §A39 |
 | `OVERHANG_LEVEL_MAX_ROUNDS` | DELETED 2026-10-16 | — | DELETED 2026-10-16 (MODEL-LOG §1.308). `level` scans between a lower and an upper bound computed from the votes and ends by construction; the cap fired on a JHB 2026 draw. | ⚪ | §A40 |
-| `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The national share below which a party with no local record is NOT assumed onto an unheld ballot. **[16-panel]** Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
-| `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ **AMENDED 2026-09-24 (register audit).** INERT at 2026 for a different reason: the floor filters only the projected roster, and a complete declared roster does not use it (argued from `pools.py`, not perturbed). | 🟢 | §K2 |
+| `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The provincial-ballot share below which a party with no local record is NOT assumed onto an unheld ballot. **[16-panel]** Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
+| `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no NPE vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ **AMENDED 2026-09-24 (register audit).** INERT at 2026 for a different reason: the floor filters only the projected roster, and a complete declared roster does not use it (argued from `pools.py`, not perturbed). | 🟢 | §K2 |
 | `overhang_rule` | `"deduct"` | `montecarlo.DEFAULTS` | ⚖️ **STATUTE, reclassified 2026-09-02** — Act 3 of 2021 Schedule 1 item 16. NOT a lever and never swept: refused at the `--set` boundary, out of `PERTURB`. Never bound in 24 metro-years; tightest margin 2 seats. | ⚖️ | §H1 |
 | `pa_contestation_uplift` | DELETED 2026-08-18 | — | DELETED 2026-08-18. The branch now falls back to the previous local election's measured contestation for every party, which makes it backtestable. | ⚪ | §F27 |
 | `PAGE_SIZE` | — | — | Pagination. Reporting, not belief. | 🟢 | §F37 |
@@ -189,9 +189,9 @@ promotion note in §F.
 | `SIMULATION_BLOC` | container | `pools.py` | The reader-simulation bloc definition that `within_rate` sits in. | 🔴 | §H12 |
 | `SOLVE_TOL` | 1e-9 | `pools.py` | Operational, and listed EXEMPT in the guard — named here so the exemption is visible in the register and not only in the test. | 🟢 | §F11 |
 | `SPINE_K` | 1.0 | — | See §B. | 🔴 | §F14 + §B1 |
-| `spine_k = 0` on a party with no θ evidence | `w_local = 0.0` | — | A CHOSEN limit (`w = 0`, pure national spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for. | 🟡 | §F22 |
+| `spine_k = 0` on a party with no θ evidence | `w_local = 0.0` | — | A CHOSEN limit (`w = 0`, pure NPE spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for. | 🟡 | §F22 |
 | `SPINE_K`, reciprocal form | — | `levels.py` | 1.0, fitted leave-one-metro-out on a curve that is flat 0.5–1.5. A step function scored better out of sample and was rejected on structural grounds — which is why this is 🔴 despite being fitted. | 🔴 | §B1 + §F14 |
-| `SPLINTER_PARENT_WEIGHT` | 0.35 | — | The DEFAULT 0.35, measured over 22 splinter-metro cases (EFF 0.89, GOOD 0.28, ActionSA about 0.02), no bootstrap, and stale since the archive grew (§A). It applies only to a splinter with no record of its own: a party absent from the fitting election whose baseline national fit identifies a pool takes that fitted vector instead (`pools.place_vectorless`, owner 2026-10-15). A party's own `parent_weight` on the judgements sheet replaces the default for that party alone, under the same precedence; the first is MK at 0.9 (§SJ1), superseded while MK's 2024 fit is identified. | 🔴 | §F6 + §SJ1 |
+| `SPLINTER_PARENT_WEIGHT` | 0.35 | — | The DEFAULT 0.35, measured over 22 splinter-metro cases (EFF 0.89, GOOD 0.28, ActionSA about 0.02), no bootstrap, and stale since the archive grew (§A). It applies only to a splinter with no record of its own: a party absent from the fitting election whose baseline NPE fit identifies a pool takes that fitted vector instead (`pools.place_vectorless`, owner 2026-10-15). A party's own `parent_weight` on the judgements sheet replaces the default for that party alone, under the same precedence; the first is MK at 0.9 (§SJ1), superseded while MK's 2024 fit is identified. | 🔴 | §F6 + §SJ1 |
 | `SPLIT_SD_FLOOR` | — | `pools.py` | 0.90, and it overrides its own measurement at target 2016 while binding at neither 2021 nor 2026 — real work in the one fold where it is least justified. | 🔴 | §B3 |
 | the `home` city and `measured_from` pair of each entry in `SPLITS` | ASA→JHB · GOOD→CPT · MK→ETH · NFP→ETH · COPE and EFF→**None** | `pools.SPLITS`, read by `home_splinter_record` | Six typed biographical claims that select WHICH record sizes a splinter. ActionSA's is the single assignment behind the panel's largest error, and the two unset ones announce nothing at all. Declared 2026-09-13, never swept. | 🔴 | §A47 |
 | the size-dependence of `sd_for` below 15% | a straight line in log(size) | `levels.py`, inside `theta_prior` | The model is UNCHANGED and the fault is the FORM, not the residual. ⛔ No further functional form may be tried against these two folds, and this row's numbers are Form A's and must not be quoted. | 🔴 | §F18 |
@@ -262,7 +262,7 @@ easiest kind to lose, because nothing can grep for them.
 | a VD with no turnout of its own | `montecarlo.run_model`, turnout patterns | The city's roll-weighted mean, typed; the VDs and their roll share are recorded per run (`turnout.mean_fallback_vds`). Registered 2026-10-09. | 🔴 | §A49 |
 | an unopposed ward | `seats.eligible_parties`, `levels.unopposed_wards`, `montecarlo.run_model` | Statute in the seat law (PR votes counted twice); the draws refuse a target with one. None on disk or declared. | ⚖️ | §Q7 |
 | zero level shock for a seeded arrival | `montecarlo.make_drawer`, `pool_sd_shock` | 0; the width is the within-pool split. Registered 2026-10-09 with item 9's measurement. | 🟡 | §A50 |
-| the size the shrink target is evaluated at | `levels._shrink_one` (via `_shrunk`, `theta_prior`) | The party's current size on the route (national share for θ, previous local share for ρ), for every party. Owner's decision 2026-10-09 (BRIEF item 11); was the size its own ratios were measured off. | ⚖️ | §A51 |
+| the size the shrink target is evaluated at | `levels._shrink_one` (via `_shrunk`, `theta_prior`) | The party's current size on the route (provincial-ballot share for θ, previous local share for ρ), for every party. Owner's decision 2026-10-09 (BRIEF item 11); was the size its own ratios were measured off. | ⚖️ | §A51 |
 | `SIZE_WINDOW_GRID`, `SIZE_WINDOW_MIN_SCORED`, `SIZE_WINDOW_ALPHA` | 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, ∞ · 20 · 0.05 one-sided | `levels.size_window` | The grid the size window `h` is chosen from, the scored-observation minimum below which no window is chosen (∞), and the one-sided level at which a wider window is measurably worse than the best in a cycle-clustered paired comparison; `h` is the widest grid value not measurably worse. Typed; the window itself is measured per target and route. BRIEF item 16, 2026-10-09; the tie tolerance it replaced (0.005) was deleted 2026-10-09 (owner, M3 review). | 🟡 | §A52 |
 | a party with no record of its own | `levels._shrunk` (average), `levels.size_sd` via `montecarlo.level_shock_sd` (range) | Its size group's average (the size centre) and range (the size-group width) at its current size, for every party. Owner's decision 2026-10-09 (BRIEF item 17). | ⚖️ | §A53 |
 | `GROUP_SHARE_TRIPWIRE_DRAWS`, the tripwire threshold | 0.05 · record + largest one-cycle rise | `montecarlo.group_share_tripwire`, `group_share_record.py` | The group-share tripwire reports a (party, pool) pair whose drawn share of the pool exceeds its record plus the pool's largest real rise in more than 5% of draws. Reports only; changes no number. Item 7's specification, BRIEF item 12. | 🟡 | §A54 |
@@ -297,7 +297,7 @@ These have no measurement behind them. They are the ones to attack first.
 
 **Now.** Not implemented. The 2009→2011 transition is still pooled into θ; a structural-event filter is the proposed instrument and the decision is the owner's.
 
-**Record.** **MEASURED 2026-08-22 (§1.71) and it is the largest open modelling question.** θ dispersion for parties ≥5% of the national vote: 2004→2006 **0.226**, 2009→2011 **0.942**, 2014→2016 + 2019→2021 **0.200**. One transition is 4.7× its neighbours, and it is the one γ fold 3 requires, so the pre-2011 ingest imported seven metros' worth of it. The observations name themselves: **COPE at θ 0.115–0.282 across six metros** (formed Dec 2008, 7.4% nationally in 2009, gone by 2011), the **IFP at 0.465** (the NFP split away in Jan 2011), and the **DA at 1.378–1.577 across five** (the Independent Democrats merged into it in 2010). Excluding those takes the transition from **0.896 to 0.244**. The ANC rows were never the problem. This repository already has machinery for collapses, splits and arrivals (`SPLITS`, `splinter_record`, the arrivals path), so pooling these into θ **double-counts them** and inflates the common large-party dispersion — which is what widened the top of the ballot and cost §1.70's 26 seats. **A date cutoff is the wrong instrument** and cannot be built regardless: the record must be strictly pre-target, so a 2016 floor leaves a 2016 target with no record at all. What the measurement supports is a structural-event filter keyed on the tables the model already keeps. Not implemented; it moves every city-year and the decision is the owner's
+**Record.** **MEASURED 2026-08-22 (§1.71) and it is the largest open modelling question.** θ dispersion for parties ≥5% of the provincial-ballot vote: 2004→2006 **0.226**, 2009→2011 **0.942**, 2014→2016 + 2019→2021 **0.200**. One transition is 4.7× its neighbours, and it is the one γ fold 3 requires, so the pre-2011 ingest imported seven metros' worth of it. The observations name themselves: **COPE at θ 0.115–0.282 across six metros** (formed Dec 2008, 7.4% nationally in 2009, gone by 2011), the **IFP at 0.465** (the NFP split away in Jan 2011), and the **DA at 1.378–1.577 across five** (the Independent Democrats merged into it in 2010). Excluding those takes the transition from **0.896 to 0.244**. The ANC rows were never the problem. This repository already has machinery for collapses, splits and arrivals (`SPLITS`, `splinter_record`, the arrivals path), so pooling these into θ **double-counts them** and inflates the common large-party dispersion — which is what widened the top of the ballot and cost §1.70's 26 seats. **A date cutoff is the wrong instrument** and cannot be built regardless: the record must be strictly pre-target, so a 2016 floor leaves a 2016 target with no record at all. What the measurement supports is a structural-event filter keyed on the tables the model already keeps. Not implemented; it moves every city-year and the decision is the owner's
 
 ### §A3 · `entrant_prob` — 0.25 — 🟡
 
@@ -593,7 +593,7 @@ It cannot be changed on [your prediction](your-forecast/).
 
 **Now.** Deliberate, not an oversight: the symmetric form scores 338 against 312.
 
-**Record.** `_worth_r` is computed and discarded with an underscore, so a party with a rich local record and thin θ is still pushed onto the national route. Looked like an oversight; **it is correct**. Symmetric form `(worth_ρ + k)/(worth_ρ + worth_θ + 2k)` scores 338 against 312, 4/9 against 6/9, CRPS 280.8 against 264.8, ranks 4-12 −40.98 against −37.2. Now deliberate rather than accidental.
+**Record.** `_worth_r` is computed and discarded with an underscore, so a party with a rich local record and thin θ is still pushed onto the NPE route. Looked like an oversight; **it is correct**. Symmetric form `(worth_ρ + k)/(worth_ρ + worth_θ + 2k)` scores 338 against 312, 4/9 against 6/9, CRPS 280.8 against 264.8, ranks 4-12 −40.98 against −37.2. Now deliberate rather than accidental.
 
 ### §A26 · `theta_prior` and `_shrunk` are different estimators of the same quantity — RESOLVED 2026-08-18 — ⚪
 
@@ -831,9 +831,9 @@ correctly — not a ward that was lost because the level was wrong.
 
 **Now.** Still nobody's choice. 16 of the 79 mid-ballot parties sit on the wrong side of it and carry +16.4pp of the −37.4pp band deficit.
 
-**Record.** Which parties reach `pools.arrival_rules` rather than θ × baseline. A party with a *trace* in the preceding national election — 0.05–0.17% in that metro — is treated as a retention case, and θ near 0.9 pins it there. **16 of the 79 parties in ranks 4-12 are in this position and are under-forecast by more than 5×, carrying +16.4pp of the −37.4pp band deficit** (§1.31). The code already knows those records are worthless: `RELIABILITY_HALF = 0.002` gives a 0.07% baseline a reliability of 0.26. The arrival record for the same city-years says a typical arrival takes 1.64% (IQR 1.43–2.29%), which is close to what they got. **A boundary nobody chose is still a judgement call.**
+**Record.** Which parties reach `pools.arrival_rules` rather than θ × baseline. A party with a *trace* at the preceding NPE — 0.05–0.17% in that metro — is treated as a retention case, and θ near 0.9 pins it there. **16 of the 79 parties in ranks 4-12 are in this position and are under-forecast by more than 5×, carrying +16.4pp of the −37.4pp band deficit** (§1.31). The code already knows those records are worthless: `RELIABILITY_HALF = 0.002` gives a 0.07% baseline a reliability of 0.26. The arrival record for the same city-years says a typical arrival takes 1.64% (IQR 1.43–2.29%), which is close to what they got. **A boundary nobody chose is still a judgement call.**
 
-**Note, 2026-10-09 (model correction batch, item 8).** A roster party with a previous-LGE list vote and no national baseline is no longer outside the run: `levels.local_record_only` enters it at its previous-LGE list share, sized on the spine's local route. The residual, roster parties with no record at all, is named per run in `41_guards.roster_unrepresented` (`montecarlo.roster_universe_check`) and refuses a live forecast.
+**Note, 2026-10-09 (model correction batch, item 8).** A roster party with a previous-LGE list vote and no NPE baseline is no longer outside the run: `levels.local_record_only` enters it at its previous-LGE list share, sized on the spine's local route. The residual, roster parties with no record at all, is named per run in `41_guards.roster_unrepresented` (`montecarlo.roster_universe_check`) and refuses a live forecast.
 
 ### §A43 · `apply_city` never resets `DEFAULTS` — 🔴
 
@@ -942,7 +942,7 @@ correctly — not a ward that was lost because the level was wrong.
 
 **Where.** `levels._shrink_one`, the per-party body of `_shrunk` (the spine's θ and ρ routes) and of `theta_prior`.
 
-**Now.** The size centre (`size_centre`, fitted on the sizes the ratios were measured off) is evaluated at the party's size at the target: its share of the national baseline for θ, its previous local share for ρ. Every party. A party in a record with no current size on that route keeps the reliability-weighted size of its own observations and is counted (`size_fallback` in the shrink report); no level reads such a party.
+**Now.** The size centre (`size_centre`, fitted on the sizes the ratios were measured off) is evaluated at the party's size at the target: its share of the NPE baseline for θ, its previous local share for ρ. Every party. A party in a record with no current size on that route keeps the reliability-weighted size of its own observations and is counted (`size_fallback` in the shrink report); no level reads such a party.
 
 **Why.** The owner, 2026-10-09: "growth changes by size for sure and you seem to have modelled that. so yes, lets do that for everyone and see what happens" (BRIEF item 11). The size centre says how parties of a given size retain their vote, and the size that governs the forecast is the one the party has now. The previous rule took it at the size the party's own ratios were measured off, which gives a party that has grown the multiplier of the party it used to be (item7/FINDINGS.md: the PA's θ observations at 0.014%–0.29% against a current 2.9%).
 
@@ -955,7 +955,7 @@ correctly — not a ward that was lost because the level was wrong.
 
 **Where.** `levels.size_window` derives `h`; `levels._in_window` and `_shrink_one` apply it, in `_shrunk` (both spine routes) and `theta_prior`; `montecarlo.run_model` derives one window per route per run and passes the θ window to both estimators.
 
-**Now.** A party's own θ (ρ) observations count only where measured off a national (previous local) share within `h` natural-log units of its current one. Where none survive, its own record is empty on that route: worth 0, centre = the size centre at its current size. `h` is measured, per target and per route, by this rule (written down 2026-10-09, before it was run on the archive):
+**Now.** A party's own θ (ρ) observations count only where measured off a provincial-ballot (previous local) share within `h` natural-log units of its current one. Where none survive, its own record is empty on that route: worth 0, centre = the size centre at its current size. `h` is measured, per target and per route, by this rule (written down 2026-10-09, before it was run on the archive):
 
 1. **The walk.** For each LGE target up to the target, the new observations there (its record minus the previous LGE target's) are predicted from each party's record at the previous LGE target by `_shrink_one` at the observation's size, for every grid value of `h`. The new observations of one step are one **cycle**, the cluster.
 2. **The score.** At each `h`, the reliability-weighted mean absolute error in `ln r`. `best` is the grid value with the lowest score.
@@ -987,7 +987,7 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 
 **Why.** The owner, 2026-10-09: "no growth record we should have size ranges and maintain averages for each" (BRIEF item 17). The average was already `theta_prior`'s rule for such a party; the spine disagreed (SPEC §0 O2). The range replaces a typed 0.45 with the measured width at the party's size.
 
-**Limits.** The size-group width is the size line of the θ record, fitted against the common centre; for a party far below the record's sizes it is an extrapolation, clamped at `SD_CEILING`. The SPEC's spine-level computation (`item11_spine.py`, Johannesburg 2026) moved MK from 11.31% to 9.93% and small national-only parties up by +0.24 to +0.30 in log (SPEC §0 O2); the draws are the measurement's (arm D, P17).
+**Limits.** The size-group width is the size line of the θ record, fitted against the common centre; for a party far below the record's sizes it is an extrapolation, clamped at `SD_CEILING`. The SPEC's spine-level computation (`item11_spine.py`, Johannesburg 2026) moved MK from 11.31% to 9.93% and small NPE-only parties up by +0.24 to +0.30 in log (SPEC §0 O2); the draws are the measurement's (arm D, P17).
 
 **How to check it.** Arm D against arm C16 (SPEC R2.5, P17). Unit level: `tests/test_spine.py::test_a_no_record_party_takes_its_size_groups_average_and_range` (G22) and `::test_a_first_local_election_party_gets_the_size_centre_at_its_current_size`.
 
@@ -996,11 +996,11 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 
 **Where.** `montecarlo.group_share_tripwire` (the count and the 0.05), `src/group_share_record.py` (the record and the margin), `41_guards.group_share_tripwire`.
 
-**Now.** A pair is reported when the party's drawn share of the pool's vote exceeds `record + margin` in more than 5% of draws. `record`: the party's largest Duncan-Davis upper bound in that pool in this city's real results before the target (local elections, and national ones on the preceding local election's wards and composition). `margin`: the largest one-cycle rise of a fitted pool rate by any party in any metro before the target. Typed: the 5%, the choice of the upper bound for the record, and the choice of the fitted-rate rise for the margin. A party with no record in a pool has record 0.
+**Now.** A pair is reported when the party's drawn share of the pool's vote exceeds `record + margin` in more than 5% of draws. `record`: the party's largest Duncan-Davis upper bound in that pool in this city's real results before the target (local elections, and NPEs on the preceding local election's wards and composition). `margin`: the largest one-cycle rise of a fitted pool rate by any party in any metro before the target. Typed: the 5%, the choice of the upper bound for the record, and the choice of the fitted-rate rise for the margin. A party with no record in a pool has record 0.
 
 **Why.** The owner, 2026-10-09: "tripwire just tells us but doesnt stop it? if so yes" (BRIEF item 12). The capacity cap cannot see a party taking more of a group than history allows (integrity review F2). Item 7 specified this threshold and measured it: against Johannesburg's real 2021 results it flags 12 of 1,252 outcomes, and on the published 2026 forecast PA/Coloured fires in 69% of draws (item7/FINDINGS.md; those figures are from item 7's probe, not from this code).
 
-**Limits.** It reports and changes nothing; a firing pair is a question for a person. The margin is taken from fitted rates, which are noisy in small pools (the Indian/Asian margin is large), so the tripwire is least sensitive there. At a target with one fitted local election before it there is no cycle and the margin is 0. National-election composition is carried forward from the preceding local election (argued).
+**Limits.** It reports and changes nothing; a firing pair is a question for a person. The margin is taken from fitted rates, which are noisy in small pools (the Indian/Asian margin is large), so the tripwire is least sensitive there. At a target with one fitted local election before it there is no cycle and the margin is 0. NPE composition is carried forward from the preceding local election (argued).
 
 **How to check it.** `tests/test_stage_realisation.py::test_the_group_share_tripwire_can_see_and_goes_quiet` and `::test_the_group_share_tripwire_scans_every_member_of_a_real_run` (G14); `tests/test_intermediates_are_current.py::test_the_group_share_record_is_a_fresh_build` and `::test_the_group_share_freshness_check_can_see_a_real_stale_record` (G15). The firing rate per arm is the batch's measurement (SPEC §6 item 12, P16).
 
@@ -1013,7 +1013,7 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 
 **Where.** `src/bye_value.py` measures; `byelections.size_class` and `byelections.BYE_CLASS_EDGE` define the classes for the test and for the model; `byelections.weighted_deltas`, `byelections.delta_pr` and `levels.trusted_ward_pr` are the deltas and their list-scale conversion, one definition each with the model's.
 
-**Now.** For every (party, metro) pair with a by-election in the metro between the 2021 LGE and 2024-05-29 and a list vote at the 2021 LGE or on the 2024 provincial ballot: the residual `e = actual_2024 − B`, where `B = s_2021 / exp(mu_θ)` is the model's own baseline (its 2021 list share through `levels._shrunk` on the θ record before 2024, at its 2019 national share, with `size_window`'s window), and `δ_pr` is the party's weighted by-election delta in the metro on the list scale. Typed, all fixed in `prereg/2026-10-10-byelection-value-test.md` before the first run:
+**Now.** For every (party, metro) pair with a by-election in the metro between the 2021 LGE and 2024-05-29 and a list vote at the 2021 LGE or on the 2024 provincial ballot: the residual `e = actual_2024 − B`, where `B = s_2021 / exp(mu_θ)` is the model's own baseline (its 2021 list share through `levels._shrunk` on the θ record before 2024, at its 2019 provincial-ballot share, with `size_window`'s window), and `δ_pr` is the party's weighted by-election delta in the metro on the list scale. Typed, all fixed in `prereg/2026-10-10-byelection-value-test.md` before the first run:
 
 1. **Two classes**, by the 2021 list share in that metro: under 1% (including none), and 1% or more (`BYE_CLASS_EDGE` = 0.01). Each class has its own weight.
 2. **Leave one metro out.** A class's weight for metro `m` is the least-squares slope of `e` on `δ_pr` through the origin over the other seven metros, floored at 0. The gain `G = mean|e| − mean|e − w_(−m)·δ_pr|`, pooled over the class's pairs, in points of share.
@@ -1031,11 +1031,11 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 - **The test and the model weigh δ differently.** The test's augmented prediction is `B + w·δ_pr`. The model's centre is `(1 − w)·level + w·clamp(prior_pr + δ_pr)`, so `w` also pulls the centre toward the previous list share and the clamp bounds it. The test measures the delta's increment, not the whole blend. Argued, not tested.
 - **No admission gate in the test.** `BYE_MIN_WEIGHT` gates the model's use of a party's evidence; the test scores every pair (each pair's weight sum is in the artefact).
 - **A label that is not a party.** Independent candidates canonicalise to one label; where the 2024 provincial ballot carried independents, that label has a list vote and enters the population. The pre-registration said it would fall out; it did not, and the population stays as registered. Its effect with the label removed is MODEL-LOG §1.295 (the verdict does not move).
-- **`B` is a stand-in for the 2026 spine.** It is the 2021 list share through the θ record at the 2019 national share. Its residuals carry a party-signed bias (one party's `e` positive in every metro where it is in the population, another's negative in every one, MODEL-LOG §1.295), which the slope reads as by-election signal or noise alike.
+- **`B` is a stand-in for the 2026 spine.** It is the 2021 list share through the θ record at the 2019 provincial-ballot share. Its residuals carry a party-signed bias (one party's `e` positive in every metro where it is in the population, another's negative in every one, MODEL-LOG §1.295), which the slope reads as by-election signal or noise alike.
 - **One pair dominates the 1%-or-more class**: eThekwini's largest party at the 2021 LGE, whose 2024 loss to a new party is far larger than any other residual and opposite in sign to its by-election delta. MODEL-LOG §1.295 gives the class without it; the verdict does not move.
 - **The recorded weight is the class weight, not always the weight used.** `scenario["_bye_weight"]` (and the trace's `bye_weight`) records the class weight for a party that `BYE_MIN_WEIGHT` then gates out, and the class weight `w` rather than the derived `w_used` under `bye_weight_mode = "inverse_variance"`. Invisible while both class weights are 0.
 
-**In the model (2026-10-10).** `montecarlo.blended_centres` gives each party with by-election evidence the weight of its class (`montecarlo.bye_weight`), read at `montecarlo.bye_class_size`: its previous-LGE list share, or with none its share in the run's baseline (the national election before the target; a seeded arrival's seed). `run_model` reads the file once through `montecarlo.read_bye_value` wherever the target reads by-elections and `w_bye` is `None`, and refuses a missing file or an `artefact_key` other than the live `byelections.bye_value_key`. A city file may not set `w_bye`: it is in `montecarlo.DERIVED_NOT_CITY`, and `apply_city` refuses a city whose `[judgements.scalars]` sets it. `BYE_MIN_WEIGHT` still gates admission (§F33). A class weight of 0 switches the party's by-election term off, `bye_weight_mode` included. The weight each party was given is in the `30_centres` trace (`bye_weight`) and `export_draws` reports it beside `reaches_model`. Supersedes §A35.
+**In the model (2026-10-10).** `montecarlo.blended_centres` gives each party with by-election evidence the weight of its class (`montecarlo.bye_weight`), read at `montecarlo.bye_class_size`: its previous-LGE list share, or with none its share in the run's baseline (the NPE before the target; a seeded arrival's seed). `run_model` reads the file once through `montecarlo.read_bye_value` wherever the target reads by-elections and `w_bye` is `None`, and refuses a missing file or an `artefact_key` other than the live `byelections.bye_value_key`. A city file may not set `w_bye`: it is in `montecarlo.DERIVED_NOT_CITY`, and `apply_city` refuses a city whose `[judgements.scalars]` sets it. `BYE_MIN_WEIGHT` still gates admission (§F33). A class weight of 0 switches the party's by-election term off, `bye_weight_mode` included. The weight each party was given is in the `30_centres` trace (`bye_weight`) and `export_draws` reports it beside `reaches_model`. Supersedes §A35.
 
 **How to check it.** `tests/test_blended_centres.py::test_each_class_takes_its_own_weight_from_the_file`, `::test_no_city_file_sets_a_derived_lever_and_apply_city_refuses_one`, `::test_a_missing_or_stale_bye_value_file_refuses`, `::test_an_override_needs_no_file_and_is_recorded`, `::test_the_class_edge_is_the_one_constant_both_sides_use` (G24); `tests/test_export_draws.py::test_the_reported_bye_weight_is_the_one_blended_centres_applied` (G26); `tests/test_bye_value.py` (G23: an exact half increment is admitted at 0.5; an independent residual earns 0; nine pairs are not measurable; the hold-out by identity; the bootstrap resamples metros, not pairs; the slope; the edge); `tests/test_temporal.py::test_the_byelection_value_test_reads_no_byelection_or_result_from_its_outcome_on` (G25); `tests/test_intermediates_are_current.py::test_the_bye_value_record_is_a_fresh_build` and `::test_the_bye_value_freshness_check_can_see_a_real_stale_record`; `tests/test_bye_value.py::test_the_key_covers_the_raw_election_files_and_the_city_files` (one byte in a raw election file or a city file makes `read_bye_value` refuse).
 
@@ -1107,8 +1107,8 @@ Each row: `§SJ<n>` · party · target · `support` / `overperform` / `sigma_j` 
 
 | row | party | target | entry | reason | evidence | date | check |
 |---|---|---|---|---|---|---|---|
-| §SJ1 | MK | joburg 2026 | `parent_weight = 0.9` (a pool-vector judgement, not a strength: no `support`, `overperform` or `sigma_j`) | Owner, 2026-10-15: "it is more like 90% ANC resemblance". MK's starting pool vector is 90% the ANC's and 10% the city's own composition, against the default of 35% (§F6). | None the record supplies: MK has no result at a local election in Johannesburg. The default's range over past splinters runs from ActionSA about 0.02 through GOOD 0.28 to EFF 0.89, so 0.9 sits at the top of it; the nearest past case, EFF from the ANC, measured 0.89. Argued, not tested. | 2026-10-15 | **Superseded while MK's own fit is identified** (owner, 2026-10-15, "option A"; confirmed 2026-10-21: the fitted placement wins, and "identified" means the fit finds the party in at least one pool): MK is fitted on its 2024 national ward results (`pools.place_vectorless`; the spec's `fitted_from_national[MK].superseded` names `parent_weight`), so this weight is not read. The entry stays on the sheet as the owner's call and is read again only if that fit stops identifying a pool. The 2026 forecast is reported with and without it (`pools.py --emit --without-judgements --out DIR`, POOLS-REEMIT-QUEUE) and scored against the 2026 result, MK's pool shares against its measured vector. |
-| §SJ2 | ASA (ActionSA) — **WITHDRAWN 2026-10-23** | joburg 2026 | ~~`support = 0.176`, `sigma_j = 0`~~ (entry removed from `judgements/joburg-2026.toml`) | **Withdrawn 2026-10-23.** Owner: "remove my action sa judgement call which just serms to ,make things compolicated. we cna deal with that later." (OWNER-DECISIONS-ANSWERED 33.) ActionSA takes the model's own centre. Kept as the record of the call that was in force from 2026-10-21 to 2026-10-23. The call was: Owner, 2026-10-21: "Put action SA at 17.6%". The judged centre replaces the model's own (12.64% of the list vote): ActionSA's 2021 list vote (18.1%) carried forward at the record's typical retention for a party its size (0.72, because ActionSA has stood in one local election only) to 13.1%, blended with its by-elections to 14.7%, pulled by the size shrink to 14.5%, and divided by 1.146 when the parties' levels were made to add to 100% (OWNER-DECISIONS item 1 has the steps). Every other party is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at 17.6%. | The record holds one local election for ActionSA (2021 list vote 18.1%), its share of Johannesburg's 2024 national ballot (6.22%; 5.4% after the model's national-to-local conversion, a route the model weights at zero for ActionSA because it has no national-to-local gap on record), and four by-elections since 2021 that imply 18.9% (capped by the model at 16.3%). The by-elections are the only post-2021 evidence of its local level and the model already reads them; four contests are thin evidence of a citywide share. Argued, not tested. | 2026-10-21 | Against the 2026 result: ActionSA's list share against 17.6% and against the model's own centre (MODEL-LOG §1.330 has both runs). The forecast is reported with and without it (`apply_judgements` off). |
+| §SJ1 | MK | joburg 2026 | `parent_weight = 0.9` (a pool-vector judgement, not a strength: no `support`, `overperform` or `sigma_j`) | Owner, 2026-10-15: "it is more like 90% ANC resemblance". MK's starting pool vector is 90% the ANC's and 10% the city's own composition, against the default of 35% (§F6). | None the record supplies: MK has no result at a local election in Johannesburg. The default's range over past splinters runs from ActionSA about 0.02 through GOOD 0.28 to EFF 0.89, so 0.9 sits at the top of it; the nearest past case, EFF from the ANC, measured 0.89. Argued, not tested. | 2026-10-15 | **Superseded while MK's own fit is identified** (owner, 2026-10-15, "option A"; confirmed 2026-10-21: the fitted placement wins, and "identified" means the fit finds the party in at least one pool): MK is fitted on its 2024 provincial-ballot results by ward (`pools.place_vectorless`; the spec's `fitted_from_national[MK].superseded` names `parent_weight`), so this weight is not read. The entry stays on the sheet as the owner's call and is read again only if that fit stops identifying a pool. The 2026 forecast is reported with and without it (`pools.py --emit --without-judgements --out DIR`, POOLS-REEMIT-QUEUE) and scored against the 2026 result, MK's pool shares against its measured vector. |
+| §SJ2 | ASA (ActionSA) — **WITHDRAWN 2026-10-23** | joburg 2026 | ~~`support = 0.176`, `sigma_j = 0`~~ (entry removed from `judgements/joburg-2026.toml`) | **Withdrawn 2026-10-23.** Owner: "remove my action sa judgement call which just serms to ,make things compolicated. we cna deal with that later." (OWNER-DECISIONS-ANSWERED 33.) ActionSA takes the model's own centre. Kept as the record of the call that was in force from 2026-10-21 to 2026-10-23. The call was: Owner, 2026-10-21: "Put action SA at 17.6%". The judged centre replaces the model's own (12.64% of the list vote): ActionSA's 2021 list vote (18.1%) carried forward at the record's typical retention for a party its size (0.72, because ActionSA has stood in one local election only) to 13.1%, blended with its by-elections to 14.7%, pulled by the size shrink to 14.5%, and divided by 1.146 when the parties' levels were made to add to 100% (OWNER-DECISIONS item 1 has the steps). Every other party is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at 17.6%. | The record holds one local election for ActionSA (2021 list vote 18.1%), its share of Johannesburg's 2024 provincial ballot (6.22%; 5.4% after the model's NPE-to-local conversion, a route the model weights at zero for ActionSA because it has no NPE-to-local gap on record), and four by-elections since 2021 that imply 18.9% (capped by the model at 16.3%). The by-elections are the only post-2021 evidence of its local level and the model already reads them; four contests are thin evidence of a citywide share. Argued, not tested. | 2026-10-21 | Against the 2026 result: ActionSA's list share against 17.6% and against the model's own centre (MODEL-LOG §1.330 has both runs). The forecast is reported with and without it (`apply_judgements` off). |
 
 *(`parent_weight` entries are rows of this register as well as strength entries. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
 
@@ -1146,7 +1146,7 @@ not on the party list, is not moved. In
 Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your prediction](your-forecast/) you can make
 by-elections count not at all or fully.
 
-**Where.** `DEFAULTS["w_bye"]` in `src/montecarlo.py`, applied by `montecarlo.bye_weight` (override branch) in `montecarlo.blended_centres`: `centre = 0.5 × level + 0.5 × clamped`, where `clamped` is the previous local list share plus `byelections.delta_pr`, held inside θ's relative band around the level (`PLAN_BOUNDS`, empty by default, for a party with no θ prior, so a party with no national share is not capped). A party with no previous PR share that stood on the 2021 ward ballot is skipped (`bye.ward_only_base_skipped`). Parties below `BYE_MIN_WEIGHT` of contest weight are not moved. The level shrink and normalisation come after the blend.
+**Where.** `DEFAULTS["w_bye"]` in `src/montecarlo.py`, applied by `montecarlo.bye_weight` (override branch) in `montecarlo.blended_centres`: `centre = 0.5 × level + 0.5 × clamped`, where `clamped` is the previous local list share plus `byelections.delta_pr`, held inside θ's relative band around the level (`PLAN_BOUNDS`, empty by default, for a party with no θ prior, so a party with no NPE share is not capped). A party with no previous PR share that stood on the 2021 ward ballot is skipped (`bye.ward_only_base_skipped`). Parties below `BYE_MIN_WEIGHT` of contest weight are not moved. The level shrink and normalisation come after the blend.
 
 **Why.** Owner, 2026-10-17: "since we do not know what the by-election weight should be. Weight them all at 50%. So if our forecast says 10% and by election result was 8%, then use 9%." It replaces the size-class weights measured by `bye_value.py` (§A55), which were 0.0 for both classes, so the by-elections reached no centre.
 
@@ -1163,7 +1163,7 @@ ward, is not moved by its by-elections, and the by-election setting on
 are not enough to size a party nobody has measured before; such a party is
 sized the way earlier new parties did in their first election.
 
-**Where.** `montecarlo.blended_centres`: a party in the by-election input that is sized by the arrival record (a pool seed, which only a party with no national share gets), with no previous local PR share and no previous local ward share, gets weight 0 at every `w_bye`, recorded as class `"no record"` in `_bye_weight` and the `30_centres` trace. MK (2024 national share, never seeded) keeps its weight. Keyed on the seed rather than on θ's prior, so a prior that failed to load cannot reclassify MK. The seed itself is not proof: `pools.py` builds the national baseline only `if path.exists()`, so a spec emitted without the city's 2024 national file would seed MK and this rule would then zero its by-elections. An older vote (2016 local, 2019 national) is not read as a record. `export_draws.bye_weight_range` leaves these parties out of a cell's range.
+**Where.** `montecarlo.blended_centres`: a party in the by-election input that is sized by the arrival record (a pool seed, which only a party with no NPE share gets), with no previous local PR share and no previous local ward share, gets weight 0 at every `w_bye`, recorded as class `"no record"` in `_bye_weight` and the `30_centres` trace. MK (2024 provincial-ballot share, never seeded) keeps its weight. Keyed on the seed rather than on θ's prior, so a prior that failed to load cannot reclassify MK. The seed itself is not proof: `pools.py` builds the NPE baseline only `if path.exists()`, so a spec emitted without the city's 2024 NPE file would seed MK and this rule would then zero its by-elections. An older vote (2016 local, 2019 NPE) is not read as a record. `export_draws.bye_weight_range` leaves these parties out of a cell's range.
 
 **Why.** Owner, 2026-10-19, after the All Citizens Party moved from 0.05% to 1.24% of the Johannesburg vote on two by-elections (159 and 39 votes, MODEL-LOG §1.323): "if they have no record I would ignore them entirely … no record means no record of any kind (MK keeps its seats)."
 
@@ -1578,7 +1578,7 @@ that survives contact with a long session.
 
 **Where.** `pools.SPLINTER_PARENT_WEIGHT`, read through `pools.splinter_parent_weight(rule, party)` at both places a splinter's vector is blended (`arrival_rules`, for an arrival with no baseline, and `pools.place_vectorless`, for a party in the baseline with no vector from the fitting election).
 
-**Scope (owner, 2026-10-15, "option A").** The default applies only to a splinter with NO record of its own. A party absent from the fitting (local) election that stands in the target's baseline national election is fitted on that election's ward results by the same fitter, composition and identification test as every locally fitted party (`pools.national_fits`), and when the fit identifies at least one pool (`pools.vector_from_own_record`) that vector is used in place of the blend. Precedence, one rule for every party (`pools.place_vectorless`): local fit > national fit > judged `weights` > the splinter blend (`parent_weight`, else this default) > the city mix. A party whose national fit identifies no pool, or whose national election is unavailable, falls back to the blend and the spec says so (`national_fit_refused`). An arrival with no baseline (`arrival_rules`) has no record by construction and is unaffected. Which parties change at which city-years: MODEL-LOG §1.307.
+**Scope (owner, 2026-10-15, "option A").** The default applies only to a splinter with NO record of its own. A party absent from the fitting (local) election that stands in the target's baseline NPE is fitted on that election's ward results by the same fitter, composition and identification test as every locally fitted party (`pools.national_fits`), and when the fit identifies at least one pool (`pools.vector_from_own_record`) that vector is used in place of the blend. Precedence, one rule for every party (`pools.place_vectorless`): local fit > NPE fit > judged `weights` > the splinter blend (`parent_weight`, else this default) > the city mix. A party whose NPE fit identifies no pool, or whose NPE is unavailable, falls back to the blend and the spec says so (`national_fit_refused`). An arrival with no baseline (`arrival_rules`) has no record by construction and is unaffected. Which parties change at which city-years: MODEL-LOG §1.307.
 
 **Owner, 2026-10-21.** Go live with 0.35 as it stands and re-measure it after go-live: "It seems incorrect as it stands in a country so divided by population group." (OWNER-DECISIONS item 6.)
 
@@ -1710,9 +1710,9 @@ that survives contact with a long session.
 
 ### §F22 · `spine_k = 0` on a party with no θ evidence — `w_local = 0.0` — 🟡
 
-**Now.** A CHOSEN limit (`w = 0`, pure national spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for.
+**Now.** A CHOSEN limit (`w = 0`, pure NPE spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for.
 
-**Record.** **A CHOSEN LIMIT, not a derived one** (owner, 2026-08-28). `w = k / (worth + k)` is `0/0` when a party has both records and `worth = 0`, and it raised `ZeroDivisionError` (§1.97 F2). `w` weights the LOCAL route, so `k = 0` means "pure national spine". Taking `w = 0` keeps that meaning for **every** party. The limit from above — `w = 1` as `k → 0⁺` — was rejected: it would make `k = 0` mean pure-national for everyone *except* the parties with no θ evidence, which are precisely the ones the local route serves, so the lever would mean two things depending on who it was applied to. The owner's reasoning is on the record: *"ActionSA is a local party, the spine makes no sense there either."* **Inert at the shipped `spine_k = None` (k = 1.0), where `worth + k` is never zero** — it is reachable only by a sweep, which is what it exists for. Five parties at joburg 2026 are in this state: ASA, AHC, AFRICA_RESTORATION_ALLIANCE, BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA, FORUM_4_SERVICE_DELIVERY. §1.117
+**Record.** **A CHOSEN LIMIT, not a derived one** (owner, 2026-08-28). `w = k / (worth + k)` is `0/0` when a party has both records and `worth = 0`, and it raised `ZeroDivisionError` (§1.97 F2). `w` weights the LOCAL route, so `k = 0` means "pure NPE spine". Taking `w = 0` keeps that meaning for **every** party. The limit from above — `w = 1` as `k → 0⁺` — was rejected: it would make `k = 0` mean pure-NPE for everyone *except* the parties with no θ evidence, which are precisely the ones the local route serves, so the lever would mean two things depending on who it was applied to. The owner's reasoning is on the record: *"ActionSA is a local party, the spine makes no sense there either."* **Inert at the shipped `spine_k = None` (k = 1.0), where `worth + k` is never zero** — it is reachable only by a sweep, which is what it exists for. Five parties at joburg 2026 are in this state: ASA, AHC, AFRICA_RESTORATION_ALLIANCE, BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA, FORUM_4_SERVICE_DELIVERY. §1.117
 
 ### §F23 · `turnout_noise_sd`, `turnout_blend_jitter` — 0.08, 0.25 — 🟡
 
@@ -2321,19 +2321,19 @@ an argued bound.
 no roster has been published — i.e. an unheld target. A held election has a real
 roster and never reaches it, so **this constant cannot touch any backtest.**
 
-**What it decides.** Whether a party that polled in the preceding NATIONAL
-election, and has no preceding LOCAL record, is assumed onto the ballot of an
-election that has not happened yet. Below 0.1% of the national vote, it is not.
+**What it decides.** Whether a party that polled at the preceding
+NPE, and has no preceding LOCAL record, is assumed onto the ballot of an
+election that has not happened yet. Below 0.1% of the provincial-ballot vote, it is not.
 
 **Why a floor exists at all.** The forecast has to exist before nomination lists
 publish on 16 September, so the model must guess the roster. The rule was
-`set(baseline) | set(composition)` — *everyone* with a national vote — and it had
+`set(baseline) | set(composition)` — *everyone* with an NPE vote — and it had
 never been scored.
 
 ⚠️ **One number that circulated during this decision is misleading and is
 corrected here.** "The lowest preceding national share of any party that went on
 to win a seat is 0.0138%" is true, but that party is in the **both** class — it
-had a prior local record and is admitted regardless of any national floor. It
+had a prior local record and is admitted regardless of any NPE floor. It
 does not constrain this cut. **The binding figure is 0.0254%** (the PA at
 Ekurhuleni 2016). The lower number would push a reader toward a floor lower than
 the evidence requires.
@@ -2343,9 +2343,9 @@ admitted candidate by where its evidence comes from:
 
 | candidate class | n | won a seat | win rate | mean vote share |
 |---|---|---|---|---|
-| prior-local AND national | 189 | 125 | **66.1%** | **89.73%** |
+| prior-local AND NPE | 189 | 125 | **66.1%** | **89.73%** |
 | prior-local ONLY | 153 | 10 | 6.5% | 0.48% |
-| **national ONLY** | **226** | 30 | **13.3%** | **5.12%** |
+| **NPE ONLY** | **226** | 30 | **13.3%** | **5.12%** |
 | genuinely new | 232 | — | — | 4.66% |
 
 ⚠️ **Independents are excluded from these shares.** `parties.canonical` folds
@@ -2353,11 +2353,11 @@ every independent into one `IND` pseudo-party; counting it puts the prior-local
 class at 1.72% rather than 0.48%. Definitional, but the tables mean "parties".
 
 Ninety per cent of the vote is in the class with both kinds of evidence. The
-national-only class is 226 candidates for 5.12%.
+NPE-only class is 226 candidates for 5.12%.
 
 **Why the value is 0.1% and not the class.** ⛔ **The class cannot be dropped:
-MK is exactly it for 2026** — a 2024 national party with no 2021 local vector,
-at 12.2% nationally in Johannesburg. So the limit is on SIZE. Ordering the 226:
+MK is exactly it for 2026** — a party with a 2024 NPE vote and no 2021 local vector,
+at 12.2% of Johannesburg's 2024 provincial ballot. So the limit is on SIZE. Ordering the 226:
 
 | cut | dropped | **local vote lost** |
 |---|---|---|
@@ -2367,12 +2367,12 @@ at 12.2% nationally in Johannesburg. So the limit is on SIZE. Ordering the 226:
 
 **0.1% removes 70% of the phantom candidates for one tenth of a percentage
 point.** ⛔ **The first draft argued this from the transfer ratio of the LARGEST
-national-only parties (11.51% → 11.64%, 10.13% → 10.93%) and that reasoning is
+NPE-only parties (11.51% → 11.64%, 10.13% → 10.93%) and that reasoning is
 wrong** — it observes the ratio at the top and licenses a decision at the bottom.
 Measured by band, the ratio is *higher and far more dispersed* at the cut point
 than at the top:
 
-| preceding national share | n | median local/national | mean | max |
+| preceding NPE share | n | median local/NPE | mean | max |
 |---|---|---|---|---|
 | **< 0.10%** | 20 | **1.41** | **1.97** | 10.44 |
 | 0.10–0.20% | 12 | 0.93 | 0.97 | 1.94 |
@@ -2411,11 +2411,11 @@ marginals.)*
 **Measured effect on the live forecast.** At Johannesburg 2026 it drops **14**
 parties; `no_measured_vector` goes 21 → 8. **MK (12.2%), ActionSA (6.2%), RISE
 (1.6%) and BOSA (1.0%) all clear it**; what goes is XILUVA (0.025%),
-BASIC_INCOME_GRANT_SA (0.078%) and eleven more of that size. 24 of 44 national
+BASIC_INCOME_GRANT_SA (0.078%) and eleven more of that size. 24 of 44 NPE
 parties clear the floor.
 
 **What it does NOT fix, and must not be read as fixing.** A genuinely new party —
-no national vote, no local record — is still invisible.
+no NPE vote, no local record — is still invisible.
 
 ⛔ **And calling ActionSA "the outlier of sixteen city-years, not the norm" was
 wrong.** Split by cycle, the genuinely-new class is not a stable distribution
@@ -2428,7 +2428,7 @@ with one outlier; it is a regime change:
 | **2021** | **6.92%** | **114** |
 
 **That class won 134 seats across the panel — nearly as many as the entire
-national-only class this floor argues about (150).** Averaging a quiet cycle with
+NPE-only class this floor argues about (150).** Averaging a quiet cycle with
 a rupture to get 4.66% is anti-conservative when **2026 follows a larger rupture
 than either**. It is the same missing covariate `CLAUDE.md` already names for
 `k*`: nothing in this model has a term for how turbulent a cycle is. The remedy for that is a **declared**
@@ -2437,10 +2437,10 @@ and the model cannot.
 
 ### ⚠️ Three corrections and a cost, added 2026-09-03 after the first draft
 
-**1. It is not the NATIONAL share. It is this metro's share of the national
-election.** `baseline` reads the city's own result file for the preceding NPE
+**1. It is not the country-wide share. It is this metro's provincial-ballot share at the
+NPE.** `baseline` reads the city's own result file for the preceding NPE
 (`pools.py`, in `emit_pools` where `baseline` is built), so a party is judged on how it polled *in Johannesburg*
-at the national election, not nationally. That is the better quantity — locally
+at the NPE, not country-wide. That is the better quantity — locally
 relevant — but the first draft of this entry said "national share" throughout
 and was wrong. Verified that the measurement used the same quantity as the code:
 `baseline` and `_npe_citywide_for` agree to **0.00000** across all 44 parties,
@@ -2468,7 +2468,7 @@ is one of the parties the roster rule was measured to MISS at 2016, worth
 and small changes to the preceding NPE will move parties across it.
 
 **How to check it.** Re-run the class table and the cut table on the next cycle's
-record; if `national ONLY` stops being ~5% of the vote, or if the transfer ratio
+record; if `NPE ONLY` stops being ~5% of the vote, or if the transfer ratio
 of the large ones stops being ~1.0, the floor's justification has moved. **And
 re-run the seat-winner falsifier** — if it starts removing more than a seat or
 two, or removes one in a city where the margin is close, the floor is costing
@@ -2482,7 +2482,7 @@ more than it was chosen to cost.
 and polled nothing at the preceding NATIONAL one is assumed onto an unheld
 ballot. Below 0.1% of its prior local share, it is not.
 
-**Why it exists.** §K1's first draft filtered only the national-only class and
+**Why it exists.** §K1's first draft filtered only the NPE-only class and
 left this one — 153 of 568 admitted candidates — entirely unfiltered. A blind
 review found it, and it is **the better bargain of the two**. Over three cycles,
 189 such candidates (independents excluded) and **137 of them, 72%, never stand
@@ -2495,7 +2495,7 @@ again**:
 | 0.20% | 148 | 0.147pp | **5** |
 | 0.50% | 184 | 0.359pp | 16 |
 
-**59% of the class removed at zero measured seat cost** — against the national
+**59% of the class removed at zero measured seat cost** — against the NPE
 floor's 70% for two seats. The value is 0.1% for the same reason it is there:
 0.2% costs five seats, one of them a party that won four on a 0.162% prior share.
 The curve mirrors §K1's almost exactly, which is itself evidence the shape is
@@ -2774,9 +2774,9 @@ two consumers, and a rule that belongs to one of them applied to both.
 **What.** A party with no measured pool vector, no entry in `SPLITS` and no
 declared parent — so `classify_arrival` calls it *"arrived from nothing"* — is
 listed in the emitted spec under `unclassified_with_national_record` if it held
-at least **0.5%** at the preceding NATIONAL election.
+at least **0.5%** at the preceding NPE.
 
-**Why the national share and not the local one.** The local baseline of such a
+**Why the NPE share and not the local one.** The local baseline of such a
 party is zero by construction — that is what makes it an arrival — so a local
 trigger can never fire. A party that plainly exists nationally and has no local
 lineage is the case worth a second look: **it has probably split from someone
@@ -2799,7 +2799,7 @@ DA two-thirds of the Coloured pool and half the Indian/Asian — that is very
 likely a split whose parent should be declared. **Flagged, not decided:** naming
 a parent is a judgement, it belongs in the judgement file, and it is the owner's.
 
-**Why 0.5%.** Below it the list fills with the national tail: at 0.1% it would
+**Why 0.5%.** Below it the list fills with the NPE tail: at 0.1% it would
 flag fourteen more, all under 0.11%, none of them plausible splits. Above ~2% it
 would miss both of the ones that matter. Chosen to make the list short enough to
 read on the day. Undefended beyond that.
@@ -3119,9 +3119,9 @@ year a declared target uses). Each held cell stays listed in the spec's
 sized by different machinery, and the 2026 party it says it flags is on the side
 the table does not describe.** `emit_pools` computes
 `newcomers = {p for p in no_vector if baseline.get(p, 0.0) <= 0.0}`, so a party
-with a preceding NATIONAL result never reaches `arrival_rules` at all:
+with a preceding NPE result never reaches `arrival_rules` at all:
 
-| party | prior national (JHB) | sized by |
+| party | prior NPE (JHB) | sized by |
 |---|---|---|
 | **ActionSA** 2021 | **0.00%** | `pools.arrival_rules` |
 | **Agang** 2016 | **0.52%** (NPE 2014) | `levels.spine`, route *national only* |
@@ -3158,7 +3158,7 @@ hold, judged on nomination day:
 Everything else is chaff, however well known the founder. A contender is then
 sized by three multipliers, strongest evidence first: the pool it lands in and
 whether that pool's incumbent is shedding; its leader's home city; and its own
-preceding national result where it has one.
+preceding NPE result where it has one.
 
 **Why it is a judgement and cannot be derived.** Criterion 2 is not in any
 result file. It is the one input that separates the two cases the record
@@ -3222,8 +3222,8 @@ draws turnout per pool precisely so that this is not assumed away.
   2.35% at increasing remove; GOOD 3.68% in De Lille's Cape Town and ≤0.49%
   everywhere else. The model already measures this — 0.611 of the parent at
   home against 0.103 away.
-* **The national anchor, and rupture as its exception.** EFF kept 1.01–1.50× of
-  its national share across eight metros, GOOD 1.07, PA 1.49, the ID 0.86 —
+* **The NPE anchor, and rupture as its exception.** EFF kept 1.01–1.50× of
+  its provincial-ballot share across eight metros, GOOD 1.07, PA 1.49, the ID 0.86 —
   **COPE 0.12–0.28 across five**, after the Lekota–Shilowa war. One bimodal
   split, and criterion 3 is what selects the branch.
 
@@ -3997,7 +3997,7 @@ down. It cannot be changed on [your prediction](your-forecast/).
 
 **Where.** `pools.MERGER_RETENTION`, read at call time by `pools.apply_mergers`,
 which every function in `pools.MERGER_CONSUMERS` calls: `montecarlo.run_model`
-(the national baseline and every VD, then the preceding local PR shares),
+(the NPE baseline and every VD, then the preceding local PR shares),
 `pools.emit_pools` (the spec's baseline and the successor's pool vector), and
 `theta_residual._residuals_cached`. The declarations are data, `pools.MERGERS`,
 with sources in SOURCES.md "Mergers".
@@ -4012,8 +4012,8 @@ mass-weighted blend of its own and the predecessor's (`pools.merged_vector`).
 
 **The rule that goes with it (owner, DESIGN-decided §10).** A merger adds to a
 record the successor already holds and never creates one. RISE has a 2024
-national record and no 2021 local one, so it takes GOOD's transfer on the
-national route only; ActionSA takes Forum 4 Service Delivery's on both.
+NPE record and no 2021 local one, so it takes GOOD's transfer on the
+NPE route only; ActionSA takes Forum 4 Service Delivery's on both.
 
 **Why it is a judgement.** No merger in the archive identifies a retention.
 The two with elections on both sides (ID into the DA; NNP into the ANC) give
@@ -4657,7 +4657,7 @@ alone.
 **Now.** The interior edges of the starting-share bins a swing is grouped by,
 as shares of a ward's (or a city's) ward-ballot votes: bin i holds starting
 shares in (edge i-1, edge i], the first from zero. Seven edges, six bins, used
-for ward swings, citywide swings and the national-to-local changes alike.
+for ward swings, citywide swings and the NPE-to-local changes alike.
 
 **Why it matters.** The spread of swings grows with the share a party starts
 from (SPEC-B2 §2's table), so one pair of extremes for every party would give
@@ -4669,28 +4669,28 @@ function of the starting share). Neither was measured.
 **How to check it.** The same test: a swing pushed past its bin's greatest
 moves that bin's extreme and no other.
 
-### §R8 · a party with no ward record: its citywide share; new to local elections: its national share; neither: the newcomer caps — ⚖️ argued (O2: owner's call)
+### §R8 · a party with no ward record: its citywide share; new to local elections: its provincial-ballot share; neither: the newcomer caps — ⚖️ argued (O2: owner's call)
 
 **Now.**
 - A party with no vote in a ward at the preceding local election, but a vote
   elsewhere in the city, takes its citywide share there as the prior, by the
   rule of §R6 (`party_ranges`, kind `local`).
 - A party with no ward vote anywhere in the city at the preceding local
-  election but a vote at the preceding national election
-  (`Target.previous_npe`; `build_make.npe_priors`) takes its national share in
-  the ward, joined the same way, or its citywide national share where it has
+  election but a vote at the preceding NPE
+  (`Target.previous_npe`; `build_make.npe_priors`) takes its provincial-ballot share in
+  the ward, joined the same way, or its citywide provincial-ballot share where it has
   none in the ward (kind `national`). Its range is moved by the least and
-  greatest change from a national election to the next local election, per
+  greatest change from an NPE to the next local election, per
   bin, over every metro's pairs (n, l) before the target, the party on both;
   a party's collapse at the local election (from at least `COLLAPSE_FROM` of
-  the national vote to under `COLLAPSE_KEEP` of that) is left out of those
+  the provincial-ballot vote to under `COLLAPSE_KEEP` of that) is left out of those
   extremes. The same rule on citywide shares gives its citywide limit (§R12).
 - A party with neither (kind `newcomer`) ranges from zero to the greatest
-  ward share taken by any party new to its city with no vote at the national
-  election before, plus the ward allowance; its citywide limit, from zero to
+  ward share taken by any party new to its city with no vote at the NPE
+  before, plus the ward allowance; its citywide limit, from zero to
   the greatest such citywide share plus the city allowance. Both caps, and
   where each was set, are served under `swing.newcomer`.
-- A national file whose calendar template names an approximation
+- An NPE file whose calendar template names an approximation
   (`APPROXIMATE`; the 1999 footprint) is never a prior and never a pair.
 
 **Evidence.** The owner's O2 (2026-10-09): "new parties... 2024 result plus
@@ -4700,12 +4700,12 @@ COPE's collapse, so no centring adjustment moves a bound; it is recorded, not
 applied.
 
 **Limit.** A COPE-type collapse at a party's first local election falls
-outside its national-prior range: that is the measured cost of O2 (SPEC-B2r2
+outside its NPE-prior range: that is the measured cost of O2 (SPEC-B2r2
 §7, §8.4).
 
 **How to check it.** The same test: each `party_ranges` entry is of the kind
 its party's history says, recomputed from the files; a party deleted from the
-preceding local file takes its national prior, and deleted from the national
+preceding local file takes its NPE prior, and deleted from the NPE
 file too becomes a newcomer.
 
 ### §R9 · the allowance is the mean of the pooled record exceedances — ⚖️ owner's call (O1), measured
@@ -4762,8 +4762,8 @@ result fits uses the shape alone, and is named".
 election's ward vote on the target's wards, weighted by each ward's expected
 ward vote, moved by the least and greatest citywide swing of its bin
 (citywide stood-both swings over the same pairs), widened by the city
-allowance (§R9); a party new to local elections by its national share and the
-national-to-local citywide changes (§R8); a party with neither, the newcomer
+allowance (§R9); a party new to local elections by its provincial-ballot share and the
+NPE-to-local citywide changes (§R8); a party with neither, the newcomer
 cap. The editor keeps each party's ward vote inside the box (§R10) intersected
 with this limit (`builder-state.js` `limits`). Where they do not meet, the map
 wins: the party is held to its box, and the page says its wards need more (or
@@ -5017,7 +5017,7 @@ IEC publishes ballots, not voters.
 **Size, measured 2026-10-15** (in process, 100 draws, scratch bypass of the
 stale pool spec, width record and by-election weights): the PR mass removed
 is a mean of 0.40% of the list vote at Johannesburg 2026 (largest draw 1.52%;
-six ward-only parties, UDM the one with a national record) and 0.08% at
+six ward-only parties, UDM the one with an NPE record) and 0.08% at
 Johannesburg 2021 (largest draw 1.26%; two parties). Across the 24 held
 metro-years, ward-only parties other than independents took at most 0.29% of a
 ward ballot (eThekwini 2021, Cape Coloured Congress) and every other case

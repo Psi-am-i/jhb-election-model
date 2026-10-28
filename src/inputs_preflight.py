@@ -10,7 +10,7 @@ own schedule, and the two ways it goes wrong are both silent:
 * an input is **absent** and something falls back — `levels._citywide` returned
   `{}` for six missing election files and no test went red (MODEL-LOG §1.75);
 * an input is **present but stale** — the roll the model divides by is whatever
-  the last national election recorded, and it keeps working perfectly while the
+  the last NPE recorded, and it keeps working perfectly while the
   real electorate grows under it.
 
 This module answers one question per input: *do we have the current one, and if

@@ -340,7 +340,7 @@ PROCESSED = ROOT / "data" / "processed"
 #   * the home splinter record is filtered to the target, so MK's 2024 split
 #     no longer sizes an arrival at 2021. 2026 legitimately still sees it.
 # And previously, for the by-election clamp fix: the clamp was
-# anchored on the NATIONAL baseline, so it dragged ActionSA from the spine's
+# anchored on the NPE baseline, so it dragged ActionSA from the spine's
 # 15.2% down to 12.1% using a bound derived from the very route task #22
 # abandoned. Anchored on the spine level instead, ActionSA's central level
 # rises to 16.6% and its median seats from 23 to 31.
@@ -487,7 +487,7 @@ PROCESSED = ROOT / "data" / "processed"
 # on) 50.80; bfa422e4 (95b4405, entry 38, the roll) 50.56; 0d4e4b8c (982cc97,
 # entry 39: MK's 0.9 splinter weight, one roll per spec, VD placement) 52.27;
 # 76bfd9d6 (a3f039d, entries 40 and 41 together: the ward-contest rule and the
-# national-record fits, today's) 51.96. No mechanism is asserted per step;
+# NPE-record fits, today's) 51.96. No mechanism is asserted per step;
 # each interval holds the queue entries named and nothing was isolated within
 # one. Largest party move: MK p95 23.67 -> 24.11. No improvement is claimed
 # and none is measured
@@ -497,7 +497,7 @@ PROCESSED = ROOT / "data" / "processed"
 # MOVED THE DRAWER, NOT THE INPUT. Attributed, not assumed: this fixture with
 # `newness_width = "single"` on the re-emitted width record reproduces every
 # previous golden to 5e-5pp (under TOL); with the shipped "by_anchor" the
-# whole movement appears. MK is anchored (a 2024 national vote here) and its δ
+# whole movement appears. MK is anchored (a 2024 NPE vote here) and its δ
 # fell from the single δ to the anchored class's, so its band narrowed (p5
 # 1.43 -> 2.13, p95 24.11 -> 21.16) and, through the normalisation, ANC's and
 # DA's narrowed with it; the other newcomers' widths moved by class. No
@@ -562,7 +562,7 @@ def build_inputs(law: str = "universal"):
 
     base_path = ELECTIONS / "npe2024_{CODE}_vd_party.csv"
     if not cityconfig.resolve_path(base_path).exists():
-        skip(f"no national baseline for {CITY} at {base_path} — the prior "
+        skip(f"no NPE baseline for {CITY} at {base_path} — the prior "
              f"cannot be rebuilt without it")
     base_votes, _ = mc.load(base_path, None)
     base_city_d = mc.citywide(base_votes)
@@ -627,7 +627,7 @@ def build_inputs(law: str = "universal"):
     scenario["_new_parties"] = sorted(
         p for p in index if p != "ENTRANT" and share_2021.get(p, 0.0) <= 0.0)
     # The baseline before any seed (`montecarlo.newness_class` reads it): this
-    # fixture adds no seed, so it is the national baseline itself.
+    # fixture adds no seed, so it is the NPE baseline itself.
     scenario["_baseline_before_seeds"] = dict(base_city_d)
     return scenario, base_city_d, centres, index
 

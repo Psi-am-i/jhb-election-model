@@ -1178,7 +1178,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `ingest_lge.read_municipality` | model+measurement | Return the rows of ``src`` for one municipality, with canonical columns. | `contested_area`, `ingest_npe`, `polling`, `pools`, `tests/test_chain`, `tests/test_declared_reach_matches_ward_reach` |
 | `levels.ballot_roster` | model+measurement | The party NAMES on one result file's ballot. Names only, never votes. | `tests/test_levels_dispersion`, `tests/test_roster_fails_closed` |
 | `levels.absent_from_ballot` | model+measurement | Parties holding baseline share that are NOT standing at the target. | `montecarlo`, `tests/test_levels_dispersion`, `tests/test_projected_roster_declaration`, `tests/test_roster_aware_baseline`, `theta_residual` |
-| `levels.theta_record` | model+measurement | Every observed national-to-local retention ratio before the target. | `bye_value`, `montecarlo`, `tests/test_chain`, `tests/test_regressions`, `tests/test_spine`, `tests/test_temporal`, `tests/test_theta_prior`, `theta_residual` |
+| `levels.theta_record` | model+measurement | Every observed NPE-to-local retention ratio before the target. | `bye_value`, `montecarlo`, `tests/test_chain`, `tests/test_regressions`, `tests/test_spine`, `tests/test_temporal`, `tests/test_theta_prior`, `theta_residual` |
 | `levels.result_path` | model+measurement | Where this city-year's VD result file would be, or None if unscheduled. | `tests/test_declared_ward_slates` |
 | `levels.has_result_file` | model+measurement | Has this election been held and ingested? | `montecarlo`, `tests/test_declared_ward_slates` |
 | `levels.declared_contestation` | model+measurement | The ward slates a NOMINATION LIST declares, and whether it is the whole | `montecarlo`, `tests/test_declared_ward_slates`, `tests/test_ward_contest_rule` |
@@ -1201,7 +1201,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `levels.unopposed_pr_votes` | model+measurement | ``{party: its PR votes in the wards it won unopposed}``, from a result file. | `backtest` |
 | `levels.local_record_only` | model+measurement | Roster parties whose only record is the previous local election. | `montecarlo`, `tests/test_roster_universe` |
 | `montecarlo.logit` | model+measurement | -- | `fold`, `tests/test_fold_pool`, `tests/test_pool_placement`, `tests/test_solve_and_predict` |
-| `montecarlo.place_by_pool` | model+measurement | Put each party with no national geography where its pools live. | `tests/test_pool_placement` |
+| `montecarlo.place_by_pool` | model+measurement | Put each party with no NPE geography where its pools live. | `tests/test_pool_placement` |
 | `montecarlo.placement_deviation` | model+measurement | ``logit(local) - logit(base_city)`` per party, i.e. each party's geography. | `tests/test_pool_placement` |
 | `montecarlo.expit` | model+measurement | -- | `fold` |
 | `montecarlo.capped_targets` | model+measurement | Hold every column target under its cap WITHOUT changing the total. | `tests/test_ipf_feasibility`, `tests/test_universal_draw` |
@@ -1360,7 +1360,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `pools.load_lineage` | model+measurement | -- | `montecarlo`, `tests/test_chain`, `tests/test_national_record_fit`, `tests/test_splinter_parent_weight` |
 | `pools.write_lineage_template` | model+measurement | Ask for the judgements the model cannot make, with defaults filled in. | `tests/test_pool_bounds` |
 | `pools.city_mix_for` | model+measurement | The city's own pool composition — where this city's votes actually are. | -- |
-| `pools.national_fits` | model+measurement | Every party fitted on the target's baseline NATIONAL election, by ward. | `tests/test_national_record_fit` |
+| `pools.national_fits` | model+measurement | Every party fitted on the target's baseline NPE (its provincial ballot), by ward. | `tests/test_national_record_fit` |
 | `pools.vector_from_own_record` | model+measurement | A party's pool vector from its own fitted record, or ``None``. | `tests/test_national_record_fit` |
 | `pools.place_vectorless` | model+measurement | The pool vector for a party absent from the fitting election. | `tests/test_national_record_fit` |
 | `pools.resolve_roster` | model+measurement | Who is on the ballot at ``target``, and who may be deleted from the pools. | `tests/test_chain`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration` |
@@ -1490,7 +1490,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `fetch_boundaries` | neither | yes | -- | Download CoJ ward and voting-district boundaries from the MDB Spatial Knowledge Hub. |
 | `fetch_byelections` | neither | yes | -- | Download every municipal by-election result under one parent LGE, at VD level. |
 | `fetch_iec` | neither | yes | -- | Download every IEC report the model needs that is reachable without a browser. |
-| `fold` | model+measurement | NO | `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/compare_history`, `src/declares`, `src/diagnose`, `src/export_interactive`, `src/gamma_recent`, `src/montecarlo`, `src/plausibility`, `tests/test_fold_pool`, `tests/test_gamma_source`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_ward_pr_ratios` | Backtest a national/provincial baseline against a local-government target (plan §4). |
+| `fold` | model+measurement | NO | `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/compare_history`, `src/declares`, `src/diagnose`, `src/export_interactive`, `src/gamma_recent`, `src/montecarlo`, `src/plausibility`, `tests/test_fold_pool`, `tests/test_gamma_source`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_ward_pr_ratios` | Backtest an NPE baseline (provincial ballot) against a local-government target (plan §4). |
 | `freeze` | model+measurement | NO | `src/arms`, `src/compare_history`, `src/declares`, `src/export_draws`, `src/publication`, `tests/test_export_draws`, `tests/test_freeze`, `tests/test_provenance_gates` | Freeze a stage-1 forecast, and hash everything that could move it. |
 | `gamma_recent` | neither | yes | -- | Fit γ on the last LGE→NPE transition for parties fold 1 never saw (review A4). |
 | `group_share_record` | neither | yes | -- | The group-share record: what each party has really taken of each voter pool. |

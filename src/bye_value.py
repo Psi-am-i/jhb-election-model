@@ -11,7 +11,7 @@ existed.
 
 ⚠️ **A CROSS-BALLOT TEST ON THE WHOLE RECORD.** The archive's by-elections start
 in 2022-02, so the only real result after them is the 2024 provincial ballot.
-By-elections are local ward contests; the outcome is a national-provincial
+By-elections are local ward contests; the outcome is the provincial
 list ballot. Every quotation of this module's result says so; the artefact
 carries the sentence as ``caveat``.
 
@@ -22,11 +22,11 @@ The test, per (party, metro) pair:
   a ward with a 2021 base; and it has a positive list share at the 2021 LGE
   or on the 2024 provincial ballot there.
 * **Baseline ``B``**, the model's prediction of the 2024 result without
-  by-elections: the 2021 LGE list share converted to the national ballot by
-  the model's own national-local relation at the party's size,
+  by-elections: the 2021 LGE list share converted to the provincial ballot by
+  the model's own NPE-to-local relation at the party's size,
   ``B = s_2021 / exp(mu_θ)``. ``mu_θ`` is ``levels._shrunk`` on
   ``levels.theta_record`` for a 2024 target (the record strictly before 2024,
-  items 11, 16 and 17 applied), at each party's 2019 national share in the
+  items 11, 16 and 17 applied), at each party's 2019 provincial-ballot share in the
   metro, with the window ``levels.size_window`` derives at 2024. A party with
   no ``mu_θ`` takes the common mean ``_shrunk`` returns, as ``levels.spine``
   does. With no 2021 list share, ``B = 0``.
@@ -89,7 +89,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CITIES = ("joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",
           "nelsonmandelabay", "buffalocity", "mangaung")
 #: The outcome election, the local election the deltas are taken against, and
-#: the national election before the outcome (the size ``mu_θ`` is taken at).
+#: the NPE before the outcome (the size ``mu_θ`` is taken at).
 OUTCOME, BASE_LGE, BASE_NPE = BY.BYE_VALUE_OUTCOME, "2021", "2019"
 
 #: Typed parts of the test (JUDGEMENT-CALLS §A55), fixed in the
@@ -121,7 +121,7 @@ def baselines(cities=None) -> tuple[dict, dict]:
     Returns ``({slug: {"s2021": {...}, "B": {...}, "fallback": [...]}},
     window_report)``. ``tests/test_temporal.py`` spies this function's file
     opens (G25): it reads the θ record before 2024, each metro's 2021 LGE and
-    2019 national files, and nothing dated 2024 or later.
+    2019 NPE files, and nothing dated 2024 or later.
     """
     cities = CITIES if cities is None else cities
     target = cityconfig.Target(city=cityconfig.load(cities[0]), year=OUTCOME)

@@ -142,7 +142,7 @@ work.
 | `level_shrink` | 0.35 | how hard the top of the ballot is pulled toward the middle. **The single biggest modelling choice in the forecast** (§1.44) |
 | `dirichlet_scale` | 1.0 | how much the within-pool split is allowed to vary — the dominant width lever (§1.48, §1.55) |
 | `entrant_prob`, `entrant_share` | 0.25, [1,4,12]% | whether a party arrives from nothing, and how big |
-| `spine_k` | 1.0 | how much a party's own local record outweighs the national spine |
+| `spine_k` | 1.0 | how much a party's own local record outweighs the NPE spine |
 | `w_bye` | 0.4 | how much by-election evidence counts. **2026 only** — no past target has any |
 | `overhang_rule` | deduct | the statutory reading. `deduct` is the law; `expand` and `cap` are labelled counterfactuals |
 | `turnout_pattern_blend` | 0.5 | which turnout pattern the draw leans on |

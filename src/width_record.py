@@ -34,7 +34,7 @@ the draw's own model-internal location from the residuals and re-fits.
 
 Last, THE NEWCOMER δ BY ANCHOR CLASS (prereg/2026-10-16-newness-width-by-
 anchor.md, arm S; :func:`fit_class_deltas`): for each class of
-``montecarlo.newness_class`` ("anchored": centre from the party's own national
+``montecarlo.newness_class`` ("anchored": centre from the party's own NPE
 result in the city; "unanchored": none), the same likelihood
 (:func:`joint_nll`) profiled over δ alone on that class's new rows, at the
 converged curve, location and fixed-point shifts. Everything above is fitted

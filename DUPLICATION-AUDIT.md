@@ -81,7 +81,7 @@ residual it fits, which is what `_fit_line`'s docstring already claims.
 `_shrunk` returns `mu_all`, the **flat** centre, and `spine` uses it
 (`levels.py:879`). `theta_prior:688-698` states in terms that the flat centre is
 the wrong one and was corrected there; the spine still takes it, and the spine
-is what produces the level. The named case is **MK in 2026** — a national vote
+is what produces the level. The named case is **MK in 2026** — an NPE vote
 and no local election yet.
 
 ---

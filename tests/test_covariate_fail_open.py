@@ -222,7 +222,7 @@ def test_every_runnable_city_year_has_a_usable_arrival_baseline():
 
     # Two-sided per row. Observed 0.574..1.889 of the target's ballot roster on
     # 2026-09-14; the band is set wide of that deliberately, because the two
-    # counts are a national and a local ballot four to five years apart and
+    # counts are an NPE and a local ballot four to five years apart and
     # nothing makes them track. It still catches a file that yielded nothing
     # and a reader that double-counted.
     for slug, year in population:

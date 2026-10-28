@@ -1,7 +1,8 @@
 """Ingest IEC national/provincial election bulk result files to a JHB VD-level subset.
 
 The IEC publishes VD-level results in two quite different layouts, and this
-module normalises both onto :data:`COLUMNS`.
+module normalises both onto :data:`COLUMNS`. The output keeps one ballot, the
+provincial, and carries no ballot column.
 
 **Results-portal layout** (2019, 2024) --
 ``results.elections.org.za/home/NPEPublicReports/{id}/Downloadable Results/Provincial.zip``,

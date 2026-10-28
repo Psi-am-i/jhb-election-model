@@ -1117,14 +1117,14 @@ registration and which no downstream user can reconstruct.
 read-only, with a positive control: the alias leaves today's θ and arrival
 records byte-identical, because **no LGE file carries either spelling** and the
 NNP had dissolved before the 2006 local election. It is a correctness fix on the
-national reads, not a repair to a live forecast number — and the reason it is
+NPE reads, not a repair to a live forecast number — and the reason it is
 worth taking anyway is the class above, not the instance.
 
 ---
 
-## 18. 🔴 The results-portal NPE layout carries no ward, so four national elections have voting districts and no wards (found 2026-09-14)
+## 18. 🔴 The results-portal NPE layout carries no ward, so four NPEs have voting districts and no wards (found 2026-09-14)
 
-**The class.** The Commission publishes national results in two layouts. The
+**The class.** The Commission publishes NPE results in two layouts. The
 **bulk export** carries `WARD` beside `VOTING_DISTRICT`; the **results-portal**
 export does not carry it at all — `src/ingest_npe.py` says so above its
 `COLUMNS` table (*"Ward is blank for the results-portal layout, which does not
@@ -1146,7 +1146,7 @@ file, over `data/raw/elections/npe*_<CODE>_vd_party.csv`:
 | `npe2019` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | `npe2024` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
-**32 city-years carry voting districts and no wards** — four national elections
+**32 city-years carry voting districts and no wards** — four NPEs
 across all eight metros — while the voting districts themselves are complete
 (Johannesburg: 648 VDs at 1999, 686 at 2004, 853 at 2019, 865 at 2024). The gap
 is the *layout the file was fetched from*, not the city and not the era: 2009 and
@@ -1228,7 +1228,7 @@ claim about eight of them.
 ## 19. 🟡 Roster parties with no record of any kind are not drawn at a backtest (named 2026-10-09)
 
 **The class.** A party on a backtest target's ballot with no previous-LGE list
-vote, no national baseline and no arrival seed has no pool vector, so the run
+vote, no NPE baseline and no arrival seed has no pool vector, so the run
 cannot draw it. Since the model correction batch (item 8) the run names these
 parties per city-year in `41_guards.roster_unrepresented`
 (`montecarlo.roster_universe_check`) instead of omitting them in silence. At a

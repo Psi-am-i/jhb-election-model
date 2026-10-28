@@ -135,8 +135,8 @@ tied ward. It reads the four columns scoring needs and, for
 ``build_make.editor_bounds`` (``roll=True``), the three that carry each VD's
 ward and roll, and (``vd_votes=True``) each VD's ward-ballot votes per party:
 one reader of the cleaned layout, not a second. :func:`_read_npe` beside it
-reads the one-ballot national layout (no ``BallotType``, no ward) for the
-editor's national prior (``build_make.npe_priors``).
+reads the one-ballot NPE layout (no ``BallotType``, no ward) for the
+editor's NPE prior (``build_make.npe_priors``).
 """
 
 from __future__ import annotations
@@ -295,7 +295,7 @@ def _read_rows(path: Path, *, roll: bool = False, vd_votes: bool = False):
 
 
 def _read_npe(path: Path) -> dict[str, dict[str, int]]:
-    """``{vd: {IEC name: votes}}`` from a national (NPE) VD-level file: one
+    """``{vd: {IEC name: votes}}`` from an NPE (provincial ballot) VD-level file: one
     ballot, no ``BallotType`` and no ward. A file carrying ``BallotType`` is a
     local file and is refused, as is one missing a column the read needs."""
     by_vd: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -304,10 +304,10 @@ def _read_npe(path: Path) -> dict[str, dict[str, int]]:
         fields = set(reader.fieldnames or ())
         if "BallotType" in fields:
             raise ValueError(f"{path}: carries BallotType, so it is not a "
-                             f"one-ballot national file")
+                             f"one-ballot NPE file")
         missing = {"VD_Number", "sPartyName", "Party_Votes"} - fields
         if missing:
-            raise ValueError(f"{path}: not an IEC national VD result file; "
+            raise ValueError(f"{path}: not an IEC NPE VD result file; "
                              f"missing columns {sorted(missing)}")
         for row in reader:
             by_vd[row["VD_Number"].strip()][row["sPartyName"]] += int(row["Party_Votes"])

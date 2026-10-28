@@ -447,7 +447,7 @@ def test_the_k2_floor_refuses_on_an_unreachable_record_and_thins_on_an_empty_one
     """
     truth, ranked, composition = _inputs()
     # A baseline that holds only the large parties, so §K2 has something to
-    # exclude: `_local_thin` needs parties present locally and absent nationally.
+    # exclude: `_local_thin` needs parties present locally and absent from the NPE.
     baseline = {p: truth[p] for p in ranked[:8]}
     thinnable = [p for p in truth
                  if p not in baseline and truth[p] < pools.PRIOR_LOCAL_FLOOR]

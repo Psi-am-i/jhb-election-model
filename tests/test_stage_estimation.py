@@ -5,7 +5,7 @@ WHAT THIS FILE IS. ``run_model`` emits every stage as JSON under ``--run-dir``
 those stages are a chain of estimates, each consuming the last:
 
   ``10_theta_prior``  per-party retention band and width, from the archive
-  ``20_spine``        per-party central level, blending the national and local routes
+  ``20_spine``        per-party central level, blending the NPE and local routes
   ``30_centres``      the level vector handed forward, before and after the shrink
 
 The interesting properties are BETWEEN them: what must agree, what must be
@@ -53,7 +53,7 @@ somebody out while this file was written; the durable version is in
   111.68pp of level) take the seeded-arrival route and sit at exactly
   ``spine_level / theta_centre``. ActionSA is the famous one — 5.85% in
   ``20_spine``, 6.84% in ``30_centres``.
-* ``20_spine``'s ``detail[p]["national"]`` is not the party's national vote
+* ``20_spine``'s ``detail[p]["national"]`` is not the party's provincial-ballot
   share. It is that share already multiplied by ``exp(mu_theta)``; ``local`` is
   likewise already through rho. Both are LEVELS, and the blend is between them.
 * ``30_centres`` is not a share vector. It does not sum to one and is not meant
@@ -123,7 +123,7 @@ SEED = 20261104
 #
 # FIELDS, and their units.
 #   prior        {party: [low, mode, high]} — theta, a RATIO of a local share to
-#                the national share it is measured off. Dimensionless. The band
+#                the provincial-ballot share it is measured off. Dimensionless. The band
 #                is the 10th to 90th percentile of LogNormal(log mode, sd).
 #   sd           {party: float} — sd(log theta) for that party, AFTER the
 #                [sd_floor, sd_ceiling] clamp. The width the draw actually uses
@@ -140,7 +140,7 @@ SEED = 20261104
 #   at_the_floor the parties the FLOOR bound. There is no `at_the_ceiling`, and
 #                the ceiling binds on far more parties — 21 of 44 at joburg
 #                2021, 35 of 79 at 2026 — every one of them a party with no
-#                national baseline, and so none of them carrying a centre.
+#                NPE baseline, and so none of them carrying a centre.
 
 def theta_the_band_is_the_measured_width(stage: dict) -> list[str]:
     """``log(high/low) / (2 * 1.2816)`` must be the party's own recorded ``sd``.
@@ -395,8 +395,8 @@ def spine_the_level_is_the_geometric_blend_of_its_two_routes(stage: dict) -> lis
     not the blend of the routes it names is reporting an arithmetic that did not
     happen, and the detail block exists precisely to be believed.
 
-    The degenerate rows are checked too: a national-only party must sit exactly
-    on its national route, a local-only party exactly on its local one.
+    The degenerate rows are checked too: an NPE-only party must sit exactly
+    on its NPE route, a local-only party exactly on its local one.
     """
     detail, level = _spine_rows(stage)
     faults = []
@@ -421,7 +421,7 @@ def spine_the_level_is_the_geometric_blend_of_its_two_routes(stage: dict) -> lis
         if _rel(want, got) > 1e-9:
             faults.append(
                 f"{party}: level {got:.8g}, but the blend of the routes the row "
-                f"reports (local {loc:.6g}, national {nat:.6g}, w_local {w:.4f}) "
+                f"reports (local {loc:.6g}, NPE {nat:.6g}, w_local {w:.4f}) "
                 f"is {want:.8g}")
     return faults
 
@@ -452,7 +452,7 @@ def spine_the_route_label_describes_the_arithmetic(stage: dict) -> list[str]:
 
     A party with both records and no theta evidence gets ``w = 1.0`` — one
     hundred per cent its own last local result, nothing blended — and was
-    labelled "blend" anyway. For ActionSA at 2026 the label said the national
+    labelled "blend" anyway. For ActionSA at 2026 the label said the NPE
     route was contributing when it was not, and the label is exactly what a
     reader checks when asking why a party sits where it does.
 
@@ -474,9 +474,9 @@ def spine_the_route_label_describes_the_arithmetic(stage: dict) -> list[str]:
             faults.append(f"{party}: has both records and is labelled {route!r}")
         if nat_only:
             if not route.startswith("national only"):
-                faults.append(f"{party}: has a national record only and is labelled {route!r}")
+                faults.append(f"{party}: has an NPE record only and is labelled {route!r}")
             if w != 0.0:
-                faults.append(f"{party}: national-only route carrying local weight {w}")
+                faults.append(f"{party}: NPE-only route carrying local weight {w}")
         if loc_only:
             if not route.startswith("local only"):
                 faults.append(f"{party}: has a local record only and is labelled {route!r}")
@@ -487,7 +487,7 @@ def spine_the_route_label_describes_the_arithmetic(stage: dict) -> list[str]:
             if full_local != ("full local" in route):
                 faults.append(
                     f"{party}: w_local {w:.4f} and the label {route!r} disagree "
-                    f"about whether the national route contributed anything")
+                    f"about whether the NPE route contributed anything")
             if full_national != ("full national" in route):
                 faults.append(
                     f"{party}: w_local {w:.4f} and the label {route!r} disagree "
@@ -504,7 +504,7 @@ def spine_the_blend_weight_is_keyed_on_what_the_record_is_worth(stage: dict) -> 
     both records and no theta evidence, and it raised out of the middle of
     ``run_model`` for five parties at joburg 2026. The limit taken there is a
     registered JUDGEMENT CALL, not a derivation — ``w = 0`` keeps "k = 0 means
-    pure national spine" true for every party — so it is pinned here.
+    pure NPE spine" true for every party — so it is pinned here.
     """
     detail, _ = _spine_rows(stage)
     k = stage.get("k")
@@ -579,8 +579,8 @@ def spine_the_disagreement_account_adds_up(stage: dict) -> list[str]:
     be, the finite and non-finite rows account for every blend row, and the two
     saturation counts are censuses of the rows.
 
-    This block is the only thing that can distinguish "changing the national
-    route did not move the forecast" from "the national route was never worth
+    This block is the only thing that can distinguish "changing the NPE
+    route did not move the forecast" from "the NPE route was never worth
     anything here" (NULL-RESULTS.md 4.3). It is write-only in the model, which
     is exactly why nothing else would notice it going wrong.
     """
@@ -1115,7 +1115,7 @@ def cross_every_centre_has_a_level_behind_it(payloads) -> list[str]:
     """Every party in ``30_centres`` has a spine level or a theta prior.
 
     ``blended_centres`` has four routes and a raising ``else``: a party with a
-    national baseline, no spine level, no theta prior and no arrival seed used to
+    NPE baseline, no spine level, no theta prior and no arrival seed used to
     be absorbed by a per-party typed constant and there is no longer one
     (§1.52). A seeded arrival reaches the spine too, because the seed loop adds
     it to the baseline before ``spine`` is called. So a centre with neither
@@ -1166,7 +1166,7 @@ def cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling(payloads) -> list
     A TRIPWIRE, and if it fires it is a finding rather than a flake. The ceiling
     binds on a lot of the prior — 21 of 44 parties at joburg 2021, 35 of 79 at
     2026 — and on inspection every one of them is a party with a theta record and
-    NO national baseline, whose width is the fit extrapolated to ``log(1e-5)``.
+    NO NPE baseline, whose width is the fit extrapolated to ``log(1e-5)``.
     Those parties carry no centre and reach no forecast number, so the ceiling's
     absorption is real and inert.
 
@@ -1273,7 +1273,7 @@ def healthy_theta_prior() -> dict:
 def healthy_spine() -> dict:
     """A spine payload with one row of each route, plus a full-local blend."""
     rows = {
-        # party        national level, local level, own theta worth
+        # party        NPE level, local level, own theta worth
         "BIG":        (0.4400, 0.4700, 21.4),
         "MID":        (0.0510, 0.0190, 3.2),
         "FULLLOCAL":  (0.0620, 0.1520, 0.0),    # both records, no theta evidence
