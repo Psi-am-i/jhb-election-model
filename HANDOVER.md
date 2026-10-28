@@ -5,7 +5,7 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-**Folder (2026-10-27):** the repository is `~/projects/jhb-election-model`; the `atlas-` prefix was dropped (owner; `~/projects/scout-scarabtech-projects/rename-jhb-election-model.sh`). Worktrees, venv and the MemPalace wing carry over. `~/projects/atlas-jhb-site-release` keeps its name. Older paths below and in `audits/` are as they were then.
+**Folder (2026-10-27):** the repository is `~/projects/jhb-election-model`; the `atlas-` prefix was dropped (owner; `~/projects/rename-jhb-election-model.sh`). Worktrees, venv and the MemPalace wing carry over. `~/projects/atlas-jhb-site-release` keeps its name. Older paths below and in `audits/` are as they were then.
 
 > ## ⛔ STATE AT 2026-10-16 (branch `site-r11`): UAT VERSION d22294e0 OF THE 16 OCTOBER FORECAST, FOR OWNER REVIEW. NOT LIVE.
 >
