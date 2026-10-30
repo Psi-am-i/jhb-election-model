@@ -31428,3 +31428,41 @@ Pool sizes (share of 2021 votes cast): Black African 0.670, Coloured 0.074, Indi
 - `rates_on_a_bound` covers the registration, adult-share and turnout bounds, not the composition fit's Duncan-Davis bounds; it is empty for Johannesburg 2026.
 
 **What it reaches.** The pool rates drive the reader's turnout-by-population-group controls and the forecast's turnout reweighting. A change is forecast-moving. Not changed; to the owner as `OWNER-DECISIONS.md` "Where each party's votes come from".
+
+## 1.339 The census group mix, as published or as its critics would correct it, moves Johannesburg 2026 seats by hundredths of a seat (2026-10-30)
+
+Owner's question: "if we take census as is and adjust census as reporting
+suggests - what is the difference in seats?" Pre-registered in
+`prereg/2026-10-30-census-adjusted-composition.md` (8b188754) before any run.
+
+Three arms, Johannesburg 2026, tree 8b188754, seed 20261104, 5,000 draws,
+paired; only the ward population-group shares differ, applied both to the pool
+fit (spec re-emitted outside `data/`) and to the run's per-VD composition
+(`pools.read_census` patched in process; 63 census reads per arm). Arm B
+reproduces the published `seat_draws.csv` draw for draw. Outputs:
+`rounds/2026-10-23-out-of-sample/census-adjust/arms/`.
+
+| arm | ward shares | roll-weighted city mix (BA/Col/Ind/White %) |
+|---|---|---|
+| B | Census 2022 as read | 75.559 / 5.516 / 5.017 / 13.907 |
+| N | white −6.41%, Indian/Asian −11.14% (Moultrie & Dorrington 2024), renormalised | 76.143 / 5.596 / 4.660 / 13.600 |
+| E | Census 2011 moved onto the 2021 wards | 74.175 / 5.746 / 5.220 / 14.859 |
+
+Measured (re-derived from the saved draws):
+- N − B: seats differ in 1,035 of 5,000 draws, never by more than 2; largest
+  change in a party's mean seats 0.006 (ANC −0.006 ± 0.003); ward winners
+  differ in 268 of 675,000 draw-ward cells; largest ward winner-probability
+  change 0.16 points (ward 10, ANC).
+- E − B: seats differ in 4,218 of 5,000 draws, by at most 7; largest change in
+  a party's mean seats 0.020 (DA +0.020 ± 0.024); ward winners differ in 2,694
+  of 675,000 cells; largest ward change 1.24 ± 0.28 points (ward 58, DA,
+  20.82% → 22.06%). No ward's most likely winner changes in either arm.
+
+Scored: P1, P2, P3, P5 held; P4 (E moves more than N for DA and ANC) holds in
+direction but within one Monte Carlo error, so unresolved. The prereg's
+coalition-route probabilities were not computed.
+
+Not separated: whether the means hold because the pool fit re-absorbs a mix
+change against the same 2021 result, or because the draw holds each party's
+citywide share and composition reaches seats only through which ward the vote
+sits in. Comparing the arms' traced centres would separate them.
