@@ -1313,3 +1313,44 @@ The fix reaches every target whose fold has placeholder rows: every fold file
 of every city has some, Tshwane's included. `fold5_parameters.csv` cannot be
 refitted under the default options (fold 5 has no prior LGE), so it stays
 without the column and `fold.py --fit-from 5` refuses it.
+
+## 23. 🔴 Census 2022's population-group mix by ward rests on an undercount correction made only at province × settlement-type level (named 2026-10-30)
+
+The model splits each ward's roll by Census 2022 population-group shares
+(MODEL-LOG §1.321). Published evidence on how those shares were produced, read
+2026-10-30 (reported, not measured here):
+
+- **Undercount.** Stats SA's Post-Enumeration Survey (PES) puts the 2022
+  undercount at 31.06% of persons nationally, 30.79% in Gauteng (SE 2.07);
+  2011's were 14.6% and 14.7%. By group, the PES reports 72% of Indian/Asian
+  and 62% of white people not counted, against 36.7% of black African people
+  (Moultrie & Dorrington 2024, SAJS 120(7/8), citing the PES report; the
+  Gauteng figures from their Table 8, citing PES 2022 Table 1).
+- **Where the correction was made.** The PES covered 840 of over 130,000
+  enumerator areas and was stratified only by province × urban/farm/
+  traditional (26 strata). It "was not designed to correct or adjust the
+  population at levels of granularity finer than those used to stratify the
+  PES sample" (Moultrie & Dorrington 2024, SAMRC technical report §3.3). So a
+  ward's adjusted group mix is its enumerated mix scaled by one Gauteng-urban
+  factor per group: a ward whose white or Indian residents were missed more
+  than the stratum average keeps that shortfall.
+- **Group totals.** Against cohort projections, the census overstates the
+  Indian/Asian population by about 190,000 and the white population by about
+  290,000 nationally (same report, §2.2). The PES's standard errors for those
+  two groups (0.82%, 0.42%) are called "clearly implausible" there.
+- **Johannesburg.** Census 2022 puts the city at 4,803,262, 20.5% below Stats
+  SA's own mid-year estimate interpolated to census day (6,041,207), and its
+  2011-2022 growth at 8.3% against 28-38% for Ekurhuleni and Tshwane (same
+  report, Tables 5-6). Between 2011 and 2022 it records the white population
+  falling by 211,000, Indian by 49,000, coloured by 18,000 (Harrison, Todes,
+  Mushongera, Gotz, The Conversation, 2023-10-17).
+- **Census against the roll.** In five municipalities without boundary
+  changes, census adults and registered voters moved in opposite directions
+  (Thabazimbi: census 18+ −23.6%, roll +17.4%) (same report, Table 7).
+
+Reach: every pool composition in the forecast and, through the ex-post census
+exception, every backtest row. Not measured: how far Johannesburg's ward group
+shares are off. **The measurement that sizes it:** per ward, Census 2022
+adults by group against the IEC roll, and the 2011 census's ward mix against
+2022's on a common delimitation (SuperWEB2 ward tables, `COLLECTION-LEDGER.md`
+C8). Sources go in `SOURCES.md` when the census tables are collected.
