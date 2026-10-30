@@ -1354,3 +1354,28 @@ shares are off. **The measurement that sizes it:** per ward, Census 2022
 adults by group against the IEC roll, and the 2011 census's ward mix against
 2022's on a common delimitation (SuperWEB2 ward tables, `COLLECTION-LEDGER.md`
 C8). Sources go in `SOURCES.md` when the census tables are collected.
+
+**Measured 2026-10-30** (`rounds/2026-10-23-out-of-sample/census-adjust/wards.py`,
+`wards.csv`, `summary.json`; 135 wards on the 2021 map; 96% of the 2021 roll
+maps back to 2011 wards):
+
+- **The census missed whole suburbs, not their mix.** In 31 of 135 wards the
+  2021 LGE roll exceeds Census 2022's adults 18+ (median ratio 1.32), which
+  cannot be true. Those wards' median Census 2022 white share is 52.9%
+  (others: 0.2%). Their roll ÷ census-adults ratio was 0.75 in 2011 (2011 roll ÷
+  Census 2011 adults); the 104 other wards moved 0.65 → 0.60. Within the 31,
+  the median white share is 50.3% in 2011 and 52.9% in 2022: the ward totals
+  fell, the mix did not. Citywide, roll ÷ census adults is 0.63 (2011) and 0.62
+  (2022).
+- **What the model reads is little moved.** Weighting each ward's group mix
+  by its 2021 roll (as the model sizes pools by the roll): Census 2022 gives
+  Black African 75.56%, Coloured 5.52%, Indian/Asian 5.02%, White 13.91%;
+  Census 2011 moved onto the same wards gives 74.17%, 5.75%, 5.22%, 14.86%
+  (adults only: 74.12%, 5.47%, 5.15%, 15.25%). The census's own citywide count
+  (White 6.97%) is not what the model uses.
+- **The national correction** (white −6.4%, Indian/Asian −11.1%) moves no ward's
+  white share by more than 1.31 points and any group in any ward by at most 2.70.
+- **Ward by ward, 2011 and 2022 mixes differ by up to 32.4 points** (largest
+  white-share falls: wards 79800115 47.0% → 28.5%, 79800070 28.6% → 10.4%,
+  79800085 51.5% → 34.0%). Which of real change, the 2011 reprojection (uniform
+  within each 2011 ward) or census error causes each is not separated here.
