@@ -31487,3 +31487,18 @@ So in this model the census decides where a party's votes fall between wards
 and how the draws scatter around the centre; it cannot move the expected
 citywide result by construction. A census error therefore shows up in which
 wards a party wins in a given draw, not in the expected seat totals.
+
+## 1.341 The freeze hash in §1.336 described a 1,500-draw re-run, not the published 5,000-draw forecast (2026-10-31)
+
+`freeze.py --draws` defaults to 1500, and §1.336's freeze (`e1b960fb…`) was
+written at that default; the published forecast and `seat_draws.csv` are 5,000
+draws. Re-run at `--draws 5000`, seed 20261104, `PYTHONHASHSEED=0`, on
+28ceae36: `content_sha256`
+`10bdccc05423b0db38b0a52aeb8d6bd192539442e75da113ee07bc224ebc7c4a`,
+reproduced twice; its draws equal the published `seat_draws.csv` in all
+65,000 cells of its 13 columns. The `ad6ca1dd…` id in `site/changes.json` is
+a different hash (the summary content, `publication.forecast_content_sha`) and
+recomputes unchanged. Material for publication, the 151-file input list
+(recorded by an audit hook during the run), the strict preflight output and
+the scoring-rule hashes: `audits/2026-10-31-freeze-publication/`.
+`data/processed/forecast_frozen.json` is not replaced (owner's call).
