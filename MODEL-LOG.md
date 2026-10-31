@@ -31466,3 +31466,24 @@ Not separated: whether the means hold because the pool fit re-absorbs a mix
 change against the same 2021 result, or because the draw holds each party's
 citywide share and composition reaches seats only through which ward the vote
 sits in. Comparing the arms' traced centres would separate them.
+
+## 1.340 Why §1.339 moved nothing: the draw is calibrated to centres that no census enters (2026-10-31)
+
+§1.339 left two explanations open. Measured from the same saved draws:
+
+- **Not seat compensation.** In arm E, where the DA's ward wins change (1,634
+  of 5,000 draws, by −5 to +5), its total seats also change in 1,506 of them;
+  mean |seat change| in those draws 1.83 against mean |ward change| 1.32. The
+  list top-up does not absorb the ward changes.
+- **The expected share is pinned.** List-share draws differ per draw (E − B
+  sd: DA 0.593, ANC 0.202, ActionSA 0.101, MK 0.092 points) but their means
+  differ by at most 0.0094 points (DA). The κ loop in the universal draw
+  (`montecarlo.py`, `for kappa_iters in range(1, KAPPA_MAX_ITER + 1)`)
+  rescales until the mean of the calibration draws equals the centres `u_c`,
+  and the centres come from the election-history levels (θ, the spine), which
+  read no census.
+
+So in this model the census decides where a party's votes fall between wards
+and how the draws scatter around the centre; it cannot move the expected
+citywide result by construction. A census error therefore shows up in which
+wards a party wins in a given draw, not in the expected seat totals.
