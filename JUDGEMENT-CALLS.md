@@ -2943,6 +2943,11 @@ larger of the two and is the one the code warns about at
 `pools.resolve_roster`'s refusal. Both are small here: the two parties together
 hold well under a tenth of a percent of the 2021 PR vote.
 
+**The result file.** The same four identities are applied to the 4 November
+result through `judgements/joburg-2026-result-aliases.json`
+(`score_forecasts.result_aliases`), so scoring reads the two judgement calls
+exactly as the forecast does.
+
 **How to check it.** Against the IEC's **party register** (registration numbers,
 not the candidate list), which is the only source that can settle identity. Until
 that is done these two stay in this register as typed. ⛔ **Do not resolve them

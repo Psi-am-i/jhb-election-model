@@ -226,6 +226,25 @@ def certified_roster(city: str, target: str) -> list[str]:
     return list(dict.fromkeys(block["parties"]))
 
 
+def result_aliases(city: str, target: str) -> dict[str, str] | None:
+    """``{IEC string: roster spelling}`` from ``judgements/<city>-<target>-result-aliases.json``,
+    or None when the city-year has none.
+
+    The certified roster spells four Johannesburg 2026 parties as their own
+    baseline does, not as the IEC's list does (``judgements/joburg-2026.toml``,
+    MODEL-LOG §1.242, JUDGEMENT-CALLS §L12, two of them judgement calls). The
+    result file will carry the IEC's strings, so the scorer needs these four
+    mapped back. Committed before polls open so the mapping is part of the
+    frozen rule, not chosen once the result is in. ``rank_entries`` reads it
+    when no ``--aliases`` is given.
+    """
+    path = Path(__file__).resolve().parents[1] / "judgements" / f"{city}-{target}-result-aliases.json"
+    if not path.exists():
+        return None
+    import json
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 # --------------------------------------------------------------------------
 # the result
 

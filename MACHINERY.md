@@ -2733,6 +2733,12 @@ rule 11), and our own prediction is held in the same shape.
   zero votes, because `score_forecasts.ingest_result` passes the real result's
   counts, in which a party that did not stand on a ballot has no entry. An
   unknown party is refused by all four.
+* **The result's party names** (`score_forecasts.result_aliases`): the IEC's
+  strings for the four parties the 2026 roster spells as their baselines do
+  (MODEL-LOG §1.242) are mapped back by `judgements/joburg-2026-result-aliases.json`,
+  committed before polling day; `rank_entries` reads it when no `--aliases` is
+  given, and `name_map` still refuses any other unmapped string and any alias
+  the result file does not carry.
 * **Our prediction on the page** (`build_make.start_state`): the prediction
   object plus `start.f`, written by one node call to the page's own encoder,
   which the build refuses unless `decode(f)` is the object (guard G7); the
