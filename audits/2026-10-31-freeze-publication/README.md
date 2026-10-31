@@ -32,9 +32,10 @@ Checks (2026-10-31):
 
 ## Not done here, for the owner
 
-- `data/processed/forecast_frozen.json` still holds the 1,500-draw freeze.
-  Replacing it with `forecast_frozen_5000.json` overwrites a committed artefact;
-  that is the owner's call.
+- `data/processed/forecast_frozen.json` replaced with the 5,000-draw freeze on
+  the owner's instruction (2026-10-31), written by `PYTHONHASHSEED=0
+  src/freeze.py --draws 5000` on clean commit d78a2d97; `forecast_frozen_5000.json`
+  here is a copy of it.
 - Readers can check these hashes only against public code. `site-sweep-1` is
   not on GitHub yet (the history scan before pushing is open).
 - The published `seat_draws.csv` carries 13 parties; the other 65 hold up to

@@ -31502,3 +31502,9 @@ recomputes unchanged. Material for publication, the 151-file input list
 (recorded by an audit hook during the run), the strict preflight output and
 the scoring-rule hashes: `audits/2026-10-31-freeze-publication/`.
 `data/processed/forecast_frozen.json` is not replaced (owner's call).
+
+## 1.342 `forecast_frozen.json` is now the 5,000-draw freeze (2026-10-31)
+
+Owner's instruction. Written by `PYTHONHASHSEED=0 src/freeze.py --draws 5000`
+on clean commit d78a2d97: `content_sha256` `10bdccc0…` as in §1.341.
+`test_freeze` 7 passed, `test_provenance_gates` 11 passed (partial run).

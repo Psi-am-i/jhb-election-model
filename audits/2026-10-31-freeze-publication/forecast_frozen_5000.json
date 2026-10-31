@@ -1000,8 +1000,8 @@
  },
  "content_sha256": "10bdccc05423b0db38b0a52aeb8d6bd192539442e75da113ee07bc224ebc7c4a",
  "provenance": {
-  "git_commit": "28ceae36b1b18546a3510e826456118953925043",
-  "git_dirty": true,
+  "git_commit": "d78a2d97577ec490ffc8e077b6833b8717cacce0",
+  "git_dirty": false,
   "numpy": "2.5.1",
   "python": "3.13.4"
  }
