@@ -1,14 +1,15 @@
 # jhb-election-model — status
 
-**Last updated:** 2026-11-01
+**Last updated:** 2026-11-02
 
 | | |
 |---|---|
 | Live site | joburg.whysoserious.city, Worker version c16de7df (2026-10-25); forecast frozen 2026-10-24 (MODEL-LOG §1.336) |
 | Branch | `site-sweep-1`, pushed to `hub` and `origin` (GitHub) 2026-11-01 after a secrets/personal-data scan of the unpushed commits (MODEL-LOG §1.343) |
 | Done since 10-25 | folder renamed (10-27); data plan "now" row (c3b84805): collection ledger, roll check, turnout trace, by-election fetch, provincial-ballot labels; DATA-QUALITY 22-23; Census 2011/2001 by ward collected (1ecf6691); census-mix seat arms, MODEL-LOG §1.339-1.340 |
-| Freeze hash on the site | built (dd32f1c9) and uploaded as UAT version 9d717d5b (https://9d717d5b-joburg-whysoserious.psi-02e.workers.dev/methodology#the-frozen-forecast), checked there. **Owner: promote** with `env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy 9d717d5b-9873-4c19-b654-aa640b610ea3@100%` (MODEL-LOG §1.343) |
-| Scoring rule | locked at 28ceae36 (four IEC-spelling aliases, rechecked against the certified list 2026-11-01); its hashes are `/freeze/scoring.json`, live once the UAT version is promoted |
+| Freeze hash on the site | **live** since 2026-11-01 (promoted 9d717d5b, then ede692fe with the footer fix): /methodology "The frozen forecast", /freeze/{forecast_frozen.json,inputs.json,preflight.txt,scoring.json} all 200 (MODEL-LOG §1.343) |
+| Scoring rule | locked at 28ceae36 (four IEC-spelling aliases, rechecked against the certified list 2026-11-01); its hashes are `/freeze/scoring.json`, live |
+| Reader-edition footers | fixed 2026-11-01 (f8eb45d1): /methodology → MACHINERY.md, /corrections → MODEL-LOG.md (were 404 since 23 Aug); build now refuses a footer naming a missing file. Live as ede692fe; rollback 9d717d5b. GitHub + hub main = 7696103b |
 | Open | stop gap (`rounds/2026-10-23-out-of-sample/stopgap/`: spec, draft prereg, pollster review; changes 1-7 to apply, owner questions); 27 outreach drafts still carry the withdrawn backtest paragraph; after 4 Nov: score the frozen forecast, pool re-fit, out-of-sample steps 1-3 |
 
 Detail: `HANDOVER.md` (current state), `TODO.md`, `OWNER-DECISIONS.md`.
