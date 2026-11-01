@@ -376,6 +376,29 @@ def test_an_iec_respelling_is_refused_and_named_then_resolved_by_alias():
         raise AssertionError("a stale alias was accepted")
 
 
+def test_the_committed_2026_aliases_map_the_iec_spellings_onto_the_certified_roster():
+    """The four IEC strings the 2026 roster spells differently (MODEL-LOG §1.242)
+    are refused without the committed alias file and resolve to four distinct
+    roster codes with it. A city-year with no file gets None."""
+    aliases = S.result_aliases(CITY, "2026")
+    assert aliases is not None and len(aliases) == 4
+    roster = S.certified_roster(CITY, "2026")
+    codes = [S.P.canonical(r) for r in roster]
+    iec = list(aliases)
+    try:
+        S.name_map(iec, codes)
+    except ValueError as exc:
+        assert all(name in str(exc) for name in iec)
+    else:
+        raise AssertionError("the IEC spellings mapped without the alias file")
+    mapped = S.name_map(iec, codes, aliases)
+    assert mapped == {"UMKHONTO WESIZWE PARTY": "MK",
+                      "VRYHEIDSFRONT PLUS | FREEDOM FRONT PLUS": "VFPLUS",
+                      "ORGANIC HUMANITY MOVEMENT": "THE_ORGANIC_HUMANITY_MOVEMENT",
+                      "CHANGE PARTY": "CHANGE"}
+    assert S.result_aliases(CITY, "2021") is None
+
+
 def test_a_result_name_missing_from_the_roster_is_refused_not_dropped():
     names = _names()
     short = [n for n in names if n != "GOOD"]

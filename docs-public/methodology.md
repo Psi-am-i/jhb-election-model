@@ -306,3 +306,21 @@ defects in the public records This Model depends on are published:
 - `DATA-QUALITY.md`: defects in the official published records, with the ward
   and the arithmetic for each
 - `SOURCES.md`: where every input came from and how to fetch it again
+
+## The frozen forecast
+
+<span data-asof="2026-10-31">The forecast was fixed on 24 October 2026, before any votes were cast. Its fingerprint is</span>
+
+<span data-asof="2026-10-31">`10bdccc05423b0db38b0a52aeb8d6bd192539442e75da113ee07bc224ebc7c4a`</span>
+
+<span data-asof="2026-10-31">a sha256 hash of the 5,000 simulations and every setting that produced them. Re-running the model from the same code and inputs gives the same hash; any change to a setting, an input or a single simulation gives a different one.</span>
+
+<span data-asof="2026-10-31">It is the `content_sha256` field of the frozen forecast file below, taken over that file's `content` block. The file's own bytes have a different sha256, because the file also records the commit and the software versions that wrote it.</span>
+
+- <span data-asof="2026-10-31">[The frozen forecast](/freeze/forecast_frozen.json)</span>
+- <span data-asof="2026-10-31">[Every input file it read, with its own hash](/freeze/inputs.json) (151 files)</span>
+- <span data-asof="2026-10-31">[The input check run before freezing](/freeze/preflight.txt). It flags one input: the voters' roll is the IEC's 26 September figure, which matched the IEC's latest published roll, dated 29 September, in all 135 wards on 28 October.</span>
+
+<span data-asof="2026-10-31">The `ad6ca1dd1e52…` in the run identifier of [changes.json](/changes.json) is a different hash: it covers the forecast summary the pages are built from (`forecast_summary.json`), not the simulations. It has not changed.</span>
+
+<span data-asof="2026-10-31">**How forecasts will be scored.** Every forecast on this site, ours and readers', will be scored by the same code after the election: seats first, then wards called correctly, then the list vote. That code was fixed on 31 October; its fingerprint is [here](/freeze/scoring.json).</span>

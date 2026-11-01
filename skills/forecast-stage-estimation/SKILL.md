@@ -36,10 +36,10 @@ two cycles. Run it standalone:
 
 ---
 
-## 1. `10_theta_prior` — how a national vote becomes a local one
+## 1. `10_theta_prior` — how an NPE vote becomes a local one
 
 **θ is a RATIO**, not a share: a party's share at a local election divided by its
-share at the national election before it. `levels.theta_record` collects one
+provincial-ballot share at the NPE before it. `levels.theta_record` collects one
 observation per party per metro per transition, over eight metros, strictly
 before the target. `levels.theta_prior` turns that record into a per-party band.
 
@@ -63,7 +63,7 @@ of the resulting lognormal.
 | `at_the_floor` | `[party]` | parties the FLOOR bound. **There is no `at_the_ceiling`.** |
 
 **Who is in it.** `set(record) | set(baseline)` — so a party with a θ record and
-no national baseline is here, and a party with a baseline and no record is here
+no NPE baseline is here, and a party with a baseline and no record is here
 sitting on the size centre with the group's spread.
 
 ### What to know before quoting it
@@ -72,7 +72,7 @@ sitting on the size centre with the group's spread.
   loud.** §1.59 measured that `SD_FLOOR`, not the fit, sets the width at the top
   of the ballot — at joburg 2021 `at_the_floor` is exactly `{ANC, DA}`. The
   CEILING binds on far more parties (21 of 44 at joburg 2021, 35 of 79 at 2026,
-  11 of 22 at 2011) and **every one of them is a party with no national
+  11 of 22 at 2011) and **every one of them is a party with no NPE
   baseline**, whose width is the fit extrapolated to `log(1e-5)`. Those parties
   carry no centre and reach no forecast number. The observer asserts that:
   `cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling`. If it ever
@@ -96,7 +96,7 @@ sitting on the size centre with the group's spread.
 
 `levels.spine` gives every party a central citywide level from **two** routes:
 
-* the **national route** — its share at the last NPE, times `exp(µ_θ)`;
+* the **NPE route** (trace key `national`) — its provincial-ballot share at the last NPE, times `exp(µ_θ)`;
 * the **local route** — its share at the last LGE, times `exp(µ_ρ)`, where ρ is
   the local-to-local retention ratio from `levels.local_record`.
 
@@ -106,7 +106,7 @@ evidence and not the estimators. The blend is **geometric**:
     level = local**w · national**(1-w),   w = k / (worth + k),   SPINE_K = 1.0
 
 `w` is the weight on the LOCAL route, keyed on the party's θ worth: a party with
-a long retention history sits on the national spine, a party whose θ is nothing
+a long retention history sits on the NPE spine, a party whose θ is nothing
 but the group centre sits on its own last local result.
 
 | field | type | meaning and units |
@@ -115,7 +115,7 @@ but the group centre sits on its own last local result.
 | `k` | float | the k the run actually used. Recorded because `scenario.get("spine_k") or SPINE_K` made `spine_k=0` undeliverable (§1.97 F1) and a whole sweep measured the default. |
 | `n_theta`, `n_rho` | int | observations in each record. `n_theta` **is** `10_theta_prior.centre.n`. |
 | `theta_centre`, `rho_centre` | float | `exp` of each record's reliability-weighted mean log-ratio. `theta_centre` **is** `10_theta_prior.centre.weighted_geomean`. |
-| `detail[p].national` | float | ⚠ **not** the party's national vote share — it is that share **already through θ**. A level. |
+| `detail[p].national` | float | ⚠ **not** the party's provincial-ballot share — it is that share **already through θ**. A level. |
 | `detail[p].local` | float | likewise, the last local share already through ρ. |
 | `detail[p].w_local` | float | the weight on the local route, in [0, 1]. |
 | `detail[p].worth` | float | the party's θ worth. **Identical** to `10_theta_prior.worth[p]`. |
@@ -141,10 +141,10 @@ but the group centre sits on its own last local result.
   trace does not record. At joburg 2021 it identifies 32 of 55 centres (8.48pp
   of 111.68pp of level, mostly ActionSA); at cape town 2021, 28 of 47.
 * **`share_local` is the absorption reading.** At `share_local ≈ 1` the blend is
-  an attractor and "changing the national route did not move the forecast" is
+  an attractor and "changing the NPE route did not move the forecast" is
   `ABSORBED:spine`, not a null about the world. Measured: 0.136 (jhb 2011),
   0.094 (2016), 0.181 (2021), 0.436 (2026), 0.213 (cpt 2021). At 2016 the
-  national route wins 91% of the disagreement.
+  NPE route wins 91% of the disagreement.
 * **The label must say what happened, not which branch ran** (§1.97 F7). A party
   with both records and no θ evidence gets `w = 1.0` — nothing blended — and was
   labelled `blend` anyway. That is exactly the field a reader checks.

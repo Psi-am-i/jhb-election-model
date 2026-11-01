@@ -602,7 +602,7 @@ structural reasons and one that the band above has largely spent.
    `5.5915 → 5.5915`. **Gating on a fold that cannot move is not a gate**, and
    no band touches that.
 2. **2006's fit rests on a single transition**, `npe1999_approx → lge2000`,
-   whose national file the calendar itself calls *"the approximate pre-metro
+   whose NPE file the calendar itself calls *"the approximate pre-metro
    footprint"*. A data-quality reason, also unaffected by the band.
 3. Multiplicity, which **used to be the dominant term and no longer is.** This
    note said an unbanded "must not worsen in any fold" rejects a neutral change

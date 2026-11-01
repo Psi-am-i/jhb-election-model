@@ -31428,3 +31428,115 @@ Pool sizes (share of 2021 votes cast): Black African 0.670, Coloured 0.074, Indi
 - `rates_on_a_bound` covers the registration, adult-share and turnout bounds, not the composition fit's Duncan-Davis bounds; it is empty for Johannesburg 2026.
 
 **What it reaches.** The pool rates drive the reader's turnout-by-population-group controls and the forecast's turnout reweighting. A change is forecast-moving. Not changed; to the owner as `OWNER-DECISIONS.md` "Where each party's votes come from".
+
+## 1.339 The census group mix, as published or as its critics would correct it, moves Johannesburg 2026 seats by hundredths of a seat (2026-10-30)
+
+Owner's question: "if we take census as is and adjust census as reporting
+suggests - what is the difference in seats?" Pre-registered in
+`prereg/2026-10-30-census-adjusted-composition.md` (8b188754) before any run.
+
+Three arms, Johannesburg 2026, tree 8b188754, seed 20261104, 5,000 draws,
+paired; only the ward population-group shares differ, applied both to the pool
+fit (spec re-emitted outside `data/`) and to the run's per-VD composition
+(`pools.read_census` patched in process; 63 census reads per arm). Arm B
+reproduces the published `seat_draws.csv` draw for draw. Outputs:
+`rounds/2026-10-23-out-of-sample/census-adjust/arms/`.
+
+| arm | ward shares | roll-weighted city mix (BA/Col/Ind/White %) |
+|---|---|---|
+| B | Census 2022 as read | 75.559 / 5.516 / 5.017 / 13.907 |
+| N | white −6.41%, Indian/Asian −11.14% (Moultrie & Dorrington 2024), renormalised | 76.143 / 5.596 / 4.660 / 13.600 |
+| E | Census 2011 moved onto the 2021 wards | 74.175 / 5.746 / 5.220 / 14.859 |
+
+Measured (re-derived from the saved draws):
+- N − B: seats differ in 1,035 of 5,000 draws, never by more than 2; largest
+  change in a party's mean seats 0.006 (ANC −0.006 ± 0.003); ward winners
+  differ in 268 of 675,000 draw-ward cells; largest ward winner-probability
+  change 0.16 points (ward 10, ANC).
+- E − B: seats differ in 4,218 of 5,000 draws, by at most 7; largest change in
+  a party's mean seats 0.020 (DA +0.020 ± 0.024); ward winners differ in 2,694
+  of 675,000 cells; largest ward change 1.24 ± 0.28 points (ward 58, DA,
+  20.82% → 22.06%). No ward's most likely winner changes in either arm.
+
+Scored: P1, P2, P3, P5 held; P4 (E moves more than N for DA and ANC) holds in
+direction but within one Monte Carlo error, so unresolved. The prereg's
+coalition-route probabilities were not computed.
+
+Not separated: whether the means hold because the pool fit re-absorbs a mix
+change against the same 2021 result, or because the draw holds each party's
+citywide share and composition reaches seats only through which ward the vote
+sits in. Comparing the arms' traced centres would separate them.
+
+## 1.340 Why §1.339 moved nothing: the draw is calibrated to centres that no census enters (2026-10-31)
+
+§1.339 left two explanations open. Measured from the same saved draws:
+
+- **Not seat compensation.** In arm E, where the DA's ward wins change (1,634
+  of 5,000 draws, by −5 to +5), its total seats also change in 1,506 of them;
+  mean |seat change| in those draws 1.83 against mean |ward change| 1.32. The
+  list top-up does not absorb the ward changes.
+- **The expected share is pinned.** List-share draws differ per draw (E − B
+  sd: DA 0.593, ANC 0.202, ActionSA 0.101, MK 0.092 points) but their means
+  differ by at most 0.0094 points (DA). The κ loop in the universal draw
+  (`montecarlo.py`, `for kappa_iters in range(1, KAPPA_MAX_ITER + 1)`)
+  rescales until the mean of the calibration draws equals the centres `u_c`,
+  and the centres come from the election-history levels (θ, the spine), which
+  read no census.
+
+So in this model the census decides where a party's votes fall between wards
+and how the draws scatter around the centre; it cannot move the expected
+citywide result by construction. A census error therefore shows up in which
+wards a party wins in a given draw, not in the expected seat totals.
+
+## 1.341 The freeze hash in §1.336 described a 1,500-draw re-run, not the published 5,000-draw forecast (2026-10-31)
+
+`freeze.py --draws` defaults to 1500, and §1.336's freeze (`e1b960fb…`) was
+written at that default; the published forecast and `seat_draws.csv` are 5,000
+draws. Re-run at `--draws 5000`, seed 20261104, `PYTHONHASHSEED=0`, on
+28ceae36: `content_sha256`
+`10bdccc05423b0db38b0a52aeb8d6bd192539442e75da113ee07bc224ebc7c4a`,
+reproduced twice; its draws equal the published `seat_draws.csv` in all
+65,000 cells of its 13 columns. The `ad6ca1dd…` id in `site/changes.json` is
+a different hash (the summary content, `publication.forecast_content_sha`) and
+recomputes unchanged. Material for publication, the 151-file input list
+(recorded by an audit hook during the run), the strict preflight output and
+the scoring-rule hashes: `audits/2026-10-31-freeze-publication/`.
+`data/processed/forecast_frozen.json` is not replaced (owner's call).
+
+## 1.342 `forecast_frozen.json` is now the 5,000-draw freeze (2026-10-31)
+
+Owner's instruction. Written by `PYTHONHASHSEED=0 src/freeze.py --draws 5000`
+on clean commit d78a2d97: `content_sha256` `10bdccc0…` as in §1.341.
+`test_freeze` 7 passed, `test_provenance_gates` 11 passed (partial run).
+
+## 1.343 The freeze hash, inputs, preflight and scoring lock on /methodology: UAT version 9d717d5b, promotion pending (2026-11-01)
+
+The page section and the `/freeze/` files were built in dd32f1c9
+(`build_site.py --as-published`; no ledger row; 347 tokens, 0 moved) and
+uploaded as Worker version `9d717d5b-9873-4c19-b654-aa640b610ea3`,
+https://9d717d5b-joburg-whysoserious.psi-02e.workers.dev. Checked there: the
+methodology page carries the hash, and each of the four `/freeze/` files is
+served with the repository file's sha256. Live (version `c16de7df…`, the
+rollback target) does not carry them until the owner promotes:
+`env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy 9d717d5b-9873-4c19-b654-aa640b610ea3@100%`.
+
+What each identifier on the page covers:
+
+| identifier | covers |
+|---|---|
+| `10bdccc05423b0db38b0a52aeb8d6bd192539442e75da113ee07bc224ebc7c4a` | the `content_sha256` field of `/freeze/forecast_frozen.json` (= `data/processed/forecast_frozen.json`): canonical JSON of its `content` block, 5,000 draws (§1.341–1.342); recomputed 2026-11-01 from the file |
+| `30203af2b3d514bb…` | the bytes of that file (includes `provenance`); not on the page |
+| `ad6ca1dd1e526113…` | `forecast_summary.json` without `_` stamps (`publication.forecast_content_sha`), in `changes.json` |
+| `e1b960fb…` | the 1,500-draw freeze of §1.336, at 024f873; describes no published forecast |
+| `/freeze/scoring.json` | sha256 of the nine scoring files at 28ceae36; all nine unchanged at dd32f1c9 |
+
+Rechecked 2026-11-01: the 151 files in `inputs.json` match disk; the IEC
+certified Gauteng list's 82 Johannesburg party strings fail `name_map`
+against the roster in exactly four places (MK, VF Plus, Organic Humanity,
+CHANGE) and map in full with `joburg-2026-result-aliases.json`.
+
+Before pushing to GitHub, the 14 commits not on `origin/site-sweep-1` were
+scanned (added lines; secret, key and token patterns, SA ID numbers with a
+valid date and Luhn check, SA phone numbers, email addresses): no hits. The
+same scan over the whole branch history finds only commits already on the
+public repository.

@@ -7,7 +7,7 @@ baseline parties that did not stand and to seed the ones that did and had no
 prior result; ``benchmarks.build_context`` builds its universe out of prior
 results alone. At Johannesburg 2021 that meant the model knew ActionSA was on
 the ballot and uniform swing could not represent it at all — no prior local
-vote, no prior national vote, nothing to swing — so it forecast zero against 44
+vote, no prior NPE vote, nothing to swing — so it forecast zero against 44
 seats, and because seat totals are conserved every one of those seats was handed
 to a party that did not win it.
 
@@ -220,7 +220,7 @@ def test_the_roster_split_finds_both_the_absent_and_the_arrived():
     assert "ASA" in newcomers, (
         f"ActionSA is not among the {len(newcomers)} parties this reference "
         f"treats as arriving at {TARGET}. It is the entire finding — no prior "
-        f"local vote, no prior national vote, 44 seats — so either the roster "
+        f"local vote, no prior NPE vote, 44 seats — so either the roster "
         f"or the universe has changed shape and this reference is no longer "
         f"doing the thing it was built to do.")
     assert absent, (
@@ -1113,7 +1113,7 @@ def test_every_consumer_the_spec_names_calls_apply_mergers():
         f"declared, not calling: {sorted(set(pools.MERGER_CONSUMERS) - set(got))}; "
         f"calling, not declared: {sorted(set(got) - set(pools.MERGER_CONSUMERS))}")
     # PER CALL, not per function (F10 census, RESULTS.md): `run_model` makes
-    # two calls, the national baseline and the preceding local result, and a
+    # two calls, the NPE baseline and the preceding local result, and a
     # per-function set stayed green with either one removed. The counts are
     # the arity of each consumer's use, stated here because `pools.py` holds
     # the consumer list and editing it would re-key every spec. A call that
@@ -1154,7 +1154,7 @@ import argparse, contextlib, io, json, sys, tempfile
 sys.path.insert(0, "src")
 import cityconfig, levels, montecarlo as M, pools
 out = {}
-# The baseline the national call hands the spine, captured at the call: since
+# The baseline the NPE call hands the spine, captured at the call: since
 # BRIEF item 11a the spine's level is not linear in it (the growth centre is
 # evaluated at the party's current size), so the baseline is read directly.
 _seen = {}
@@ -1189,7 +1189,7 @@ def test_the_run_model_mergers_reach_the_spine():
     A source scan cannot see a call that is present but disabled. So the
     model is run at Johannesburg 2026 with the declared mergers and with none,
     in a fresh process (it reads module globals), and the spine is read from
-    the trace. RISE takes GOOD's transfer only through the NATIONAL call (it
+    the trace. RISE takes GOOD's transfer only through the NPE call (it
     has no local record); ASA's spine level is its local level, so it moves
     only through the LOCAL call (MODEL-LOG §1.275, census C5 and C6). Both
     must differ. The census showed each call removed leaves its party's level
@@ -1208,10 +1208,10 @@ def test_the_run_model_mergers_reach_the_spine():
     succ = {s for _p, s in dec["mergers"]}
     assert {"RISE", "ASA"} <= succ, f"the premise's successors changed: {succ}"
     # The PREMISES, asserted so a changed route fails with the right message:
-    # RISE reaches the spine by the national route only, ASA at its local level.
+    # RISE reaches the spine by the NPE route only, ASA at its local level.
     assert dec["routes"]["RISE"]["w_local"] == 0.0, dec["routes"]
     assert dec["routes"]["ASA"]["w_local"] == 1.0, dec["routes"]
-    # RISE (national call): the SIZE, not only the direction. What the call
+    # RISE (NPE call): the SIZE, not only the direction. What the call
     # controls is the baseline share handed to the spine, which must scale
     # exactly by (B + r*P) / B, with B and P read from the 2024 result file.
     # (Until BRIEF item 11a this was asserted on the spine LEVEL, which then
@@ -1229,7 +1229,7 @@ def test_the_run_model_mergers_reach_the_spine():
     got_base = dec["RISE_baseline"] / none["RISE_baseline"]
     assert abs(got_base - want) < 1e-9, (
         f"RISE's baseline moved by {got_base:.10f}, expected {want:.10f}: "
-        f"the national-baseline call is not applying r x P")
+        f"the NPE-baseline call is not applying r x P")
     # Under 11a the level = baseline * exp(centre at the baseline size); the
     # centre falls with size (levels.size_centre, gradient b in (-1, 0)), so
     # the level rises by the baseline factor times factor**b: more than 1,

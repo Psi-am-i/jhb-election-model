@@ -3,7 +3,7 @@
 Local elections draw far fewer voters than the national/provincial elections
 that precede them. λ is that drop-off, measured per voting district. Writing
 R for the two most recent LGEs whose λ can be measured before the target T,
-and N(x) for the national election preceding x:
+and N(x) for the NPE preceding x (its votes cast are the provincial ballot's):
 
     λ_prior(i)  = T_prior(i) / T_N(prior)(i)
     λ_recent(i) = T_recent(i) / T_N(recent)(i)
@@ -71,7 +71,7 @@ ELECTIONS = {
     for year, e in sorted(cityconfig.CALENDAR.items()) if e.results
 }
 
-# The λ pairs: each LGE against the national election that preceded it, keyed
+# The λ pairs: each LGE against the NPE that preceded it, keyed
 # by the LGE year. Sorted for the same reason ELECTIONS is.
 LAMBDA_PAIRS = {
     year: (cityconfig.preceding(year, "NPE"), year)
@@ -252,7 +252,7 @@ def main(argv: list[str] | None = None) -> int:
     prev_lge = target.previous_lge
     if base_npe is None or base_npe not in series:
         raise SystemExit(
-            f"no national election on disk before {target.year} for "
+            f"no NPE on disk before {target.year} for "
             f"{cityconfig.active().name}; there is no level to project from")
 
     # Assumption A3: is the relative pattern stable between the two cycles?

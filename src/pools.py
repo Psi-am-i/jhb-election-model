@@ -1035,13 +1035,13 @@ def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
 # floating-point iteration lands near a bound rather than exactly on it.
 _RATE_BOUND_EPS = 1e-6
 
-# The preceding-NATIONAL share below which a party with no preceding LOCAL
+# The preceding-NPE (provincial-ballot) share below which a party with no preceding LOCAL
 # record is not assumed onto an unheld ballot. Owner's decision 2026-09-03,
 # evidence in MODEL-LOG §1.175 and JUDGEMENT-CALLS §K1. Applies ONLY where no
 # roster has been published — a held election has a real one and never uses it.
 NATIONAL_ONLY_FLOOR = 0.001
 
-# The preceding-LOCAL share below which a party with no preceding NATIONAL vote
+# The preceding-LOCAL share below which a party with no preceding NPE vote
 # is not assumed onto an unheld ballot. Same value and same reasoning as
 # NATIONAL_ONLY_FLOOR, and a better bargain: it drops 59% of that class for
 # 0.038pp of vote and NO seats. JUDGEMENT-CALLS §K2, MODEL-LOG §1.176.
@@ -1141,10 +1141,10 @@ def _ward_resolver(city: cityconfig.City, year: str):
     """``(vd, ward_field) -> ward`` for one election's result file.
 
     The results-portal NPE layout (2019, 2024) carries no Ward column at all,
-    so those files land with it blank. A national election has no ward
+    so those files land with it blank. An NPE has no ward
     contest, but its voting districts still sit inside wards, and the LGE
     under the same delimitation says which. Without this the registration
-    series loses two of its five cycles, and a national election cannot be
+    series loses two of its five cycles, and an NPE cannot be
     fitted at all (:func:`national_fits`).
 
     ONE resolver for both readers of a result file, :func:`ward_totals` (the
@@ -1216,7 +1216,7 @@ def ward_totals(city: cityconfig.City, year: str,
     seen: set[str] = set()
     with open(path, encoding="utf-8", errors="replace") as fh:
         reader = csv.DictReader(fh)
-        # National elections have one ballot and no BallotType column; local
+        # NPE files have one ballot and no BallotType column; local
         # ones have two. Filtering on a column that is not there silently
         # dropped every NPE row, which cost the series five of its cycles.
         has_ballot = "BallotType" in (reader.fieldnames or [])
@@ -1674,7 +1674,7 @@ def delimitation_for(year: str) -> int:
 
     Wards are redrawn for each local election and stand until the next one, so
     the delimitation is the most recent LGE at or before the year: the 2019
-    national election used the 2016 wards, the 2024 national the 2021 wards.
+    NPE used the 2016 wards, the 2024 NPE the 2021 wards.
     """
     lge = [int(y) for y, e in cityconfig.CALENDAR.items()
            if e.kind == "LGE" and int(y) <= int(year)]
@@ -1875,7 +1875,7 @@ def polling_decimal_year(year: str, city: cityconfig.City | None = None) -> floa
 
     ``cityconfig.Target`` refuses a year with no ``[structure.by_year]`` entry,
     which is right for a forecast — you cannot allocate seats in a council
-    whose size you do not know — and wrong here. A national election does not
+    whose size you do not know — and wrong here. An NPE does not
     elect a council, so requiring one silently dropped 2014, 2019 and 2024 from
     the registration series, which is most of it.
     """
@@ -1908,10 +1908,10 @@ def ward_party_shares(city: cityconfig.City, year: str,
     if not path.exists():
         raise SystemExit(f"no result file for {city.slug} {year}: {path}")
 
-    # A national election has one ballot and no BallotType column, and the
+    # An NPE file has one ballot and no BallotType column, and the
     # 2019/2024 layout leaves Ward blank: both handled as `ward_totals` handles
     # them, through the one `_ward_resolver`. Filtering on the absent column
-    # dropped every NPE row, so a national election could not be fitted.
+    # dropped every NPE row, so an NPE could not be fitted.
     ward_of = _ward_resolver(city, year)
     tally: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -2554,8 +2554,8 @@ def turnout_record(city: cityconfig.City, cfg: Config, before: str | None = None
         2014  NPE      70.4%     75.0%    62.6%   77.6%    71.9%
         2024  NPE      56.5%     63.4%    62.8%   69.2%    60.2%
 
-    Local elections run fifteen to twenty points below national ones, which is
-    why ``kind`` filters: a local forecast learns nothing useful from national
+    Local elections run fifteen to twenty points below NPEs, which is
+    why ``kind`` filters: a local forecast learns nothing useful from NPE
     turnout levels. Black African turnout is consistently the lowest and white
     the highest, and 2021 was a collapse across every pool at once — which is
     the correlated shock the model has never had.
@@ -3287,7 +3287,7 @@ def dirichlet_alpha(splits: list[np.ndarray],
 # for being a split AND sized as an entrant for having no parent, arriving at
 # 0.1% against an actual 18.12%. `splinter_record`'s pairs stay separate
 # because they answer a different question (how much a split took, measured
-# off two national elections) and not every split has a pair to measure.
+# off two NPEs) and not every split has a pair to measure.
 @dataclass(frozen=True)
 class Split:
     """One party that broke off another.
@@ -3295,7 +3295,7 @@ class Split:
     ``parent``        the party it left, whose pool vector it inherits.
     ``measured_from`` the (NPE before, NPE after) pair its share of the parent
                       is measured across, or None where no such pair exists —
-                      ActionSA never contested a national election before its
+                      ActionSA never contested an NPE before its
                       first local one, so it contributes no measurement and
                       is sized from the ones that do.
     ``home``          the metro code where the leader's own following is, or
@@ -3441,7 +3441,7 @@ MERGERS: tuple[Merger, ...] = (
 # `module.function`. `tests/test_roster_aware_baseline.py` scans `src/` for the
 # calls and asserts this set equals what it finds, in both directions.
 MERGER_CONSUMERS = frozenset({
-    "montecarlo.run_model",          # national baseline, and prev_local
+    "montecarlo.run_model",          # NPE baseline, and prev_local
     "pools.emit_pools",              # the spec's baseline and pool vectors
     "theta_residual._residuals_cached",   # must reproduce run_model's baseline
 })
@@ -3459,7 +3459,7 @@ def apply_mergers(shares: dict, roster, target_year: str, *,
 
     ONE DEFINITION, every consumer in :data:`MERGER_CONSUMERS`.
 
-    ``shares``      one election's citywide shares (a national baseline, or
+    ``shares``      one election's citywide shares (an NPE baseline, or
                     the preceding local result).
     ``roster``      the target's ballot. Empty means unknown, and nothing moves:
                     the same reading `levels.absent_from_ballot` takes.
@@ -3474,10 +3474,10 @@ def apply_mergers(shares: dict, roster, target_year: str, *,
 
     ⛔ **A MERGER NEVER CREATES A RECORD THE SUCCESSOR LACKS** (owner,
     DESIGN-decided §10). The transfer applies only where the successor already
-    holds a share in ``shares``. RISE has a 2024 national record and no 2021
+    holds a share in ``shares``. RISE has a 2024 NPE record and no 2021
     local one: handing it GOOD's 2021 local vote would move it from the spine's
-    national-only route to the blend and pull it DOWN toward GOOD's size. So RISE
-    takes GOOD's transfer on the national route only.
+    NPE-only route to the blend and pull it DOWN toward GOOD's size. So RISE
+    takes GOOD's transfer on the NPE route only.
 
     The predecessor keeps ``(1 − retention) × P``. It is off the ballot, so
     `absent_from_ballot` removes that remainder next, exactly as it removed the
@@ -3867,7 +3867,7 @@ def splinter_record(city: cityconfig.City | None, before_year: str | None = None
     for splinter, split in sorted((splits if splits is not None
                                    else SPLITS).items()):
         if split.measured_from is None:
-            continue          # a split with no national pair to measure across
+            continue          # a split with no NPE pair to measure across
         parent, (before, after) = split.parent, split.measured_from
         if before_year and int(after) >= int(before_year):
             continue
@@ -4093,14 +4093,14 @@ def arrival_group_record(before_year: str | None = None
     is a splinter or an entrant, so EFF, ActionSA, COPE, GOOD, MK and the NFP
     are all in these totals."* **Four of those six are in no row of this
     record.** The predicate is `natl.get(p) <= 0` at the PRECEDING NPE, and a
-    contender normally has a national result first — the correction §1.201 had
+    contender normally has an NPE result first — the correction §1.201 had
     already made about the same six parties, not yet carried here. Measured over
     all 29 rows (2026-09-08), the only `SPLITS` members that appear at all are:
 
         2011  NFP  in JHB, TSH, EKU, ETH, CPT   (5 rows)
         2021  ASA  in JHB, TSH, EKU, ETH        (4 rows)
 
-    EFF held a 2014 national vote before its first local election, COPE a 2004,
+    EFF held a 2014 NPE vote before its first local election, COPE a 2004,
     GOOD a 2019 and MK a 2024 — **so none of them can be an arrival by this
     definition**, and 2000, 2006 and 2016 have `entrants == total` EXACTLY in
     every row. **The all-arrivals / entrants-only distinction therefore bites in
@@ -4177,7 +4177,7 @@ def arrival_group_record(before_year: str | None = None
             # ⛔ TWO TOTALS, BECAUSE THERE ARE TWO CONSUMERS AND THEY SPEND
             # OVER DIFFERENT POPULATIONS.
             #
-            # A party at its FIRST local election has no preceding national
+            # A party at its FIRST local election has no preceding NPE
             # vote whether it is a splinter or an entrant, so EFF, ActionSA,
             # COPE, GOOD, MK and the NFP are all in `arr`. But `arrival_rules`
             # spends the group budget only over `entrant_sizes`, which excludes
@@ -4349,7 +4349,7 @@ def contesting_parties(city: cityconfig.City, year: str) -> set[str]:
 
     Without this a genuine entrant can never be seeded, because it is absent
     from the baseline entirely and the earlier code looked for newcomers among
-    baseline parties. ActionSA held no 2019 national vote at all, so it never
+    baseline parties. ActionSA held no 2019 NPE vote at all, so it never
     reached the seeding logic and stayed at zero all the way to a 44-seat miss.
     """
     template = cityconfig.CALENDAR[year].results
@@ -5025,7 +5025,7 @@ def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
 # `PARTY_KEYS` is closed, and the failure here is worse: an unrecognised key
 # does not mis-size one party, it discards the whole nomination list and falls
 # through to a PROJECTED ballot printing only its routine message.
-# ⚖️ The preceding-NATIONAL share above which a party with no declared lineage
+# ⚖️ The preceding-NPE (provincial-ballot) share above which a party with no declared lineage
 # is flagged in the emitted spec as a possible undeclared split. JUDGEMENT-CALLS
 # §L8. It is a REPORT, not a behaviour: nothing downstream reads it, and the
 # party is still sized as an entrant exactly as before.
@@ -5419,26 +5419,26 @@ def city_mix_for(ctx: dict, n: int) -> "np.ndarray":
 def national_fits(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                   categories: list[str], *, split_bloc: dict | None = None
                   ) -> tuple[dict[str, "PartyFit"], str]:
-    """Every party fitted on the target's baseline NATIONAL election, by ward.
+    """Every party fitted on the target's baseline NPE (its provincial ballot), by ward.
 
     The pool vectors come from the preceding LOCAL election (``fitted_on``), so
     a party founded since then — MK for a 2026 target, the EFF for 2016 — has
-    no vector of its own there however large its national record. This fits
+    no vector of its own there however large its NPE record. This fits
     that record the way the local one is fitted: :func:`fit_city` on the
-    national result file, every party jointly, the same registration-nested
+    NPE result file, every party jointly, the same registration-nested
     composition (:func:`pool_counts`, the roll of that election), the same
     method-of-bounds box and the same :meth:`PartyFit.identified` test. Only
-    the election differs. The national file's voting districts are placed in
+    the election differs. The NPE file's voting districts are placed in
     wards by the preceding LGE's map (:func:`_ward_resolver`).
 
     The election is ``target.previous_npe`` — the baseline the forecast's
     levels start from, which precedes the target by construction — so a
-    backtest reads its own preceding national election exactly as the live
+    backtest reads its own preceding NPE exactly as the live
     forecast reads 2024. No year gate: none is needed for the fit to be
     out of sample.
 
-    Returns ``({}, reason)`` when there is nothing to fit — no national
-    election before the target, its file absent or held back, or a pool set
+    Returns ``({}, reason)`` when there is nothing to fit — no NPE
+    before the target, its file absent or held back, or a pool set
     that differs from the local fit's — so the caller falls back to the
     lineage rules and the spec says why.
     """
@@ -5499,12 +5499,12 @@ def place_vectorless(party: str, rule: dict, parent: str, *,
 
     Returns ``(vector, note, fitted, refused)``: ``note`` is the spec's
     ``no_measured_vector`` entry; ``fitted`` the ``fitted_from_national``
-    record when the party's own national fit was used; ``refused`` why a party
-    holding a national record was NOT fitted, else ``None``.
+    record when the party's own NPE fit was used; ``refused`` why a party
+    holding an NPE record was NOT fitted, else ``None``.
 
     PRECEDENCE, one rule for every party (owner, 2026-10-15, "option A"):
 
-      1. its own NATIONAL fit (:func:`national_fits`), when it identifies a
+      1. its own NPE fit (:func:`national_fits`), when it identifies a
          pool (:func:`vector_from_own_record`). A party with a record of its own
          is fitted, as every party with a local record already is. Any declared
          ``weights`` or ``parent_weight`` stays on the sheet and is not read;
@@ -5768,7 +5768,7 @@ def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
             # correct input on the one night it runs is worse than no guard.
             #
             # "Known" is therefore: in the alias tables, OR carrying a prior
-            # record in this city (the fitted composition or the national
+            # record in this city (the fitted composition or the NPE
             # baseline), OR placed by its own `[party.X]` table. Only a name
             # with none of those three is a typo.
             # ⚠️ AND A PARTY THAT STOOD LAST TIME IS KNOWN EVEN IF IT SCORED
@@ -5814,7 +5814,7 @@ def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
             #
             # `KNOWN_PARTY_CODES` catches a name that resolves to nothing. It
             # cannot catch one that resolves to a DIFFERENT valid key from the
-            # one the preceding national file used — canonicalisation does not
+            # one the preceding NPE file used — canonicalisation does not
             # span eras. Measured 2026-09-03 at Johannesburg 2000: npe1999
             # carries `VRYHEIDSFRONT \ FREEDOM FRONT` -> VRYHEIDSFRONT_FREEDOM_
             # FRONT while lge2000 carries `VRYHEIDSFRONT PLUS` -> VFPLUS, so
@@ -5823,7 +5823,7 @@ def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
             #
             # On the record that is a rounding error. On the LIVE path it is
             # not: a party pasted from the nomination list under a spelling the
-            # 2024 national file did not use has no baseline, so it is seeded
+            # 2024 NPE file did not use has no baseline, so it is seeded
             # from the arrival record instead of carrying its real share — the
             # ActionSA failure with the sign reversed. MK's 12.22% baseline is
             # exactly what would be lost.
@@ -5896,18 +5896,18 @@ def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
                       f"known to be the whole ballot.")
         else:
             roster_source = "projected"
-            # ⛔ NOT EVERY PARTY WITH A NATIONAL VOTE. Measured over 16 city-years
-            # (§1.175): candidates carrying a preceding NATIONAL vote but no
+            # ⛔ NOT EVERY PARTY WITH AN NPE VOTE. Measured over 16 city-years
+            # (§1.175): candidates carrying a preceding NPE vote but no
             # preceding LOCAL record number 226, win a seat 13.3% of the time, and
             # carry 5.12% of a city's vote — while the 189 candidates with BOTH
-            # kinds of evidence carry 89.73%. Admitting the whole national ballot
+            # kinds of evidence carry 89.73%. Admitting the whole NPE ballot
             # buys a long tail of parties that will not stand.
             #
             # But the class cannot be dropped: **MK is exactly it for 2026** — a
-            # 2024 national party with no 2021 local vector — so the limit is on
-            # SIZE, not on class. At a 0.1% national floor, 158 of those 226
+            # party with a 2024 NPE vote, no 2021 local vector — so the limit is on
+            # SIZE, not on class. At a 0.1% provincial-ballot floor, 158 of those 226
             # candidates go and the cost is **0.10pp of a city's vote**; the large
-            # ones transfer nearly one-for-one (national 11.51% -> local 11.64%,
+            # ones transfer nearly one-for-one (NPE 11.51% -> local 11.64%,
             # 10.13% -> 10.93%), which is why cutting the tail is safe.
             #
             # Owner's decision, 2026-09-03. JUDGEMENT-CALLS.md §K1.
@@ -5915,10 +5915,10 @@ def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
             # ⛔ AND THE SAME CUT ON THE OTHER SINGLE-SOURCE CLASS, which was left
             # unfiltered in the first draft and is the better bargain of the two.
             # A party that contested the preceding LOCAL election and polled
-            # nothing at the preceding national one stands again only 28% of the
+            # nothing at the preceding NPE stands again only 28% of the
             # time (137 of 189 never do, three cycles). At a 0.1% floor on its
             # prior LOCAL share this drops 112 of 189 candidates for **0.038pp of
-            # vote and ZERO seats** — against the national floor's 70% for two
+            # vote and ZERO seats** — against the NPE floor's 70% for two
             # seats. At 0.2% it costs 5 seats, so the value is the same 0.1% and
             # for the same reason. §K2.
             # `prior_local` is the party's own share at the election the vectors
@@ -6061,7 +6061,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # MK is 12.2% of the 2024 baseline and did not exist in 2021 — has no
     # vector from the fitting election. Left alone it is in no pool at all,
     # falls through to the residual bucket, and gets drawn against a range
-    # meant for minor parties. It is fitted on the baseline national election
+    # meant for minor parties. It is fitted on the baseline NPE
     # instead where that fit identifies a pool (`place_vectorless`).
     baseline = {}
     if target.previous_npe:
@@ -6109,7 +6109,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                       if m["predecessor"] in composition}
     # THE ROSTER CUTS BOTH WAYS. It was only ever used to ADD parties — to find
     # a genuine entrant absent from the baseline — and never to remove one. So a
-    # party that contested the last national election and is NOT on this
+    # party that contested the last NPE and is NOT on this
     # ballot kept a pool vector and drew votes anyway.
     #
     # Measured over the whole ballot, the model was putting 2.38% to 2.94% of a
@@ -6131,8 +6131,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     absent = sorted(deliberate)
     if absent:
         # ⚠️ REPORT BOTH SHARES. This used to quote only the party's share of
-        # the preceding NATIONAL baseline — which is EXACTLY 0.000% for every
-        # party `local_thin` removes, because polling nothing nationally is what
+        # the preceding NPE baseline — which is EXACTLY 0.000% for every
+        # party `local_thin` removes, because polling nothing at the NPE is what
         # put it there. The message would have read "27 parties holding 0.00%"
         # while they held 0.038pp of the local vote. A drop that reports itself
         # as free is the one nobody checks.
@@ -6178,7 +6178,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # ARRIVAL DEFINITION: SEEDABLE_AT_TARGET
     newcomers = {p for p in no_vector if baseline.get(p, 0.0) <= 0.0}
     inherited: dict[str, str] = {}
-    # ⛔ A PARTY WITH A NATIONAL RECORD AND NO LINEAGE IS THE ActionSA SHAPE,
+    # ⛔ A PARTY WITH AN NPE RECORD AND NO LINEAGE IS THE ActionSA SHAPE,
     # AND NOTHING USED TO SAY SO WHERE ANYONE WOULD SEE IT.
     #
     # `classify_arrival` returns "no lineage on record: arrived from nothing"
@@ -6187,23 +6187,23 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # split from someone nobody has typed in. Getting that wrong once cost
     # 0.1% against an actual 18.12%.
     #
-    # The detector triggers on the party's share at the preceding NATIONAL
-    # election, not on its (definitionally zero) local baseline: a party that
-    # exists nationally and has no local lineage is exactly the case worth a
+    # The detector triggers on the party's share at the preceding
+    # NPE, not on its (definitionally zero) local baseline: a party that
+    # stood at the NPE and has no local lineage is exactly the case worth a
     # second look. `unclassified` is EMITTED INTO THE SPEC rather than printed,
     # because a print during an emit is scrollback and the emit is the one
     # operation nobody re-runs. In the file it is diffable, it survives into
     # `compare_history`, and a test can assert on it.
     unclassified: dict[str, float] = {}
-    # ⛔ A PARTY WITH ITS OWN NATIONAL RECORD IS FITTED, NOT INHERITED (owner,
+    # ⛔ A PARTY WITH ITS OWN NPE RECORD IS FITTED, NOT INHERITED (owner,
     # 2026-10-15, "option A"). A party absent from the fitting election but
-    # standing in the baseline national one is fitted on THAT election's ward
+    # standing in the baseline NPE is fitted on THAT election's ward
     # results, the way every locally fitted party is (`national_fits`), and the
     # vector is used whenever the fit identifies a pool
     # (`vector_from_own_record`). The lineage rules below — judged `weights`,
     # the splinter blend at `parent_weight` (§SJ1) or the default (§F6), the
     # city mix — apply only to a party with no record, or whose record
-    # identifies nothing. PRECEDENCE: local fit > national fit > `weights` >
+    # identifies nothing. PRECEDENCE: local fit > NPE fit > `weights` >
     # splinter rule > city mix. A judgement on the sheet stays on record and is
     # simply not read while the fit is identified; the spec says which won.
     national_fitted: dict[str, dict] = {}
@@ -6416,7 +6416,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             # Which members' weights the ward data actually pins down. The rest
             # are the model's guesses and are where a judgement belongs. A
             # party absent from the fitting election is identified only where
-            # its NATIONAL fit is (`national_fitted`); one placed by a lineage
+            # its NPE fit is (`national_fitted`); one placed by a lineage
             # rule never is — its weights came from a rule, not from a ward.
             "identified": sorted(p for p in members
                                  if (p in fits and fits[p].identified()[g])
@@ -6508,11 +6508,12 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "categories": cats,
             "no_measured_vector": inherited,
             # Parties absent from the fitting election whose vector was fitted
-            # on the baseline NATIONAL election (`national_fits`): which
+            # on the baseline NPE (`national_fits`): which
             # election, the fitted rates and intervals, the pools identified,
             # and any declared judgement the fit superseded. And those with a
-            # national record whose fit was not used, with why — they took the
-            # lineage rule `no_measured_vector` names.
+            # NPE record whose fit was not used, with why — they took the
+            # lineage rule `no_measured_vector` names. "national" in these two keys
+            # means the NPE (its provincial ballot).
             "fitted_from_national": national_fitted,
             "national_fit_refused": national_refused,
             # F5: every merger transfer this spec made, with the retention it
@@ -6527,14 +6528,14 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "rates_on_a_bound": list(
                 getattr(ctx.get("counts"), "unidentified", []) or []),
             # Parties with NO FITTED POOL VECTOR and no declared lineage that
-            # nevertheless hold a preceding NATIONAL vote — candidates for a
+            # nevertheless hold a preceding NPE vote — candidates for a
             # split nobody has declared. Emitted, not printed. §L8.
             #
             # ⚠️ NOT "sized as arrivals from nothing". These parties are by
             # definition ABOVE the floor, and `newcomers` filters on
             # `baseline <= 0`, so the flagged set and the seeded set are
             # DISJOINT BY CONSTRUCTION. A flagged party keeps its baseline
-            # LEVEL; its vector is its own national fit where that identifies a
+            # LEVEL; its vector is its own NPE fit where that identifies a
             # pool (`fitted_from_national`), else the city's own composition.
             # The defect this points at is therefore the VECTOR, not the size —
             # smaller than the first write-up claimed, and `support` cannot

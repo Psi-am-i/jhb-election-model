@@ -864,7 +864,7 @@ def test_the_editor_bounds_are_regenerated_from_the_panel():
     """Amendment 1, point 3, and slice B2a. ``x-editor-bounds`` names its
     panel, and the panel is exactly the cleaned metro LGE files before the
     target, both ways, each with its sha256 (``sources`` holds every file the
-    bounds read, the national files of the prior among them); ``e`` is over
+    bounds read, the NPE files of the prior among them); ``e`` is over
     exactly the schema's wards and sums to one; each election's extremes are
     ``panel_extremes`` over that election's files, and the effective bounds
     are the panel's extremes widened by their shape allowance (the mean of the
@@ -1036,10 +1036,10 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     files and compared both ways: ``swing.pairs`` is every (metro, a, b) of
     consecutive cleaned local files before the target, a the calendar's local
     election before b; ``swing.npe_pairs`` every (metro, n, l), n the
-    calendar's national election before l, the approximation left out; the
+    calendar's NPE before l, the approximation left out; the
     ``ward_ranges`` cells are exactly the (ward, party) pairs with a ward vote
     in the ward's parts at the preceding local election, or, for a party with
-    no ward vote anywhere in the city then, a national vote in them; each
+    no ward vote anywhere in the city then, an NPE vote in them; each
     ``party_ranges`` entry is of the kind its party's history says (local,
     national or newcomer); ``party_ranges`` and ``city_limits`` are keyed by
     exactly the roster.
@@ -1054,10 +1054,10 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     stood-both swing pushed past its bin's greatest: that bin's extreme moves,
     no other; (4) a party's ward rows deleted in one ward's VDs: its range
     there becomes its citywide one; (5) a party deleted from the preceding
-    file: its national vote becomes its prior, and deleted from the national
+    file: its NPE vote becomes its prior, and deleted from the NPE
     file too it becomes a newcomer; (6) a party new to local
-    elections deleted from the national file: it becomes a newcomer; (7) one
-    VD's national votes raised: exactly that VD's wards move."""
+    elections deleted from the NPE file: it becomes a newcomer; (7) one
+    VD's NPE votes raised: exactly that VD's wards move."""
     import collections
     import cityconfig
     import montecarlo
@@ -1214,8 +1214,8 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     assert c not in cells.get(w, {}) and party[c]["kind"] == "local"
     lost = {x for x in wards if c in b["ward_ranges"].get(x, {}) and c not in cells.get(x, {})}
     assert w in lost and lost <= set().union(*(vd_wards[v] for v in its))
-    # (5) a party deleted from the preceding file: its national vote becomes
-    # its prior; deleted from the national file too, it is a newcomer
+    # (5) a party deleted from the preceding file: its NPE vote becomes
+    # its prior; deleted from the NPE file too, it is a newcomer
     c5 = min((c for c in roster if kind[c] == "local" and c in stood_national),
              key=lambda c: b["party_ranges"][c]["prior"])
     gone = [r for r in _rows(prev) if P.canonical(r["sPartyName"]) != c5]
@@ -1228,13 +1228,13 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     with tempfile.TemporaryDirectory() as t:
         cells, party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: gone, nat: nat_gone}))
     assert party[c5]["kind"] == "newcomer" and not any(c5 in row for row in cells.values())
-    # (6) a party new to local elections deleted from the national file
+    # (6) a party new to local elections deleted from the NPE file
     c6 = max((c for c in roster if kind[c] == "national"), key=lambda c: b["party_ranges"][c]["prior"])
     nrows = [r for r in _rows(nat) if P.canonical(r["sPartyName"]) != c6]
     with tempfile.TemporaryDirectory() as t:
         cells, party = _ranges_from(b, wards, roster, elections=_mirror(t, {nat: nrows}))
     assert party[c6]["kind"] == "newcomer" and not any(c6 in row for row in cells.values())
-    # (7) one VD's national votes raised
+    # (7) one VD's NPE votes raised
     nrows = _rows(nat)
     vd7 = next(v for v in sorted(vd_wards) if len(vd_wards[v]) == 1
                and c6 in national_by_vd.get(v, ()))
@@ -1302,17 +1302,17 @@ def test_the_city_limits_are_regenerated_from_the_panel():
     """Slice B2a, JUDGEMENT-CALLS §R12. Every party's ``city_limits`` entry is
     recomputed here: its kind from the files (``local`` with a ward vote in the
     city at the preceding local election, else ``national`` with a vote at the
-    preceding national one, else ``newcomer``), equal to its ``party_ranges``
+    preceding NPE, else ``newcomer``), equal to its ``party_ranges``
     kind (one rule); a local party's prior is its share of the preceding
     election joined onto the target's wards by a join written here and
     weighted by the served ``e``, moved by the citywide extremes of its bin and
-    the city allowance; a national party's, its national citywide share moved
-    by the national-to-local citywide extremes; a newcomer's, zero to the
+    the city allowance; a national party's, its provincial-ballot citywide share moved
+    by the NPE-to-local citywide extremes; a newcomer's, zero to the
     citywide newcomer cap plus the city allowance. Constructed, each seen and
     quiet when reverted: one citywide swing pushed past its bin moves that
     bin's extreme and exactly the limits of the local parties starting in it;
-    a party's collapse from a national to a local election is left out of the
-    national-to-local citywide extremes, and the same swing short of a
+    a party's collapse from an NPE to a local election is left out of the
+    NPE-to-local citywide extremes, and the same swing short of a
     collapse moves them."""
     import bisect
     import collections
@@ -1390,7 +1390,7 @@ def test_the_city_limits_are_regenerated_from_the_panel():
     moved_parties = {c for c in roster if lim[c] != limits(bins)[c]}
     assert moved_parties == {c for c in roster if kind[c] == "local" and build_make._bin(pe[c]) == k}
     assert "DA" in moved_parties
-    # constructed: a collapse from national to local, and the same swing short of one
+    # constructed: a collapse from NPE to local, and the same swing short of one
     top = 0.5
     collapse = dict(panel, npe_city_rows=panel["npe_city_rows"]
                     + [("ZZZ", "2019", "2021", "ZZ", top, build_make.COLLAPSE_KEEP * top / 2)])

@@ -1,8 +1,8 @@
-"""``levels.spine`` — the national-to-local level path, called by nothing that asserts.
+"""``levels.spine`` — the NPE-to-local level path, called by nothing that asserts.
 
 The spine is where every party's central level comes from at every runnable
 target (MODEL-LOG §1.52: *"the spine reaches every party at every target"*), and
-it decides ActionSA's 2026 level — 5.98% on the national route, 15.23% on its
+it decides ActionSA's 2026 level — 5.98% on the NPE route, 15.23% on its
 own last local result (§1.30). Until this file it was **invoked** twice in the
 suite, at ``test_ipf_feasibility.py:137`` and ``test_drawer.py:422``, and
 **asserted about** nowhere: both call it to build a fixture and neither looks at
@@ -13,13 +13,13 @@ WHAT THESE TESTS PIN, and why each one is justified independently of the
 implementation:
 
 * **The three routes.** ``spine``'s own docstring and §1.30 define them: a party
-  with both records blends, one with only a national record takes the national
+  with both records blends, one with only an NPE record takes the NPE
   route at weight 0, one with only a local record takes the local route at
   weight 1. Each is checkable against a constructed record by hand.
 * **The blend is a weighted GEOMETRIC mean**, ``w = k / (worth + k)`` on the
   local route (§1.30). Two consequences follow with no reference to the code:
   the blend lies strictly between the two routes, and at ``worth = k`` it is
-  exactly ``sqrt(national x local)`` — which is precisely what ``SPINE_K``'s
+  exactly ``sqrt(NPE x local)`` — which is precisely what ``SPINE_K``'s
   declaration claims ("at worth = k the two routes are equal").
 * **That the weight binds.** A weight that does not move the answer is this
   repository's most expensive defect class (``ITERATING.md`` rule 6, CLASS 13 in
@@ -101,13 +101,13 @@ def records(theta: dict, rho: dict):
 # Every ratio is 1.0, so every party's shrunk log-mean is 0 and every route's
 # level is exactly the share it starts from:
 #
-#   BOTH      national 9%, local 1%   -> blends between 0.09 and 0.01
-#   UP        national 1%, local 9%   -> blends the other way (monotonicity)
-#   NOTHETA   national 5%, local 2%   -> in both records' PARTIES, but with no
+#   BOTH      NPE 9%, local 1%        -> blends between 0.09 and 0.01
+#   UP        NPE 1%, local 9%        -> blends the other way (monotonicity)
+#   NOTHETA   NPE 5%, local 2%        -> in both records' PARTIES, but with no
 #                                        theta observations of its own
-#   NATONLY   national 6%, no local   -> first local election (MK in 2026)
-#   LOCONLY   no national, local 4%   -> stood locally, not nationally
-#   NEITHER   national 0.0, no local  -> in neither; must not appear at all
+#   NATONLY   NPE 6%, no local        -> first local election (MK in 2026)
+#   LOCONLY   no NPE, local 4%        -> stood locally, not at the NPE
+#   NEITHER   NPE 0.0, no local       -> in neither; must not appear at all
 THETA = {"BOTH": [(1.0, 0.30)], "UP": [(1.0, 0.30)], "NATONLY": [(1.0, 0.20)]}
 RHO = {"BOTH": [(1.0, 0.25)], "UP": [(1.0, 0.25)],
        "NOTHETA": [(1.0, 0.25)], "LOCONLY": [(1.0, 0.15)]}
@@ -133,7 +133,7 @@ def test_a_party_with_only_a_national_record_takes_the_national_route_at_zero_lo
 
     MK in 2026 is the case ``spine``'s docstring names: there is no previous
     local share to move forward, so the weight on the local route is 0 by
-    necessity and the level is the national share times the party's retention
+    necessity and the level is the provincial-ballot share times the party's retention
     ratio -- 1.0 by construction here, so 6.00% in and 6.00% out.
 
     If this failed, a party facing its first local election would be levelled
@@ -141,14 +141,14 @@ def test_a_party_with_only_a_national_record_takes_the_national_route_at_zero_lo
     measured as worse than doing nothing, or zero.
     """
     level, info = _spine()
-    assert "NATONLY" in level, "a party with a national record must be levelled"
+    assert "NATONLY" in level, "a party with an NPE record must be levelled"
     assert info["detail"]["NATONLY"]["route"].startswith("national only")
     assert info["detail"]["NATONLY"]["w_local"] == 0.0
     assert _close(level["NATONLY"], 0.06), level["NATONLY"]
 
 
 def test_a_party_with_only_a_local_record_takes_the_local_route_at_full_weight():
-    """A party that stood locally but not nationally has no national route to blend.
+    """A party that stood locally but not at the NPE has no NPE route to blend.
 
     ``nat_level`` is 0 for it, and a geometric blend with 0 is 0 -- so the
     weight must be exactly 1, not merely large. The level is its previous local
@@ -169,7 +169,7 @@ def test_a_party_with_both_records_lands_strictly_between_its_two_routes():
     With ``0 < w < 1`` a weighted geometric mean of two distinct positive
     numbers is strictly inside the interval they span -- an invariant of the
     mean itself, independent of this implementation. BOTH's routes are 9.00%
-    (national) and 1.00% (local), so its level must be strictly between them.
+    (NPE) and 1.00% (local), so its level must be strictly between them.
 
     If it equalled an endpoint, the blend would have collapsed to one route
     while still reporting itself as a blend, which is exactly the failure
@@ -287,7 +287,7 @@ def test_raising_k_moves_a_blended_party_monotonically_toward_its_local_result()
 def test_k_equal_to_zero_puts_every_blended_party_exactly_on_its_national_route():
     """k = 0 is the "no local route at all" end of the sweep, and it is a real model.
 
-    It is the pure national spine -- the configuration §1.30 measured at RMSE
+    It is the pure NPE spine -- the configuration §1.30 measured at RMSE
     0.275 against the blend's 0.236 -- so it is the natural floor of any sweep
     of ``SPINE_K`` and must be reachable and exact, not merely approached.
 
@@ -339,14 +339,14 @@ def test_the_blend_weight_ignores_the_local_records_own_evidence():
             > base["detail"]["BOTH"]["worth"])
     assert (with_theta["detail"]["BOTH"]["w_local"]
             < base["detail"]["BOTH"]["w_local"]), (
-        "more theta evidence must move a party toward the national spine")
+        "more theta evidence must move a party toward the NPE spine")
 
 
 def test_a_party_with_no_theta_record_sits_entirely_on_its_own_last_local_result():
     """ActionSA in 2026: w = 1.00 because it has no forward theta at all (§1.30).
 
     ``worth = 0`` gives ``w = k/(0+k) = 1`` for every k > 0, so the party's
-    national route is discarded entirely however small k is. That is the
+    NPE route is discarded entirely however small k is. That is the
     intended behaviour -- ``spine``'s docstring says "a party whose theta is
     nothing but the group centre sits on its own last local result" -- and it
     is what moves ActionSA from 5.98% to 15.23%, the single largest thing the
@@ -410,7 +410,7 @@ def test_spine_k_is_resolved_in_the_body_so_setting_the_module_constant_reaches_
 def test_a_party_with_neither_record_is_absent_from_the_spine_rather_than_present_at_a_level():
     """Absence is the ONLY signal that the spine could not reach a party.
 
-    ``NEITHER`` holds a national baseline of exactly 0.0 and no previous local
+    ``NEITHER`` holds an NPE baseline of exactly 0.0 and no previous local
     share. ``spine`` skips it: it appears in neither the level dict nor the
     per-party detail. That is deliberate -- ``spine``'s docstring says such a
     party is an arrival and ``pools.arrival_rules`` sizes it -- and it is the
@@ -482,8 +482,8 @@ def test_an_empty_theta_record_reports_a_group_centre_of_exactly_one():
     ``_shrunk`` returns ``({}, 0.0, {})`` when the record is empty, and
     ``spine`` publishes ``exp(0.0) = 1.0`` as ``theta_centre`` and levels every
     party with no theta record of its own at ``national x 1.0``. So "we have no
-    national-to-local retention record at all" and "the record says parties
-    retain their national share exactly" produce the same level AND the same
+    NPE-to-local retention record at all" and "the record says parties
+    retain their provincial-ballot share exactly" produce the same level AND the same
     diagnostic number.
 
     That is the defect class ``ARCHITECTURE.md`` opens with -- absence
@@ -534,7 +534,7 @@ def test_a_first_local_election_party_gets_the_size_centre_at_its_current_size()
     named, and this test pinned as WRONG, is fixed.
 
     It was ``..._gets_the_flat_group_centre_not_the_size_centre`` and asserted
-    that a party at 0.20% of the national vote and one at 30%, both facing
+    that a party at 0.20% of the provincial-ballot vote and one at 30%, both facing
     their first local election, got the identical flat multiplier. The owner
     decided that a party with no record of its own takes its size group's
     average at its current size (BRIEF item 17), which is what ``theta_prior``
@@ -616,8 +616,8 @@ def test_k_equal_to_zero_puts_a_party_with_no_theta_record_on_its_national_route
     result."*
 
     **The limit from above is NOT what was chosen, and the disagreement is the
-    point.** `w` weights the LOCAL route, so `k = 0` means "pure national
-    spine". Taking `w = 1` at `worth = 0` would make `k = 0` mean pure-national
+    point.** `w` weights the LOCAL route, so `k = 0` means "pure NPE
+    spine". Taking `w = 1` at `worth = 0` would make `k = 0` mean pure-NPE
     for every party EXCEPT those with no θ evidence, which are precisely the
     parties the local route exists to serve — so the lever would mean two
     different things depending on who it was applied to. **A lever that means
@@ -625,7 +625,7 @@ def test_k_equal_to_zero_puts_a_party_with_no_theta_record_on_its_national_route
 
     The owner's call, 2026-08-28, choosing `w = 0.0` when `worth + k <= 0`, and
     the reasoning is on the record: *ActionSA is a local party, the spine makes
-    no sense there either.* The national route for a party with no national
+    no sense there either.* The NPE route for a party with no NPE
     history is not a quantity worth protecting the discontinuity for.
 
     NOTHING SHIPS DIFFERENTLY. At `spine_k = None` the resolved k is
@@ -637,13 +637,13 @@ def test_k_equal_to_zero_puts_a_party_with_no_theta_record_on_its_national_route
     for party, d in info["detail"].items():
         if d["route"].startswith("blend"):
             assert d["w_local"] == 0.0, (
-                f"{party}: k=0 must put every blended party on its NATIONAL "
+                f"{party}: k=0 must put every blended party on its NPE "
                 f"route, and this one is at w_local={d['w_local']}. If the "
                 f"limit was deliberately changed, re-read the docstring above "
                 f"before re-recording — the choice is registered in "
                 f"JUDGEMENT-CALLS.md.")
             assert abs(levels[party] - d["national"]) < 1e-12, (
-                f"{party}: w_local is 0 but the level is not the national one")
+                f"{party}: w_local is 0 but the level is not the NPE one")
 
 def test_the_diagnostic_counts_the_observations_the_blend_was_actually_built_from():
     """``n_theta`` and ``n_rho`` are the only account of how much evidence there was.

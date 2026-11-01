@@ -310,8 +310,20 @@ defects in the public records This Model depends on are published:</p>
   and the arithmetic for each</li>
 <li><code>SOURCES.md</code>: where every input came from and how to fetch it again</li>
 </ul>
+<h2 id="the-frozen-forecast">The frozen forecast</h2>
+<p><span data-asof="2026-10-31">The forecast was fixed on 24 October 2026, before any votes were cast. Its fingerprint is</span></p>
+<p><span data-asof="2026-10-31"><code>10bdccc05423b0db38b0a52aeb8d6bd192539442e75da113ee07bc224ebc7c4a</code></span></p>
+<p><span data-asof="2026-10-31">a sha256 hash of the 5,000 simulations and every setting that produced them. Re-running the model from the same code and inputs gives the same hash; any change to a setting, an input or a single simulation gives a different one.</span></p>
+<p><span data-asof="2026-10-31">It is the <code>content_sha256</code> field of the frozen forecast file below, taken over that file&rsquo;s <code>content</code> block. The file&rsquo;s own bytes have a different sha256, because the file also records the commit and the software versions that wrote it.</span></p>
+<ul>
+<li><span data-asof="2026-10-31"><a href="/freeze/forecast_frozen.json">The frozen forecast</a></span></li>
+<li><span data-asof="2026-10-31"><a href="/freeze/inputs.json">Every input file it read, with its own hash</a> (151 files)</span></li>
+<li><span data-asof="2026-10-31"><a href="/freeze/preflight.txt">The input check run before freezing</a>. It flags one input: the voters&rsquo; roll is the IEC&rsquo;s 26 September figure, which matched the IEC&rsquo;s latest published roll, dated 29 September, in all 135 wards on 28 October.</span></li>
+</ul>
+<p><span data-asof="2026-10-31">The <code>ad6ca1dd1e52…</code> in the run identifier of <a href="/changes.json">changes.json</a> is a different hash: it covers the forecast summary the pages are built from (<code>forecast_summary.json</code>), not the simulations. It has not changed.</span></p>
+<p><span data-asof="2026-10-31"><strong>How forecasts will be scored.</strong> Every forecast on this site, ours and readers&rsquo;, will be scored by the same code after the election: seats first, then wards called correctly, then the list vote. That code was fixed on 31 October; its fingerprint is <a href="/freeze/scoring.json">here</a>.</span></p>
 <div class="colophon">
-  Reader edition, 2026-10-25. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, 2026-11-01. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div class="foot-text">

@@ -20,7 +20,7 @@ Four baselines, in increasing order of how much they are allowed to know:
 
 ``uniform-swing``
     The previous local election, shifted by the movement between the two
-    national elections that bracket it -- see :func:`uniform_swing` for why that
+    NPEs that bracket it -- see :func:`uniform_swing` for why that
     is the only aggregate a legitimate uniform swing can use here.
 
 ``uniform-swing+roster``
@@ -91,7 +91,7 @@ from seats import (council_seats, draw_key, eligible_parties, lot_identity,
 def sources_for(target: int) -> dict[str, str | None]:
     """Files each baseline needs that the backtest's TARGETS table does not name.
 
-    ``prior_npe`` is the national election preceding ``prior_lge``; together
+    ``prior_npe`` is the NPE preceding ``prior_lge``; together
     with the target's own ``base`` NPE it brackets the local election being
     carried forward, which is what makes a uniform swing computable without
     seeing the target. ``earlier_lge`` is the local election before
@@ -254,7 +254,7 @@ def build_context(target: int, data_dir: Path = Path("data/raw/elections"),
     except FileNotFoundError:
         earlier_lge_city = {}
 
-    # Party universe: everyone with a previous local result or a national one.
+    # Party universe: everyone with a previous local result or an NPE one.
     # Independents are dropped, exactly as montecarlo does: they take seats out
     # of the pool through the Schedule 1 ``C`` term rather than earning an
     # entitlement, and no baseline here predicts an independent ward win.
@@ -439,7 +439,7 @@ def last_lge(ctx: Context, draws: int = 1, seed: int | None = None):
 def uniform_swing(ctx: Context, draws: int = 1, seed: int | None = None):
     """The last local election, shifted by the national swing that bracketed it.
 
-    Uses: the previous LGE's VD-level ballots; the two national elections
+    Uses: the previous LGE's VD-level ballots; the two NPEs
     *before* the target -- the one preceding the target (2019 for a 2021 run)
     and the one preceding the previous LGE (2014) -- plus boundaries and roll.
 
@@ -449,18 +449,18 @@ def uniform_swing(ctx: Context, draws: int = 1, seed: int | None = None):
     election day, and no metro-level polling series for these years. Pinning to
     the target's own aggregate would be reading the answer. So the only
     aggregate a legitimate uniform swing can use is the movement between the two
-    national elections that bracket the local one being carried forward:
+    NPEs that bracket the local one being carried forward:
 
         predicted_share(party) = LGE_prev(party) + [NPE_recent - NPE_prior]
 
-    That is a real assumption with a real failure mode -- it assumes national
-    movement transfers one-for-one to local voting, which is exactly the
+    That is a real assumption with a real failure mode -- it assumes movement between NPEs
+    transfers one-for-one to local voting, which is exactly the
     assumption the model's γ and pool machinery exist to improve on. Which
     makes it the right thing to be measured against.
 
     The shift is additive in share space (the classic uniform swing), applied at
     VD level, clipped at zero and renormalised per VD. Additive means a party
-    that gained 5 points nationally gains 5 points in every VD, including ones
+    that gained 5 points between the two NPEs gains 5 points in every VD, including ones
     where it holds 2% -- deliberately naive. Parties in the LGE but not the NPEs
     get no shift; parties in the NPEs but not the LGE enter from zero, which is
     how a baseline gets to see a party like the EFF at all.
@@ -500,7 +500,7 @@ def blended_swing(ctx: Context, draws: int = 1, seed: int | None = None):
     of uniform swing and persistence is just a DAMPED swing**, and the whole
     family is one parameter. ``w = 1`` is ``uniform-swing``, ``w = 0`` is
     ``last-lge``, and anything between is the classic swing-damping correction
-    for the fact that national movement does not transfer one-for-one to local
+    for the fact that movement between NPEs does not transfer one-for-one to local
     voting.
 
     ``BLEND_W`` was fitted leave-one-city-year-out on this panel — the one place
@@ -552,7 +552,7 @@ def roster_split(ctx: Context) -> tuple[list[str], list[str], dict[str, float]]:
 
     * ``on_ballot`` — the members of ``ctx.universe`` that actually stood.
     * ``newcomers`` — parties on the ballot with no prior local and no prior
-      national result, so ``ctx.universe`` has no column for them at all.
+      provincial-ballot result, so ``ctx.universe`` has no column for them at all.
     * ``reach`` — for each newcomer that has one, the fraction of the target's
       wards in which it fielded a ward candidate.
 
@@ -603,7 +603,7 @@ def roster_split(ctx: Context) -> tuple[list[str], list[str], dict[str, float]]:
     ``C`` term rather than earning an entitlement.
 
     ⚠️ **A "newcomer" here is new to BOTH records.** ``ctx.universe`` is the
-    union of the prior LGE's two ballots and two national elections, so a party
+    union of the prior LGE's two ballots and two NPEs, so a party
     absent from it has no prior result of any kind — which is precisely the
     class uniform swing cannot represent, because there is nothing to swing.
     """
@@ -696,7 +696,7 @@ def arrival_budget(target: int) -> float:
         raise SystemExit(
             f"uniform-swing+roster cannot size the parties arriving at "
             f"{target}: no metro-year strictly before it carries both a local "
-            f"result and a preceding national one, so `arrival_group_record` "
+            f"result and a preceding NPE one, so `arrival_group_record` "
             f"is empty. The reference is not computable for this target — "
             f"which is a different statement from 'no party arrived', and it "
             f"is refused rather than quietly scored with an empty roster half.")
@@ -787,7 +787,7 @@ def uniform_swing_roster(ctx: Context, draws: int = 1, seed: int | None = None):
     layer — to seed by name the parties that did stand and had no prior result.
     ``build_context`` builds its universe from prior results only. So at
     Johannesburg 2021 the model knew ActionSA was on the ballot and uniform
-    swing could not represent it AT ALL: no prior local vote, no prior national
+    swing could not represent it AT ALL: no prior local vote, no prior NPE
     vote, nothing to swing, forecast zero against 44 seats. Seat totals are
     conserved, so that column is not worth 44 to the margin but closer to twice
     that — every seat ActionSA did not get in the reference was handed to a

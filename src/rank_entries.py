@@ -309,7 +309,8 @@ def main(argv=None) -> int:
     ap.add_argument("--anonymise", action="store_true",
                     help="replace every name on the board (the ninety-day deletion)")
     ap.add_argument("--target", default="2026")
-    ap.add_argument("--aliases", type=Path, help="JSON {IEC name: roster spelling}, if the IEC respells one")
+    ap.add_argument("--aliases", type=Path, help="JSON {IEC name: roster spelling}; default "
+                    "judgements/<city>-<target>-result-aliases.json (score_forecasts.result_aliases)")
     ap.add_argument("--seat-source", choices=S.SEAT_SOURCES)
     ap.add_argument("--out", type=Path, default=None,
                     help="default: content/<city>/leaderboard.json")
@@ -339,7 +340,8 @@ def main(argv=None) -> int:
     for f in args.forecast:
         data = json.loads(f.read_text(encoding="utf-8"))
         forecasts[data["context_ref"]] = data
-    aliases = json.loads(args.aliases.read_text(encoding="utf-8")) if args.aliases else None
+    aliases = (json.loads(args.aliases.read_text(encoding="utf-8")) if args.aliases
+               else S.result_aliases(slug, args.target))
     official = official_seats.read(cityconfig.active().code, int(args.target))
     result = S.ingest_result(args.result, city=slug, target=args.target,
                              roster=S.certified_roster(slug, args.target), aliases=aliases,

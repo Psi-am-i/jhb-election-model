@@ -2,7 +2,7 @@
 
 Phase 1 hard-coded Johannesburg into every script: municipality codes,
 council size, the party universe, and — most dangerously — a set of
-*judgements* (θ ranges, national-to-local shift ranges)
+*judgements* (θ ranges, NPE-to-local shift ranges)
 that were derived from CoJ history. Applied blind to another metro those
 judgements do not crash; they produce plausible, wrong output. So they live
 in a config file where they can be seen, sourced and argued with.
@@ -201,7 +201,7 @@ class City:
         Absent is a legitimate state and is now the preferred one. These
         bounds are read only when a party is missing from the measured θ
         prior, and since ``levels.theta_prior`` covers every party with a
-        national share — and arrivals are routed to the arrival record
+        provincial-ballot share at the NPE — and arrivals are routed to the arrival record
         instead — nothing reaches them on a city with its own history. A
         validation config carries no judgements at all on purpose: copying
         Johannesburg's ranges into another metro would make an
@@ -321,7 +321,7 @@ class Target:
 
     @property
     def previous_npe(self) -> str | None:
-        """The last national election before this one — the freshest party
+        """The last NPE before this one — the freshest party
         geography available, and the level λ̂ is applied to."""
         return preceding(self.year, "NPE")
 

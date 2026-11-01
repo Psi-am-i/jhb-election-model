@@ -2474,7 +2474,7 @@ def test_a_realistic_nomination_list_is_accepted():
 
 
 def test_an_undeclared_split_is_flagged_in_the_spec_not_printed():
-    """A party with a national vote and no lineage is the ActionSA shape.
+    """A party with an NPE vote and no lineage is the ActionSA shape.
 
     `classify_arrival` says "arrived from nothing" for anything absent from
     `SPLITS` and undeclared. That is right for a genuine entrant and wrong for a
@@ -2489,9 +2489,9 @@ def test_an_undeclared_split_is_flagged_in_the_spec_not_printed():
     floor = pools.UNCLASSIFIED_FLOOR
     assert 0.001 < floor < 0.02, (
         f"UNCLASSIFIED_FLOOR is {floor}. Below ~0.1% it flags the whole "
-        f"national tail; above ~2% it misses the cases it exists for.")
+        f"NPE tail; above ~2% it misses the cases it exists for.")
 
-    # (1) THE RULE: no declared parent AND a national share over the floor.
+    # (1) THE RULE: no declared parent AND a provincial-ballot share over the floor.
     def flags(party, national, declared_parent=None):
         parent, _ = pools.classify_arrival(party, declared_parent)
         return not parent and national >= floor
@@ -2527,7 +2527,7 @@ def test_an_undeclared_split_is_flagged_in_the_spec_not_printed():
     live = [q for q, v in baseline.items()
             if flags(q, v) and q not in ("IND", "ENTRANT")]
     assert live, (
-        f"no party in the {target.previous_npe} national file has a share over "
+        f"no party in the {target.previous_npe} NPE file has a share over "
         f"{floor:.1%} and no declared lineage, so this detector currently "
         f"guards nothing. Re-check the floor against the file.")
     assert len(live) < 10, (
@@ -2603,7 +2603,7 @@ def test_the_arrival_definitions_are_not_interchangeable():
     made to ``arrival_group_record``'s docstring on 2026-09-08: it claimed EFF,
     ActionSA, COPE, GOOD, MK and the NFP were all in the all-arrivals totals.
     **Four of the six are in no row at all**, because the predicate is "no
-    PRECEDING NATIONAL vote" and each of those four had one.
+    PRECEDING NPE vote" and each of those four had one.
     """
     splits = set(pools.SPLITS)
     lge = sorted((y for y, e in cityconfig.CALENDAR.items()
@@ -2648,7 +2648,7 @@ def test_the_arrival_definitions_are_not_interchangeable():
         f"and §1.179's correction bought nothing; all of them means the label "
         f"is not selecting.")
 
-    # The four that CANNOT appear, because each held a preceding national vote.
+    # The four that CANNOT appear, because each held a preceding NPE vote.
     # If one ever does, the docstring's measured table is stale and so is every
     # figure derived from it.
     absent = {q for q in splits if q not in causes}
@@ -2663,7 +2663,7 @@ def test_the_arrival_definitions_are_not_interchangeable():
         f"and the 9-of-29 claim before trusting any budget figure.")
 
     # ARRIVED_VS_LOCAL_* is a DIFFERENT population, and the canonical proof is
-    # a party with a national record and no local one: an arrival against the
+    # a party with an NPE record and no local one: an arrival against the
     # previous LGE, and not an arrival against the previous NPE.
     prev_lge = pools.metro_citywide("JHB", "2011")
     this_lge = pools.metro_citywide("JHB", "2016")
@@ -2674,9 +2674,9 @@ def test_the_arrival_definitions_are_not_interchangeable():
     only_local = vs_local - vs_national
     assert only_local, (
         "no party is an arrival against the previous LOCAL election and not "
-        "against the previous NATIONAL one, so the two definitions coincide at "
+        "against the previous NPE, so the two definitions coincide at "
         "2016 and nothing here separates them. EFF is the case: a 2014 "
-        "national vote, no 2011 local one.")
+        "NPE vote, no 2011 local one.")
     assert "EFF" in only_local, (
         f"EFF is not in the local-only arrival set {sorted(only_local)}. It is "
         f"the worked example both the register and the docstring cite.")
@@ -2687,7 +2687,7 @@ def test_the_arrival_definitions_are_not_interchangeable():
     assert pools.UNCLASSIFIED_FLOOR > 0.0, (
         f"UNCLASSIFIED_FLOOR is {pools.UNCLASSIFIED_FLOOR}. At or below zero "
         f"the seeded set and the flagged set overlap, and a party could be "
-        f"both sized from nothing and flagged as having a national record.")
+        f"both sized from nothing and flagged as having an NPE record.")
 
 
 def test_an_entrant_with_no_parent_is_spread_like_the_city_not_evenly():

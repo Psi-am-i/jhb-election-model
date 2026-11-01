@@ -486,7 +486,7 @@ def test_the_size_window_reads_no_election_at_or_after_its_target():
       the city configs, plus the live 2026 forecast. Each scanned.
     * **It looked, and read the right files:** for θ, the set of elections
       read is exactly every LGE with results before the target and the
-      national election preceding each (``cityconfig.preceding``); for ρ,
+      NPE preceding each (``cityconfig.preceding``); for ρ,
       exactly every LGE with results before the target. Both directions, so
       a skipped earlier election fails as well as a late one. (This assumes
       no ``THETA_EXCLUDE_TARGETS`` or ``THETA_WINDOW`` trims the θ record; if
@@ -558,8 +558,8 @@ def test_the_byelection_value_test_reads_no_byelection_or_result_from_its_outcom
     * **``B`` reads nothing dated 2024 or later.** ``bye_value.baselines``
       runs under the file-open spy; the set of elections it reads is exactly
       the θ record's at a 2024 target (every LGE with results before 2024 and
-      the national election preceding each, from the calendar) plus each
-      metro's 2021 LGE and 2019 national election. Both directions.
+      the NPE preceding each, from the calendar) plus each
+      metro's 2021 LGE and 2019 NPE. Both directions.
     * **It can see.** The same spy over ``bye_value.outcomes`` (which reads
       the 2024 result, as it must) reports it late; over ``baselines`` it is
       quiet.

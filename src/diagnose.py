@@ -329,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
     # arrived at 1.62%, which is close, and the table called it two separate
     # failures worth 3pp between them.
     # The newcomer test is against the model's BASELINE -- the preceding
-    # national election -- not against its index. A party can be in the index
+    # NPE -- not against its index. A party can be in the index
     # (the pool fit gave it a vector) and still have no baseline to grow from,
     # which is exactly the AIC in 2016: present in the index, absent from the
     # 2014 NPE, and therefore the party the generic entrant stands for.

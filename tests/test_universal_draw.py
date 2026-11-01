@@ -231,10 +231,10 @@ def class_rows(seed: int, d_anchored: float, d_unanchored: float):
 
 def test_the_newness_class_is_whether_the_centre_is_the_partys_own_national_result():
     """The class is read from the route the party's centre takes
-    (`montecarlo.newness_class`): an anchored newcomer holds a national result
-    in the city before any seed (its centre is the spine's national-only
+    (`montecarlo.newness_class`): an anchored newcomer holds an NPE result
+    in the city before any seed (its centre is the spine's NPE-only
     level); an unanchored one holds only an arrival seed, which the spine
-    also calls national-only, so the post-seed baseline must not decide it;
+    also calls NPE-only, so the post-seed baseline must not decide it;
     an established party's width never reads a class."""
     sc = {"_baseline_before_seeds": {"ANC": 0.40, "MK": 0.12},
           # the post-seed baseline: ActionSA's 7% is an arrival seed
@@ -369,9 +369,9 @@ def test_the_draw_takes_each_newcomers_class_delta_and_leaves_established_widths
 def test_the_class_follows_the_centres_route_at_a_real_city_year():
     """Johannesburg 2021 through `run_model(stop_after="drawer_inputs")`: of
     the new parties, those `newness_class` calls anchored are exactly those
-    the spine sized on its national-only route without an arrival seed, in
-    both directions; GOOD (a 2019 national vote) is anchored, ActionSA (no
-    national vote, seeded) unanchored; the ANC is not new; and the record's
+    the spine sized on its NPE-only route without an arrival seed, in
+    both directions; GOOD (a 2019 NPE vote) is anchored, ActionSA (no
+    NPE vote, seeded) unanchored; the ANC is not new; and the record's
     rows carry the class."""
     inp = W.drawer_inputs("joburg", "2021", [])
     sc = inp.scenario

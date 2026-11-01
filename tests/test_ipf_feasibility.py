@@ -100,7 +100,7 @@ def build_inputs():
 
     base_path = ELECTIONS / "npe2024_{CODE}_vd_party.csv"
     if not cityconfig.resolve_path(base_path).exists():
-        skip(f"no national baseline for {CITY} at {base_path}")
+        skip(f"no NPE baseline for {CITY} at {base_path}")
     base_votes, _ = M.load(base_path, None)
     base_city_d = M.citywide(base_votes)
 

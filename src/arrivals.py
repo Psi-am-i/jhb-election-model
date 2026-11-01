@@ -7,7 +7,7 @@ seat total where they are indistinguishable from a level error on an established
 party. This separates them.
 
 An ARRIVAL here is a party that took votes at the target while holding **no
-share at all** of the national election the model builds its baseline from. That
+share at all** of the NPE provincial ballot the model builds its baseline from. That
 is the case the machinery exists for and the only case it can be judged on: a
 party with any baseline, however small, is being forecast by θ and the spine like
 everyone else.

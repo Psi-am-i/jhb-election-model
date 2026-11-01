@@ -396,7 +396,7 @@ DEFAULTS: dict = {
     # See DIRICHLET_FLOOR. A scenario key so the sweep that chose it is
     # reproducible and so a reader can put the old behaviour back.
     "dirichlet_floor": DIRICHLET_FLOOR,
-    # How much θ evidence a party needs before the national spine is trusted
+    # How much θ evidence a party needs before the NPE spine is trusted
     # over its own last local result; the weight on the LOCAL route is
     # k/(worth+k). A scenario key rather than only a module constant, so it can
     # be swept -- levels.SPINE_K is a DEFAULT ARGUMENT and rebinding the module
@@ -439,7 +439,7 @@ DEFAULTS: dict = {
     # THE NEWCOMER WIDTH BY ANCHOR CLASS (prereg/2026-10-16-newness-width-by-
     # anchor.md, arm S). "by_anchor": a party new to the city takes the δ of
     # its class (`newness_class`: "anchored" when its centre is its own
-    # national result here, "unanchored" when it has none), each fitted by
+    # NPE result here, "unanchored" when it has none), each fitted by
     # `width_record.fit_class_deltas` on its own class's rows. "single": the
     # one δ fitted on every new party together (the comparison arm). Read only
     # under the universal law. JUDGEMENT-CALLS §A57.
@@ -486,7 +486,7 @@ def logit(p, floor=None):
 
 def place_by_pool(base_share_d, parties, members_by_party, base_city_d,
                   vd_pool, floor):
-    """Put each party with no national geography where its pools live.
+    """Put each party with no NPE geography where its pools live.
 
     ``base_share_d[vd][party] = max(place * base_city_d[party], floor)`` with
     ``place`` the pool-weighted composition of the district. Returns the set of
@@ -518,7 +518,7 @@ def placement_deviation(local, base_city, pool_placed_cols, level_floor):
     """``logit(local) - logit(base_city)`` per party, i.e. each party's geography.
 
     Columns in ``pool_placed_cols`` are clipped at ``level_floor``; every other
-    column at ``SHARE_FLOOR`` exactly as before, so a party with a national
+    column at ``SHARE_FLOOR`` exactly as before, so a party with an NPE
     record is unchanged. The same floor is used on both terms, or a constant
     is subtracted from one side only.
     """
@@ -2704,7 +2704,7 @@ def bye_class_size(party: str, prior_pr_share: dict[str, float],
                    base_city: dict[str, float]) -> float:
     """The size a party's by-election class is read at (SPEC R2.4): its
     previous-LGE list share, or, with none, its share in the run's baseline
-    (the national election before the target; a seeded arrival's seed)."""
+    (the NPE before the target; a seeded arrival's seed)."""
     share = float(prior_pr_share.get(party, 0.0) or 0.0)
     return share if share > 0 else float(base_city.get(party, 0.0) or 0.0)
 
@@ -2754,7 +2754,7 @@ def blended_centres(
     ``bye_weight``.
 
     A party with no earlier record is not moved at any ``w_bye`` (owner,
-    2026-10-19, JUDGEMENT-CALLS §A60): one that is pool-seeded (no national
+    2026-10-19, JUDGEMENT-CALLS §A60): one that is pool-seeded (no NPE
     share), with no previous local PR share and no previous local ward share,
     gets weight 0 and class ``"no record"``.
     """
@@ -2770,8 +2770,8 @@ def blended_centres(
 
     # Two paths, and every party takes exactly one of them.
     #
-    # WITHOUT HISTORY. A party with no national share has no θ, because θ is
-    # the ratio of a local share to a national one and there is nothing to
+    # WITHOUT HISTORY. A party with no provincial-ballot share at the NPE has no θ, because θ is
+    # the ratio of a local share to a provincial-ballot one and there is nothing to
     # divide by. That is not a gap to be filled with a judgement — it is a
     # different question, and ``pools.arrival_rules`` has already answered it
     # from the arrival record, seeding the party and handing back a band whose
@@ -2779,17 +2779,17 @@ def blended_centres(
     # code used to fall through to ``theta_mode`` instead: ActionSA arrived in
     # 2021 with no 2019 vote, was correctly seeded at 11.07% by the arrival
     # rules, and then had that LOCAL estimate multiplied by 1.50 — a
-    # NATIONAL-to-local conversion factor, applied to something already local,
+    # NPE-to-local conversion factor, applied to something already local,
     # and one chosen knowing what ActionSA went on to do. It reached the
     # drawer at 16.61%.
     #
     # WITH HISTORY. Everything ``levels.theta_prior`` covers: the party's own
     # retention record weighted by what it is worth and shrunk toward the
-    # common centre, or the centre itself for a party holding a national vote
+    # common centre, or the centre itself for a party holding an NPE vote
     # that has not yet faced a local election (MK in 2026).
     seeded = scenario.get("pool_seeds") or {}
     # THE SPINE (task #22). Where ``levels.spine`` has a level for a party, it
-    # is the answer: it already weighed the party's national route against its
+    # is the answer: it already weighed the party's NPE route against its
     # own last local result by how much θ evidence the party has, and returned
     # the blend. The θ-only branch below is what runs for a party the spine
     # cannot reach — and for a seeded arrival, which has neither record and is
@@ -2839,7 +2839,7 @@ def blended_centres(
             # `apply_city`, two city tomls and the register for weeks after
             # being certified inert.
             #
-            # A party that reaches here has a national baseline, no spine
+            # A party that reaches here has an NPE baseline, no spine
             # level, no theta prior and no seed, which the three branches
             # above make impossible. If that ever changes it must be a loud
             # failure rather than a typed number for whichever parties someone
@@ -2857,11 +2857,11 @@ def blended_centres(
             # NO RECORD, NO BY-ELECTION WEIGHT (owner, 2026-10-19,
             # JUDGEMENT-CALLS §A60). A party with no earlier vote of its own
             # anywhere the model reads -- sized by the arrival record (a pool
-            # seed, which only a party with no national share gets), no
+            # seed, which only a party with no NPE share gets), no
             # previous local PR share, no previous local ward share -- is not
             # moved by its by-elections: two ward contests are not evidence
             # about a party nobody has measured. MK keeps its weight (2024
-            # national share, so never seeded); keyed on the seed rather than
+            # provincial-ballot share, so never seeded); keyed on the seed rather than
             # on θ's prior so a prior that failed to load cannot reclassify
             # it. The All Citizens Party went 0.05% -> 1.24% on 198 votes in
             # two wards before this (MODEL-LOG §1.323).
@@ -2963,18 +2963,18 @@ def blended_centres(
                                       value=PLAN_BOUNDS[party],
                                       where="montecarlo:blended_centres bye clamp")
                 # THE CLAMP IS ANCHORED ON THE LEVEL THE MODEL BELIEVES, not on
-                # the national baseline. θ's band is a band on the NATIONAL
+                # the NPE baseline. θ's band is a band on the NPE
                 # route; multiplying it by `base` bounds the by-election
-                # evidence to what a party's national share could become, which
+                # evidence to what a party's provincial-ballot share could become, which
                 # is precisely the assumption task #22 exists to abandon.
                 #
                 # ActionSA 2026 is the case. The spine puts it at 15.2% from its
                 # own 2021 local result; the by-elections independently imply
-                # 18.7%; and the clamp, computed as high × 5.99% national, cut
+                # 18.7%; and the clamp, computed as high × 5.99% provincial-ballot share, cut
                 # that to 7.5% and dragged the blended centre DOWN to 12.1%. Two
                 # pieces of evidence agreeing that the party is larger than its
-                # national share were overruled by a bound derived from the
-                # national share. The PA was clamped from 21.9% to 7.1% the same
+                # provincial-ballot share were overruled by a bound derived from the
+                # provincial-ballot share. The PA was clamped from 21.9% to 7.1% the same
                 # way.
                 #
                 # The band is therefore applied as a RELATIVE spread — low/mode
@@ -3576,7 +3576,7 @@ def level_shock_sd(party: str, scenario: dict, base_city_d: dict,
     party and by the poll blend for the model's own sd. Three rules, in order:
 
     * ``"measured"`` — ``theta_prior``'s width for the party
-      (``scenario["_theta_sd"]``), the size line at its national share;
+      (``scenario["_theta_sd"]``), the size line at its provincial-ballot share;
     * ``"size"`` — a party with no such width, or one whose only record is the
       previous LGE (item 8, whose ``theta_prior`` width is the line at the 1e-5
       size floor, a size it does not have, SPEC R3.7): the size group's width
@@ -3714,19 +3714,19 @@ def newness_class(scenario: dict, party: str) -> str:
     ``poll_model_sd``). Meaningful only for a party in ``_new_parties`` (no
     result at the previous local election in the city).
 
-    * ``"anchored"``: the party took votes at the preceding national election
+    * ``"anchored"``: the party took votes at the preceding NPE
       in this city. ``levels.spine`` then sizes it on its "national only (first
       local election)" route, and ``blended_centres`` takes that spine level
-      as its centre: the centre is the party's own national result through θ.
+      as its centre: the centre is the party's own NPE result through θ.
       COPE 2011, EFF 2016, MK 2026.
-    * ``"unanchored"``: no national result here. Its centre is an arrival
+    * ``"unanchored"``: no NPE result here. Its centre is an arrival
       seed (``pools.arrival_rules``), and the spine, which reads the baseline
       after the seeds are added, labels it "national only" too, so the route
       label alone cannot tell the two apart. ActionSA 2021.
 
-    The test is ``scenario["_baseline_before_seeds"]`` (the national baseline
+    The test is ``scenario["_baseline_before_seeds"]`` (the NPE baseline
     as the election left it, written by ``run_model`` before any seed is
-    added), the same input that makes the spine's national route real rather
+    added), the same input that makes the spine's NPE route real rather
     than seeded. REFUSES when it was never set: a default would put every
     newcomer in one class in silence. A metro poll level outranks both routes
     in ``blended_centres``; no poll path is on in the shipped model and the
@@ -4343,7 +4343,7 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     # A party with neither stops the run in `level_shock_sd` (§A29).
     at_size: dict[str, float] = {}
     # An item-8 party (`levels.local_record_only`) is in `theta_prior`'s record
-    # with no national baseline, so where `theta_prior` emits an sd for it, it
+    # with no NPE baseline, so where `theta_prior` emits an sd for it, it
     # is `sd_for(0.0)`: the size line at the 1e-5 size floor, a width at a size
     # the party does not have (SPEC R3.7). Item 17 gives it, and any other
     # party with no measured width, the size group's width at its own size.
@@ -4391,7 +4391,7 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
         # band. That clamp existed when the centre and the band came from the
         # same θ; now they do not, and it was silently undoing task #22 — it
         # would have pulled ActionSA's 15.2% blended level back to about 11%
-        # because the ratio it implies against a 6.2% national base sits above
+        # because the ratio it implies against a 6.2% NPE base sits above
         # the top of a band measured on parties that have a θ at all.
         individual.append((party, i, centres[party],
                            sd_for_party(party) if law == "incumbent" else None))
@@ -5692,7 +5692,7 @@ def _projected_roster_declaration(target, roster: set[str],
        opened no file, and this says so rather than naming one.
     2. ``how`` — the derivation, per ``roster_source``. The projected branch of
        :func:`pools.resolve_roster` is *the preceding LGE result unioned with
-       the preceding national baseline, minus two floors*. ⚠️ **The floors'
+       the preceding NPE baseline, minus two floors*. ⚠️ **The floors'
        measured justifications are NOT restated here** — ``CLAUDE.md`` rule
        zero: a number copied into a file nobody re-measures is a defect. This
        cites ``JUDGEMENT-CALLS.md`` §K1/§K2, which is where they are generated.
@@ -5818,7 +5818,7 @@ def roster_universe_check(roster, roster_state: str, universe,
     Model correction batch item 8 (2026-10-09). Every roster party (not an
     independent) is in exactly one class:
 
-    * **with a record** -- a previous-LGE list vote, a national baseline or an
+    * **with a record** -- a previous-LGE list vote, an NPE baseline or an
       arrival seed. Absent from ``universe``: the run would forecast a ballot
       without it, so this refuses (``missing_with_record``).
     * **no record** -- none of the three. ``pools`` has no vector for it, so
@@ -6157,7 +6157,7 @@ def run_model(target, scenario: dict,
     # identity the lot uses (design 1c). There is no shared generator.
     streams = DrawStreams(run_lot, scenario["draws"])
 
-    # --- baseline: the last national election before the target --------------
+    # --- baseline: the last NPE before the target (provincial ballot) ---------
     base_votes, _ = load(data_dir / target.results(target.previous_npe), None)
     base_share_d, base_city_d = shares(base_votes), citywide(base_votes)
 
@@ -6166,8 +6166,8 @@ def run_model(target, scenario: dict,
     # rather than having its votes reapportioned afterwards. A party that is not
     # standing never had the votes to reapportion.
     #
-    # The universe used to be built from the national baseline alone, so every
-    # party that contested the last NATIONAL election kept a share at the local
+    # The universe used to be built from the NPE baseline alone, so every
+    # party that contested the last NPE kept a share at the local
     # one whether or not it stood. Johannesburg 2021: 13 parties in the 2019
     # baseline were not on the 2021 ballot, holding 0.42% of it between them.
     # About 0.4% of the vote is a seat under largest remainder, so that is of
@@ -6207,7 +6207,7 @@ def run_model(target, scenario: dict,
     # MERGERS (F5), BEFORE the off-ballot drop: a partner not on the ballot
     # hands `pools.MERGER_RETENTION` of its baseline to the partner that is, in
     # the citywide share and in every VD, and only where that partner already
-    # holds a national record. The drop below then removes the remainder. One
+    # holds an NPE record. The drop below then removes the remainder. One
     # definition, `pools.apply_mergers`; JUDGEMENT-CALLS §O1.
     import pools as _pools_merge
     base_city_d, base_share_d, _mergers = _pools_merge.apply_mergers(
@@ -6282,7 +6282,7 @@ def run_model(target, scenario: dict,
 
     # A party with no baseline cannot be grown into existence: theta multiplies,
     # and anything times zero is zero. ActionSA held 0.0000% of the 2019
-    # national vote and won 44 of Johannesburg's 270 seats in 2021; the model
+    # provincial-ballot vote at the NPE and won 44 of Johannesburg's 270 seats in 2021; the model
     # scored it at zero, and those seats reappeared as ANC +17 and DA +20.
     # pools.default_seeds gives every such party a starting share — a splinter
     # takes half its parent's vote, an entrant the median arrival on record,
@@ -6504,15 +6504,15 @@ def run_model(target, scenario: dict,
     # a swing. Recorded here rather than recomputed there: one definition.
     scenario["_prior_ward_share"] = dict(wc)
     # MERGERS on `prev_local`, the spine's local route and `blended_centres`'
-    # PR base. Same function and rule as the national baseline above: a
+    # PR base. Same function and rule as the NPE baseline above: a
     # successor with no local record (RISE at 2026) is given none. `pc` itself
     # is left as read, because the ward/PR ratios below are per-party
     # measurements of the 2021 ballots and a merger did not happen on them.
     prior_pr_share, _, _ = _pools_merge.apply_mergers(pc, _roster, target.year)
 
     # The baseline AS THE ELECTION LEFT IT, before any seed is added. "Has a
-    # record" has to mean the party took votes at the preceding national
-    # election, not that this model handed it a starting share five lines ago —
+    # record" has to mean the party took votes at the preceding
+    # NPE, not that this model handed it a starting share five lines ago —
     # and the seed loop below mutates base_city_d in place, so ActionSA looked
     # like an established party to every later test.
     baseline_before_seeds = dict(base_city_d)
@@ -6520,9 +6520,9 @@ def run_model(target, scenario: dict,
 
     seeds = scenario.get("pool_seeds") or {}
     # ROSTER PARTIES WHOSE ONLY RECORD IS THE PREVIOUS LOCAL ELECTION (item 8,
-    # 2026-10-09). The run's party list is the national baseline plus the
+    # 2026-10-09). The run's party list is the NPE baseline plus the
     # seeds, and `pools` seeds only parties with no record, so a party on the
-    # ballot with a previous-LGE list vote and no national vote was in neither
+    # ballot with a previous-LGE list vote and no NPE vote was in neither
     # and was not forecast at all: seven certified Johannesburg 2026 parties.
     # Each enters at its previous-LGE list share, is placed by its fitted pool
     # vector below, and is sized on the spine's local route. One classifier,
@@ -6551,7 +6551,7 @@ def run_model(target, scenario: dict,
                 members_by_party[party][pool_name] = float(weight)
         vd_pool = scenario.get("_vd_pool_composition") or {}
         if vd_pool:
-            # Every party with no national geography: the seeded arrivals and
+            # Every party with no NPE geography: the seeded arrivals and
             # the roster parties whose only record is local (item 8).
             pool_placed = place_by_pool(
                 base_share_d, [*seeds, *local_record_only], members_by_party,
@@ -7140,7 +7140,7 @@ def run_model(target, scenario: dict,
         # idiom looked right; None is the only value it ever had to resolve.
         # Resolved on `is None` so zero is a value like any other.
         _spine_k = scenario.get("spine_k")
-        # Item 8's local-record-only parties are kept out of the national
+        # Item 8's local-record-only parties are kept out of the NPE
         # input and named, so the spine takes them on its local route and
         # `blended_centres` reads that level (they are in `base_city_d`).
         _lro = set(scenario.get("_local_record_only") or ())

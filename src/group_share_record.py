@@ -12,8 +12,8 @@ For each city and each target in ``TARGETS``:
 * ``record[pool][party]`` — the party's largest Duncan-Davis UPPER bound on its
   share of that pool's vote over this city's real results strictly before the
   target: every local election this module can fit (``pools.fit_city``) and
-  every national election after one, on that local election's wards and
-  voter composition (carried forward: the national election's own
+  every NPE after one, on that local election's wards and
+  voter composition (carried forward: the NPE's own
   composition is not observed, which is argued, not measured). A party with
   no result in the city has no entry, and its record is 0.
 * ``margin[pool]`` — the largest one-cycle rise of a FITTED pool rate
@@ -21,7 +21,7 @@ For each city and each target in ``TARGETS``:
   consecutive fitted local elections both strictly before the target. A party
   absent from the earlier fit rises from 0. ``margin_cycles`` counts the
   cycles it was taken over; with none it is 0.
-* ``sources`` — which elections entered the record, and for each national one
+* ``sources`` — which elections entered the record, and for each NPE
   the share of its votes that reached a ward.
 
 A target with no fitted local election before it in that city is absent: the
@@ -30,7 +30,7 @@ run then reports ``"no record"`` rather than a threshold of zero.
 The method is ``audits/2026-10-09-model-fixes/item7/scripts/panel_rates.py``,
 ``panel_2024.py`` and ``guard_probe.py``'s ``thresholds``, as functions (SPEC
 §1.11), with one difference from the probe: the probe read only the 2024
-national election, and this reads every national election that follows a
+NPE, and this reads every NPE that follows a
 fitted local one.
 
 Usage::
@@ -124,7 +124,7 @@ def npe_rows(slug: str, npe: str, lge: str, ctx: dict) -> tuple[list[dict], floa
 
     VDs are joined to wards through the local election's own VD file, and the
     local election's voter composition is carried forward (argued). Returns
-    the rows and the share of the national election's votes that reached a
+    the rows and the share of the NPE's votes that reached a
     ward.
     """
     city = cityconfig.load(slug)
@@ -169,7 +169,7 @@ def npe_rows(slug: str, npe: str, lge: str, ctx: dict) -> tuple[list[dict], floa
 
 
 def _npe_after(lge: str) -> list[str]:
-    """National elections after ``lge`` and before the next local election."""
+    """NPEs after ``lge`` and before the next local election."""
     lges = sorted((y for y, e in cityconfig.CALENDAR.items()
                    if e.kind == "LGE"), key=int)
     later = [y for y in lges if int(y) > int(lge)]
@@ -180,7 +180,7 @@ def _npe_after(lge: str) -> list[str]:
 
 
 def panel(cities=None, years=None) -> dict:
-    """Every city's fitted local elections and the national ones after them.
+    """Every city's fitted local elections and the NPEs after them.
 
     ``{slug: [(election year, kind, rows, coverage)]}``, kind ``"LGE"`` or
     ``"NPE"``. ``None`` reads ``CITIES`` / ``FITTED_LGE`` at call time.

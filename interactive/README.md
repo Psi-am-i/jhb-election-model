@@ -26,7 +26,7 @@ link `site/draws/` and `site/logos/` beside it, and serve
 that directory:
 
 ```
-cd ~/projects/atlas-jhb-election-model
+cd ~/projects/jhb-election-model
 .venv/bin/python src/build_site.py --out /tmp/yf/site
 python3 -m http.server 8801 --bind 127.0.0.1 --directory /tmp/yf/site   # port 8801, never 8765
 ```

@@ -6,7 +6,7 @@
 
 Three properties, each with the detector shown to see a violation:
 
-* every slated party, national record or not, has ward votes only in the wards
+* every slated party, NPE record or not, has ward votes only in the wards
   it contests, and its citywide ward target is still met (``ballot_masks``,
   ``solve_and_predict(mask=)``);
 * a ward-only party (a slate, no PR list) has zero list share everywhere and
@@ -50,7 +50,7 @@ WEIGHT = np.array([1000.0, 1000.0, 1000.0, 1000.0])
 
 
 def _ballots(pr=frozenset({"BIG", "NAT", "LISTONLY"}), complete=True):
-    """BIG everywhere; NAT (a national-record party) and WARDONLY in ward 1
+    """BIG everywhere; NAT (an NPE-record party) and WARDONLY in ward 1
     only; LISTONLY on the list ballot only."""
     wards = {"BIG": frozenset(WARD_ID.values()),
              "NAT": frozenset({"79800001"}),
@@ -73,13 +73,13 @@ def _solve(target, mask, dev=None):
 
 
 # ---------------------------------------------------------------------------
-# (a) a national-record party stands only where its slate says
+# (a) an NPE-record party stands only where its slate says
 # ---------------------------------------------------------------------------
 
 def test_a_slated_national_party_has_no_ward_vote_outside_its_wards():
     m = _masks()
     nat, lo = UNIVERSE.index("NAT"), UNIVERSE.index("LISTONLY")
-    assert "NAT" in m["masked"], "a national-record party was not masked"
+    assert "NAT" in m["masked"], "an NPE-record party was not masked"
     target = np.array([0.7, 0.2, 0.0, 0.1])
     out = _solve(target, m["ward_mask_vd"])
     assert (out[2:, nat] == 0).all(), f"NAT outside ward 1: {out[2:, nat]}"
@@ -206,7 +206,7 @@ def test_the_declared_2026_lists_cover_the_roster_both_ways():
     b = levels.ballots(t, t.city)
     assert b.source == "declared" and b.pr is not None
     assert b.parties == frozenset(b.wards) | b.pr
-    assert "UDM" in b.ward_only(), "a national-record ward-only party"
+    assert "UDM" in b.ward_only(), "an NPE-record ward-only party"
     assert "IND" not in b.ward_only()
 
 

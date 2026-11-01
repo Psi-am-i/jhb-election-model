@@ -1117,14 +1117,14 @@ registration and which no downstream user can reconstruct.
 read-only, with a positive control: the alias leaves today's θ and arrival
 records byte-identical, because **no LGE file carries either spelling** and the
 NNP had dissolved before the 2006 local election. It is a correctness fix on the
-national reads, not a repair to a live forecast number — and the reason it is
+NPE reads, not a repair to a live forecast number — and the reason it is
 worth taking anyway is the class above, not the instance.
 
 ---
 
-## 18. 🔴 The results-portal NPE layout carries no ward, so four national elections have voting districts and no wards (found 2026-09-14)
+## 18. 🔴 The results-portal NPE layout carries no ward, so four NPEs have voting districts and no wards (found 2026-09-14)
 
-**The class.** The Commission publishes national results in two layouts. The
+**The class.** The Commission publishes NPE results in two layouts. The
 **bulk export** carries `WARD` beside `VOTING_DISTRICT`; the **results-portal**
 export does not carry it at all — `src/ingest_npe.py` says so above its
 `COLUMNS` table (*"Ward is blank for the results-portal layout, which does not
@@ -1146,7 +1146,7 @@ file, over `data/raw/elections/npe*_<CODE>_vd_party.csv`:
 | `npe2019` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | `npe2024` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
-**32 city-years carry voting districts and no wards** — four national elections
+**32 city-years carry voting districts and no wards** — four NPEs
 across all eight metros — while the voting districts themselves are complete
 (Johannesburg: 648 VDs at 1999, 686 at 2004, 853 at 2019, 865 at 2024). The gap
 is the *layout the file was fetched from*, not the city and not the era: 2009 and
@@ -1228,7 +1228,7 @@ claim about eight of them.
 ## 19. 🟡 Roster parties with no record of any kind are not drawn at a backtest (named 2026-10-09)
 
 **The class.** A party on a backtest target's ballot with no previous-LGE list
-vote, no national baseline and no arrival seed has no pool vector, so the run
+vote, no NPE baseline and no arrival seed has no pool vector, so the run
 cannot draw it. Since the model correction batch (item 8) the run names these
 parties per city-year in `41_guards.roster_unrepresented`
 (`montecarlo.roster_universe_check`) instead of omitting them in silence. At a
@@ -1313,3 +1313,69 @@ The fix reaches every target whose fold has placeholder rows: every fold file
 of every city has some, Tshwane's included. `fold5_parameters.csv` cannot be
 refitted under the default options (fold 5 has no prior LGE), so it stays
 without the column and `fold.py --fit-from 5` refuses it.
+
+## 23. 🔴 Census 2022's population-group mix by ward rests on an undercount correction made only at province × settlement-type level (named 2026-10-30)
+
+The model splits each ward's roll by Census 2022 population-group shares
+(MODEL-LOG §1.321). Published evidence on how those shares were produced, read
+2026-10-30 (reported, not measured here):
+
+- **Undercount.** Stats SA's Post-Enumeration Survey (PES) puts the 2022
+  undercount at 31.06% of persons nationally, 30.79% in Gauteng (SE 2.07);
+  2011's were 14.6% and 14.7%. By group, the PES reports 72% of Indian/Asian
+  and 62% of white people not counted, against 36.7% of black African people
+  (Moultrie & Dorrington 2024, SAJS 120(7/8), citing the PES report; the
+  Gauteng figures from their Table 8, citing PES 2022 Table 1).
+- **Where the correction was made.** The PES covered 840 of over 130,000
+  enumerator areas and was stratified only by province × urban/farm/
+  traditional (26 strata). It "was not designed to correct or adjust the
+  population at levels of granularity finer than those used to stratify the
+  PES sample" (Moultrie & Dorrington 2024, SAMRC technical report §3.3). So a
+  ward's adjusted group mix is its enumerated mix scaled by one Gauteng-urban
+  factor per group: a ward whose white or Indian residents were missed more
+  than the stratum average keeps that shortfall.
+- **Group totals.** Against cohort projections, the census overstates the
+  Indian/Asian population by about 190,000 and the white population by about
+  290,000 nationally (same report, §2.2). The PES's standard errors for those
+  two groups (0.82%, 0.42%) are called "clearly implausible" there.
+- **Johannesburg.** Census 2022 puts the city at 4,803,262, 20.5% below Stats
+  SA's own mid-year estimate interpolated to census day (6,041,207), and its
+  2011-2022 growth at 8.3% against 28-38% for Ekurhuleni and Tshwane (same
+  report, Tables 5-6). Between 2011 and 2022 it records the white population
+  falling by 211,000, Indian by 49,000, coloured by 18,000 (Harrison, Todes,
+  Mushongera, Gotz, The Conversation, 2023-10-17).
+- **Census against the roll.** In five municipalities without boundary
+  changes, census adults and registered voters moved in opposite directions
+  (Thabazimbi: census 18+ −23.6%, roll +17.4%) (same report, Table 7).
+
+Reach: every pool composition in the forecast and, through the ex-post census
+exception, every backtest row. Not measured: how far Johannesburg's ward group
+shares are off. **The measurement that sizes it:** per ward, Census 2022
+adults by group against the IEC roll, and the 2011 census's ward mix against
+2022's on a common delimitation (SuperWEB2 ward tables, `COLLECTION-LEDGER.md`
+C8). Sources go in `SOURCES.md` when the census tables are collected.
+
+**Measured 2026-10-30** (`rounds/2026-10-23-out-of-sample/census-adjust/wards.py`,
+`wards.csv`, `summary.json`; 135 wards on the 2021 map; 96% of the 2021 roll
+maps back to 2011 wards):
+
+- **The census missed whole suburbs, not their mix.** In 31 of 135 wards the
+  2021 LGE roll exceeds Census 2022's adults 18+ (median ratio 1.32), which
+  cannot be true. Those wards' median Census 2022 white share is 52.9%
+  (others: 0.2%). Their roll ÷ census-adults ratio was 0.75 in 2011 (2011 roll ÷
+  Census 2011 adults); the 104 other wards moved 0.65 → 0.60. Within the 31,
+  the median white share is 50.3% in 2011 and 52.9% in 2022: the ward totals
+  fell, the mix did not. Citywide, roll ÷ census adults is 0.63 (2011) and 0.62
+  (2022).
+- **What the model reads is little moved.** Weighting each ward's group mix
+  by its 2021 roll (as the model sizes pools by the roll): Census 2022 gives
+  Black African 75.56%, Coloured 5.52%, Indian/Asian 5.02%, White 13.91%;
+  Census 2011 moved onto the same wards gives 74.17%, 5.75%, 5.22%, 14.86%
+  (adults only: 74.12%, 5.47%, 5.15%, 15.25%). The census's own citywide count
+  (White 6.97%) is not what the model uses.
+- **The national correction** (white −6.4%, Indian/Asian −11.1%) moves no ward's
+  white share by more than 1.31 points and any group in any ward by at most 2.70.
+- **Ward by ward, 2011 and 2022 mixes differ by up to 32.4 points** (largest
+  white-share falls: wards 79800115 47.0% → 28.5%, 79800070 28.6% → 10.4%,
+  79800085 51.5% → 34.0%). Which of real change, the 2011 reprojection (uniform
+  within each 2011 ward) or census error causes each is not separated here.

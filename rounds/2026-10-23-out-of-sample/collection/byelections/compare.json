@@ -1,0 +1,24 @@
+{
+ "2021": {
+  "existing_file": "data/raw/byelections/byelections_SA_vd_party.csv",
+  "existing_contests": 311,
+  "collected_contests": 311,
+  "shared": 311,
+  "only_in_collection": [],
+  "only_in_existing": [],
+  "vd_party_value_differences_in_shared": [],
+  "existing_rows": 9163,
+  "collected_rows_cycle": 9163
+ },
+ "2016": {
+  "existing_file": "data/raw/byelections/byelections_SA_vd_party_2016.csv",
+  "existing_contests": 319,
+  "collected_contests": 319,
+  "shared": 319,
+  "only_in_collection": [],
+  "only_in_existing": [],
+  "vd_party_value_differences_in_shared": [],
+  "existing_rows": 8453,
+  "collected_rows_cycle": 8453
+ }
+}

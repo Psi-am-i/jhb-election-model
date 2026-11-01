@@ -122,7 +122,7 @@ def bye_value_files(root: Path | None = None) -> list[Path]:
     files ``levels.theta_record`` and ``levels.size_window`` read for ``B``'s
     ``mu_θ`` (every LGE transition before 2024 that the calendar holds), each
     metro's 2021 LGE (``s_2021`` and the ward bases the deltas are taken
-    against) and 2019 national file (the size ``mu_θ`` is taken at), and the
+    against) and 2019 NPE file (the size ``mu_θ`` is taken at), and the
     2024 provincial file (the outcome). Derived from the calendar, not from
     ``theta_record``'s own filters (``THETA_WINDOW``, the demarcation and
     held-back exclusions), so it is a superset: a file the test skips can

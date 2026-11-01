@@ -27,7 +27,7 @@ CLASS 3 — UNIDENTIFIED SCALE. An iteration with a free parameter nothing pins,
 
 CLASS 4 — WRONG ANCHOR. A bound or ratio computed against a quantity other than
     the one it is bounding. Instance: the by-election and polling clamps bounded
-    evidence to [low × NATIONAL share, high × NATIONAL share] while the level
+    evidence to [low × provincial-ballot share, high × provincial-ballot share] while the level
     they were correcting had been built from the LOCAL route, so two agreeing
     pieces of evidence were overruled by a bound derived from the route the
     model had deliberately abandoned.
@@ -261,8 +261,8 @@ def test_the_theta_calibration_pins_its_scale():
 def test_no_clamp_is_anchored_on_the_national_baseline():
     """The clamp must bound evidence around the level the model BELIEVES.
 
-    θ's band is a band on the NATIONAL route. Multiplying it by the national
-    baseline bounds by-election and polling evidence to what a party's national
+    θ's band is a band on the NPE route. Multiplying it by the NPE
+    baseline bounds by-election and polling evidence to what a party's provincial-ballot
     share could become — which is the assumption task #22 exists to abandon, and
     it dragged ActionSA from the spine's 15.2% to 12.1% using evidence that
     independently said 18.7%.
@@ -272,7 +272,7 @@ def test_no_clamp_is_anchored_on_the_national_baseline():
                 "low * base)", "high * base)"):
         assert bad not in src, (
             f"montecarlo.py still clamps with {bad!r} — a bound computed "
-            f"against the national baseline rather than against the level the "
+            f"against the NPE baseline rather than against the level the "
             f"spine settled on. This defect appeared at three separate sites.")
     assert "anchor = mode_level" in src, (
         "the by-election clamp must anchor on the model's own central level "
@@ -282,13 +282,13 @@ def test_no_clamp_is_anchored_on_the_national_baseline():
     # weighted blend below, which needs no clamp because the weight itself is
     # bounded by `weight_cap`. What the test exists to guard is unchanged and
     # is still checked — that the poll is blended against the level the SPINE
-    # settled on, not against the national baseline. The blend reads
+    # settled on, not against the NPE baseline. The blend reads
     # `_mu = float(centres.get(_party, 0.0))`, so that is what is asserted.
     # Updated deliberately, 2026-08-22, MODEL-LOG §1.69: the old literal went
     # stale with the mechanism and failed while the property held.
     assert '_mu = float(centres.get(_party, 0.0))' in src, (
         "the poll blend must be taken against `centres` — the level the spine "
-        "settled on — and not against the national baseline")
+        "settled on — and not against the NPE baseline")
     # REPLACED 2026-08-25 (§1.96). This was a SOURCE-TEXT assertion on the
     # literal line `_w = min(_pg.blend_weight(_psd, _msd), _cap)`, and it
     # managed both failure modes of that technique inside one week: it PASSED

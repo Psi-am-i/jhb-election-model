@@ -1,0 +1,466 @@
+cycle 2016: 84 events
+  [1/84] EEID 1073 NMA - Nelson Mandela Bay: ok
+  [1/84] EEID 1073 FS184 - Matjhabeng: ok
+  [1/84] EEID 1073 EKU - Ekurhuleni: ok
+  [1/84] EEID 1073 ETH - eThekwini: ok
+  [1/84] EEID 1073 MP304 - Dr Pixley Ka Isaka Seme: ok
+  [1/84] EEID 1073 LIM344 - Makhado: ok
+  [2/84] EEID 1079 KZN435 - uMzimkhulu: ok
+  [2/84] EEID 1079 MP305 - Lekwa: ok
+  [2/84] EEID 1079 NC452 - GA-SEGONYANA: ok
+  [2/84] EEID 1079 LIM332 - Greater Letaba: ok
+  [2/84] EEID 1079 NW372 - Madibeng: ok
+  [2/84] EEID 1079 CPT - City of Cape Town: ok
+  [3/84] EEID 1028 EC137 - Engcobo: ok
+  [3/84] EEID 1028 MAN - Mangaung: ok
+  [3/84] EEID 1028 EKU - Ekurhuleni: ok
+  [3/84] EEID 1028 ETH - eThekwini: ok
+  [3/84] EEID 1028 MP324 - Nkomazi: ok
+  [3/84] EEID 1028 NC076 - THEMBELIHLE: ok
+  [3/84] EEID 1028 LIM341 - Musina: ok
+  [3/84] EEID 1028 NW381 - Ratlou: ok
+  [3/84] EEID 1028 CPT - City of Cape Town: ok
+  [4/84] EEID 1032 EC442 - Umzimvubu: ok
+  [4/84] EEID 1032 FS163 - Mohokare: ok
+  [4/84] EEID 1032 EKU - Ekurhuleni: ok
+  [4/84] EEID 1032 ETH - eThekwini: ok
+  [4/84] EEID 1032 MP307 - Govan Mbeki: ok
+  [4/84] EEID 1032 NC094 - Phokwane: ok
+  [4/84] EEID 1032 LIM331 - Greater Giyani: ok
+  [4/84] EEID 1032 NW371 - Moretele: ok
+  [4/84] EEID 1032 CPT - City of Cape Town: ok
+  [5/84] EEID 953 EC156 - Mhlontlo: ok
+  [5/84] EEID 953 KZN244 - uMsinga: ok
+  [5/84] EEID 953 LIM343 - Thulamela: ok
+  [5/84] EEID 953 WC011 - Matzikama: ok
+  [6/84] EEID 947 NMA - Nelson Mandela Bay: ok
+  [7/84] EEID 934 NW375 - Moses Kotane: ok
+  [8/84] EEID 914 EC105 - Ndlambe: ok
+  [8/84] EEID 914 KZN213 - uMzumbe: ok
+  [8/84] EEID 914 WC048 - Knysna: ok
+  [9/84] EEID 907 EC122 - Mnquma: ok
+  [9/84] EEID 907 KZN275 - Mtubatuba: ok
+  [9/84] EEID 907 LIM361 - Thabazimbi: ok
+  [10/84] EEID 923 CPT - City of Cape Town: ok
+  [11/84] EEID 913 EC442 - Umzimvubu: ok
+  [11/84] EEID 913 KZN213 - uMzumbe: ok
+  [12/84] EEID 901 EC442 - Umzimvubu: ok
+  [12/84] EEID 901 FS162 - Kopanong: ok
+  [12/84] EEID 901 EKU - Ekurhuleni: ok
+  [12/84] EEID 901 KZN282 - uMhlathuze: ok
+  [13/84] EEID 894 MP307 - Govan Mbeki: ok
+  [13/84] EEID 894 LIM355 - Lepele-Nkumpi: ok
+  [14/84] EEID 885 NMA - Nelson Mandela Bay: ok
+  [14/84] EEID 885 KZN434 - uBuhlebezwe: ok
+  [14/84] EEID 885 NC452 - GA-SEGONYANA: ok
+  [14/84] EEID 885 NW405 - JB Marks: ok
+  [14/84] EEID 885 WC012 - Cederberg: ok
+  [15/84] EEID 879 FS194 - Maluti a Phofung: ok
+  [16/84] EEID 872 KZN245 - uMvoti: ok
+  [16/84] EEID 872 MP315 - Thembisile Hani: ok
+  [16/84] EEID 872 CPT - City of Cape Town: ok
+  [17/84] EEID 866 EC104 - Makana: ok
+  [17/84] EEID 866 FS184 - Matjhabeng: ok
+  [17/84] EEID 866 EKU - Ekurhuleni: ok
+  [17/84] EEID 866 ETH - eThekwini: ok
+  [17/84] EEID 866 MP302 - Msukaligwa: ok
+  [17/84] EEID 866 NC065 - HANTAM: ok
+  [17/84] EEID 866 LIM368 - Modimolle-Mookgophong: ok
+  [17/84] EEID 866 NW373 - Rustenburg: ok
+  [18/84] EEID 865 JHB - City of Johannesburg: ok
+  [18/84] EEID 865 WC034 - Swellendam: ok
+  [19/84] EEID 859 WC044 - George: ok
+  [20/84] EEID 852 MP307 - Govan Mbeki: ok
+  [20/84] EEID 852 NW403 - Matlosana: ok
+  [21/84] EEID 851 MP314 - Emakhazeni: ok
+  [21/84] EEID 851 LIM354 - Polokwane: ok
+  [22/84] EEID 843 KZN241 - eNdumeni: ok
+  [22/84] EEID 843 MP325 - Bushbuckridge: ok
+  [22/84] EEID 843 CPT - City of Cape Town: ok
+  [23/84] EEID 838 KZN275 - Mtubatuba: ok
+  [23/84] EEID 838 NC091 - Sol Plaatje: ok
+  [24/84] EEID 833 EKU - Ekurhuleni: ok
+  [24/84] EEID 833 NW405 - JB Marks: ok
+  [25/84] EEID 850 NMA - Nelson Mandela Bay: ok
+  [26/84] EEID 821 EC101 - Dr. Beyers Naude: ok
+  [26/84] EEID 821 JHB - City of Johannesburg: ok
+  [26/84] EEID 821 KZN235 - Okhahlamba: ok
+  [26/84] EEID 821 MP301 - Chief Albert Luthuli: ok
+  [26/84] EEID 821 NC091 - Sol Plaatje: ok
+  [26/84] EEID 821 WC024 - Stellenbosch: ok
+  [27/84] EEID 817 EC155 - Nyandeni: ok
+  [27/84] EEID 817 GT481 - Mogale City: ok
+  [27/84] EEID 817 KZN263 - AbaQulusi: ok
+  [28/84] EEID 810 NMA - Nelson Mandela Bay: ok
+  [28/84] EEID 810 ETH - eThekwini: ok
+  [28/84] EEID 810 LIM476 - Fetakgomo Tubatse: ok
+  [29/84] EEID 804 NW392 - Naledi: ok
+  [30/84] EEID 794 NC091 - Sol Plaatje: ok
+  [30/84] EEID 794 CPT - City of Cape Town: ok
+  [31/84] EEID 788 MAN - Mangaung: ok
+  [32/84] EEID 802 CPT - City of Cape Town: ok
+  [33/84] EEID 778 MP321 - Thaba Chweu: ok
+  [34/84] EEID 783 MP316 - Dr JS Moroka: ok
+  [35/84] EEID 767 TSH - Tshwane Metro: ok
+  [35/84] EEID 767 KZN275 - Mtubatuba: ok
+  [35/84] EEID 767 LIM367 - Mogalakwena: ok
+  [35/84] EEID 767 NW385 - Ramotshere Moiloa: ok
+  [35/84] EEID 767 WC011 - Matzikama: ok
+  [36/84] EEID 799 WC022 - Witzenberg: ok
+  [37/84] EEID 757 EC123 - Great Kei: ok
+  [37/84] EEID 757 FS201 - Moqhaka: ok
+  [37/84] EEID 757 WC044 - George: ok
+  [38/84] EEID 747 FS203 - Ngwathe: ok
+  [38/84] EEID 747 NW383 - Mafikeng: ok
+  [39/84] EEID 752 KZN225 - Msunduzi: ok
+  [40/84] EEID 742 TSH - Tshwane Metro: ok
+  [41/84] EEID 737 KZN216 - Ray Nkonyeni: ok
+  [41/84] EEID 737 LIM332 - Greater Letaba: ok
+  [41/84] EEID 737 WC025 - Breede Valley: ok
+  [42/84] EEID 730 ETH - eThekwini: ok
+  [42/84] EEID 730 MP313 - Steve Tshwete: ok
+  [43/84] EEID 725 MP316 - Dr JS Moroka: ok
+  [44/84] EEID 719 FS185 - Nala: ok
+  [44/84] EEID 719 TSH - Tshwane Metro: ok
+  [44/84] EEID 719 NW396 - Lekwa-Teemane: ok
+  [45/84] EEID 713 EC443 - Mbizana: ok
+  [45/84] EEID 713 KZN222 - uMngeni: ok
+  [45/84] EEID 713 NC067 - KHâI-MA: ok
+  [46/84] EEID 708 NC078 - SIYANCUMA: ok
+  [46/84] EEID 708 NW375 - Moses Kotane: ok
+  [47/84] EEID 703 EC121 - Mbhashe: ok
+  [48/84] EEID 688 KZN285 - Mthonjaneni: ok
+  [48/84] EEID 688 NW383 - Mafikeng: ok
+  [49/84] EEID 683 FS204 - Metsimaholo: ok
+  [49/84] EEID 683 MP305 - Lekwa: ok
+  [50/84] EEID 693 LIM366 - Bela-Bela: ok
+  [51/84] EEID 674 EC136 - Emalahleni: ok
+  [51/84] EEID 674 MP325 - Bushbuckridge: ok
+  [52/84] EEID 673 FS161 - Letsemeng: ok
+  [53/84] EEID 668 BUF - Buffalo City: ok
+  [53/84] EEID 668 MP316 - Dr JS Moroka: ok
+  [53/84] EEID 668 NW397 - Ganyesa/Pomfret: ok
+  [54/84] EEID 663 ETH - eThekwini: ok
+  [54/84] EEID 663 WC014 - Saldanha Bay: ok
+  [55/84] EEID 655 JHB - City of Johannesburg: ok
+  [55/84] EEID 655 KZN275 - Mtubatuba: ok
+  [55/84] EEID 655 NW373 - Rustenburg: ok
+  [56/84] EEID 646 JHB - City of Johannesburg: ok
+  [56/84] EEID 646 NW384 - Ditsobotla: ok
+  [56/84] EEID 646 WC025 - Breede Valley: ok
+  [57/84] EEID 636 EC109 - Kou-Kamma: ok
+  [57/84] EEID 636 LIM367 - Mogalakwena: ok
+  [58/84] EEID 631 KZN212 - uMdoni: ok
+  [59/84] EEID 626 NMA - Nelson Mandela Bay: ok
+  [60/84] EEID 595 JHB - City of Johannesburg: ok
+  [60/84] EEID 595 NW383 - Mafikeng: ok
+  [61/84] EEID 590 WC032 - Overstrand: ok
+  [62/84] EEID 584 EC108 - Kouga: ok
+  [63/84] EEID 579 KZN263 - AbaQulusi: ok
+  [63/84] EEID 579 NC077 - SIYATHEMBA: ok
+  [63/84] EEID 579 LIM355 - Lepele-Nkumpi: ok
+  [64/84] EEID 566 EC155 - Nyandeni: ok
+  [64/84] EEID 566 FS204 - Metsimaholo: ok
+  [64/84] EEID 566 KZN284 - uMlalazi: ok
+  [64/84] EEID 566 CPT - City of Cape Town: ok
+  [65/84] EEID 561 EKU - Ekurhuleni: ok
+  [65/84] EEID 561 CPT - City of Cape Town: ok
+  [66/84] EEID 571 BUF - Buffalo City: ok
+  [67/84] EEID 556 EC141 - Elundini: ok
+  [68/84] EEID 550 MAN - Mangaung: ok
+  [68/84] EEID 550 KZN216 - Ray Nkonyeni: ok
+  [68/84] EEID 550 MP304 - Dr Pixley Ka Isaka Seme: ok
+  [68/84] EEID 550 NW382 - Tswaing: ok
+  [69/84] EEID 540 KZN241 - eNdumeni: ok
+  [69/84] EEID 540 MP324 - Nkomazi: ok
+  [69/84] EEID 540 NC087 - Dawid Kruiper: ok
+  [70/84] EEID 535 GT422 - Midvaal: ok
+  [70/84] EEID 535 NC453 - GAMAGARA: ok
+  [70/84] EEID 535 CPT - City of Cape Town: ok
+  [71/84] EEID 528 EC129 - Raymond Mhlaba: ok
+  [71/84] EEID 528 NC093 - Magareng: ok
+  [72/84] EEID 524 EC126 - Ngqushwa: ok
+  [72/84] EEID 524 FS184 - Matjhabeng: ok
+  [72/84] EEID 524 EKU - Ekurhuleni: ok
+  [72/84] EEID 524 WC013 - Bergrivier: ok
+  [73/84] EEID 518 KZN225 - Msunduzi: ok
+  [73/84] EEID 518 LIM367 - Mogalakwena: ok
+  [73/84] EEID 518 NW392 - Naledi: ok
+  [73/84] EEID 518 CPT - City of Cape Town: ok
+  [74/84] EEID 512 KZN212 - uMdoni: ok
+  [74/84] EEID 512 MP314 - Emakhazeni: ok
+  [74/84] EEID 512 NW371 - Moretele: ok
+  [75/84] EEID 506 EC122 - Mnquma: ok
+  [75/84] EEID 506 KZN262 - uPhongolo: ok
+  [75/84] EEID 506 MP326 - City of Mbombela: ok
+  [75/84] EEID 506 NC091 - Sol Plaatje: ok
+  [76/84] EEID 498 KZN242 - Nqutu: ok
+  [76/84] EEID 498 WC053 - Beaufort West: ok
+  [77/84] EEID 493 NC092 - Dikgatlong: ok
+  [78/84] EEID 472 JHB - City of Johannesburg: ok
+  [78/84] EEID 472 KZN214 - uMuziwabantu: ok
+  [78/84] EEID 472 MP311 - Victor Khanye: ok
+  [78/84] EEID 472 WC047 - Bitou: ok
+  [79/84] EEID 485 KZN225 - Msunduzi: ok
+  [80/84] EEID 480 MP316 - Dr JS Moroka: ok
+  [81/84] EEID 471 EC443 - Mbizana: ok
+  [81/84] EEID 471 MAN - Mangaung: ok
+  [82/84] EEID 465 EC442 - Umzimvubu: ok
+  [82/84] EEID 465 FS204 - Metsimaholo: ok
+  [82/84] EEID 465 WC044 - George: ok
+  [83/84] EEID 457 KZN282 - uMhlathuze: ok
+  [84/84] EEID 453 NMA - Nelson Mandela Bay: ok
+  [84/84] EEID 453 KZN214 - uMuziwabantu: ok
+  [84/84] EEID 453 MP301 - Chief Albert Luthuli: ok
+  [84/84] EEID 453 NC086 - KGATELOPELE: ok
+  [84/84] EEID 453 LIM354 - Polokwane: ok
+  [84/84] EEID 453 CPT - City of Cape Town: ok
+cycle 2021: 110 events
+  [1/110] EEID 1935 MP325 - Bushbuckridge: ok
+  [1/110] EEID 1935 NW373 - Rustenburg: ok
+  [2/110] EEID 1941 BUF - Buffalo City: ok
+  [3] EEID 1926: no national file
+  [4] EEID 1919: no national file
+  [5/110] EEID 1900 NC077 - SIYATHEMBA: ok
+  [5/110] EEID 1900 NW403 - Matlosana: ok
+  [6/110] EEID 1912 WC024 - Stellenbosch: ok
+  [7/110] EEID 1888 WC014 - Saldanha Bay: ok
+  [8/110] EEID 1896 EC138 - Sakhisizwe: ok
+  [9/110] EEID 1863 CPT - City of Cape Town: ok
+  [10/110] EEID 1870 EC101 - Dr. Beyers Naude: ok
+  [10/110] EEID 1870 KZN263 - AbaQulusi: ok
+  [11/110] EEID 1856 JHB - City of Johannesburg: ok
+  [11/110] EEID 1856 KZN265 - Nongoma: ok
+  [11/110] EEID 1856 LIM354 - Polokwane: ok
+  [12/110] EEID 1846 KZN213 - uMzumbe: ok
+  [12/110] EEID 1846 WC044 - George: ok
+  [13/110] EEID 1838 GT481 - Mogale City: ok
+  [13/110] EEID 1838 WC012 - Cederberg: ok
+  [14/110] EEID 1830 TSH - City of Tshwane: ok
+  [14/110] EEID 1830 WC044 - George: ok
+  [15/110] EEID 1823 KZN281 - uMfolozi: ok
+  [15/110] EEID 1823 MP303 - Mkhondo: ok
+  [16/110] EEID 1817 EKU - Ekurhuleni: ok
+  [16/110] EEID 1817 WC031 - Theewaterskloof: ok
+  [17/110] EEID 1806 EC104 - Makana: ok
+  [17/110] EEID 1806 JHB - City of Johannesburg: ok
+  [17/110] EEID 1806 KZN291 - Mandeni: ok
+  [17/110] EEID 1806 NC065 - HANTAM: ok
+  [18/110] EEID 1799 MP307 - Govan Mbeki: ok
+  [18/110] EEID 1799 LIM476 - Fetakgomo Tubatse: ok
+  [19/110] EEID 1791 EC137 - Dr. A.B. Xuma: ok
+  [19/110] EEID 1791 JHB - City of Johannesburg: ok
+  [19/110] EEID 1791 LIM341 - Musina: ok
+  [19/110] EEID 1791 NW385 - Ramotshere Moiloa: ok
+  [19/110] EEID 1791 WC026 - Langeberg: ok
+  [20/110] EEID 1784 EC141 - Elundini: ok
+  [20/110] EEID 1784 TSH - City of Tshwane: ok
+  [20/110] EEID 1784 MP312 - Emalahleni: ok
+  [21/110] EEID 1777 ETH - eThekwini: ok
+  [21/110] EEID 1777 LIM471 - Ephraim Mogale: ok
+  [22/110] EEID 1762 EC109 - Kou-Kamma: ok
+  [22/110] EEID 1762 FS185 - Nala: ok
+  [22/110] EEID 1762 JHB - City of Johannesburg: ok
+  [22/110] EEID 1762 LIM366 - Bela-Bela: ok
+  [23/110] EEID 1770 EC136 - Emalahleni: ok
+  [23/110] EEID 1770 NC078 - SIYANCUMA: ok
+  [23/110] EEID 1770 LIM476 - Fetakgomo Tubatse: ok
+  [24/110] EEID 1748 EC157 - King Sabata Dalindyebo: ok
+  [24/110] EEID 1748 WC011 - Matzikama: ok
+  [25/110] EEID 1755 NMA - Nelson Mandela Bay: ok
+  [26/110] EEID 1720 GT421 - Emfuleni: ok
+  [26/110] EEID 1720 NC091 - Sol Plaatje: ok
+  [26/110] EEID 1720 WC013 - Bergrivier: ok
+  [27/110] EEID 1734 NMA - Nelson Mandela Bay: ok
+  [27/110] EEID 1734 KZN263 - AbaQulusi: ok
+  [27/110] EEID 1734 LIM354 - Polokwane: ok
+  [28/110] EEID 1727 FS204 - Metsimaholo: ok
+  [28/110] EEID 1727 TSH - City of Tshwane: ok
+  [29/110] EEID 1741 NMA - Nelson Mandela Bay: ok
+  [30/110] EEID 1705 TSH - City of Tshwane: ok
+  [30/110] EEID 1705 WC043 - Mossel Bay: ok
+  [31/110] EEID 1712 MP321 - Thaba Chweu: ok
+  [32/110] EEID 1698 MP315 - Thembisile Hani: ok
+  [33/110] EEID 1691 EC109 - Kou-Kamma: ok
+  [33/110] EEID 1691 FS203 - Ngwathe: ok
+  [33/110] EEID 1691 NC062 - NAMA KHOI: ok
+  [34/110] EEID 1683 JHB - City of Johannesburg: ok
+  [34/110] EEID 1683 KZN223 - Mpofana: ok
+  [34/110] EEID 1683 NC062 - NAMA KHOI: ok
+  [34/110] EEID 1683 WC024 - Stellenbosch: ok
+  [35/110] EEID 1676 KZN291 - Mandeni: ok
+  [36/110] EEID 1669 GT485 - Rand West City: ok
+  [36/110] EEID 1669 ETH - eThekwini: ok
+  [37/110] EEID 1662 EC135 - Intsika Yethu: ok
+  [37/110] EEID 1662 JHB - City of Johannesburg: ok
+  [37/110] EEID 1662 KZN262 - uPhongolo: ok
+  [37/110] EEID 1662 LIM344 - Makhado: ok
+  [38/110] EEID 1648 JHB - City of Johannesburg: ok
+  [38/110] EEID 1648 NC451 - Joe Morolong: ok
+  [38/110] EEID 1648 WC014 - Saldanha Bay: ok
+  [39/110] EEID 1655 KZN227 - Richmond: ok
+  [40/110] EEID 1641 EC441 - Matatiele: ok
+  [40/110] EEID 1641 KZN271 - uMhlabuyalingana: ok
+  [41/110] EEID 1634 GT422 - Midvaal: ok
+  [42/110] EEID 1627 EC129 - Raymond Mhlaba: ok
+  [43/110] EEID 1620 MP325 - Bushbuckridge: ok
+  [44/110] EEID 1613 KZN225 - Msunduzi: ok
+  [44/110] EEID 1613 NC065 - HANTAM: ok
+  [45/110] EEID 1605 LIM472 - Elias Motsoaledi: ok
+  [46/110] EEID 1598 EC154 - Port St Johns: ok
+  [46/110] EEID 1598 KZN275 - Mtubatuba: ok
+  [46/110] EEID 1598 NC066 - KAROO HOOGLAND: ok
+  [46/110] EEID 1598 LIM361 - Thabazimbi: ok
+  [46/110] EEID 1598 NW404 - Maquassi Hills: ok
+  [46/110] EEID 1598 WC045 - Oudtshoorn: ok
+  [47/110] EEID 1591 EC129 - Raymond Mhlaba: ok
+  [47/110] EEID 1591 CPT - City of Cape Town: ok
+  [48/110] EEID 1584 LIM354 - Polokwane: ok
+  [49/110] EEID 1570 TSH - City of Tshwane: ok
+  [49/110] EEID 1570 MP302 - Msukaligwa: ok
+  [49/110] EEID 1570 CPT - City of Cape Town: ok
+  [50/110] EEID 1577 BUF - Buffalo City: ok
+  [50/110] EEID 1577 NC084 - !KHEIS: ok
+  [51/110] EEID 1558 MAN - Mangaung: ok
+  [51/110] EEID 1558 JHB - City of Johannesburg: ok
+  [51/110] EEID 1558 ETH - eThekwini: ok
+  [51/110] EEID 1558 LIM362 - Lephalale: ok
+  [51/110] EEID 1558 NW392 - Naledi: ok
+  [52/110] EEID 1537 FS203 - Ngwathe: ok
+  [52/110] EEID 1537 JHB - City of Johannesburg: ok
+  [52/110] EEID 1537 ETH - eThekwini: ok
+  [52/110] EEID 1537 MP313 - Steve Tshwete: ok
+  [52/110] EEID 1537 NW371 - Moretele: ok
+  [52/110] EEID 1537 CPT - City of Cape Town: ok
+  [53/110] EEID 1544 NMA - Nelson Mandela Bay: ok
+  [53/110] EEID 1544 LIM344 - Makhado: ok
+  [54/110] EEID 1551 FS191 - Setsoto: ok
+  [55/110] EEID 1525 EC124 - Amahlathi: ok
+  [55/110] EEID 1525 KZN252 - Newcastle: ok
+  [55/110] EEID 1525 NW403 - Matlosana: ok
+  [56/110] EEID 1504 KZN435 - uMzimkhulu: ok
+  [56/110] EEID 1504 CPT - City of Cape Town: ok
+  [57/110] EEID 1514 LIM355 - Lepele-Nkumpi: ok
+  [58/110] EEID 1497 NW372 - Madibeng: ok
+  [59/110] EEID 1486 EC102 - Blue Crane Route: ok
+  [59/110] EEID 1486 TSH - City of Tshwane: ok
+  [59/110] EEID 1486 NC073 - EMTHANJENI: ok
+  [59/110] EEID 1486 LIM354 - Polokwane: ok
+  [59/110] EEID 1486 NW375 - Moses Kotane: ok
+  [59/110] EEID 1486 WC012 - Cederberg: ok
+  [60/110] EEID 1466 GT421 - Emfuleni: ok
+  [60/110] EEID 1466 KZN221 - uMshwathi: ok
+  [60/110] EEID 1466 NW371 - Moretele: ok
+  [61/110] EEID 1467 MP307 - Govan Mbeki: ok
+  [62/110] EEID 1450 FS185 - Nala: ok
+  [62/110] EEID 1450 EKU - Ekurhuleni: ok
+  [62/110] EEID 1450 KZN252 - Newcastle: ok
+  [62/110] EEID 1450 NW372 - Madibeng: ok
+  [62/110] EEID 1450 WC031 - Theewaterskloof: ok
+  [63/110] EEID 1458 KZN263 - AbaQulusi: ok
+  [64/110] EEID 1443 MP325 - Bushbuckridge: ok
+  [65/110] EEID 1432 FS196 - Mantsopa: ok
+  [66/110] EEID 1425 GT485 - Rand West City: ok
+  [66/110] EEID 1425 ETH - eThekwini: ok
+  [67/110] EEID 1415 KZN226 - Mkhambathini: ok
+  [67/110] EEID 1415 NW385 - Ramotshere Moiloa: ok
+  [67/110] EEID 1415 WC014 - Saldanha Bay: ok
+  [68/110] EEID 1393 MAN - Mangaung: ok
+  [69/110] EEID 1401 KZN225 - Msunduzi: ok
+  [70/110] EEID 1408 EC156 - Mhlontlo: ok
+  [71/110] EEID 1386 TSH - City of Tshwane: ok
+  [71/110] EEID 1386 MP302 - Msukaligwa: ok
+  [71/110] EEID 1386 LIM471 - Ephraim Mogale: ok
+  [71/110] EEID 1386 WC015 - Swartland: ok
+  [72/110] EEID 1379 EKU - Ekurhuleni: ok
+  [72/110] EEID 1379 ETH - eThekwini: ok
+  [72/110] EEID 1379 MP305 - Lekwa: ok
+  [73/110] EEID 1372 MP302 - Msukaligwa: ok
+  [73/110] EEID 1372 NC091 - Sol Plaatje: ok
+  [73/110] EEID 1372 NW403 - Matlosana: ok
+  [74/110] EEID 1363 KZN282 - uMhlathuze: ok
+  [74/110] EEID 1363 LIM351 - Blouberg: ok
+  [74/110] EEID 1363 NW372 - Madibeng: ok
+  [75/110] EEID 1356 EC121 - Mbhashe: ok
+  [76/110] EEID 1346 EC137 - Dr. A.B. Xuma: ok
+  [76/110] EEID 1346 JHB - City of Johannesburg: ok
+  [76/110] EEID 1346 NW372 - Madibeng: ok
+  [77/110] EEID 1338 EC142 - Senqu: ok
+  [77/110] EEID 1338 MAN - Mangaung: ok
+  [77/110] EEID 1338 KZN285 - Mthonjaneni: ok
+  [77/110] EEID 1338 NW373 - Rustenburg: ok
+  [77/110] EEID 1338 WC044 - George: ok
+  [78/110] EEID 1327 JHB - City of Johannesburg: ok
+  [78/110] EEID 1327 ETH - eThekwini: ok
+  [78/110] EEID 1327 MP303 - Mkhondo: ok
+  [78/110] EEID 1327 CPT - City of Cape Town: ok
+  [79/110] EEID 1320 EC109 - Kou-Kamma: ok
+  [79/110] EEID 1320 KZN245 - uMvoti: ok
+  [80/110] EEID 1313 EKU - Ekurhuleni: ok
+  [80/110] EEID 1313 KZN435 - uMzimkhulu: ok
+  [81/110] EEID 1303 FS192 - Dihlabeng: ok
+  [81/110] EEID 1303 KZN271 - uMhlabuyalingana: ok
+  [81/110] EEID 1303 WC032 - Overstrand: ok
+  [82/110] EEID 1290 TSH - City of Tshwane: ok
+  [82/110] EEID 1290 KZN245 - uMvoti: ok
+  [82/110] EEID 1290 MP303 - Mkhondo: ok
+  [83/110] EEID 1289 KZN434 - uBuhlebezwe: ok
+  [83/110] EEID 1289 WC034 - Swellendam: ok
+  [84/110] EEID 1282 EC153 - Ngquza Hill: ok
+  [84/110] EEID 1282 KZN216 - Ray Nkonyeni: ok
+  [84/110] EEID 1282 WC024 - Stellenbosch: ok
+  [85/110] EEID 1272 EC102 - Blue Crane Route: ok
+  [85/110] EEID 1272 NC091 - Sol Plaatje: ok
+  [86/110] EEID 1265 KZN252 - Newcastle: ok
+  [86/110] EEID 1265 WC012 - Cederberg: ok
+  [87/110] EEID 1257 NC092 - Dikgatlong: ok
+  [87/110] EEID 1257 CPT - City of Cape Town: ok
+  [88/110] EEID 1248 EC121 - Mbhashe: ok
+  [88/110] EEID 1248 LIM351 - Blouberg: ok
+  [89/110] EEID 1240 KZN225 - Msunduzi: ok
+  [90/110] EEID 1230 ETH - eThekwini: ok
+  [90/110] EEID 1230 MP303 - Mkhondo: ok
+  [90/110] EEID 1230 NW384 - Ditsobotla: ok
+  [91/110] EEID 1223 EC156 - Mhlontlo: ok
+  [91/110] EEID 1223 GT484 - Merafong City: ok
+  [91/110] EEID 1223 KZN212 - uMdoni: ok
+  [92/110] EEID 1209 MP303 - Mkhondo: ok
+  [92/110] EEID 1209 CPT - City of Cape Town: ok
+  [93/110] EEID 1216 LIM366 - Bela-Bela: ok
+  [94/110] EEID 1202 ETH - eThekwini: ok
+  [95/110] EEID 1193 EC157 - King Sabata Dalindyebo: ok
+  [96/110] EEID 1195 MP324 - Nkomazi: ok
+  [97/110] EEID 1179 KZN214 - uMuziwabantu: ok
+  [97/110] EEID 1179 CPT - City of Cape Town: ok
+  [98] EEID 1186: no national file
+  [99/110] EEID 1168 KZN282 - uMhlathuze: ok
+  [99/110] EEID 1168 WC052 - Prince Albert: ok
+  [100/110] EEID 1157 KZN285 - Mthonjaneni: ok
+  [100/110] EEID 1157 MP324 - Nkomazi: ok
+  [100/110] EEID 1157 NC091 - Sol Plaatje: ok
+  [101/110] EEID 1151 TSH - City of Tshwane: ok
+  [101/110] EEID 1151 KZN245 - uMvoti: ok
+  [101/110] EEID 1151 LIM368 - Modimolle-Mookgophong: ok
+  [102/110] EEID 1163 KZN212 - uMdoni: ok
+  [103/110] EEID 1145 NMA - Nelson Mandela Bay: ok
+  [103/110] EEID 1145 MP301 - Chief Albert Luthuli: ok
+  [103/110] EEID 1145 WC011 - Matzikama: ok
+  [104/110] EEID 1135 EC122 - Mnquma: ok
+  [105/110] EEID 1129 JHB - City of Johannesburg: ok
+  [105/110] EEID 1129 KZN245 - uMvoti: ok
+  [105/110] EEID 1129 MP316 - Dr JS Moroka: ok
+  [105/110] EEID 1129 NC074 - KAREEBERG: ok
+  [106/110] EEID 1124 NMA - Nelson Mandela Bay: ok
+  [106/110] EEID 1124 TSH - City of Tshwane: ok
+  [106/110] EEID 1124 NW383 - Mafikeng: ok
+  [107/110] EEID 1118 EC139 - Enoch Mgijima: ok
+  [107/110] EEID 1118 ETH - eThekwini: ok
+  [107/110] EEID 1118 NC094 - Phokwane: ok
+  [107/110] EEID 1118 WC022 - Witzenberg: ok
+  [108/110] EEID 1112 EC135 - Intsika Yethu: ok
+  [108/110] EEID 1112 MP304 - Dr Pixley Ka Isaka Seme: ok
+  [109/110] EEID 1107 KZN434 - uBuhlebezwe: ok
+  [109/110] EEID 1107 MP325 - Bushbuckridge: ok
+  [109/110] EEID 1107 NW403 - Matlosana: ok
+  [110/110] EEID 1102 ETH - eThekwini: ok
+  [110/110] EEID 1102 NC082 - KAI !GARIB: ok

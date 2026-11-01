@@ -1,0 +1,619 @@
+{
+ "draws": 5000,
+ "seed": 20261104,
+ "commit": "8b188754bffe9d4b81d39e37668cf89215c63df8",
+ "arms": [
+  "B",
+  "N",
+  "E"
+ ],
+ "mc_resamples": 200,
+ "mc_seed": 20261012,
+ "citywide_mix": {
+  "B": {
+   "registered": {
+    "Black African": 75.559,
+    "Coloured": 5.516,
+    "Indian/Asian": 5.017,
+    "White": 13.907
+   },
+   "voted": {
+    "Black African": 66.984,
+    "Coloured": 7.428,
+    "Indian/Asian": 5.527,
+    "White": 20.061
+   }
+  },
+  "N": {
+   "registered": {
+    "Black African": 76.143,
+    "Coloured": 5.596,
+    "Indian/Asian": 4.66,
+    "White": 13.6
+   },
+   "voted": {
+    "Black African": 67.547,
+    "Coloured": 7.537,
+    "Indian/Asian": 5.184,
+    "White": 19.731
+   }
+  },
+  "E": {
+   "registered": {
+    "Black African": 74.175,
+    "Coloured": 5.746,
+    "Indian/Asian": 5.22,
+    "White": 14.859
+   },
+   "voted": {
+    "Black African": 65.108,
+    "Coloured": 7.77,
+    "Indian/Asian": 5.334,
+    "White": 21.787
+   }
+  }
+ },
+ "per_arm": {
+  "B": {
+   "mean_seats": {
+    "ACDP": 1.909,
+    "AHC": 1.274,
+    "AIC": 1.066,
+    "ALJAMAAH": 2.679,
+    "ANC": 70.121,
+    "ASA": 29.295,
+    "ATM": 1.575,
+    "BOSA": 2.996,
+    "DA": 71.005,
+    "EFF": 27.687,
+    "IFP": 4.575,
+    "MK": 23.347,
+    "PA": 17.283,
+    "PAC": 0.964,
+    "RISE": 4.719,
+    "UNITED_AFRICANS_TRANSFORMATION": 0.586,
+    "VFPLUS": 2.481
+   },
+   "p5_p95": {
+    "ACDP": [
+     1.0,
+     5.0
+    ],
+    "AHC": [
+     0.0,
+     3.0
+    ],
+    "AIC": [
+     0.0,
+     3.0
+    ],
+    "ALJAMAAH": [
+     1.0,
+     7.0
+    ],
+    "ANC": [
+     50.0,
+     81.0
+    ],
+    "ASA": [
+     20.0,
+     41.0
+    ],
+    "ATM": [
+     0.0,
+     4.0
+    ],
+    "BOSA": [
+     0.0,
+     9.0
+    ],
+    "DA": [
+     55.0,
+     88.0
+    ],
+    "EFF": [
+     16.0,
+     44.0
+    ],
+    "IFP": [
+     1.0,
+     12.0
+    ],
+    "MK": [
+     6.0,
+     57.0
+    ],
+    "PA": [
+     6.0,
+     34.0
+    ],
+    "PAC": [
+     0.0,
+     2.0
+    ],
+    "RISE": [
+     1.0,
+     15.0
+    ],
+    "UNITED_AFRICANS_TRANSFORMATION": [
+     0.0,
+     2.0
+    ],
+    "VFPLUS": [
+     1.0,
+     6.0
+    ]
+   },
+   "p_largest_alone": {
+    "ANC": 0.4512,
+    "DA": 0.4668,
+    "EFF": 0.0024,
+    "MK": 0.0366,
+    "PA": 0.002,
+    "RISE": 0.0008
+   },
+   "p_tied_largest": 0.0402,
+   "p_majority_alone": 0.0004
+  },
+  "N": {
+   "mean_seats": {
+    "ACDP": 1.91,
+    "AHC": 1.275,
+    "AIC": 1.068,
+    "ALJAMAAH": 2.677,
+    "ANC": 70.115,
+    "ASA": 29.294,
+    "ATM": 1.574,
+    "BOSA": 2.998,
+    "DA": 71.004,
+    "EFF": 27.686,
+    "IFP": 4.576,
+    "MK": 23.348,
+    "PA": 17.288,
+    "PAC": 0.962,
+    "RISE": 4.72,
+    "UNITED_AFRICANS_TRANSFORMATION": 0.585,
+    "VFPLUS": 2.483
+   },
+   "p5_p95": {
+    "ACDP": [
+     1.0,
+     5.0
+    ],
+    "AHC": [
+     0.0,
+     3.0
+    ],
+    "AIC": [
+     0.0,
+     3.0
+    ],
+    "ALJAMAAH": [
+     1.0,
+     7.0
+    ],
+    "ANC": [
+     50.0,
+     81.0
+    ],
+    "ASA": [
+     20.0,
+     41.0
+    ],
+    "ATM": [
+     0.0,
+     4.0
+    ],
+    "BOSA": [
+     0.0,
+     9.0
+    ],
+    "DA": [
+     55.0,
+     87.05000000000018
+    ],
+    "EFF": [
+     16.0,
+     44.0
+    ],
+    "IFP": [
+     1.0,
+     12.0
+    ],
+    "MK": [
+     6.0,
+     57.0
+    ],
+    "PA": [
+     6.0,
+     34.0
+    ],
+    "PAC": [
+     0.0,
+     2.0
+    ],
+    "RISE": [
+     1.0,
+     15.0
+    ],
+    "UNITED_AFRICANS_TRANSFORMATION": [
+     0.0,
+     2.0
+    ],
+    "VFPLUS": [
+     1.0,
+     6.0
+    ]
+   },
+   "p_largest_alone": {
+    "ANC": 0.4508,
+    "DA": 0.4672,
+    "EFF": 0.0024,
+    "MK": 0.0366,
+    "PA": 0.0022,
+    "RISE": 0.0008
+   },
+   "p_tied_largest": 0.04,
+   "p_majority_alone": 0.0006
+  },
+  "E": {
+   "mean_seats": {
+    "ACDP": 1.909,
+    "AHC": 1.275,
+    "AIC": 1.067,
+    "ALJAMAAH": 2.677,
+    "ANC": 70.11,
+    "ASA": 29.301,
+    "ATM": 1.573,
+    "BOSA": 2.999,
+    "DA": 71.026,
+    "EFF": 27.682,
+    "IFP": 4.577,
+    "MK": 23.342,
+    "PA": 17.283,
+    "PAC": 0.965,
+    "RISE": 4.719,
+    "UNITED_AFRICANS_TRANSFORMATION": 0.587,
+    "VFPLUS": 2.477
+   },
+   "p5_p95": {
+    "ACDP": [
+     1.0,
+     5.0
+    ],
+    "AHC": [
+     0.0,
+     3.0
+    ],
+    "AIC": [
+     0.0,
+     3.0
+    ],
+    "ALJAMAAH": [
+     1.0,
+     6.050000000000182
+    ],
+    "ANC": [
+     50.0,
+     81.0
+    ],
+    "ASA": [
+     20.0,
+     41.0
+    ],
+    "ATM": [
+     0.0,
+     4.0
+    ],
+    "BOSA": [
+     0.0,
+     9.0
+    ],
+    "DA": [
+     54.0,
+     88.0
+    ],
+    "EFF": [
+     16.0,
+     44.0
+    ],
+    "IFP": [
+     1.0,
+     12.0
+    ],
+    "MK": [
+     6.0,
+     57.0
+    ],
+    "PA": [
+     6.0,
+     34.0
+    ],
+    "PAC": [
+     0.0,
+     2.0
+    ],
+    "RISE": [
+     1.0,
+     15.0
+    ],
+    "UNITED_AFRICANS_TRANSFORMATION": [
+     0.0,
+     2.0
+    ],
+    "VFPLUS": [
+     1.0,
+     6.0
+    ]
+   },
+   "p_largest_alone": {
+    "ANC": 0.4508,
+    "DA": 0.4672,
+    "EFF": 0.0026,
+    "MK": 0.035,
+    "PA": 0.002,
+    "RISE": 0.0008
+   },
+   "p_tied_largest": 0.0416,
+   "p_majority_alone": 0.0004
+  }
+ },
+ "delta": {
+  "N-B": {
+   "mean_seats": {
+    "ACDP": [
+     0.0,
+     0.001
+    ],
+    "AHC": [
+     0.001,
+     0.001
+    ],
+    "AIC": [
+     0.002,
+     0.001
+    ],
+    "ALJAMAAH": [
+     -0.001,
+     0.001
+    ],
+    "ANC": [
+     -0.006,
+     0.003
+    ],
+    "ASA": [
+     -0.001,
+     0.003
+    ],
+    "ATM": [
+     -0.001,
+     0.001
+    ],
+    "BOSA": [
+     0.002,
+     0.002
+    ],
+    "DA": [
+     -0.001,
+     0.004
+    ],
+    "EFF": [
+     -0.001,
+     0.002
+    ],
+    "IFP": [
+     0.001,
+     0.001
+    ],
+    "MK": [
+     0.001,
+     0.002
+    ],
+    "PA": [
+     0.005,
+     0.002
+    ],
+    "PAC": [
+     -0.001,
+     0.001
+    ],
+    "RISE": [
+     0.001,
+     0.001
+    ],
+    "UNITED_AFRICANS_TRANSFORMATION": [
+     -0.001,
+     0.001
+    ],
+    "VFPLUS": [
+     0.002,
+     0.002
+    ]
+   },
+   "max_abs_mean_seats": [
+    "ANC",
+    0.006
+   ],
+   "p_largest_alone": {
+    "ANC": [
+     -0.0004,
+     0.001
+    ],
+    "DA": [
+     0.0004,
+     0.0009
+    ],
+    "EFF": [
+     0.0,
+     0.0
+    ],
+    "MK": [
+     0.0,
+     0.0
+    ],
+    "PA": [
+     0.0002,
+     0.0002
+    ],
+    "RISE": [
+     0.0,
+     0.0
+    ]
+   },
+   "p_tied": -0.0002,
+   "favourite_changed": [],
+   "max_ward_prob_change_any_party": {
+    "ward": "10",
+    "index_plus_1": 10,
+    "party": "ANC",
+    "delta": -0.0016,
+    "se": 0.0007,
+    "B": 0.363,
+    "N": 0.3614,
+    "resampled_max_abs_mean_sd_50": [
+     0.0023,
+     0.0005
+    ]
+   },
+   "max_ward_prob_change_B_favourite": {
+    "ward": "9",
+    "index_plus_1": 9,
+    "party": "ALJAMAAH",
+    "delta": 0.0012
+   }
+  },
+  "E-B": {
+   "mean_seats": {
+    "ACDP": [
+     0.0,
+     0.003
+    ],
+    "AHC": [
+     0.001,
+     0.002
+    ],
+    "AIC": [
+     0.001,
+     0.002
+    ],
+    "ALJAMAAH": [
+     -0.001,
+     0.003
+    ],
+    "ANC": [
+     -0.011,
+     0.009
+    ],
+    "ASA": [
+     0.007,
+     0.007
+    ],
+    "ATM": [
+     -0.002,
+     0.002
+    ],
+    "BOSA": [
+     0.003,
+     0.003
+    ],
+    "DA": [
+     0.02,
+     0.024
+    ],
+    "EFF": [
+     -0.005,
+     0.006
+    ],
+    "IFP": [
+     0.003,
+     0.003
+    ],
+    "MK": [
+     -0.005,
+     0.006
+    ],
+    "PA": [
+     0.001,
+     0.005
+    ],
+    "PAC": [
+     0.001,
+     0.002
+    ],
+    "RISE": [
+     0.0,
+     0.003
+    ],
+    "UNITED_AFRICANS_TRANSFORMATION": [
+     0.001,
+     0.002
+    ],
+    "VFPLUS": [
+     -0.004,
+     0.004
+    ]
+   },
+   "max_abs_mean_seats": [
+    "DA",
+    0.02
+   ],
+   "p_largest_alone": {
+    "ANC": [
+     -0.0004,
+     0.0032
+    ],
+    "DA": [
+     0.0004,
+     0.0031
+    ],
+    "EFF": [
+     0.0002,
+     0.0003
+    ],
+    "MK": [
+     -0.0016,
+     0.0007
+    ],
+    "PA": [
+     0.0,
+     0.0
+    ],
+    "RISE": [
+     0.0,
+     0.0
+    ]
+   },
+   "p_tied": 0.0014,
+   "favourite_changed": [],
+   "max_ward_prob_change_any_party": {
+    "ward": "58",
+    "index_plus_1": 58,
+    "party": "DA",
+    "delta": 0.0124,
+    "se": 0.0028,
+    "B": 0.2082,
+    "E": 0.2206,
+    "resampled_max_abs_mean_sd_50": [
+     0.012,
+     0.0027
+    ]
+   },
+   "max_ward_prob_change_B_favourite": {
+    "ward": "58",
+    "index_plus_1": 58,
+    "party": "ANC",
+    "delta": -0.0104
+   }
+  }
+ },
+ "P4_absE_minus_absN": {
+  "DA": [
+   0.019,
+   0.019
+  ],
+  "ANC": [
+   0.005,
+   0.008
+  ]
+ }
+}

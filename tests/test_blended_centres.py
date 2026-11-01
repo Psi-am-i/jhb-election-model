@@ -17,7 +17,7 @@ one wins. The declared order, top to bottom:
 
     1. ``poll_levels``      a poll of this city, for a party with no record
     2. ``pool_seeds``       the arrival record's seed (the seeded baseline)
-    3. ``spine_level``      ``levels.spine`` — national and local, weighted
+    3. ``spine_level``      ``levels.spine`` — NPE and local, weighted
     4. ``theta_prior``      baseline × the θ mode
     5. ``AssertionError``   MODEL-LOG §1.52: no per-party fallback constant
 
@@ -97,7 +97,7 @@ import montecarlo as M  # noqa: E402
 # fixtures: every input is a literal, so every expected value is hand arithmetic
 # --------------------------------------------------------------------------
 
-BASE = 0.10          # the party's national baseline share
+BASE = 0.10          # the party's NPE baseline share
 
 # Four routes, four deliberately distinct answers for the SAME party, so that
 # whichever branch fired is readable straight off the returned number.
@@ -162,7 +162,7 @@ class _RecordingTrace:
 def test_a_poll_of_this_city_outranks_the_arrival_seed_for_the_same_party():
     """A polled arrival must take the poll's level, not the arrival record's.
 
-    Both routes are live for exactly one class of party — one with no national
+    Both routes are live for exactly one class of party — one with no NPE
     baseline, seeded by ``pools.arrival_rules`` and also named by a metro poll
     — and this pair is reachable on real data: ASA is seeded at 0.0685 in
     ``pools_2021.json`` and named in four polls in ``polls.json``. The source
@@ -199,7 +199,7 @@ def test_a_poll_of_this_city_outranks_the_spine():
 def test_a_poll_of_this_city_outranks_the_theta_prior():
     """A poll must beat baseline × θ-mode, the weakest of the four routes.
 
-    θ is a NATIONAL-to-local conversion factor. Applying it in preference to a
+    θ is an NPE-to-local conversion factor. Applying it in preference to a
     direct local reading is the ActionSA 2021 failure recorded at
     ``montecarlo.py:1046-1058``: a correct 11.07% local estimate multiplied by
     1.50 and delivered to the drawer at 16.61%.
@@ -213,7 +213,7 @@ def test_a_poll_of_this_city_outranks_the_theta_prior():
 def test_an_arrival_seed_outranks_the_spine():
     """A seeded arrival takes its seeded baseline.
 
-    The spine weighs a party's national route against its own last local
+    The spine weighs a party's NPE route against its own last local
     result. An arrival has neither record — that is what "arrival" means — so
     a spine level for it would be the common centre standing in for evidence
     that does not exist, while the seed IS the estimate the arrival record
@@ -231,7 +231,7 @@ def test_an_arrival_seed_outranks_the_theta_prior():
 
     ``montecarlo.py:1046-1058`` records what happened when the seed branch was
     absent and a seeded arrival fell through to ``theta_mode``: a LOCAL
-    estimate multiplied by a NATIONAL-to-local factor chosen with knowledge of
+    estimate multiplied by an NPE-to-local factor chosen with knowledge of
     what the party went on to do. The branch order is the fix; this test is
     what keeps it.
     """
@@ -245,7 +245,7 @@ def test_the_spine_outranks_the_theta_prior():
     """The spine must beat baseline × θ-mode wherever it has a level.
 
     ``montecarlo.py:1065-1070``: where the spine has a level *"it is the
-    answer: it already weighed the party's national route against its own last
+    answer: it already weighed the party's NPE route against its own last
     local result by how much θ evidence the party has, and returned the
     blend"*. The θ-only branch is for a party the spine cannot reach. Inverting
     this pair would throw away the local half of every party's evidence and
@@ -300,7 +300,7 @@ def test_a_party_with_a_baseline_and_no_route_at_all_raises_loudly():
             f"the no-route failure no longer names the routes it tried: {exc}")
     else:
         raise AssertionError(
-            "a party with a national baseline, no spine level, no theta prior "
+            "a party with an NPE baseline, no spine level, no theta prior "
             "and no arrival seed returned a level instead of raising")
 
 
@@ -345,7 +345,7 @@ def test_a_poll_level_for_a_party_outside_the_baseline_is_silently_discarded():
     ``for party, base in base_city.items()`` — so a ``poll_levels`` entry for a
     party that is not in ``base_city`` produces no centre, no note, no warning
     and no error. And ``run_model`` writes ``poll_levels`` for precisely the
-    parties with NO national baseline (``montecarlo.py:2830``: skip if
+    parties with NO NPE baseline (``montecarlo.py:2830``: skip if
     ``baseline_before_seeds.get(_party, 0.0) > 0``), which are in
     ``base_city_d`` only if the pool spec ALSO seeded them.
 
@@ -580,10 +580,10 @@ def test_the_by_election_clamp_is_relative_to_the_level_not_to_the_baseline():
 
     ``montecarlo.py:1119-1136`` records it: the spine put ActionSA at 15.2%
     from its own 2021 local result, the by-elections independently implied
-    18.7%, and a clamp computed as ``high × 5.99% national`` cut that to 7.5%
+    18.7%, and a clamp computed as ``high × 5.99% provincial-ballot share`` cut that to 7.5%
     and dragged the blended centre DOWN to 12.1%. Two pieces of evidence
-    agreeing the party is larger than its national share were overruled by a
-    bound derived from the national share.
+    agreeing the party is larger than its provincial-ballot share were overruled by a
+    bound derived from the provincial-ballot share.
 
     So the band is applied as a RELATIVE spread — ``low/mid`` and ``high/mid``
     — around whatever level the router settled on. Reconstructed here with the
@@ -604,11 +604,11 @@ def test_the_by_election_clamp_is_relative_to_the_level_not_to_the_baseline():
                         rel_tol=1e-12), (
         f"the clamp bound where it should have been slack: {centre}")
     assert centre > level, (
-        "two pieces of evidence agreeing the party is larger than its national "
-        "share were overruled by a bound derived from the national share — the "
+        "two pieces of evidence agreeing the party is larger than its provincial-ballot "
+        "share were overruled by a bound derived from the provincial-ballot share — the "
         "defect at montecarlo.py:1119-1136 is back")
     assert centre > 0.60 * level + 0.40 * (high * base), (
-        "the clamp is anchored on the national baseline again")
+        "the clamp is anchored on the NPE baseline again")
     assert "clamped" not in notes["X"], notes["X"]
 
 
@@ -639,8 +639,8 @@ def test_the_theta_band_is_divided_by_its_own_mode_before_it_clamps():
     ``montecarlo.py:1133-1135`` says why: the band is applied *"as a RELATIVE
     spread — low/mode and high/mode, which is what θ's dispersion actually
     measures — around whatever central level the spine settled on"*. θ's band
-    is a band on the NATIONAL route, so its absolute scale is a
-    national-to-local factor; only the RATIO to its own mode is dispersion.
+    is a band on the NPE route, so its absolute scale is a
+    NPE-to-local factor; only the RATIO to its own mode is dispersion.
 
     Dropping the ``/ mid`` is invisible to every other test in this file,
     because each of them uses a band whose mode is exactly 1.00 and ``x/1.0``
@@ -648,7 +648,7 @@ def test_the_theta_band_is_divided_by_its_own_mode_before_it_clamps():
     could be half or one-and-a-half times its central estimate, so a level of
     20% admits 10%–30%. Without the division the same band would licence 20%
     and 60% — a clamp that widens sixfold at the top because the θ SCALE is 2,
-    which is the national-share reasoning the ActionSA 2026 rewrite removed.
+    which is the provincial-ballot-share reasoning the ActionSA 2026 rewrite removed.
     Both ends are asserted, at ``w_bye`` 1.0 so the clamped value IS the centre.
     """
     band, level, anchor = (1.00, 2.00, 3.00), 0.20, 0.20
@@ -701,13 +701,13 @@ def test_the_clamp_band_is_scale_invariant_because_only_the_ratio_is_dispersion(
     replaced by the neutral value 1.0. The line still reads plausibly, nothing
     raises, and the clamp goes on clamping — but it stops being a spread
     RELATIVE to the party's own central θ and becomes an ABSOLUTE one, which is
-    the national-share reasoning the ActionSA 2026 rewrite
+    the provincial-ballot-share reasoning the ActionSA 2026 rewrite
     (``montecarlo.py:1176-1194``) exists to have removed.
 
     The test is an INVARIANT rather than a second hand-computed number, because
     the invariant is what the mechanism claims. θ is a ratio — a local share
-    over a national one — so the band ``(low, mid, high)`` carries two separable
-    things: a SCALE (roughly ``mid``, a national-to-local conversion factor) and
+    over a provincial-ballot one — so the band ``(low, mid, high)`` carries two separable
+    things: a SCALE (roughly ``mid``, an NPE-to-local conversion factor) and
     a DISPERSION (``low/mid`` and ``high/mid``). Only the second is a statement
     about how far the party might be from its own central estimate. Multiplying
     all three ends of the band by the same positive constant therefore changes
@@ -855,7 +855,7 @@ def test_a_zero_level_falls_back_to_the_baseline_as_the_clamp_anchor():
     A relative band around a level of zero is a band of zero width: the
     by-election evidence would be clamped to exactly 0.0 whatever it said, and
     a party the router placed at zero could never be moved off it by any
-    contest. The fallback to the national baseline is what stops that, and it
+    contest. The fallback to the NPE baseline is what stops that, and it
     is a branch nothing else exercises.
     """
     with _plan_bounds({}):
@@ -1310,7 +1310,7 @@ def test_a_party_with_no_record_is_not_moved_by_its_by_elections():
     assert on_r["N"] != off_r["N"], (on_r["N"], off_r["N"])
     # each clause on its own: a previous ward share is a record (the ward-only
     # skip downstream then holds the centre, but the weight is not "no
-    # record"); and the MK case, a national share with no local vote at all
+    # record"); and the MK case, a provincial-ballot share with no local vote at all
     # (θ prior, no seed, no PR share), keeps its weight
     scenario = _scenario(w_bye=0.5, pool_seeds={"N": 0.01},
                          spine_level={"K": 0.10}, theta_prior={"K": THETA_PRIOR},

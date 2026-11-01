@@ -8,7 +8,7 @@ them differently on purpose:
   printed ready to paste. Never type them: Johannesburg's council was 260
   in 2011 and 270 since, so even a single city has no constant.
 
-* **Judgements** — θ ranges, national-to-local shift
+* **Judgements** — θ ranges, NPE-to-local shift
   ranges, which parties get their own dial. These cannot be derived, only
   *informed*. The script measures each party's observed NPE→LGE retention
   across the city's own transitions and prints a proposal with the evidence
@@ -125,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  {tail:6.1%}  (residual tail -> OTHER)")
 
     print("\n=== judgements: PROPOSALS ONLY — a human decides ===")
-    print("  θ ranges and the national-to-local shift ranges")
+    print("  θ ranges and the NPE-to-local shift ranges")
     print("  cannot be derived from one election. Measure them against this")
     print("  city's own NPE→LGE transitions before accepting anything, and")
     print("  record the evidence in the config's *_note fields.\n")

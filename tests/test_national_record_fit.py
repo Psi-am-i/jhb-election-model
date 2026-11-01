@@ -1,18 +1,18 @@
-"""A PARTY ABSENT FROM THE FITTING ELECTION BUT WITH ITS OWN NATIONAL RECORD IS
+"""A PARTY ABSENT FROM THE FITTING ELECTION BUT WITH ITS OWN NPE RECORD IS
 FITTED ON THAT RECORD, NOT INHERITED (owner, 2026-10-15, "option A";
 JUDGEMENT-CALLS §F6 and §SJ1, MODEL-LOG §1.307).
 
 `pools.place_vectorless` chooses the pool vector for every party with no vector
-from the fitting (local) election. Precedence: its own national fit when that
+from the fitting (local) election. Precedence: its own NPE fit when that
 fit identifies a pool > judged `weights` > the splinter blend (`parent_weight`
 or `SPLINTER_PARENT_WEIGHT`) > the city mix.
 
 * CONSTRUCTED: the fits are built here from chosen rates and intervals, so the
   premise cannot expire with the data.
 * IT CAN SEE: `test_the_detector_sees_the_national_path_disabled` disables the
-  national path and the fitted-vector check goes red; restored, green.
+  NPE path and the fitted-vector check goes red; restored, green.
 * The NPE reader is tested on a constructed file with no BallotType column and
-  blank wards, the 2019/2024 layout that made a national fit impossible.
+  blank wards, the 2019/2024 layout that made an NPE fit impossible.
 * One live check (labelled): MK's Johannesburg 2024 fit is identified, so the
   §SJ1 `parent_weight` is not what places MK in the 2026 spec.
 """
@@ -107,13 +107,13 @@ def test_no_national_election_falls_back_and_says_why():
     vec, note, fitted, refused = _place({}, None, nat_available=False)
     assert fitted is None and np.allclose(vec, CITY_MIX)
     assert refused == "fixture 2024" and "(not fitted: fixture 2024)" in note
-    # a party with no national record at all is not "refused": nothing to fit
+    # a party with no NPE record at all is not "refused": nothing to fit
     vec, note, fitted, refused = _place({}, None, national=0.0)
     assert refused is None and "not fitted" not in note
 
 
 def test_the_detector_sees_the_national_path_disabled():
-    """Mutation: the national path returns nothing. Red; restored, green."""
+    """Mutation: the NPE path returns nothing. Red; restored, green."""
     real = pools.vector_from_own_record
     pools.vector_from_own_record = lambda fit, pool_votes: (None, [])
     try:
@@ -174,7 +174,7 @@ def test_the_party_table_reads_the_national_layout():
 
 
 def test_live_mk_2024_fit_is_identified_so_sj1_is_not_read():
-    """LIVE (observed, not constructed): Johannesburg's 2024 national fit
+    """LIVE (observed, not constructed): Johannesburg's 2024 NPE fit
     identifies MK, so `place_vectorless` places MK by its fit and the §SJ1
     `parent_weight` (still on the sheet, `test_splinter_parent_weight`) is
     superseded. If this goes red, the 2026 spec is back on the 0.9 blend."""

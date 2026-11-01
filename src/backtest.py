@@ -321,7 +321,7 @@ FITTED_ON: dict[str, tuple[tuple[str, ...], str]] = {
         "file. Nomination lists are public before polling day; no vote is "
         "read"),
     # No years, for the same reason as `contestation` and with the same
-    # obligation to say so. `levels.spine` weighs a party's national route
+    # obligation to say so. `levels.spine` weighs a party's NPE route
     # against its own previous local result; both records are filtered to
     # elections strictly before the target inside `theta_record` and
     # `local_record`, and the blend weight k is a single constant fitted by
@@ -1121,7 +1121,7 @@ def actual_result(path: Path, council: int, year: int | None = None,
 def arrival_baseline(target, data_dir: Path) -> dict[str, float] | None:
     """**THE ONE DEFINITION OF "HAS A BASELINE" IN THIS REPOSITORY.**
 
-    The preceding national election's citywide shares, filtered to shares above
+    The preceding NPE's citywide provincial-ballot shares, filtered to shares above
     zero. A party absent from what this returns "arrived from nothing"; a party
     present in it did not. That is `pools.ARRIVAL_DEFINITIONS
     ["ARRIVED_VS_NATIONAL"]` — *"local share > 0 and preceding-NPE share <= 0,
@@ -1135,7 +1135,7 @@ def arrival_baseline(target, data_dir: Path) -> dict[str, float] | None:
 
       * ``compare_history._actual_seats`` passed ``{p: 1.0 for p in run.index}``
         — **the model's whole fitted universe**, so a party the pool fit had
-        handed a vector to was not an arrival even with no national record at
+        handed a vector to was not an arrival even with no NPE record at
         all. Not a registered definition, and the only one of the three whose
         answer depends on the model rather than on the world.
       * ``diagnose`` and ``backtest.main`` passed ``citywide(...)`` of the

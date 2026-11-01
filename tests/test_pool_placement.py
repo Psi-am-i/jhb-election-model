@@ -1,4 +1,4 @@
-"""A party with no national geography is placed by its pool vector, and the
+"""A party with no NPE geography is placed by its pool vector, and the
 placement survives to ``dev``.
 
 ``montecarlo.place_by_pool`` wrote ``max(place * base_city, SHARE_FLOOR)`` and
@@ -73,7 +73,7 @@ def test_a_party_with_a_national_record_is_unchanged():
     base = np.array([0.1, 0.0015, 0.0008])
     old = M.logit(local) - M.logit(base)[None, :]
     new = M.placement_deviation(local, base, [], LEVEL)
-    assert np.array_equal(old, new), "a national-record column moved"
+    assert np.array_equal(old, new), "an NPE-record column moved"
     mixed = M.placement_deviation(local, base, [2], LEVEL)
     assert np.array_equal(old[:, :2], mixed[:, :2]), \
         "pool-placing one party moved another party's column"

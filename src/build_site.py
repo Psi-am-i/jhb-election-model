@@ -51,6 +51,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 #: The source code's home, linked from the nav and the footer.
 REPO_URL = "https://github.com/Psi-am-i/jhb-election-model"
 
+#: /freeze/<served name> -> the repository file it is copied from, verbatim.
+#: The forecast is the tracked freeze (`src/freeze.py`, 5,000 draws, MODEL-LOG
+#: §1.342); the other three were recorded on 2026-10-31 (§1.341).
+FREEZE_FILES = {
+    "forecast_frozen.json": "data/processed/forecast_frozen.json",
+    "inputs.json": "audits/2026-10-31-freeze-publication/inputs.json",
+    "preflight.txt": "audits/2026-10-31-freeze-publication/preflight-strict.txt",
+    "scoring.json": "audits/2026-10-31-freeze-publication/scoring-lock.json",
+}
+
 import build_your_forecast  # noqa: E402  (the interactive page's address, below)
 
 #: The nav, in the owner's order (sweep of 2026-10-03, item 9; "party
@@ -2489,6 +2499,14 @@ def main(argv: list[str] | None = None) -> int:
         for line in group_share_lines(
                 json.loads(_summary_path.read_text(encoding="utf-8"))):
             print(line)
+    # The frozen forecast and the scoring lock, served as they are under
+    # /freeze/ (owner, 2026-10-31; MODEL-LOG §1.341-1.343). Copied byte for
+    # byte so a reader's sha256 of the served file equals the repository's.
+    if city == "joburg":
+        (args.out / "freeze").mkdir(exist_ok=True)
+        for served, src in FREEZE_FILES.items():
+            shutil.copyfile(REPO_ROOT / src, args.out / "freeze" / served)
+        print(f"  wrote    freeze/ ({len(FREEZE_FILES)} file(s), copied verbatim)")
     missing = [r for r in ("deduct", "expand", "level", "cap") if r not in regimes]
     (args.out / "regimes.json").write_text(
         json.dumps({"rules": regimes, "missing": missing,

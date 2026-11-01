@@ -1207,7 +1207,7 @@ def test_a_real_run_produces_a_trace_that_passes_every_predicate():
     roster = stages["03_roster"]
     assert roster["state"] == "published" and roster["size"] > 0, roster
     # ⚠️ THE RATIO IS NOT BOUNDED BY 1. `dropped` counts parties in the 2019
-    # NATIONAL baseline that did not stand locally; `size` counts parties on
+    # NPE baseline that did not stand locally; `size` counts parties on
     # the 2021 LOCAL ballot. They are different populations, and across the
     # panel the ratio runs from 0.15 (Cape Town 2011) to 1.00 (Buffalo City
     # 2011). Johannesburg 2021 is 13/57. The band is wide because the quantity

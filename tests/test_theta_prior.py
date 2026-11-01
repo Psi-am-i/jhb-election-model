@@ -2,7 +2,7 @@
 
 ``theta_prior(target, baseline) -> (priors, groups)`` is the retention layer:
 per party a ``(low, mode, high)`` on θ, the ratio of a local share to the
-national share before it, plus a diagnostic block. It has existed for the whole
+provincial-ballot share at the NPE before it, plus a diagnostic block. It has existed for the whole
 life of this model with **no test on what it returns**. Two files call it —
 ``tests/test_drawer.py:418`` and ``tests/test_ipf_feasibility.py:133`` — and
 both use it only as a FIXTURE, to build a scenario for something else.
@@ -190,11 +190,11 @@ def _real_target(year: str = "2021"):
 
 
 def _real_baseline(year: str = "2021", code: str = "JHB") -> dict[str, float]:
-    """The preceding national election's citywide shares, off disk."""
+    """The preceding NPE's citywide provincial-ballot shares, off disk."""
     npe = cityconfig.preceding(year, "NPE")
     template = cityconfig.CALENDAR[npe].results if npe else None
     if not template:
-        skip(f"no national election before {year} in the calendar")
+        skip(f"no NPE before {year} in the calendar")
     base = levels._citywide(
         "data/raw/elections/" + template.replace("{CODE}", code))
     if not base:
@@ -209,7 +209,7 @@ def _real_baseline(year: str = "2021", code: str = "JHB") -> dict[str, float]:
 def test_a_party_with_no_record_of_its_own_sits_exactly_on_the_size_centre():
     """The party the shrinkage cannot help lands on ``centre(size)`` and nothing else.
 
-    If this fails, a party facing its first local election with a national vote
+    If this fails, a party facing its first local election with an NPE vote
     to convert — MK at 2026 is the live one — is being handed some other
     number: the flat common mean, a typed constant, or its own absent record.
     The expected value is arithmetic on a record this file built, where every
@@ -224,7 +224,7 @@ def test_a_party_with_no_record_of_its_own_sits_exactly_on_the_size_centre():
     assert len(calls) == 1, "theta_prior no longer reads levels.theta_record"
 
     assert "NOHIST" in priors, (
-        "a party with a national baseline and no retention record got no θ "
+        "a party with an NPE baseline and no retention record got no θ "
         "prior at all; `montecarlo.blended_centres` would fall through to the "
         "AssertionError at montecarlo.py:1096")
     assert abs(priors["NOHIST"][1] - _line(0.05)) < 1e-9, (
@@ -325,7 +325,7 @@ def test_shrinkage_is_keyed_on_what_the_record_is_worth_not_on_how_many_rows():
     """Three ratios measured off 0.02% of the vote are three WEAK statements.
 
     Two parties, three observations each, identical claims — one measured off
-    10% of the national vote, one off 0.02%. The second must end up on the
+    10% of the provincial-ballot vote, one off 0.02%. The second must end up on the
     group centre and the first must not. This is the whole reason the 0.2% hard
     cut was replaced by a continuous reliability weight (``theta_record``): the
     cut was right about the NUMBER and wrong about the PARTY, and dropping the
@@ -829,7 +829,7 @@ def test_group_membership_is_total_and_deterministic_over_the_baseline():
     """Every baseline party gets exactly one prior and one width, twice running.
 
     Totality: ``montecarlo.blended_centres`` raises an ``AssertionError`` for a
-    party with a national baseline and no spine level, no seed and no θ prior
+    party with an NPE baseline and no spine level, no seed and no θ prior
     (montecarlo.py:1096) — a party silently dropped here is a crash there, or
     worse, a party quietly priced by whatever answers first.
 
@@ -901,10 +901,10 @@ def test_a_party_in_the_record_but_absent_from_the_baseline_is_priced_at_size_ze
     """FINDING. The function's own comment says this party "is not here and cannot be".
 
     ``theta_prior``'s PATH TWO comment: *"a party with NO baseline at all is
-    not here and cannot be: θ converts a national share into a local one and
-    there is no national share to convert."* The loop iterates
+    not here and cannot be: θ converts a provincial-ballot share into a local one and
+    there is no provincial-ballot share to convert."* The loop iterates
     ``set(record) | set(baseline)``, so it IS here — 20 of the 56 parties
-    priced at Johannesburg 2021 are in the record and not in the 2019 national
+    priced at Johannesburg 2021 are in the record and not in the 2019 NPE
     result.
 
     Each is priced at ``baseline.get(party, 0.0)`` — absence read as the
@@ -927,7 +927,7 @@ def test_a_party_in_the_record_but_absent_from_the_baseline_is_priced_at_size_ze
     assert len(calls) == 1
 
     assert "GONE_NATIONAL" in priors, (
-        "a party with a record and no national baseline is no longer priced. "
+        "a party with a record and no NPE baseline is no longer priced. "
         "That matches the PATH TWO comment and is very likely right — record "
         "the change, and delete this test.")
     widest = max(groups["sd"].values())
@@ -944,7 +944,7 @@ def test_a_party_in_the_record_but_absent_from_the_baseline_is_priced_at_size_ze
     real, real_groups = levels.theta_prior(_real_target("2021"), baseline_2021)
     orphans = sorted(set(real) - set(baseline_2021))
     assert orphans, (
-        "no party is priced without a national baseline at 2021 any more — "
+        "no party is priced without an NPE baseline at 2021 any more — "
         "the code now agrees with its PATH TWO comment; delete this test")
     at_ceiling = [p for p in orphans
                   if real_groups["sd"][p] == levels.SD_CEILING]
@@ -987,7 +987,7 @@ def test_a_party_missing_from_the_baseline_is_dropped_from_the_dispersion_fit():
     ``baseline.get(party, 0.0) <= 0``. Below six surviving rows the function
     switches to a completely different estimator — one pooled sd for the whole
     ballot, with no size gradient at all — and reports nothing. The switch is
-    driven by how many recorded parties happen to appear in the national
+    driven by how many recorded parties happen to appear in the NPE
     result, which is a property of the ARCHIVE, not a modelling choice.
 
     Constructed here at the boundary: the same record fitted with a full
@@ -1078,7 +1078,7 @@ def test_only_observations_from_a_similar_size_enter_a_partys_own_mean():
         assert abs(worth[party] - sum(rel)) < 1e-9, party
         assert abs(got[party] - (weight * own + (1 - weight) * target)) < 1e-9, party
         checked += 1
-    # It looked: the parties with a 2021 national share and a θ record.
+    # It looked: the parties with a 2021 NPE share and a θ record.
     expected = sum(1 for party in real
                    if float(baseline_2021.get(party, 0.0) or 0.0) > 0.0)
     assert checked == expected and checked >= 10, (checked, expected)
