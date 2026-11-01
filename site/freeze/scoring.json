@@ -1,0 +1,41 @@
+{
+ "commit": "28ceae36b1b18546a3510e826456118953925043",
+ "files": [
+  {
+   "path": "src/score_forecasts.py",
+   "sha256": "970130c9e0569f88a4b2482acb5576eee4a604e52c3abc9a2ac153378b894311"
+  },
+  {
+   "path": "src/rank_entries.py",
+   "sha256": "8466951256f7da4fa81f179e0a69eeb31ec0fa48c960767b187b17ce9e1fd1d8"
+  },
+  {
+   "path": "src/reader_seats.py",
+   "sha256": "3c1a8d30fa1b89f8202ee47d7be8a3b5b980b359d685ed1a57418f5ccf0352d7"
+  },
+  {
+   "path": "src/seats.py",
+   "sha256": "45b09ceb7fa9a0cd5c4e157278b55c463234cb15dd15f12a4d8260774d937653"
+  },
+  {
+   "path": "src/prediction.py",
+   "sha256": "17ff16b5108780c7cbff1ecee0b3452ab72f5cc7b312c0d86f408fff723c88df"
+  },
+  {
+   "path": "src/parties.py",
+   "sha256": "29743d4a2392ae15cf5311875ee08c78cf86daa193fd7dc87c05ac048c30efb2"
+  },
+  {
+   "path": "src/official_seats.py",
+   "sha256": "17bd794018d4ea2a7f4f235d49c588b2611f1b69d8e5d0551c50c6f6e3f298e7"
+  },
+  {
+   "path": "judgements/joburg-2026.toml",
+   "sha256": "5bb737c7cf97ebaf10b71b1bd0558c42938e77b7ef794b6cdd9fd22bcfad6ba8"
+  },
+  {
+   "path": "judgements/joburg-2026-result-aliases.json",
+   "sha256": "7376d28be8c583afb3f9a0807821ab867d3a60c8a4588355c902d2b9b890b381"
+  }
+ ]
+}

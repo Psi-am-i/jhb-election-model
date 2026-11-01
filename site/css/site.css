@@ -127,7 +127,8 @@ body:where(.pg-doc){background:var(--paper);color:var(--ink-2);font-family:var(-
 :where(.pg-doc) hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
 :where(.pg-doc) a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
 :where(.pg-doc) code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
-    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
+    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;
+    overflow-wrap:anywhere;}
 :where(.pg-doc) pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
     padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
 :where(.pg-doc) pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}

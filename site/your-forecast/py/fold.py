@@ -1,4 +1,4 @@
-"""Backtest a national/provincial baseline against a local-government target (plan §4).
+"""Backtest an NPE baseline (provincial ballot) against a local-government target (plan §4).
 
 Implements the share sub-model of §3.4(b) and scores it by §4.2's metrics.
 

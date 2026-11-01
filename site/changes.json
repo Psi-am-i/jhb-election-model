@@ -7133,9 +7133,9 @@
     "draws": 5000,
     "forecast_content_sha256": "ad6ca1dd1e526113e4b991f4e2359552156773a351d4b88bb33cdd98520858e9",
     "forecast_summary_sha256": "4492e81cb9008ab8e5ce85d60b6f287f4ac469954c3285932772a4c6d550176c",
-    "git_commit": "d7699945e49143555451c1c1a54ab1bcf68d519a",
+    "git_commit": "4409d0e51acdef802a2ff9de220a6a6f3215f390",
     "git_dirty": true,
-    "model_run_id": "r-ad6ca1dd1e52-d7699945-dirty",
+    "model_run_id": "r-ad6ca1dd1e52-4409d0e5-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "9328df1260c85faf",

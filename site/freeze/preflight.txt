@@ -1,0 +1,31 @@
+inputs for a joburg 2026 forecast
+
+  [   ok  ] 2026 voting districts
+            have: vds2026_JHB.geojson
+            from: MDB FeatureServer
+  [   ok  ] 2026 wards
+            have: wards2026_JHB.geojson
+            from: MDB FeatureServer
+  [   ok  ] 2026 split voting districts
+            have: 1059 VD-ward rows for 865 VDs (194 split)
+            from: the boundary file itself
+            do:   join through montecarlo.ward_parts, never on WardID directly — a naive join gives one ward the whole roll of every split VD
+  [MISSING] 2026 voters' roll (registration)
+            have: iec-registration-2026-09-26, 35 days old
+            from: elections.org.za/pw/StatsData/Voter-Registration-Statistics
+            do:   province -> municipality in a BROWSER (the selector will not drive over plain HTTP), page the ward table, commit it as archive/iec-registration-<date>/joburg_ward_registration_<date>.csv — that page keeps no archive
+  [   ok  ] national baseline
+            have: 6 file(s) carrying registration, newest npe2024_JHB_vd_party.csv
+            from: IEC downloadable party results, per VD
+  [   ok  ] local baseline
+            have: 5 file(s) carrying registration, newest lge2021_JHB_vd_party_clean.csv
+            from: IEC downloadable party results, per VD
+  [   ok  ] 2026 certified party roster
+            have: 82 parties, complete=True
+            from: IEC certified candidate lists
+  [   ok  ] 2026 certified PR lists
+            have: 75 parties with a PR list
+            from: IEC certified candidate lists (PR rows: `Ward \ List Order` a small integer; SOURCES.md)
+
+1 required input(s) missing, stale or not used: 2026 voters' roll (registration)
+A forecast run will NOT fail because of these. That is the point of this check: each of them has a silent fallback.
