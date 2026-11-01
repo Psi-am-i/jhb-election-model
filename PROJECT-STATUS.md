@@ -1,14 +1,14 @@
 # jhb-election-model — status
 
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-01
 
 | | |
 |---|---|
 | Live site | joburg.whysoserious.city, Worker version c16de7df (2026-10-25); forecast frozen 2026-10-24 (MODEL-LOG §1.336) |
-| Branch | `site-sweep-1`, pushed to `hub` |
+| Branch | `site-sweep-1`, pushed to `hub` and `origin` (GitHub) 2026-11-01 after a secrets/personal-data scan of the unpushed commits (MODEL-LOG §1.343) |
 | Done since 10-25 | folder renamed (10-27); data plan "now" row (c3b84805): collection ledger, roll check, turnout trace, by-election fetch, provincial-ballot labels; DATA-QUALITY 22-23; Census 2011/2001 by ward collected (1ecf6691); census-mix seat arms, MODEL-LOG §1.339-1.340 |
-| Due 31 Oct | publish the freeze hash, the input list and the preflight output (in progress) |
-| Due before 4 Nov | lock the forecast-scoring rule: the four IEC-spelling aliases, then publish the scoring code's hash (in progress) |
+| Freeze hash on the site | built (dd32f1c9) and uploaded as UAT version 9d717d5b (https://9d717d5b-joburg-whysoserious.psi-02e.workers.dev/methodology#the-frozen-forecast), checked there. **Owner: promote** with `env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy 9d717d5b-9873-4c19-b654-aa640b610ea3@100%` (MODEL-LOG §1.343) |
+| Scoring rule | locked at 28ceae36 (four IEC-spelling aliases, rechecked against the certified list 2026-11-01); its hashes are `/freeze/scoring.json`, live once the UAT version is promoted |
 | Open | stop gap (`rounds/2026-10-23-out-of-sample/stopgap/`: spec, draft prereg, pollster review; changes 1-7 to apply, owner questions); 27 outreach drafts still carry the withdrawn backtest paragraph; after 4 Nov: score the frozen forecast, pool re-fit, out-of-sample steps 1-3 |
 
 Detail: `HANDOVER.md` (current state), `TODO.md`, `OWNER-DECISIONS.md`.

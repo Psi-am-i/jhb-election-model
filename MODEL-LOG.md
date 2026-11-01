@@ -31508,3 +31508,35 @@ the scoring-rule hashes: `audits/2026-10-31-freeze-publication/`.
 Owner's instruction. Written by `PYTHONHASHSEED=0 src/freeze.py --draws 5000`
 on clean commit d78a2d97: `content_sha256` `10bdccc0…` as in §1.341.
 `test_freeze` 7 passed, `test_provenance_gates` 11 passed (partial run).
+
+## 1.343 The freeze hash, inputs, preflight and scoring lock on /methodology: UAT version 9d717d5b, promotion pending (2026-11-01)
+
+The page section and the `/freeze/` files were built in dd32f1c9
+(`build_site.py --as-published`; no ledger row; 347 tokens, 0 moved) and
+uploaded as Worker version `9d717d5b-9873-4c19-b654-aa640b610ea3`,
+https://9d717d5b-joburg-whysoserious.psi-02e.workers.dev. Checked there: the
+methodology page carries the hash, and each of the four `/freeze/` files is
+served with the repository file's sha256. Live (version `c16de7df…`, the
+rollback target) does not carry them until the owner promotes:
+`env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy 9d717d5b-9873-4c19-b654-aa640b610ea3@100%`.
+
+What each identifier on the page covers:
+
+| identifier | covers |
+|---|---|
+| `10bdccc05423b0db38b0a52aeb8d6bd192539442e75da113ee07bc224ebc7c4a` | the `content_sha256` field of `/freeze/forecast_frozen.json` (= `data/processed/forecast_frozen.json`): canonical JSON of its `content` block, 5,000 draws (§1.341–1.342); recomputed 2026-11-01 from the file |
+| `30203af2b3d514bb…` | the bytes of that file (includes `provenance`); not on the page |
+| `ad6ca1dd1e526113…` | `forecast_summary.json` without `_` stamps (`publication.forecast_content_sha`), in `changes.json` |
+| `e1b960fb…` | the 1,500-draw freeze of §1.336, at 024f873; describes no published forecast |
+| `/freeze/scoring.json` | sha256 of the nine scoring files at 28ceae36; all nine unchanged at dd32f1c9 |
+
+Rechecked 2026-11-01: the 151 files in `inputs.json` match disk; the IEC
+certified Gauteng list's 82 Johannesburg party strings fail `name_map`
+against the roster in exactly four places (MK, VF Plus, Organic Humanity,
+CHANGE) and map in full with `joburg-2026-result-aliases.json`.
+
+Before pushing to GitHub, the 14 commits not on `origin/site-sweep-1` were
+scanned (added lines; secret, key and token patterns, SA ID numbers with a
+valid date and Luhn check, SA phone numbers, email addresses): no hits. The
+same scan over the whole branch history finds only commits already on the
+public repository.
