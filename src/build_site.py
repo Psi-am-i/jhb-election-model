@@ -325,7 +325,8 @@ MODEL_DOCS = {
         "corrections.html",
         "Corrections",
         "",
-        None,
+        # no CORRECTIONS.md exists; the record of the errors is the log
+        "MODEL-LOG.md",
         "Errors on the site's published pages: what was wrong and what changed.",
     ),
     "docs-public/methodology.md": (
@@ -333,6 +334,9 @@ MODEL_DOCS = {
         "Methodology",
         "This page explains how the council is elected, how the simulation "
         "runs and what has been tested.",
+        # METHODOLOGY.md was archived as superseded (210a8ae0); every
+        # calculation and where its numbers come from is MACHINERY.md
+        "MACHINERY.md",
     ),
     # /about is not a page of its own since the owner's sweep of 2026-10-03
     # (item 12): its scoring, generated into docs-public/about-the-model.md
@@ -1202,6 +1206,12 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
                 "This Model or its record.")
     elif str(source).startswith("docs-public/"):
         tech = tech or source.name.replace(".md", "").upper() + ".md"
+        # A footer link to a file the repository does not hold is a 404 on
+        # GitHub (METHODOLOGY.md, CORRECTIONS.md until 2026-11-01): refuse it.
+        if not (REPO_ROOT / tech).exists():
+            raise SystemExit(f"{source}: its footer links to {tech}, which is "
+                             f"not in the repository; give MODEL_DOCS the "
+                             f"record it should name (4th slot)")
         note = (f"Reader edition, {date.today().isoformat()}. The full "
                 f"technical record, with "
                 f"every URL, identifier and workaround, is "
